@@ -1,0 +1,203 @@
+{
+ "charts": [
+  {
+   "chart_name": "Students by Class"
+  },
+  {
+   "chart_name": "Students by House"
+  },
+  {
+   "chart_name": "Students by Section"
+  }
+ ],
+ "content": "[{\"id\": \"aa1bb2cc3d\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>\\ud83c\\udf93 School Management</b></span>\", \"col\": 12}}, {\"id\": \"aa1bb2cc3e\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Students\", \"col\": 2}}, {\"id\": \"aa1bb2cc3f\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Student Class\", \"col\": 2}}, {\"id\": \"aa1bb2cc3g\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Section\", \"col\": 2}}, {\"id\": \"aa1bb2cc3h\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"House\", \"col\": 2}}, {\"id\": \"aa1bb2cc3i\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Academic Year\", \"col\": 2}}, {\"id\": \"aa1bb2cc3j\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Term\", \"col\": 2}}, {\"id\": \"aa1bb2cc3k\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"aa1bb2cc3l\", \"type\": \"card\", \"data\": {\"card_name\": \"Students\", \"col\": 4}}, {\"id\": \"aa1bb2cc3m\", \"type\": \"card\", \"data\": {\"card_name\": \"Setup\", \"col\": 4}}, {\"id\": \"aa1bb2cc3n\", \"type\": \"card\", \"data\": {\"card_name\": \"Academic\", \"col\": 4}}, {\"id\": \"aa1bb2cc3o\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"aa1bb2cc3p\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by Class\", \"col\": 6}}, {\"id\": \"aa1bb2cc3q\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by House\", \"col\": 6}}, {\"id\": \"aa1bb2cc3r\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by Section\", \"col\": 12}}]",
+ "creation": "2026-02-28 11:15:11.833132",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "hide_custom": 0,
+ "icon": "graduation-cap",
+ "idx": 0,
+ "indicator_color": "green",
+ "is_hidden": 0,
+ "label": "School Management",
+ "links": [
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Students",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Student",
+   "link_count": 0,
+   "link_to": "Student",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Setup",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Student Class",
+   "link_count": 0,
+   "link_to": "Student Class",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Section",
+   "link_count": 0,
+   "link_to": "Section",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "House",
+   "link_count": 0,
+   "link_to": "House",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Academic",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Academic Year",
+   "link_count": 0,
+   "link_to": "Academic Year",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Term",
+   "link_count": 0,
+   "link_to": "Term",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Fees",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Fees Structure",
+   "link_count": 0,
+   "link_to": "Fees Structure",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Billing",
+   "link_count": 0,
+   "link_to": "Billing",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-02-28 12:55:36.984064",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "School Management",
+ "number_cards": [],
+ "owner": "Administrator",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0.0,
+ "shortcuts": [
+  {
+   "color": "#4CAF50",
+   "doc_view": "",
+   "icon": "\ud83d\udc68\u200d\ud83c\udf93",
+   "label": "Students",
+   "link_to": "Student",
+   "type": "DocType"
+  },
+  {
+   "color": "#2196F3",
+   "doc_view": "",
+   "icon": "\ud83c\udfeb",
+   "label": "Student Class",
+   "link_to": "Student Class",
+   "type": "DocType"
+  },
+  {
+   "color": "#FF9800",
+   "doc_view": "",
+   "icon": "\ud83d\udcda",
+   "label": "Section",
+   "link_to": "Section",
+   "type": "DocType"
+  },
+  {
+   "color": "#E91E63",
+   "doc_view": "",
+   "icon": "\ud83c\udfe0",
+   "label": "House",
+   "link_to": "House",
+   "type": "DocType"
+  },
+  {
+   "color": "#9C27B0",
+   "doc_view": "",
+   "icon": "\ud83d\udcc5",
+   "label": "Academic Year",
+   "link_to": "Academic Year",
+   "type": "DocType"
+  },
+  {
+   "color": "#00BCD4",
+   "doc_view": "",
+   "icon": "\u23f0",
+   "label": "Term",
+   "link_to": "Term",
+   "type": "DocType"
+  }
+ ],
+ "title": "School Management"
+}
