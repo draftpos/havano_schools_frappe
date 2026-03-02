@@ -40,7 +40,6 @@
   {
    "fieldname": "cost_center",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Cost Center",
    "options": "Cost Center",
    "reqd": 1
@@ -48,7 +47,6 @@
   {
    "fieldname": "project",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Project",
    "options": "Project"
   },
@@ -80,6 +78,7 @@
   {
    "fieldname": "fees_structure",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Fees Structure",
    "options": "Fees Structure",
    "reqd": 1
@@ -99,6 +98,7 @@
    "bold": 1,
    "fieldname": "total_amount",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Total Amount",
    "read_only": 1
   },
@@ -117,7 +117,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-02-28 14:06:41.415999",
+ "modified": "2026-03-02 10:10:18.582937",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Billing",

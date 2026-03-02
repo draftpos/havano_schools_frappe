@@ -137,9 +137,19 @@
    "link_type": "DocType",
    "onboard": 1,
    "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Receipting",
+   "link_count": 0,
+   "link_to": "Receipting",
+   "link_type": "DocType",
+   "onboard": 1,
+   "type": "Link"
   }
  ],
- "modified": "2026-02-28 12:55:36.984064",
+ "modified": "2026-03-02 11:56:21.471184",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Management",
@@ -196,6 +206,31 @@
    "icon": "\u23f0",
    "label": "Term",
    "link_to": "Term",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Fees Structure",
+   "link_to": "Fees Structure",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Billing",
+   "link_to": "Billing",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Receipting",
+   "link_to": "Receipting",
+   "type": "DocType"
+  },
+  {
+   "color": "Purple",
+   "doc_view": "",
+   "label": "Student",
+   "link_to": "Student",
    "type": "DocType"
   }
  ],

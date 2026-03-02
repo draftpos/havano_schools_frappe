@@ -1,51 +1,39 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:class_code",
- "creation": "2026-02-28 09:12:03.777835",
+ "autoname": "field:section_name",
+ "creation": "2026-03-02 09:27:24.482072",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "class_code",
-  "class_name",
-  "column_break_1",
-  "is_active"
+  "section_name",
+  "student_class"
  ],
  "fields": [
   {
-   "fieldname": "class_code",
+   "fieldname": "section_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Class Code",
+   "label": "Section Name",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "class_name",
-   "fieldtype": "Data",
+   "fieldname": "student_class",
+   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Class Name",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "1",
-   "fieldname": "is_active",
-   "fieldtype": "Check",
-   "label": "Is Active"
+   "label": "Class",
+   "options": "Student Class"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-02 10:15:44.875244",
+ "modified": "2026-03-02 09:27:24.482072",
  "modified_by": "Administrator",
  "module": "School Management",
- "name": "Student Class",
+ "name": "Section",
  "owner": "Administrator",
  "permissions": [
   {
@@ -63,10 +51,7 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "search_fields": "class_name,class_code",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": [],
- "title_field": "class_name",
- "track_changes": 1
+ "states": []
 }
