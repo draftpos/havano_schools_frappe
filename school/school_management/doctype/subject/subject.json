@@ -1,0 +1,90 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:subject_code",
+ "creation": "2026-03-02 15:23:49.795116",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "subject_details_section",
+  "subject_code",
+  "subject_name",
+  "column_break_jm3h",
+  "is_theory",
+  "is_practical",
+  "subject_group",
+  "classes_and_sections_section",
+  "class_and_section"
+ ],
+ "fields": [
+  {
+   "fieldname": "subject_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subject Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "subject_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Subject Name",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_theory",
+   "fieldtype": "Check",
+   "label": "Is Theory"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_practical",
+   "fieldtype": "Check",
+   "label": "Is Practical"
+  },
+  {
+   "fieldname": "subject_group",
+   "fieldtype": "Link",
+   "label": "Subject Group",
+   "options": "Subject Group",
+   "reqd": 1
+  },
+  {
+   "fieldname": "class_and_section",
+   "fieldtype": "Table",
+   "label": "Class and Section List",
+   "options": "Subject Class and Section"
+  },
+  {
+   "fieldname": "subject_details_section",
+   "fieldtype": "Section Break",
+   "label": "Subject Details"
+  },
+  {
+   "fieldname": "column_break_jm3h",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "classes_and_sections_section",
+   "fieldtype": "Section Break",
+   "label": "Classes and Sections"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-02 15:32:45.852830",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Subject",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
