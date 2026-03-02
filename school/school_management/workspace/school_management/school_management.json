@@ -149,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-03-02 11:56:21.471184",
+ "modified": "2026-03-02 17:17:58.011414",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Management",
@@ -231,6 +231,18 @@
    "doc_view": "",
    "label": "Student",
    "link_to": "Student",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Subject",
+   "link_to": "Subject",
+   "type": "DocType"
+  },
+  {
+   "doc_view": "",
+   "label": "Subject Group",
+   "link_to": "Subject Group",
    "type": "DocType"
   }
  ],

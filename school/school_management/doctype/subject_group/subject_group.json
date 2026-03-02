@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_import": 1,
  "allow_rename": 1,
  "creation": "2026-03-02 15:23:09.509871",
  "doctype": "DocType",
@@ -20,7 +21,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-02 15:23:09.509871",
+ "modified": "2026-03-02 17:16:31.496385",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Subject Group",
@@ -28,7 +29,9 @@
  "permissions": [],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "search_fields": "group_name",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "group_name"
 }
