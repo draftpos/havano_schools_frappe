@@ -1,65 +1,73 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "field:exam_code",
- "creation": "2026-03-03 08:20:18.613589",
+ "autoname": "field:home_code",
+ "creation": "2026-03-03 11:03:38.644432",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "exam_code",
-  "exam_name",
-  "exam_type",
-  "section_break_e0ne",
-  "min_marks_percent",
-  "max_marks_percent"
+  "details_section",
+  "home_code",
+  "home_name",
+  "homework_type",
+  "column_break_1",
+  "min_marks",
+  "max_marks"
  ],
  "fields": [
   {
-   "fieldname": "exam_code",
+   "fieldname": "details_section",
+   "fieldtype": "Section Break",
+   "label": "Homework Details"
+  },
+  {
+   "fieldname": "home_code",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Exam Code",
+   "label": "Homework Code",
    "reqd": 1,
    "unique": 1
   },
   {
-   "fieldname": "exam_name",
+   "fieldname": "home_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Exam Name",
+   "label": "Homework Name",
    "reqd": 1
   },
   {
-   "fieldname": "exam_type",
+   "fieldname": "homework_type",
    "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Exam Type",
-   "options": "Exam Type",
+   "label": "Homework Type",
+   "options": "Homework Type",
    "reqd": 1
   },
   {
-   "fieldname": "section_break_e0ne",
-   "fieldtype": "Section Break"
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "min_marks_percent",
+   "fieldname": "min_marks",
    "fieldtype": "Percent",
+   "in_list_view": 1,
    "label": "Min Marks %"
   },
   {
-   "fieldname": "max_marks_percent",
+   "fieldname": "max_marks",
    "fieldtype": "Percent",
+   "in_list_view": 1,
    "label": "Max Marks %"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-03 12:36:34.213294",
+ "modified": "2026-03-03 11:03:38.644432",
  "modified_by": "Administrator",
  "module": "School Management",
- "name": "Exam",
+ "name": "Homework",
  "owner": "Administrator",
  "permissions": [
   {
@@ -73,6 +81,18 @@
    "role": "System Manager",
    "share": 1,
    "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "All",
+   "share": 1,
+   "write": 1
   }
  ],
  "row_format": "Dynamic",
@@ -80,5 +100,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "exam_name"
+ "title_field": "home_name"
 }

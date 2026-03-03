@@ -1,24 +1,15 @@
 {
- "charts": [
-  {
-   "chart_name": "Students by Class"
-  },
-  {
-   "chart_name": "Students by House"
-  },
-  {
-   "chart_name": "Students by Section"
-  }
- ],
- "content": "[{\"id\": \"aa1bb2cc3d\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>\\ud83c\\udf93 School Management</b></span>\", \"col\": 12}}, {\"id\": \"aa1bb2cc3e\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Students\", \"col\": 2}}, {\"id\": \"aa1bb2cc3f\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Student Class\", \"col\": 2}}, {\"id\": \"aa1bb2cc3g\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Section\", \"col\": 2}}, {\"id\": \"aa1bb2cc3h\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"House\", \"col\": 2}}, {\"id\": \"aa1bb2cc3i\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Academic Year\", \"col\": 2}}, {\"id\": \"aa1bb2cc3j\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Term\", \"col\": 2}}, {\"id\": \"aa1bb2cc3k\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"aa1bb2cc3l\", \"type\": \"card\", \"data\": {\"card_name\": \"Students\", \"col\": 4}}, {\"id\": \"aa1bb2cc3m\", \"type\": \"card\", \"data\": {\"card_name\": \"Setup\", \"col\": 4}}, {\"id\": \"aa1bb2cc3n\", \"type\": \"card\", \"data\": {\"card_name\": \"Academic\", \"col\": 4}}, {\"id\": \"aa1bb2cc3o\", \"type\": \"spacer\", \"data\": {\"col\": 12}}, {\"id\": \"aa1bb2cc3p\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by Class\", \"col\": 6}}, {\"id\": \"aa1bb2cc3q\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by House\", \"col\": 6}}, {\"id\": \"aa1bb2cc3r\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Students by Section\", \"col\": 12}}]",
- "creation": "2026-02-28 11:15:11.833132",
+ "charts": [],
+ "content": "[{\"id\":\"school_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>                                     School Management Dashboard</b></span>\",\"col\":12}},{\"id\":\"card_students\",\"type\":\"card\",\"data\":{\"card_name\":\"Students\",\"col\":4}},{\"id\":\"card_attendance\",\"type\":\"card\",\"data\":{\"card_name\":\"Attendance\",\"col\":4}},{\"id\":\"card_academics\",\"type\":\"card\",\"data\":{\"card_name\":\"Academics\",\"col\":4}},{\"id\":\"card_exams\",\"type\":\"card\",\"data\":{\"card_name\":\"Exams & Tests\",\"col\":4}},{\"id\":\"card_results\",\"type\":\"card\",\"data\":{\"card_name\":\"Results\",\"col\":4}},{\"id\":\"card_finance\",\"type\":\"card\",\"data\":{\"card_name\":\"Finance\",\"col\":4}},{\"id\":\"shortcuts_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Quick Access</b></span>\",\"col\":12}},{\"id\":\"spacer1\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"metrics_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Key Metrics</b></span>\",\"col\":12}},{\"id\":\"spacer2\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"charts_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Analytics</b></span>\",\"col\":12}},{\"id\":\"spacer3\",\"type\":\"spacer\",\"data\":{\"col\":12}},{\"id\":\"modules_header\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h5\\\"><b>Modules</b></span>\",\"col\":12}}]",
+ "creation": "2026-03-03 12:06:07.804503",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
+ "for_user": "",
  "hide_custom": 0,
- "icon": "graduation-cap",
+ "icon": "education",
  "idx": 0,
- "indicator_color": "green",
+ "indicator_color": "blue",
  "is_hidden": 0,
  "label": "School Management",
  "links": [
@@ -38,17 +29,8 @@
    "link_count": 0,
    "link_to": "Student",
    "link_type": "DocType",
-   "onboard": 1,
-   "type": "Link"
-  },
-  {
-   "hidden": 0,
-   "is_query_report": 0,
-   "label": "Setup",
-   "link_count": 0,
-   "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -57,7 +39,7 @@
    "link_count": 0,
    "link_to": "Student Class",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
@@ -67,7 +49,7 @@
    "link_count": 0,
    "link_to": "Section",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
@@ -77,13 +59,82 @@
    "link_count": 0,
    "link_to": "House",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Academic",
+   "label": "Student ID Card",
+   "link_count": 0,
+   "link_to": "Student ID Card",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Promote",
+   "link_count": 0,
+   "link_to": "Promote",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Student Attendance",
+   "link_count": 0,
+   "link_to": "Student Attendance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Staff Attendance",
+   "link_count": 0,
+   "link_to": "Staff Attendance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance Settings",
+   "link_count": 0,
+   "link_to": "Attendance Settings",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance Status",
+   "link_count": 0,
+   "link_to": "Attendance Status",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Academics",
    "link_count": 0,
    "link_type": "DocType",
    "onboard": 0,
@@ -96,7 +147,7 @@
    "link_count": 0,
    "link_to": "Academic Year",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
@@ -106,13 +157,191 @@
    "link_count": 0,
    "link_to": "Term",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
    "hidden": 0,
    "is_query_report": 0,
-   "label": "Fees",
+   "label": "Subject",
+   "link_count": 0,
+   "link_to": "Subject",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Subject Group",
+   "link_count": 0,
+   "link_to": "Subject Group",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Course",
+   "link_count": 0,
+   "link_to": "Course",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Room Number",
+   "link_count": 0,
+   "link_to": "Room Number",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grade",
+   "link_count": 0,
+   "link_to": "Grade",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grading Score",
+   "link_count": 0,
+   "link_to": "Grading Score",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exams & Tests",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam",
+   "link_count": 0,
+   "link_to": "Exam",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam Type",
+   "link_count": 0,
+   "link_to": "Exam Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam Schedule",
+   "link_count": 0,
+   "link_to": "Exam Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Inclass Test",
+   "link_count": 0,
+   "link_to": "Inclass Test",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Test Schedule",
+   "link_count": 0,
+   "link_to": "Test Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Homework",
+   "link_count": 0,
+   "link_to": "Homework",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Homework Type",
+   "link_count": 0,
+   "link_to": "Homework Type",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Home Schedule",
+   "link_count": 0,
+   "link_to": "Home Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Results",
+   "link_count": 0,
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Card Break"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam Result",
+   "link_count": 0,
+   "link_to": "Exam Result",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Class Result",
+   "link_count": 0,
+   "link_to": "Class Result",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Finance",
    "link_count": 0,
    "link_type": "DocType",
    "onboard": 0,
@@ -125,7 +354,7 @@
    "link_count": 0,
    "link_to": "Fees Structure",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
@@ -135,7 +364,7 @@
    "link_count": 0,
    "link_to": "Billing",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   },
   {
@@ -145,106 +374,21 @@
    "link_count": 0,
    "link_to": "Receipting",
    "link_type": "DocType",
-   "onboard": 1,
+   "onboard": 0,
    "type": "Link"
   }
  ],
- "modified": "2026-03-02 17:17:58.011414",
+ "modified": "2026-03-03 14:37:41.305002",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Management",
  "number_cards": [],
  "owner": "Administrator",
+ "parent_page": "",
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 0.0,
- "shortcuts": [
-  {
-   "color": "#4CAF50",
-   "doc_view": "",
-   "icon": "\ud83d\udc68\u200d\ud83c\udf93",
-   "label": "Students",
-   "link_to": "Student",
-   "type": "DocType"
-  },
-  {
-   "color": "#2196F3",
-   "doc_view": "",
-   "icon": "\ud83c\udfeb",
-   "label": "Student Class",
-   "link_to": "Student Class",
-   "type": "DocType"
-  },
-  {
-   "color": "#FF9800",
-   "doc_view": "",
-   "icon": "\ud83d\udcda",
-   "label": "Section",
-   "link_to": "Section",
-   "type": "DocType"
-  },
-  {
-   "color": "#E91E63",
-   "doc_view": "",
-   "icon": "\ud83c\udfe0",
-   "label": "House",
-   "link_to": "House",
-   "type": "DocType"
-  },
-  {
-   "color": "#9C27B0",
-   "doc_view": "",
-   "icon": "\ud83d\udcc5",
-   "label": "Academic Year",
-   "link_to": "Academic Year",
-   "type": "DocType"
-  },
-  {
-   "color": "#00BCD4",
-   "doc_view": "",
-   "icon": "\u23f0",
-   "label": "Term",
-   "link_to": "Term",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Fees Structure",
-   "link_to": "Fees Structure",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Billing",
-   "link_to": "Billing",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Receipting",
-   "link_to": "Receipting",
-   "type": "DocType"
-  },
-  {
-   "color": "Purple",
-   "doc_view": "",
-   "label": "Student",
-   "link_to": "Student",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Subject",
-   "link_to": "Subject",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "",
-   "label": "Subject Group",
-   "link_to": "Subject Group",
-   "type": "DocType"
-  }
- ],
+ "sequence_id": 3.0,
+ "shortcuts": [],
  "title": "School Management"
 }
