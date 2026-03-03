@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-03 08:33:26.653160",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "from_percent",
+  "to_percent",
+  "grade",
+  "status"
+ ],
+ "fields": [
+  {
+   "fieldname": "from_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "From %"
+  },
+  {
+   "fieldname": "to_percent",
+   "fieldtype": "Percent",
+   "in_list_view": 1,
+   "label": "To %"
+  },
+  {
+   "columns": 2,
+   "fieldname": "grade",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Grade",
+   "options": "Grade"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "\nPass\nModerate\nFailed"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-03-03 08:39:06.114656",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Grading Score Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -1,0 +1,103 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:exam_code",
+ "creation": "2026-03-03 08:45:01.057344",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "test_details_section",
+  "exam_code",
+  "exam_name",
+  "column_break_qjhh",
+  "exam_type",
+  "passing_criteria_section",
+  "min_marks_percent",
+  "column_break_dhj1",
+  "max_marks_percent"
+ ],
+ "fields": [
+  {
+   "fieldname": "test_details_section",
+   "fieldtype": "Section Break",
+   "label": "Test Details"
+  },
+  {
+   "fieldname": "exam_code",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Exam Code",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "exam_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Exam Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_qjhh",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "exam_type",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Exam Type",
+   "options": "Exam Type",
+   "reqd": 1
+  },
+  {
+   "fieldname": "passing_criteria_section",
+   "fieldtype": "Section Break",
+   "label": "Passing Criteria"
+  },
+  {
+   "default": "40",
+   "fieldname": "min_marks_percent",
+   "fieldtype": "Percent",
+   "label": "Min Marks %"
+  },
+  {
+   "fieldname": "column_break_dhj1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "100",
+   "fieldname": "max_marks_percent",
+   "fieldtype": "Percent",
+   "label": "Max Marks %"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-03 08:45:01.057344",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Inclass Test",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "exam_name"
+}
