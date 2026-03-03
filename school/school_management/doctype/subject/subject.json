@@ -8,14 +8,11 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "subject_details_section",
   "subject_code",
   "subject_name",
-  "column_break_jm3h",
   "is_theory",
   "is_practical",
   "subject_group",
-  "classes_and_sections_section",
   "class_and_section"
  ],
  "fields": [
@@ -50,34 +47,19 @@
    "fieldname": "subject_group",
    "fieldtype": "Link",
    "label": "Subject Group",
-   "options": "Subject Group",
-   "reqd": 1
+   "options": "Subject Group"
   },
   {
    "fieldname": "class_and_section",
    "fieldtype": "Table",
    "label": "Class and Section List",
    "options": "Subject Class and Section"
-  },
-  {
-   "fieldname": "subject_details_section",
-   "fieldtype": "Section Break",
-   "label": "Subject Details"
-  },
-  {
-   "fieldname": "column_break_jm3h",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "classes_and_sections_section",
-   "fieldtype": "Section Break",
-   "label": "Classes and Sections"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-02 17:16:30.625528",
+ "modified": "2026-03-03 09:43:22.122859",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Subject",
@@ -86,6 +68,7 @@
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
  "search_fields": "subject_name,subject_code",
+ "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

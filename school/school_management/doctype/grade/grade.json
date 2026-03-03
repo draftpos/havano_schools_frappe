@@ -1,6 +1,7 @@
 {
  "actions": [],
  "allow_rename": 1,
+ "autoname": "field:grade_name",
  "creation": "2026-03-03 08:21:19.149568",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -16,7 +17,8 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Grade Name",
-   "reqd": 1
+   "reqd": 1,
+   "unique": 1
   },
   {
    "fieldname": "lower_threshold",
@@ -32,7 +34,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-03 08:21:19.149568",
+ "modified": "2026-03-03 09:43:20.008885",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Grade",
@@ -53,7 +55,9 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
+ "search_fields": "grade_name",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "title_field": "grade_name"
 }
