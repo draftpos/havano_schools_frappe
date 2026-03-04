@@ -1,7 +1,6 @@
 {
  "actions": [],
- "allow_rename": 1,
- "creation": "2026-03-02 09:25:49.959895",
+ "creation": "2026-03-03 10:45:00",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -10,17 +9,10 @@
   "fees_structure",
   "total",
   "outstanding",
-  "allocated"
+  "allocated",
+  "allocated_foreign"
  ],
  "fields": [
-  {
-   "fieldname": "fees_structure",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Fees Structure",
-   "options": "Fees Structure",
-   "read_only": 1
-  },
   {
    "fieldname": "invoice_number",
    "fieldtype": "Link",
@@ -29,38 +21,48 @@
    "options": "Sales Invoice"
   },
   {
+   "fieldname": "fees_structure",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Fees Structure"
+  },
+  {
    "fieldname": "total",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Total",
-   "read_only": 1
+   "label": "Total"
   },
   {
    "fieldname": "outstanding",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Outstanding",
-   "read_only": 1
+   "label": "Outstanding"
   },
   {
    "fieldname": "allocated",
    "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Allocated"
+   "label": "Allocated (Base)"
+  },
+  {
+   "fieldname": "allocated_foreign",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Allocated (Foreign)"
   }
  ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
+<<<<<<< HEAD
  "modified": "2026-03-04 08:20:44.254893",
+=======
+ "modified": "2026-03-04 08:28:05.148696",
+>>>>>>> c2ccae7 (Add Receipting, Receipt Item doctypes with fees structure and payment entry integration)
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipt Item",
- "owner": "Administrator",
  "permissions": [],
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "creation": "2026-03-03 10:45:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "fields": [
+  {
+   "fieldname": "invoice_number",
+   "fieldtype": "Link",
+   "label": "Invoice Number",
+   "options": "Sales Invoice",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "fees_structure",
+   "fieldtype": "Data",
+   "label": "Fees Structure",
+   "in_list_view": 1,
+   "read_only": 0
+  },
+  {
+   "fieldname": "total",
+   "fieldtype": "Currency",
+   "label": "Total",
+   "read_only": 0,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "outstanding",
+   "fieldtype": "Currency",
+   "label": "Outstanding",
+   "read_only": 0,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "allocated",
+   "fieldtype": "Currency",
+   "label": "Allocated (Base)",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "allocated_foreign",
+   "fieldtype": "Currency",
+   "label": "Allocated (Foreign)",
+   "in_list_view": 1
+  }
+ ],
+ "istable": 1,
+ "module": "School Management",
+ "name": "Payment Entry Invoice"
+}
