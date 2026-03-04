@@ -8,8 +8,8 @@ frappe.ui.form.on('Receipting', {
             frm.trigger('fetch_default_account');
         }
         frm.trigger('set_account_query');
-        if (frm.doc.bank_cash_account) frm.trigger('bank_cash_account');
-        setTimeout(function() { setup_student_search(frm); }, 500);
+        if (frm.doc.account) frm.trigger('account');
+        setTimeout(function() { setup_student_search(frm); }, 800);
     },
 
     refresh: function(frm) {
@@ -21,12 +21,12 @@ frappe.ui.form.on('Receipting', {
                 auto_distribute(frm);
             }).addClass('btn-primary');
         }
-        setTimeout(function() { setup_student_search(frm); }, 300);
+        setTimeout(function() { setup_student_search(frm); }, 600);
     },
 
     // ── Payment Method ────────────────────────────────────────
     payment_method: function(frm) {
-        frm.set_value('bank_cash_account', '');
+        frm.set_value('account', '');
         frm.doc.account_currency = '';
         frm.set_value('exchange_rate', 1);
         toggle_currency_fields(frm);
@@ -36,7 +36,7 @@ frappe.ui.form.on('Receipting', {
 
     set_account_query: function(frm) {
         // Always show Bank + Cash — identical to Payment Entry filter
-        frm.set_query('bank_cash_account', function() {
+        frm.set_query('account', function() {
             return {
                 filters: [
                     ['Account', 'account_type', 'in', ['Bank', 'Cash']],
@@ -63,25 +63,25 @@ frappe.ui.form.on('Receipting', {
             },
             callback: function(r) {
                 if (r.message && r.message.length) {
-                    frm.set_value('bank_cash_account', r.message[0].name);
+                    frm.set_value('account', r.message[0].name);
                 }
             }
         });
     },
 
     date: function(frm) {
-        if (frm.doc.bank_cash_account) frm.trigger('bank_cash_account');
+        if (frm.doc.account) frm.trigger('account');
     },
 
-    bank_cash_account: function(frm) {
+    account: function(frm) {
         frm.trigger('set_account_query');
-        if (!frm.doc.bank_cash_account) {
+        if (!frm.doc.account) {
             frm.doc.account_currency = '';
             frm.set_value('exchange_rate', 1);
             toggle_currency_fields(frm);
             return;
         }
-        frappe.db.get_value('Account', frm.doc.bank_cash_account, 'account_currency', function(r) {
+        frappe.db.get_value('Account', frm.doc.account, 'account_currency', function(r) {
             if (!r || !r.account_currency) return;
             let company_currency = frappe.boot.sysdefaults.currency;
             let acct_currency    = r.account_currency;
@@ -113,15 +113,21 @@ frappe.ui.form.on('Receipting', {
     },
 
     // ── Amounts ───────────────────────────────────────────────
+    // Rule: whichever field the user typed in drives the other.
+    // We NEVER use frm.set_value for the calculated side — that fires
+    // the target field's own event and creates a loop. Instead we write
+    // directly to frm.doc and call refresh_field (display only, no event).
+
     paid_amount: function(frm) {
         if (frm._paid_updating) return;
         frm._paid_updating = true;
         let rate = flt(frm.doc.exchange_rate) || 1;
-        if (is_multi_currency(frm)) {
-            frm.set_value('received_amount', flt(frm.doc.paid_amount / rate, 2));
-        } else {
-            frm.set_value('received_amount', frm.doc.paid_amount);
-        }
+        let received = is_multi_currency(frm)
+            ? flt(frm.doc.paid_amount / rate, 2)
+            : frm.doc.paid_amount;
+        // Write directly — no event fired, no loop
+        frm.doc.received_amount = received;
+        frm.refresh_field('received_amount');
         frm._paid_updating = false;
         update_rate_description(frm);
         auto_distribute(frm);
@@ -130,18 +136,23 @@ frappe.ui.form.on('Receipting', {
     received_amount: function(frm) {
         if (frm._paid_updating) return;
         if (!is_multi_currency(frm)) return;
-        let rate = flt(frm.doc.exchange_rate) || 1;
         frm._paid_updating = true;
-        frm.set_value('paid_amount', flt(frm.doc.received_amount * rate, 2));
+        let rate = flt(frm.doc.exchange_rate) || 1;
+        // Write directly — no event fired, no loop
+        frm.doc.paid_amount = flt(frm.doc.received_amount * rate, 2);
+        frm.refresh_field('paid_amount');
         frm._paid_updating = false;
         update_rate_description(frm);
+        auto_distribute(frm);
     },
 
     exchange_rate: function(frm) {
         if (!is_multi_currency(frm)) return;
         let rate = flt(frm.doc.exchange_rate) || 1;
         frm._paid_updating = true;
-        frm.set_value('received_amount', flt(frm.doc.paid_amount / rate, 2));
+        // Exchange rate changed: recalculate received from paid (paid is the source of truth)
+        frm.doc.received_amount = flt(frm.doc.paid_amount / rate, 2);
+        frm.refresh_field('received_amount');
         frm._paid_updating = false;
         update_rate_description(frm);
         recalculate_invoice_allocations(frm);
@@ -157,7 +168,7 @@ frappe.ui.form.on('Receipting', {
         calculate_totals(frm);
         set_section_filter(frm);
         $('#student-search-input').val('');
-        setTimeout(function() { setup_student_search(frm); }, 300);
+        setTimeout(function() { setup_student_search(frm); }, 600);
     },
 
     section: function(frm) {
@@ -167,7 +178,7 @@ frappe.ui.form.on('Receipting', {
         frm.refresh_field('invoices');
         calculate_totals(frm);
         $('#student-search-input').val('');
-        setTimeout(function() { setup_student_search(frm); }, 300);
+        setTimeout(function() { setup_student_search(frm); }, 600);
     }
 });
 
@@ -227,7 +238,7 @@ function setup_student_search(frm) {
     if (!field || !field.$wrapper) return;
 
     // Hide the native Frappe link input + awesomplete container
-    field.$wrapper.find('input').hide();
+    field.$wrapper.find('input:not(#student-search-input)').hide();
     field.$wrapper.find('.awesomplete').hide();
     field.$wrapper.find('.link-btn').hide();
 
@@ -319,14 +330,18 @@ function setup_student_search(frm) {
                         e.stopPropagation();
                         $('#student-search-dd').remove();
 
-                        // Update display immediately
+                        // 1. Show label in our input immediately
                         $input.val(label);
 
-                        // Set directly on doc — no Frappe link field involved at all
+                        // 2. Write directly to doc — bypasses Frappe link widget entirely
                         frm.doc.student_name = reg;
-                        frm.refresh_field('student_name');
 
-                        // Load invoices
+                        // 3. DO NOT call frm.refresh_field or frm.set_value here —
+                        //    both re-render the Frappe field and wipe frm.doc.student_name.
+                        //    Instead, mark dirty so Frappe knows the doc changed.
+                        frm.dirty();
+
+                        // 4. Load invoices — pass reg directly, never reads frm.doc.student_name
                         load_student_invoices(frm, reg);
                     })
                     .appendTo($list);
@@ -368,6 +383,7 @@ function load_student_invoices(frm, student_name) {
     if (!student_name) return;
 
     // Get display name + auto-fill class/section
+    // Use frm.doc directly to avoid set_value re-renders wiping student_name
     frappe.db.get_value(
         'Student', student_name,
         ['first_name', 'second_name', 'last_name', 'full_name', 'student_class', 'section'],
@@ -377,26 +393,27 @@ function load_student_invoices(frm, student_name) {
                 ? r.full_name.trim()
                 : [r.first_name, r.second_name, r.last_name]
                     .filter(function(v) { return v && v.trim(); }).join(' ');
-            frm.set_value('student_display_name', display || student_name);
-            if (!frm.doc.student_class && r.student_class) frm.set_value('student_class', r.student_class);
-            if (!frm.doc.section && r.section)             frm.set_value('section', r.section);
+            // Write to doc directly — avoids triggering field refresh cascade
+            frm.doc.student_name         = student_name;  // re-pin in case anything reset it
+            frm.doc.student_display_name = display || student_name;
+            frm.refresh_field('student_display_name');
+            if (!frm.doc.student_class && r.student_class) {
+                frm.doc.student_class = r.student_class;
+                frm.refresh_field('student_class');
+            }
+            if (!frm.doc.section && r.section) {
+                frm.doc.section = r.section;
+                frm.refresh_field('section');
+            }
             set_section_filter(frm);
+            frm.dirty();
         }
     );
 
-    // Fetch outstanding invoices
+    // Fetch outstanding invoices via server method (handles custom field permissions)
     frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-            doctype: 'Sales Invoice',
-            filters: [
-                ['custom_student',     '=', student_name],
-                ['docstatus',          '=', 1],
-                ['outstanding_amount', '>', 0]
-            ],
-            fields: ['name', 'grand_total', 'outstanding_amount', 'fees_structure'],
-            order_by: 'posting_date asc'
-        },
+        method: 'school.school_management.doctype.receipting.receipting.get_outstanding_invoices',
+        args: { student_name: student_name },
         callback: function(r) {
             frm.clear_table('invoices');
             if (r.message && r.message.length) {
