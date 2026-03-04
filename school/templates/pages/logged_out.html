@@ -1,0 +1,12 @@
+{% extends "templates/web.html" %}
+{% block page_content %}
+<div style="text-align:center; padding: 80px 20px; font-family: Arial, sans-serif;">
+    <div style="max-width: 400px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 2px 20px rgba(0,0,0,0.1); padding: 40px;">
+        <h2 style="color: #1e3a5f; margin-bottom: 10px;">You have been logged out</h2>
+        <p style="color: #666; margin-bottom: 30px;">Thank you for using the Student Portal. See you next time!</p>
+        <a href="/login" style="background: #2e86de; color: white; padding: 14px 40px; border-radius: 8px; text-decoration: none; font-size: 16px; font-weight: bold; display: inline-block;">
+            Login Again
+        </a>
+    </div>
+</div>
+{% endblock %}

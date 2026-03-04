@@ -5,7 +5,7 @@ app_description = "School Management System"
 app_email = "makonia20@gmail.com"
 app_license = "mit"
 
-# Appswee
+# Apps
 # ------------------
 
 # required_apps = []
