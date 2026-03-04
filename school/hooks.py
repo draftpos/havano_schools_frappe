@@ -247,3 +247,10 @@ app_license = "mit"
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
 
+
+# Redirect website users to student portal after login
+website_redirects = [
+    {"source": "/", "target": "/student-portal", "match_with_query_string": False}
+]
+
+on_login = "school.utils.redirect_to_portal"
