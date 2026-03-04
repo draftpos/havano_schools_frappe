@@ -1,0 +1,227 @@
+
+<style>
+.portal-hero {
+    background: linear-gradient(135deg, #1e3a5f, #2e86de);
+    color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+}
+.portal-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s;
+    height: 100%;
+}
+.portal-card:hover { transform: translateY(-4px); }
+.portal-card .card-body { padding: 24px; }
+.icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 12px;
+}
+.bg-blue { background: #e8f0fe; }
+.bg-green { background: #e6f4ea; }
+.bg-orange { background: #fff3e0; }
+.bg-purple { background: #f3e8fd; }
+.bg-red { background: #fce8e6; }
+.bg-teal { background: #e0f5f5; }
+.bg-pink { background: #fce4ec; }
+.bg-yellow { background: #fffde7; }
+.quick-link {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #333;
+    transition: background 0.2s;
+}
+.quick-link:hover { background: #e8f0fe; color: #1a73e8; text-decoration: none; }
+.quick-link span { margin-right: 12px; font-size: 20px; }
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e8f0fe;
+}
+</style>
+
+<div class="portal-hero">
+    <div class="row align-items-center">
+        <div class="col-md-6">
+            <h2 class="mb-1">👋 Welcome to Your Student Portal</h2>
+            <p class="mb-3" style="opacity:0.85;">Access all your academic and financial information in one place.</p>
+            <a href="/update-profile" class="btn btn-light btn-sm">✏️ Edit Profile</a>
+            <a href="/my-account" class="btn btn-outline-light btn-sm ml-2">👤 My Account</a>
+        </div>
+        <div class="col-md-6 mt-3 mt-md-0">
+            <div class="row">
+                <div class="col-3">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:12px;text-align:center;">
+                        <h3 style="font-size:1.8rem;font-weight:700;margin:0;">📅</h3>
+                        <p style="margin:0;font-size:0.8rem;opacity:0.85;">Exams</p>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:12px;text-align:center;">
+                        <h3 style="font-size:1.8rem;font-weight:700;margin:0;">📚</h3>
+                        <p style="margin:0;font-size:0.8rem;opacity:0.85;">Homework</p>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:12px;text-align:center;">
+                        <h3 style="font-size:1.8rem;font-weight:700;margin:0;">📊</h3>
+                        <p style="margin:0;font-size:0.8rem;opacity:0.85;">Results</p>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:12px;text-align:center;">
+                        <h3 style="font-size:1.8rem;font-weight:700;margin:0;">💰</h3>
+                        <p style="margin:0;font-size:0.8rem;opacity:0.85;">Finance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <p class="section-title">📖 Academics</p>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-blue">📅</div>
+                        <h5 class="card-title">Exam Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View upcoming exams, dates and rooms.</p>
+                        <a href="/exam-schedule/list" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-green">📚</div>
+                        <h5 class="card-title">Homework</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">Stay on top of your assignments.</p>
+                        <a href="/homework/list" class="btn btn-success btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-yellow">🏠</div>
+                        <h5 class="card-title">Home Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your home assignment schedule.</p>
+                        <a href="/home-schedule/list" class="btn btn-warning btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-pink">📝</div>
+                        <h5 class="card-title">Test Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View upcoming tests and dates.</p>
+                        <a href="/test-schedule/list" class="btn btn-danger btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-teal">✏️</div>
+                        <h5 class="card-title">Inclass Test</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your inclass test details.</p>
+                        <a href="/inclass-test/list" class="btn btn-info btn-sm" style="color:white;">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-title">📊 Results</p>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-purple">📊</div>
+                        <h5 class="card-title">Exam Results</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">Check your marks and grades.</p>
+                        <a href="/exam-result/list" class="btn btn-sm" style="background:#7c4dff;color:white;">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-blue">🏆</div>
+                        <h5 class="card-title">Class Result</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View overall class performance.</p>
+                        <a href="/class-result/list" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-title">💰 Finance</p>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-orange">💰</div>
+                        <h5 class="card-title">Billing</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your fee statements.</p>
+                        <a href="/billing/list" class="btn btn-warning btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-teal">🧾</div>
+                        <h5 class="card-title">Receipts</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your payment receipts.</p>
+                        <a href="/receipting/list" class="btn btn-info btn-sm" style="color:white;">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <p class="section-title">⚡ Quick Links</p>
+        <a href="/exam-schedule/list" class="quick-link"><span>📅</span> Exam Schedule</a>
+        <a href="/homework/list" class="quick-link"><span>📚</span> Homework</a>
+        <a href="/home-schedule/list" class="quick-link"><span>🏠</span> Home Schedule</a>
+        <a href="/test-schedule/list" class="quick-link"><span>📝</span> Test Schedule</a>
+        <a href="/inclass-test/list" class="quick-link"><span>✏️</span> Inclass Test</a>
+        <a href="/exam-result/list" class="quick-link"><span>📊</span> Exam Results</a>
+        <a href="/class-result/list" class="quick-link"><span>🏆</span> Class Result</a>
+        <a href="/billing/list" class="quick-link"><span>💰</span> Billing</a>
+        <a href="/receipting/list" class="quick-link"><span>🧾</span> Receipts</a>
+        <a href="/my-account" class="quick-link"><span>👤</span> My Account</a>
+        <a href="/update-profile" class="quick-link"><span>✏️</span> Edit Profile</a>
+
+        <p class="section-title mt-4">ℹ️ Help & Info</p>
+        <div class="card portal-card">
+            <div class="card-body">
+                <p style="font-size:0.9rem;" class="text-muted mb-2">📞 <strong>School Contact</strong></p>
+                <p style="font-size:0.85rem;" class="text-muted mb-2">For any issues contact the school administration.</p>
+                <p style="font-size:0.9rem;" class="text-muted mb-0">🔒 <strong>Keep your login details safe.</strong></p>
+            </div>
+        </div>
+    </div>
+</div>

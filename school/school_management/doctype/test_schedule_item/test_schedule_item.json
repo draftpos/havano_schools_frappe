@@ -7,7 +7,7 @@
  "engine": "InnoDB",
  "field_order": [
   "student_admission_no",
-  "student_name",
+  "student_full_name",
   "marks_obtained",
   "percentage",
   "status",
@@ -19,14 +19,8 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Admission No",
-   "options": "Student"
-  },
-  {
-   "fetch_from": "student_admission_no.title",
-   "fieldname": "student_name",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Student Name"
+   "options": "Student",
+   "show_preview_popup": 1
   },
   {
    "fieldname": "marks_obtained",
@@ -52,13 +46,21 @@
    "fieldtype": "Link",
    "label": "Grade",
    "options": "Grade"
+  },
+  {
+   "fetch_from": "student_admission_no.full_name",
+   "fieldname": "student_full_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Student Name",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-03-03 09:58:53.677799",
+ "modified": "2026-03-04 08:20:43.923451",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Test Schedule Item",
