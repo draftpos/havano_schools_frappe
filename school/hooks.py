@@ -10,6 +10,8 @@ fixtures = ["DocType", "Role"]
 website_route_rules = [
     {"from_route": "/", "to_route": "index"}
 ]
+
+fixtures = ["DocType"]
 # Apps
 # ------------------
 
