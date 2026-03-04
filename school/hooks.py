@@ -4,7 +4,11 @@ app_publisher = "Ashley"
 app_description = "School Management System"
 app_email = "makonia20@gmail.com"
 app_license = "mit"
+home_page = "index"
 
+website_route_rules = [
+    {"from_route": "/", "to_route": "index"}
+]
 # Apps
 # ------------------
 
