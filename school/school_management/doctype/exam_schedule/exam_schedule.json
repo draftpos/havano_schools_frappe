@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "title",
   "basic_info_section",
   "exam",
   "subject",
@@ -153,12 +154,19 @@
    "fieldname": "fetch_students",
    "fieldtype": "Button",
    "label": "Fetch Students from Class/Section"
+  },
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Title",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-04 11:39:59.678099",
+ "modified": "2026-03-04 14:16:29.346094",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Exam Schedule",
@@ -183,5 +191,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "title_field": "exam"
+ "title_field": "title"
 }

@@ -258,3 +258,18 @@ website_redirects = [
 ]
 
 on_login = "school.utils.redirect_to_portal"
+
+fixtures = [
+    {
+        "dt": "DocType",
+        "filters": [["module", "=", "School Management"]]
+    },
+    {
+        "dt": "Client Script",
+        "filters": [["dt", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card"]]]
+    },
+    {
+        "dt": "Server Script",
+        "filters": [["reference_doctype", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Attendance Settings"]]]
+    }
+]
