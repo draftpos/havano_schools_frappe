@@ -1,6 +1,7 @@
 {
     "actions": [],
     "allow_rename": 1,
+    "autoname": "field:month_name",
     "creation": "2026-03-05 11:19:04.224884",
     "doctype": "DocType",
     "engine": "InnoDB",
@@ -135,6 +136,7 @@
     "modified_by": "Administrator",
     "module": "School Management",
     "name": "Month",
+    "naming_rule": "By fieldname",
     "owner": "Administrator",
     "permissions": [
      {
