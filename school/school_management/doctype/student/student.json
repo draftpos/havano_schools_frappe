@@ -123,11 +123,11 @@
       "label": "Date of Admission",
       "reqd": 1
      },
-     {
+      {
       "fieldname": "student_category",
       "fieldtype": "Link",
       "label": "Category",
-      "options": "Customer",
+      "options": "Customer Group",
       "reqd": 1
      },
      {
