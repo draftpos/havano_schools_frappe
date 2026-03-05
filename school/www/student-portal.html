@@ -1,0 +1,174 @@
+---
+no_cache: 1
+title: Student Portal
+---
+<style>
+.portal-hero{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:30px;margin-bottom:30px;}
+.portal-card{border:none;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);transition:transform 0.2s;height:100%;}
+.portal-card:hover{transform:translateY(-4px);}
+.portal-card .card-body{padding:24px;}
+.icon-circle{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:12px;}
+.bg-blue{background:#e8f0fe;}.bg-green{background:#e6f4ea;}.bg-orange{background:#fff3e0;}
+.bg-purple{background:#f3e8fd;}.bg-red{background:#fce8e6;}.bg-teal{background:#e0f5f5;}
+.bg-pink{background:#fce4ec;}.bg-yellow{background:#fffde7;}
+.quick-link{display:flex;align-items:center;padding:12px 16px;border-radius:8px;background:#f8f9fa;margin-bottom:10px;text-decoration:none;color:#333;transition:background 0.2s;}
+.quick-link:hover{background:#e8f0fe;color:#1a73e8;text-decoration:none;}
+.quick-link span{margin-right:12px;font-size:20px;}
+.section-title{font-size:1.1rem;font-weight:600;color:#333;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid #e8f0fe;}
+</style>
+
+<div class="portal-hero">
+    <div class="row align-items-center">
+        <div class="col-12 col-md-6 mb-3 mb-md-0">
+            <h2 class="mb-1" style="font-size:clamp(1.2rem,4vw,1.8rem);">Welcome to Your Student Portal</h2>
+            <p class="mb-3" style="opacity:0.85;font-size:clamp(0.85rem,3vw,1rem);">Access all your academic and financial information in one place.</p>
+            <a href="/student-profile" class="btn btn-light btn-sm mr-2 mb-2">&#128100; My Profile</a>
+            <a href="/student-billing" class="btn btn-outline-light btn-sm mb-2">&#128176; Billing</a>
+        </div>
+        <div class="col-12 col-md-6">
+            <div class="row">
+                <div class="col-6 mb-2">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;">&#128197;</div>
+                        <p style="margin:4px 0 0 0;font-size:0.85rem;opacity:0.85;">Exams</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-2">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;">&#128218;</div>
+                        <p style="margin:4px 0 0 0;font-size:0.85rem;opacity:0.85;">Homework</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-2">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;">&#128202;</div>
+                        <p style="margin:4px 0 0 0;font-size:0.85rem;opacity:0.85;">Results</p>
+                    </div>
+                </div>
+                <div class="col-6 mb-2">
+                    <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:700;">&#128176;</div>
+                        <p style="margin:4px 0 0 0;font-size:0.85rem;opacity:0.85;">Finance</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <p class="section-title">&#128197; Schedules</p>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-blue">&#127979;</div>
+                        <h5 class="card-title">Exam Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View upcoming exams, dates and rooms.</p>
+                        <a href="/portal-exam-schedule" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-yellow">&#127968;</div>
+                        <h5 class="card-title">Homework Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your home assignment schedule.</p>
+                        <a href="/portal-home-schedule" class="btn btn-warning btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-pink">&#128221;</div>
+                        <h5 class="card-title">Class Test Schedule</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View upcoming class tests and dates.</p>
+                        <a href="/portal-test-schedule" class="btn btn-danger btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-title">&#128202; Results</p>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-purple">&#128202;</div>
+                        <h5 class="card-title">Exam Results</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">Check your exam marks and grades.</p>
+                        <a href="/exam-results" class="btn btn-sm" style="background:#7c4dff;color:white;">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-blue">&#127942;</div>
+                        <h5 class="card-title">Class Test Results</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your class test performance.</p>
+                        <a href="/class-test-results" class="btn btn-primary btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-green">&#128218;</div>
+                        <h5 class="card-title">Homework Results</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your homework scores.</p>
+                        <a href="/homework-results" class="btn btn-success btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="section-title">&#128176; Finance</p>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-orange">&#128176;</div>
+                        <h5 class="card-title">Account Statement</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your fee statements and invoices.</p>
+                        <a href="/student-billing" class="btn btn-warning btn-sm">View</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card portal-card">
+                    <div class="card-body">
+                        <div class="icon-circle bg-teal">&#128100;</div>
+                        <h5 class="card-title">My Profile</h5>
+                        <p class="card-text text-muted" style="font-size:0.9rem;">View your personal details and account info.</p>
+                        <a href="/student-profile" class="btn btn-info btn-sm" style="color:white;">View</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <p class="section-title">&#9889; Quick Links</p>
+        <a href="/portal-exam-schedule" class="quick-link"><span>&#127979;</span> Exam Schedule</a>
+        <a href="/portal-home-schedule" class="quick-link"><span>&#127968;</span> Homework Schedule</a>
+        <a href="/portal-test-schedule" class="quick-link"><span>&#128221;</span> Class Test Schedule</a>
+        <a href="/exam-results" class="quick-link"><span>&#128202;</span> Exam Results</a>
+        <a href="/class-test-results" class="quick-link"><span>&#127942;</span> Class Test Results</a>
+        <a href="/homework-results" class="quick-link"><span>&#128218;</span> Homework Results</a>
+        <a href="/student-billing" class="quick-link"><span>&#128176;</span> Account Statement</a>
+        <a href="/student-profile" class="quick-link"><span>&#128100;</span> My Profile</a>
+
+        <p class="section-title mt-4">&#8505; Help & Info</p>
+        <div class="card portal-card">
+            <div class="card-body">
+                <p style="font-size:0.9rem;" class="text-muted mb-2">&#128222; <strong>School Contact</strong></p>
+                <p style="font-size:0.85rem;" class="text-muted mb-2">For any issues contact the school administration.</p>
+                <p style="font-size:0.9rem;" class="text-muted mb-0">&#128274; <strong>Keep your login details safe.</strong></p>
+            </div>
+        </div>
+    </div>
+</div>

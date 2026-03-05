@@ -1,0 +1,66 @@
+---
+no_cache: 1
+title: My Account
+---
+<style>
+.ah{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
+.ah h2{margin:0;}.ah p{margin:4px 0 0 0;opacity:0.85;}
+.av{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin-bottom:14px;border:3px solid rgba(255,255,255,0.4);}
+.ic{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px;}
+.ic-box{background:white;border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.07);}
+.ic-box.b{border-top:4px solid #2e86de;}.ic-box.g{border-top:4px solid #34a853;}.ic-box.o{border-top:4px solid #fbbc04;}.ic-box.p{border-top:4px solid #7c4dff;}
+.ic-icon{font-size:1.6rem;margin-bottom:6px;}.ic-val{font-size:0.95rem;font-weight:700;color:#1e3a5f;margin-bottom:3px;}.ic-lbl{font-size:0.75rem;color:#888;text-transform:uppercase;}
+.pc{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:20px;}
+.pc .ph{background:#f8f9fa;padding:14px 18px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;}
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));}
+.pf{padding:14px 18px;border-bottom:1px solid #f5f5f5;}
+.pf:last-child{border-bottom:none;}
+.pl{font-size:0.73rem;color:#888;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.pv{font-size:0.93rem;font-weight:600;color:#1e3a5f;}
+.bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
+.bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
+@media(max-width:600px){.ic{grid-template-columns:repeat(2,1fr);}.pg{grid-template-columns:1fr;}}
+</style>
+<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading profile...</div>
+<div id="pc" style="display:none;"></div>
+<script>
+function el(id){return document.getElementById(id);}
+window.addEventListener("load", function(){
+  fetch("/api/method/school.api.get_my_account",{credentials:"same-origin"})
+  .then(function(res){return res.json();})
+  .then(function(r){
+    if(!r.message||Array.isArray(r.message)){
+      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No account found.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+      return;
+    }
+    var s=r.message;
+    var ini=((s.first_name||"?")[0]+(s.last_name||"?")[0]).toUpperCase();
+    var h="";
+    h+='<div class="ah"><a href="/student-portal" class="bb">&#8592; Dashboard</a><div class="av">'+ini+'</div><h2>'+s.full_name+'</h2><p>'+s.portal_email+'</p></div>';
+    h+='<div class="ic">';
+    h+='<div class="ic-box b"><div class="ic-icon">&#127979;</div><div class="ic-val">'+(s.class_name||"-")+'</div><div class="ic-lbl">Class</div></div>';
+    h+='<div class="ic-box g"><div class="ic-icon">&#127968;</div><div class="ic-val">'+(s.section_name||"-")+'</div><div class="ic-lbl">Section</div></div>';
+    h+='<div class="ic-box o"><div class="ic-icon">&#127965;</div><div class="ic-val">'+(s.house||"-")+'</div><div class="ic-lbl">House</div></div>';
+    h+='<div class="ic-box p"><div class="ic-icon">&#128197;</div><div class="ic-val">'+s.date_of_admission+'</div><div class="ic-lbl">Admitted</div></div>';
+    h+='</div>';
+    h+='<div class="pc"><div class="ph">&#128100; Personal Details</div><div class="pg">';
+    h+='<div class="pf"><div class="pl">Student ID</div><div class="pv">'+(s.student_reg_no||s.name)+'</div></div>';
+    h+='<div class="pf"><div class="pl">First Name</div><div class="pv">'+(s.first_name||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">Second Name</div><div class="pv">'+(s.second_name||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">Last Name</div><div class="pv">'+(s.last_name||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">Full Name</div><div class="pv">'+s.full_name+'</div></div>';
+    h+='<div class="pf"><div class="pl">Email</div><div class="pv">'+s.portal_email+'</div></div>';
+    h+='<div class="pf"><div class="pl">Class</div><div class="pv">'+(s.class_name||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">Section</div><div class="pv">'+(s.section_name||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">House</div><div class="pv">'+(s.house||"-")+'</div></div>';
+    h+='<div class="pf"><div class="pl">Date of Admission</div><div class="pv">'+s.date_of_admission+'</div></div>';
+    h+='</div></div>';
+    el("pc").innerHTML=h;
+    el("pc").style.display="block";
+    el("loading").style.display="none";
+  })
+  .catch(function(){
+    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading profile.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+  });
+});
+</script>

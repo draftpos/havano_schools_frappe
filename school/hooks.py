@@ -256,9 +256,7 @@ fixtures = ["DocType"]
 
 
 # Redirect website users to student portal after login
-website_redirects = [
-    {"source": "/", "target": "/student-portal", "match_with_query_string": False}
-]
+
 
 on_login = "school.utils.redirect_to_portal"
 

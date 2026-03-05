@@ -1,0 +1,91 @@
+---
+no_cache: 1
+title: Homework Results
+---
+<style>
+.rh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
+.rh h2{margin:0;}.rh p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
+.ic{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px;}
+.ic-box{background:white;border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.07);border-top:4px solid #2e86de;}
+.ic-box.g{border-top-color:#34a853;}.ic-box.o{border-top-color:#fbbc04;}.ic-box.p{border-top-color:#7c4dff;}.ic-box.r{border-top-color:#ea4335;}
+.ic-icon{font-size:1.6rem;margin-bottom:6px;}.ic-val{font-size:1rem;font-weight:700;color:#1e3a5f;margin-bottom:3px;word-break:break-word;}.ic-lbl{font-size:0.75rem;color:#888;text-transform:uppercase;}
+.tc{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:20px;}
+.tc .th{background:#f8f9fa;padding:14px 18px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;}
+.tc table{width:100%;border-collapse:collapse;}.tc table th{background:#f0f4ff;padding:10px 14px;text-align:left;font-size:0.8rem;font-weight:600;color:#555;text-transform:uppercase;}
+.tc table td{padding:10px 14px;border-bottom:1px solid #f5f5f5;font-size:0.9rem;}.tc table tr:last-child td{border-bottom:none;}
+.gb{display:inline-block;padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.82rem;}
+.gA{background:#e6f4ea;color:#2e7d32;}.gB{background:#e8f0fe;color:#1565c0;}.gC{background:#fff3e0;color:#e65100;}.gD{background:#fce4ec;color:#c62828;}.gE{background:#fce8e6;color:#b71c1c;}
+.sp{color:#2e7d32;font-weight:600;}.sf{color:#c62828;font-weight:600;}
+.ri{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;cursor:pointer;transition:transform 0.15s;}
+.ri:hover{transform:translateY(-2px);}.ri-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.ri-h h5{margin:0;font-size:0.95rem;}.ri-h .m{font-size:0.8rem;opacity:0.85;margin-top:3px;}
+.bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
+.bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
+.msc{display:none;background:#f8f9fa;border-radius:8px;padding:10px 14px;margin-bottom:8px;}
+.msc .sn{font-weight:600;color:#1e3a5f;margin-bottom:5px;}.msc .sr{display:flex;justify-content:space-between;font-size:0.86rem;margin-bottom:3px;}
+.msc .sl{color:#888;}.msc .sv{font-weight:600;color:#333;}
+@media(max-width:768px){.ic{grid-template-columns:repeat(2,1fr);}.dt{display:none;}.msc{display:block !important;}}
+</style>
+<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading results...</div>
+<div id="lv" style="display:none;">
+  <div class="rh"><a href="/student-portal" class="bb">&#8592; Dashboard</a><h2>&#128218; Homework Results</h2><p>Click a result to view details</p></div>
+  <div id="ll"></div>
+</div>
+<div id="dv" style="display:none;">
+  <div class="rh"><a href="#" onclick="showList();return false;" class="bb">&#8592; Back</a><h2 id="dt"></h2><p id="ds"></p></div>
+  <div class="ic" id="dc"></div>
+  <div class="tc"><div class="th">&#128203; My Score</div>
+    <div class="dt"><table><thead><tr><th>Name</th><th>Adm No</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th></tr></thead><tbody id="stb"></tbody></table></div>
+    <div id="msd" style="padding:14px;"></div>
+  </div>
+</div>
+<script>
+var AR=[];
+function G(p){if(p>=75)return"A";if(p>=60)return"B";if(p>=50)return"C";if(p>=40)return"D";return"E";}
+function showList(){document.getElementById("dv").style.display="none";document.getElementById("lv").style.display="block";}
+function el(id){return document.getElementById(id);}
+function showDetail(i){
+  var r=AR[i];el("lv").style.display="none";
+  el("dt").textContent=r.homework_name;
+  el("ds").textContent=r.subject_name+" | "+r.class_name+" | "+r.date;
+  el("dc").innerHTML=
+    '<div class="ic-box"><div class="ic-icon">&#127979;</div><div class="ic-val">'+r.class_name+'</div><div class="ic-lbl">Class</div></div>'+
+    '<div class="ic-box g"><div class="ic-icon">&#128218;</div><div class="ic-val">'+r.subject_name+'</div><div class="ic-lbl">Subject</div></div>'+
+    '<div class="ic-box o"><div class="ic-icon">&#128197;</div><div class="ic-val">'+r.date+'</div><div class="ic-lbl">Date</div></div>'+
+    '<div class="ic-box p"><div class="ic-icon">&#128100;</div><div class="ic-val">'+r.total_students+'</div><div class="ic-lbl">Students</div></div>'+
+    '<div class="ic-box r"><div class="ic-icon">&#9999;</div><div class="ic-val">'+r.homework_type+'</div><div class="ic-lbl">Homework Type</div></div>'+
+    '<div class="ic-box"><div class="ic-icon">&#127919;</div><div class="ic-val">'+r.max_marks+'</div><div class="ic-lbl">Max Marks</div></div>';
+  var s=r.scores[0];
+  var pct=r.max_marks>0?((s.marks_obtained/r.max_marks)*100).toFixed(1):0;
+  var g=G(parseFloat(pct));
+  var sc=s.status==="Pass"?"sp":"sf";
+  el("stb").innerHTML="<tr><td>"+(s.student_full_name||"-")+"</td><td>"+(s.student_admission_no||"-")+"</td><td>"+s.marks_obtained+"/"+r.max_marks+"</td><td>"+pct+"%</td><td><span class='gb g"+g+"'>"+g+"</span></td><td class='"+sc+"'>"+(s.status||"-")+"</td></tr>";
+  el("msd").innerHTML="<div class='msc' style='display:block;'><div class='sn'>"+(s.student_full_name||"-")+"</div><div class='sr'><span class='sl'>Admission No</span><span class='sv'>"+(s.student_admission_no||"-")+"</span></div><div class='sr'><span class='sl'>Marks</span><span class='sv'>"+s.marks_obtained+"/"+r.max_marks+"</span></div><div class='sr'><span class='sl'>%</span><span class='sv'>"+pct+"%</span></div><div class='sr'><span class='sl'>Grade</span><span class='sv'><span class='gb g"+g+"'>"+g+"</span></span></div><div class='sr'><span class='sl'>Status</span><span class='sv "+sc+"'>"+(s.status||"-")+"</span></div></div>";
+  el("dv").style.display="block";
+}
+window.addEventListener("load", function(){
+  fetch("/api/method/school.api.get_homework_results",{credentials:"same-origin"})
+  .then(function(res){return res.json();})
+  .then(function(r){
+    if(!r.message||!r.message.length){
+      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No results found.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+      return;
+    }
+    AR=r.message;
+    var h="";
+    AR.forEach(function(result,idx){
+      var s=result.scores[0];
+      var pct=result.max_marks>0?((s.marks_obtained/result.max_marks)*100).toFixed(1):0;
+      var g=G(parseFloat(pct));
+      var sc=s.status==="Pass"?"sp":"sf";
+      h+='<div class="ri" onclick="showDetail('+idx+')"><div class="ri-h"><div><h5>'+result.homework_name+'</h5><div class="m">'+result.subject_name+' &bull; '+result.class_name+' &bull; '+result.date+'</div></div><div style="text-align:right;min-width:70px;"><div style="font-size:1.2rem;font-weight:700;">'+pct+'%</div><div style="font-size:0.95rem;font-weight:700;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;">'+g+'</div><div style="font-size:0.78rem;" class="'+sc+'">'+s.status+'</div></div></div></div>';
+    });
+    el("ll").innerHTML=h;
+    el("loading").style.display="none";
+    el("lv").style.display="block";
+  })
+  .catch(function(){
+    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading results.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+  });
+});
+</script>
