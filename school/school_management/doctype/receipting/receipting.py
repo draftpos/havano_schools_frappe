@@ -55,15 +55,14 @@ class Receipting(Document):
                 row.fees_structure = result[0].fees_structure
 
     def calculate_totals(self):
-        self.total_amount      = sum(flt(r.total)      for r in self.invoices)
-        self.total_outstanding = sum(flt(r.outstanding) for r in self.invoices)
-        if hasattr(self, "total_allocated"):
-            self.total_allocated = sum(flt(r.allocated) for r in self.invoices)
+        # NOTE: total_allocated does not exist as a DocType field — do not reference it.
+        self.total_amount      = sum(flt(r.total)       for r in self.invoices)
+        self.total_outstanding = sum(flt(r.outstanding)  for r in self.invoices)
 
     def set_account_if_missing(self):
         if self.account:
             return
-        company      = (
+        company = (
             frappe.defaults.get_user_default("company")
             or frappe.db.get_single_value("Global Defaults", "default_company")
         )
@@ -97,7 +96,7 @@ class Receipting(Document):
         company_currency   = frappe.db.get_value("Company", company, "default_currency")
         receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
 
-        paid_to_account  = self.account
+        paid_to_account = self.account
         if not paid_to_account:
             frappe.throw("Please select an Account before submitting.")
 
@@ -108,14 +107,10 @@ class Receipting(Document):
         )
 
         # Customer from first invoice
-        first_inv = frappe.get_doc("Sales Invoice", rows[0].invoice_number)
-
+        first_inv  = frappe.get_doc("Sales Invoice", rows[0].invoice_number)
         total_paid = flt(self.paid_amount) or sum(flt(r.allocated) for r in rows)
 
         # ── Standard PE references ─────────────────────────────────────────
-        # fees_structure is passed here because it exists as a custom Data field
-        # on Payment Entry Reference (visible in the Reference table in your screenshot).
-        # Since it is Data (not Link), the concatenated string saves correctly.
         references = []
         for row in rows:
             references.append({
@@ -128,7 +123,6 @@ class Receipting(Document):
             })
 
         # ── Custom invoices child table ────────────────────────────────────
-        # fees_structure also lives here for the custom_invoices table on PE
         custom_invoices = []
         for row in rows:
             custom_invoices.append({

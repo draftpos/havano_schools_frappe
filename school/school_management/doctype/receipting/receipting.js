@@ -8,12 +8,16 @@ frappe.ui.form.on('Receipting', {
             frm.trigger('fetch_default_account');
         }
         frm.trigger('set_account_query');
+        // Ensure account field is always visible
+        frm.set_df_property('account', 'hidden', 0);
         if (frm.doc.account) frm.trigger('account');
         setTimeout(function() { setup_student_search(frm); }, 800);
     },
 
     refresh: function(frm) {
         frm.trigger('set_account_query');
+        // Ensure account field is always visible
+        frm.set_df_property('account', 'hidden', 0);
         if (frm.doc.account_currency) toggle_currency_fields(frm);
 
         if (frm.doc.docstatus === 0) {
@@ -32,6 +36,8 @@ frappe.ui.form.on('Receipting', {
         toggle_currency_fields(frm);
         frm.trigger('set_account_query');
         frm.trigger('fetch_default_account');
+        // Re-show account field after method change
+        frm.set_df_property('account', 'hidden', 0);
     },
 
     set_account_query: function(frm) {
@@ -64,6 +70,7 @@ frappe.ui.form.on('Receipting', {
             callback: function(r) {
                 if (r.message && r.message.length) {
                     frm.set_value('account', r.message[0].name);
+                    frm.set_df_property('account', 'hidden', 0);
                 }
             }
         });
@@ -464,17 +471,14 @@ function auto_distribute(frm) {
 }
 
 function calculate_totals(frm) {
-    let total = 0, outstanding = 0, allocated = 0;
+    // NOTE: total_allocated field does not exist in the DocType — do not reference it.
+    let total = 0, outstanding = 0;
     (frm.doc.invoices || []).forEach(function(row) {
         total       += flt(row.total);
         outstanding += flt(row.outstanding);
-        allocated   += flt(row.allocated);
     });
     frm.set_value('total_amount',      flt(total, 2));
     frm.set_value('total_outstanding', flt(outstanding, 2));
-    if (frm.fields_dict['total_allocated']) {
-        frm.set_value('total_allocated', flt(allocated, 2));
-    }
 }
 
 function set_section_filter(frm) {
@@ -502,6 +506,9 @@ function toggle_currency_fields(frm) {
 
     frm.set_df_property('exchange_rate',   'hidden', multi ? 0 : 1);
     frm.set_df_property('received_amount', 'hidden', multi ? 0 : 1);
+
+    // account field must always remain visible — never hide it
+    frm.set_df_property('account', 'hidden', 0);
 
     if (frm.fields_dict['invoices'] && frm.fields_dict['invoices'].grid) {
         frm.fields_dict['invoices'].grid.update_docfield_property('allocated_foreign', 'hidden', multi ? 0 : 1);
