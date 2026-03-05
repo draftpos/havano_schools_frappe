@@ -10,7 +10,6 @@
   "year_name",
   "from_year",
   "to_year",
-  "date",
   "column_break_1",
   "is_active"
  ],
@@ -47,20 +46,16 @@
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
-  },
-  {
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "label": "Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-05 14:46:11.575178",
+ "modified": "2026-03-05 15:01:59.730219",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Academic Year",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {
