@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-02-28 12:54:42.087905",
+ "creation": "2026-03-05 12:56:17.592442",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -11,6 +11,8 @@
   "date",
   "cost_center",
   "project",
+  "term",
+  "year",
   "column_break_1",
   "student_class",
   "section",
@@ -18,8 +20,7 @@
   "fees_structure",
   "amended_from",
   "items_section",
-  "items",
-  "total_amount"
+  "items"
  ],
  "fields": [
   {
@@ -95,14 +96,6 @@
    "options": "Billing Item"
   },
   {
-   "bold": 1,
-   "fieldname": "total_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Total Amount",
-   "read_only": 1
-  },
-  {
    "fieldname": "amended_from",
    "fieldtype": "Link",
    "label": "Amended From",
@@ -111,22 +104,29 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "term",
+   "fieldtype": "Link",
+   "label": "Term",
+   "options": "Term"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Academic Year"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [
-  {
-   "group": "Sales Invoice",
-   "link_doctype": "Sales Invoice",
-   "link_fieldname": "billing_reference"
-  }
- ],
- "modified": "2026-03-04 08:20:46.201330",
+ "links": [],
+ "modified": "2026-03-05 13:02:39.897049",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Billing",
+ "naming_rule": "By \"Naming Series\" field",
  "owner": "Administrator",
  "permissions": [
   {
