@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2026-01-20 08:44:50.429377",
+  "module": "Havano Restaurant Pos",
+  "name": "print invoice",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(function(can_print_invoice) {\n            frm.can_print_invoice = can_print_invoice;\n            if (can_print_invoice) {\n                frm.add_custom_button(__('Print Invoice'), function() {\n                    downloadInvoice(frm.doc.name);\n                }, __('Actions'));\n            }\n        });\n    },\n    on_submit: function(frm) {\n        if (frm.doc.docstatus !== 1) return;\n        var doDownload = function(can_print) {\n            if (can_print) downloadInvoice(frm.doc.name);\n        };\n        if (frm.can_print_invoice !== undefined) {\n            doDownload(frm.can_print_invoice);\n        } else {\n            frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(doDownload);\n        }\n    }\n});\n\nfunction downloadInvoice(invoiceNumber) {\n    var url = frappe.urllib.get_full_url(\n        '/api/method/havano_restaurant_pos.api.download_invoice_json?name=' +\n        encodeURIComponent(invoiceNumber) + '&receipt_type='\n    );\n    var a = document.createElement('a');\n    a.href = url;\n    a.download = invoiceNumber + '.txt';\n    a.target = '_blank';\n    document.body.appendChild(a);\n    a.click();\n    document.body.removeChild(a);\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Receipting",
   "enabled": 1,
   "modified": "2026-03-05 11:47:37.699071",
@@ -52,6 +63,17 @@
   "module": null,
   "name": "Home Schedule Fetch Students",
   "script": "\nfrappe.ui.form.on('Home Schedule', {\n    student_class: function(frm) {\n        if (frm.doc.student_class) {\n            fetch_students(frm);\n        }\n    },\n    section: function(frm) {\n        if (frm.doc.student_class) {\n            fetch_students(frm);\n        }\n    },\n    fetch_students: function(frm) {\n        if (frm.doc.student_class) {\n            fetch_students(frm);\n        }\n    }\n});\n\nfunction fetch_students(frm) {\n    let filters = {'student_class': frm.doc.student_class};\n    if (frm.doc.section) {\n        filters['section'] = frm.doc.section;\n    }\n    frappe.call({\n        method: 'frappe.client.get_list',\n        args: {\n            doctype: 'Student',\n            filters: filters,\n            fields: ['name', 'full_name'],\n            limit_page_length: 0,\n            order_by: 'name'\n        },\n        callback: function(r) {\n            if (r.message) {\n                frm.clear_table('home_items');\n                r.message.forEach(function(student) {\n                    let row = frm.add_child('home_items');\n                    row.student_admission_no = student.name;\n                    row.student_full_name = student.full_name;\n                });\n                frm.refresh_field('home_items');\n                frm.set_value('number_of_students', r.message.length);\n                frappe.show_alert({\n                    message: r.message.length + ' students loaded',\n                    indicator: 'green'\n                });\n            }\n        }\n    });\n}\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2026-03-05 20:52:40.251750",
+  "module": null,
+  "name": "Sales Invoice - Auto Fill Student Info",
+  "script": "\nfrappe.ui.form.on('Sales Invoice', {\n    customer: function(frm) {\n        if (!frm.doc.customer) {\n            frm.set_value('student_class', '');\n            frm.set_value('student_section', '');\n            frm.set_value('student_category', '');\n            return;\n        }\n        frappe.db.get_value('Student',\n            {'full_name': frm.doc.customer},\n            ['student_class', 'section', 'student_category'],\n            function(student) {\n                if (student) {\n                    frm.set_value('student_class', student.student_class || '');\n                    frm.set_value('student_section', student.section || '');\n                    frm.set_value('student_category', student.student_category || '');\n                }\n            }\n        );\n    },\n    fees_structure: function(frm) {\n        if (!frm.doc.fees_structure) {\n            frm.set_value('academic_year', '');\n            frm.set_value('academic_term', '');\n            return;\n        }\n        frappe.db.get_value('Fees Structure',\n            frm.doc.fees_structure,\n            ['year', 'term'],\n            function(fs) {\n                if (fs) {\n                    frm.set_value('academic_year', fs.year || '');\n                    frm.set_value('academic_term', fs.term || '');\n                }\n            }\n        );\n    }\n});\n",
   "view": "Form"
  }
 ]

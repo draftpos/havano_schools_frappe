@@ -17,11 +17,19 @@ fixtures = [
     },
     {
         "dt": "Client Script",
-        "filters": [["dt", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card"]]]
+        "filters": [["dt", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Sales Invoice"]]]
     },
     {
         "dt": "Server Script",
         "filters": [["reference_doctype", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Attendance Settings"]]]
+    },
+    {
+        "dt": "Custom Field",
+        "filters": [["dt", "=", "Sales Invoice"]]
+    },
+    {
+        "dt": "Role",
+        "filters": [["role_name", "in", ["Student", "Student Portal"]]]
     }
 ]
 
