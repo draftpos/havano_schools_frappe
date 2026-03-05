@@ -1,0 +1,159 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-03-05 11:19:04.224884",
+    "doctype": "DocType",
+    "engine": "InnoDB",
+    "field_order": [
+     "month_name",
+     "months_section",
+     "january",
+     "february",
+     "march",
+     "april",
+     "may",
+     "june",
+     "july",
+     "august",
+     "september",
+     "october",
+     "november",
+     "december",
+     "column_break_months",
+     "selected_months_display",
+     "total_months_selected"
+    ],
+    "fields": [
+     {
+      "fieldname": "month_name",
+      "fieldtype": "Data",
+      "label": "Name / Label",
+      "reqd": 1,
+      "in_list_view": 1,
+      "in_standard_filter": 1
+     },
+     {
+      "fieldname": "months_section",
+      "fieldtype": "Section Break",
+      "label": "Select Months"
+     },
+     {
+      "fieldname": "january",
+      "fieldtype": "Check",
+      "label": "January",
+      "default": "0"
+     },
+     {
+      "fieldname": "february",
+      "fieldtype": "Check",
+      "label": "February",
+      "default": "0"
+     },
+     {
+      "fieldname": "march",
+      "fieldtype": "Check",
+      "label": "March",
+      "default": "0"
+     },
+     {
+      "fieldname": "april",
+      "fieldtype": "Check",
+      "label": "April",
+      "default": "0"
+     },
+     {
+      "fieldname": "may",
+      "fieldtype": "Check",
+      "label": "May",
+      "default": "0"
+     },
+     {
+      "fieldname": "june",
+      "fieldtype": "Check",
+      "label": "June",
+      "default": "0"
+     },
+     {
+      "fieldname": "july",
+      "fieldtype": "Check",
+      "label": "July",
+      "default": "0"
+     },
+     {
+      "fieldname": "august",
+      "fieldtype": "Check",
+      "label": "August",
+      "default": "0"
+     },
+     {
+      "fieldname": "september",
+      "fieldtype": "Check",
+      "label": "September",
+      "default": "0"
+     },
+     {
+      "fieldname": "october",
+      "fieldtype": "Check",
+      "label": "October",
+      "default": "0"
+     },
+     {
+      "fieldname": "november",
+      "fieldtype": "Check",
+      "label": "November",
+      "default": "0"
+     },
+     {
+      "fieldname": "december",
+      "fieldtype": "Check",
+      "label": "December",
+      "default": "0"
+     },
+     {
+      "fieldname": "column_break_months",
+      "fieldtype": "Column Break"
+     },
+     {
+      "fieldname": "selected_months_display",
+      "fieldtype": "Small Text",
+      "label": "Selected Months",
+      "read_only": 1,
+      "description": "Auto-populated summary of selected months"
+     },
+     {
+      "fieldname": "total_months_selected",
+      "fieldtype": "Int",
+      "label": "Total Months Selected",
+      "read_only": 1,
+      "in_list_view": 1
+     }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-03-05 11:21:23.987409",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Month",
+    "owner": "Administrator",
+    "permissions": [
+     {
+      "create": 1,
+      "delete": 1,
+      "email": 1,
+      "export": 1,
+      "print": 1,
+      "read": 1,
+      "report": 1,
+      "role": "System Manager",
+      "share": 1,
+      "write": 1
+     }
+    ],
+    "row_format": "Dynamic",
+    "rows_threshold_for_grid_search": 20,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "month_name"
+   }
