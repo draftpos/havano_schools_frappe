@@ -5070,21 +5070,7 @@
   "is_virtual": 0,
   "issingle": 0,
   "istable": 0,
-  "links": [
-   {
-    "custom": 0,
-    "group": "Sales Invoice",
-    "hidden": 0,
-    "is_child_table": 0,
-    "link_doctype": "Sales Invoice",
-    "link_fieldname": "billing_reference",
-    "parent": "Billing",
-    "parent_doctype": null,
-    "parentfield": "links",
-    "parenttype": "DocType",
-    "table_fieldname": null
-   }
-  ],
+  "links": [],
   "make_attachments_public": 0,
   "max_attachments": 0,
   "menu_index": null,
