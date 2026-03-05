@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:year_name",
- "creation": "2026-03-05 12:50:31.944736",
+ "creation": "2026-03-05 13:36:54.662205",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -10,6 +10,7 @@
   "year_name",
   "from_year",
   "to_year",
+  "date",
   "column_break_1",
   "is_active"
  ],
@@ -25,14 +26,14 @@
   },
   {
    "fieldname": "from_year",
-   "fieldtype": "Date",
+   "fieldtype": "Int",
    "in_list_view": 1,
    "label": "From Year",
    "reqd": 1
   },
   {
    "fieldname": "to_year",
-   "fieldtype": "Date",
+   "fieldtype": "Int",
    "in_list_view": 1,
    "label": "To Year",
    "reqd": 1
@@ -46,12 +47,17 @@
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
+  },
+  {
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-05 12:52:13.287867",
+ "modified": "2026-03-05 14:46:11.575178",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Academic Year",
