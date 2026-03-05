@@ -161,7 +161,7 @@
   "doctype_event": "After Save",
   "enable_rate_limit": 0,
   "event_frequency": "All",
-  "modified": "2026-03-05 09:26:25.251122",
+  "modified": "2026-03-05 09:41:12.527810",
   "module": null,
   "name": "Create Student Portal User",
   "rate_limit_count": 5,
