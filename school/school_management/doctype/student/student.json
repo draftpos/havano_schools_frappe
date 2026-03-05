@@ -87,7 +87,6 @@
       "fieldtype": "Data",
       "in_list_view": 1,
       "label": "Student Reg No",
-      "reqd": 1,
       "unique": 1
      },
      {
