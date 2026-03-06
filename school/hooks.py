@@ -17,7 +17,7 @@ fixtures = [
     },
     {
         "dt": "Client Script",
-        "filters": [["dt", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Sales Invoice"]]]
+        "filters": [["dt", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Sales Invoice", "Payment Entry"]]]
     },
     {
         "dt": "Server Script",

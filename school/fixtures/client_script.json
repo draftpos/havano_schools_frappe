@@ -2,6 +2,17 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Payment Entry",
+  "enabled": 1,
+  "modified": "2026-03-06 07:31:05.165554",
+  "module": null,
+  "name": "Payment Entry - Auto Fill Student Info",
+  "script": "\nfrappe.ui.form.on('Payment Entry', {\n    party: function(frm) {\n        if (!frm.doc.party) {\n            frm.set_value('student_class', '');\n            frm.set_value('student_section', '');\n            frm.set_value('student_category', '');\n            return;\n        }\n        frappe.db.get_value('Student',\n            {'full_name': frm.doc.party},\n            ['student_class', 'section', 'student_category'],\n            function(student) {\n                if (student) {\n                    frm.set_value('student_class', student.student_class || '');\n                    frm.set_value('student_section', student.section || '');\n                    frm.set_value('student_category', student.student_category || '');\n                }\n            }\n        );\n    },\n    fees_structure: function(frm) {\n        if (!frm.doc.fees_structure) {\n            frm.set_value('academic_year', '');\n            frm.set_value('academic_term', '');\n            return;\n        }\n        frappe.db.get_value('Fees Structure',\n            frm.doc.fees_structure,\n            ['year', 'term'],\n            function(fs) {\n                if (fs) {\n                    frm.set_value('academic_year', fs.year || '');\n                    frm.set_value('academic_term', fs.term || '');\n                }\n            }\n        );\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Sales Invoice",
   "enabled": 1,
   "modified": "2026-01-20 08:44:50.429377",
