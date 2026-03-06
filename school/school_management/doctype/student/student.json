@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-06 08:39:26.441419",
+ "creation": "2026-03-06 09:51:19.436727",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -82,7 +82,8 @@
   "previous_school_details",
   "create_user_section",
   "create_user",
-  "portal_email"
+  "portal_email",
+  "image_drgg"
  ],
  "fields": [
   {
@@ -502,12 +503,16 @@
   {
    "fieldname": "column_break_govj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "image_drgg",
+   "fieldtype": "Image"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-06 09:05:55.123299",
+ "modified": "2026-03-06 14:14:09.537792",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
