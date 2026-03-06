@@ -503,10 +503,6 @@
   {
    "fieldname": "column_break_govj",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "image_drgg",
-   "fieldtype": "Image"
   }
  ],
  "grid_page_length": 50,
