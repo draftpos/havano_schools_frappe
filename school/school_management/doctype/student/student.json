@@ -82,8 +82,7 @@
   "previous_school_details",
   "create_user_section",
   "create_user",
-  "portal_email",
-  "test"
+  "portal_email"
  ],
  "fields": [
   {
@@ -503,17 +502,12 @@
   {
    "fieldname": "column_break_govj",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "test",
-   "fieldtype": "Data",
-   "label": "test"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-06 08:56:14.595241",
+ "modified": "2026-03-06 09:05:55.123299",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
