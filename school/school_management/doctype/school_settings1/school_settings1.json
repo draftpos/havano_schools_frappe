@@ -1,0 +1,58 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-06 15:29:27.685950",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "school_settings",
+  "debit_account",
+  "credit_account"
+ ],
+ "fields": [
+  {
+   "fieldname": "school_settings",
+   "fieldtype": "Section Break",
+   "label": "School Settings"
+  },
+  {
+   "fetch_if_empty": 1,
+   "fieldname": "debit_account",
+   "fieldtype": "Link",
+   "label": "Debit account (debtors)",
+   "options": "Account"
+  },
+  {
+   "fieldname": "credit_account",
+   "fieldtype": "Link",
+   "label": "Credit Account(opening balance equity)",
+   "options": "Account"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-06 15:36:21.343392",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "School Settings1",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
