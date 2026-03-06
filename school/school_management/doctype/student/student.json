@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-06 17:10:02.764497",
+ "creation": "2026-03-06 21:46:13.011623",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -21,6 +21,9 @@
   "student_image",
   "student_phone_number",
   "gender",
+  "has_opening_balance",
+  "opening_balance",
+  "opening_balance_date",
   "medical_history_section",
   "medical_history",
   "academic_details_section",
@@ -228,6 +231,26 @@
    "fieldname": "portal_email",
    "fieldtype": "Data",
    "label": "Portal Email"
+  },
+  {
+   "default": "0",
+   "fieldname": "has_opening_balance",
+   "fieldtype": "Check",
+   "label": "Has Opening Balance"
+  },
+  {
+   "depends_on": "eval:doc.has_opening_balance == 1",
+   "fieldname": "opening_balance",
+   "fieldtype": "Currency",
+   "label": "Opening Balance",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
+  },
+  {
+   "depends_on": "eval:doc.has_opening_balance == 1",
+   "fieldname": "opening_balance_date",
+   "fieldtype": "Date",
+   "label": "As Of Date",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
   },
   {
    "collapsible": 1,
@@ -507,7 +530,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-06 17:56:26.086272",
+ "modified": "2026-03-06 22:14:00.082956",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

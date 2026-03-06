@@ -75,5 +75,16 @@
   "name": "Sales Invoice - Auto Fill Student Info",
   "script": "\nfrappe.ui.form.on('Sales Invoice', {\n    customer: function(frm) {\n        if (!frm.doc.customer) {\n            frm.set_value('student_class', '');\n            frm.set_value('student_section', '');\n            frm.set_value('student_category', '');\n            return;\n        }\n        frappe.db.get_value('Student',\n            {'full_name': frm.doc.customer},\n            ['student_class', 'section', 'student_category'],\n            function(student) {\n                if (student) {\n                    frm.set_value('student_class', student.student_class || '');\n                    frm.set_value('student_section', student.section || '');\n                    frm.set_value('student_category', student.student_category || '');\n                }\n            }\n        );\n    },\n    fees_structure: function(frm) {\n        if (!frm.doc.fees_structure) {\n            frm.set_value('academic_year', '');\n            frm.set_value('academic_term', '');\n            return;\n        }\n        frappe.db.get_value('Fees Structure',\n            frm.doc.fees_structure,\n            ['year', 'term'],\n            function(fs) {\n                if (fs) {\n                    frm.set_value('academic_year', fs.year || '');\n                    frm.set_value('academic_term', fs.term || '');\n                }\n            }\n        );\n    }\n});\n",
   "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Student",
+  "enabled": 1,
+  "modified": "2026-03-06 22:30:18.496671",
+  "module": null,
+  "name": "Student - Lock Opening Balance on Edit",
+  "script": "\nfrappe.ui.form.on('Student', {\n    refresh: function(frm) {\n        if (!frm.is_new()) {\n            frm.set_df_property('has_opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance_date', 'read_only', 1);\n        }\n    }\n});\n",
+  "view": "Form"
  }
 ]
