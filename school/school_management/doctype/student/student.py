@@ -4,10 +4,21 @@ class Student(Document):
     def before_save(self):
         parts = [self.first_name, self.second_name, self.last_name]
         self.full_name = " ".join([p for p in parts if p])
+        # Convert class name to code if full name was entered
+        if self.student_class:
+            class_code = frappe.db.get_value("Student Class", {"name": self.student_class}, "name")
+            if not class_code:
+                # Try matching by class_name
+                class_code = frappe.db.get_value("Student Class", {"class_name": self.student_class}, "name")
+                if class_code:
+                    self.student_class = class_code
+
     def after_insert(self):
         self.create_customer()
+
     def on_update(self):
         self.create_customer()
+
     def create_customer(self):
         if not self.full_name:
             return
