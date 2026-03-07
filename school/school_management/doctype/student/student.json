@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-07 08:36:38.554912",
+ "creation": "2026-03-07 11:03:33.530128",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -20,7 +20,7 @@
   "student_phone_number",
   "gender",
   "date_of_birth",
-  "column_break_qawt",
+  "column_break_uiyo",
   "has_opening_balance",
   "opening_balance",
   "opening_balance_date",
@@ -86,7 +86,7 @@
   "create_user_section",
   "create_user",
   "portal_email",
-  "column_break_apwp",
+  "column_break_jvky",
   "student_image"
  ],
  "fields": [
@@ -163,7 +163,8 @@
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth"
+   "label": "Date of Birth",
+   "reqd": 1
   },
   {
    "fieldname": "medical_history_section",
@@ -529,18 +530,18 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_qawt",
+   "fieldname": "column_break_uiyo",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_apwp",
+   "fieldname": "column_break_jvky",
    "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-07 10:15:40.650235",
+ "modified": "2026-03-07 11:11:22.747769",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
