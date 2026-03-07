@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-06 21:46:13.011623",
+ "creation": "2026-03-07 08:36:38.554912",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -16,11 +16,11 @@
   "date_of_admission",
   "student_category",
   "religion",
-  "date_of_birth",
   "column_break_gqhl",
-  "student_image",
   "student_phone_number",
   "gender",
+  "date_of_birth",
+  "column_break_qawt",
   "has_opening_balance",
   "opening_balance",
   "opening_balance_date",
@@ -85,7 +85,9 @@
   "previous_school_details",
   "create_user_section",
   "create_user",
-  "portal_email"
+  "portal_email",
+  "column_break_apwp",
+  "student_image"
  ],
  "fields": [
   {
@@ -142,8 +144,9 @@
   },
   {
    "fieldname": "religion",
-   "fieldtype": "Data",
-   "label": "Religion"
+   "fieldtype": "Link",
+   "label": "Religion",
+   "options": "Religion"
   },
   {
    "fieldname": "student_image",
@@ -160,8 +163,7 @@
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth",
-   "reqd": 1
+   "label": "Date of Birth"
   },
   {
    "fieldname": "medical_history_section",
@@ -525,12 +527,20 @@
   {
    "fieldname": "column_break_govj",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_qawt",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_apwp",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-06 22:14:00.082956",
+ "modified": "2026-03-07 10:15:40.650235",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
