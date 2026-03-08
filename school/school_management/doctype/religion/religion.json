@@ -1,29 +1,28 @@
 {
  "actions": [],
  "allow_rename": 1,
- "creation": "2026-03-07 10:09:09.765595",
+ "autoname": "field:religion_name",
+ "creation": "2026-03-08 11:02:00.387323",
  "doctype": "DocType",
+ "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "religion",
   "religion_name"
  ],
  "fields": [
   {
-   "fieldname": "religion",
-   "fieldtype": "Section Break",
-   "label": "Religion"
-  },
-  {
    "fieldname": "religion_name",
    "fieldtype": "Data",
-   "label": "Religion Name"
+   "in_list_view": 1,
+   "label": "Religion Name",
+   "reqd": 1,
+   "unique": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-07 10:10:17.182165",
+ "modified": "2026-03-08 11:02:00.387323",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Religion",
@@ -37,7 +36,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
+   "role": "Administrator",
    "share": 1,
    "write": 1
   }
@@ -47,6 +46,5 @@
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],
- "autoname": "field:religion_name",
  "title_field": "religion_name"
 }

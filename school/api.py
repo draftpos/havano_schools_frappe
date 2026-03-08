@@ -331,3 +331,31 @@ def get_my_account():
     student["date_of_admission"] = str(student.date_of_admission) if student.date_of_admission else "-"
 
     return student
+
+@frappe.whitelist()
+def get_student_invoices(student):
+    student_doc = frappe.get_doc("Student", student)
+    full_name = student_doc.full_name
+    
+    # Find customer - try exact match first, then case-insensitive
+    customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
+    if not customer:
+        result = frappe.db.sql(
+            "SELECT name FROM `tabCustomer` WHERE LOWER(customer_name) = LOWER(%s) LIMIT 1",
+            full_name, as_dict=True
+        )
+        customer = result[0].name if result else None
+    
+    if not customer:
+        return []
+    
+    invoices = frappe.db.sql("""
+        SELECT name, grand_total, outstanding_amount, fees_structure
+        FROM `tabSales Invoice`
+        WHERE customer = %s
+        AND docstatus = 1
+        AND outstanding_amount > 0
+        ORDER BY posting_date DESC
+    """, customer, as_dict=True)
+    
+    return invoices
