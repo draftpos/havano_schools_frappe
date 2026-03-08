@@ -2,38 +2,40 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-07 11:03:33.530128",
+ "creation": "2026-03-08 09:31:04.656661",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "student_details_section",
   "student_reg_no",
-  "first_name",
-  "second_name",
-  "last_name",
-  "column_break_1",
   "date_of_admission",
+  "student_phone_number",
+  "date_of_birth",
+  "column_break_1",
+  "first_name",
+  "student_class",
   "student_category",
   "religion",
   "column_break_gqhl",
-  "student_phone_number",
+  "second_name",
+  "section",
   "gender",
-  "date_of_birth",
-  "column_break_uiyo",
+  "house",
+  "column_break_ydlm",
+  "last_name",
   "has_opening_balance",
   "opening_balance",
+  "cost_center",
   "opening_balance_date",
   "medical_history_section",
   "medical_history",
   "academic_details_section",
-  "student_class",
+  "column_break_pcre",
   "column_break_2",
   "full_name",
   "column_break_orrq",
-  "section",
   "column_break_olbl",
-  "house",
   "transport_details_section",
   "route_list",
   "column_break_eylr",
@@ -46,30 +48,32 @@
   "dorm",
   "parent_guardian_detail_section",
   "father_name",
-  "father_occupation",
-  "phone_number",
-  "column_break_uluu",
   "mother_name",
-  "mother_occupation",
+  "column_break_uluu",
+  "phone_number",
   "mother_phone",
   "column_break_atfu",
+  "father_occupation",
+  "mother_occupation",
+  "column_break_gpav",
   "father_photo",
   "mother_photo",
   "guardian_section",
   "if_guardian_is",
   "guardian_name",
-  "guardian_relation",
   "column_break_guardian",
   "guardian_occupation",
   "guardian_email",
-  "guardian_address",
   "column_break_oeey",
-  "guardian_photo",
   "guardian_phone",
+  "guardian_relation",
+  "column_break_iijr",
+  "guardian_address",
+  "guardian_photo",
   "address_details_section",
   "if_guardian_address_is_current_address",
   "current_address",
-  "column_break_gefb",
+  "column_break_vigs",
   "if_permanent_address_is_current_address",
   "permanent_address",
   "miscellaneous_details_section",
@@ -86,7 +90,7 @@
   "create_user_section",
   "create_user",
   "portal_email",
-  "column_break_jvky",
+  "column_break_jxle",
   "student_image"
  ],
  "fields": [
@@ -122,7 +126,7 @@
   {
    "fieldname": "student_phone_number",
    "fieldtype": "Phone",
-   "label": "Student Phone Number"
+   "label": "Student Phone No"
   },
   {
    "fieldname": "column_break_1",
@@ -150,7 +154,7 @@
   },
   {
    "fieldname": "student_image",
-   "fieldtype": "Attach Image",
+   "fieldtype": "Attach",
    "label": "Student Photo"
   },
   {
@@ -207,16 +211,6 @@
    "in_list_view": 1,
    "label": "House",
    "options": "House"
-  },
-  {
-   "fieldname": "full_name",
-   "fieldtype": "Data",
-   "in_filter": 1,
-   "in_global_search": 1,
-   "in_list_view": 1,
-   "label": "Full Name",
-   "read_only": 1,
-   "search_index": 1
   },
   {
    "fieldname": "create_user_section",
@@ -522,26 +516,56 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_gefb",
-   "fieldtype": "Column Break"
-  },
-  {
    "fieldname": "column_break_govj",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_uiyo",
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_vigs",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_jvky",
+   "fieldname": "column_break_ydlm",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_pcre",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jxle",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_gpav",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_iijr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.has_opening_balance == 1",
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1",
+   "options": "Cost Center"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-07 11:11:22.747769",
+ "modified": "2026-03-08 10:33:03.151907",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

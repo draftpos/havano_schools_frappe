@@ -8,7 +8,6 @@ class Student(Document):
         if self.student_class:
             class_code = frappe.db.get_value("Student Class", {"name": self.student_class}, "name")
             if not class_code:
-                # Try matching by class_name
                 class_code = frappe.db.get_value("Student Class", {"class_name": self.student_class}, "name")
                 if class_code:
                     self.student_class = class_code
@@ -17,7 +16,15 @@ class Student(Document):
         self.create_customer()
 
     def on_update(self):
+        # Skip customer creation if only images were updated
+        if self.flags.get("ignore_on_update"):
+            return
         self.create_customer()
+
+    def validate(self):
+        # Prevent save trigger on image upload only
+        if self.flags.get("in_insert"):
+            return
 
     def create_customer(self):
         if not self.full_name:

@@ -2,135 +2,41 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-03-06 10:54:32.485223",
+ "creation": "2026-03-07 22:54:59.610510",
  "doctype": "DocType",
- "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "naming_series",
-  "date",
-  "time",
-  "column_break_1",
-  "party_type",
-  "payment_type",
-  "payment_method",
-  "column_break_afoe",
-  "account",
-  "account_currency",
-  "amounts_section",
-  "paid_amount",
-  "column_break_3",
-  "received_amount",
-  "exchange_rate",
-  "student_section",
+  "details_section",
   "student_name",
-  "student_display_name",
-  "academic_year",
-  "column_break_2",
+  "account",
+  "date",
+  "column_break_ssab",
   "student_class",
+  "received_amount",
+  "time",
+  "party_type",
+  "column_break_gqaj",
   "section",
+  "paid_amount",
+  "payment_method",
+  "payment_type",
+  "column_break_rleb",
   "term",
+  "account_currency",
+  "exchange_rate",
   "invoices_section",
-  "invoices",
-  "totals_section",
+  "invoice",
   "total_amount",
   "total_outstanding",
   "payment_entry",
-  "amended_from"
+  "ammended_form",
+  "naming_series"
  ],
  "fields": [
   {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "label": "Series",
-   "options": "REC-.YYYY.-"
-  },
-  {
-   "default": "Today",
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
-  },
-  {
-   "default": "now",
-   "fieldname": "time",
-   "fieldtype": "Time",
-   "label": "Time"
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "Customer",
-   "fieldname": "party_type",
-   "fieldtype": "Select",
-   "label": "Party Type",
-   "options": "Customer\nSupplier"
-  },
-  {
-   "default": "Receive",
-   "fieldname": "payment_type",
-   "fieldtype": "Select",
-   "label": "Payment Type",
-   "options": "Receive\nPay"
-  },
-  {
-   "default": "Cash",
-   "fieldname": "payment_method",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Payment Method",
-   "options": "Cash\nBank\nMobile Money"
-  },
-  {
-   "fieldname": "account",
-   "fieldtype": "Link",
-   "label": "Account Paid To",
-   "options": "Account",
-   "reqd": 1
-  },
-  {
-   "fieldname": "account_currency",
-   "fieldtype": "Data",
-   "label": "Account Currency",
-   "print_hide": 1,
-   "read_only": 1
-  },
-  {
-   "fieldname": "amounts_section",
+   "fieldname": "details_section",
    "fieldtype": "Section Break",
-   "label": "Amount"
-  },
-  {
-   "fieldname": "paid_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Paid Amount",
-   "reqd": 1
-  },
-  {
-   "fieldname": "column_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "received_amount",
-   "fieldtype": "Currency",
-   "label": "Received Amount",
-   "options": "account_currency"
-  },
-  {
-   "default": "1",
-   "fieldname": "exchange_rate",
-   "fieldtype": "Float",
-   "label": "Exchange Rate"
-  },
-  {
-   "fieldname": "student_section",
-   "fieldtype": "Section Break",
-   "label": "Student Selection"
+   "label": "Details"
   },
   {
    "fieldname": "student_name",
@@ -141,15 +47,18 @@
    "reqd": 1
   },
   {
-   "fieldname": "student_display_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Student Full Name",
-   "read_only": 1
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Account Paid To",
+   "options": "Account",
+   "reqd": 1
   },
   {
-   "fieldname": "column_break_2",
-   "fieldtype": "Column Break"
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date",
+   "reqd": 1
   },
   {
    "fieldname": "student_class",
@@ -159,11 +68,47 @@
    "options": "Student Class"
   },
   {
+   "fieldname": "received_amount",
+   "fieldtype": "Currency",
+   "label": "Received Amount",
+   "options": "account_currency"
+  },
+  {
+   "fieldname": "time",
+   "fieldtype": "Time",
+   "label": "Time"
+  },
+  {
+   "fieldname": "party_type",
+   "fieldtype": "Select",
+   "label": "Party Type",
+   "options": "Customer\nSupplier"
+  },
+  {
    "fieldname": "section",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Section",
    "options": "Section"
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Paid Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Payment Method",
+   "options": "Cash\nBank\nMobile Money"
+  },
+  {
+   "fieldname": "payment_type",
+   "fieldtype": "Select",
+   "label": "Payment Type",
+   "options": "Receive\nPay"
   },
   {
    "fieldname": "term",
@@ -173,11 +118,24 @@
    "options": "Term"
   },
   {
-   "fieldname": "academic_year",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Academic Year",
-   "options": "Academic Year"
+   "fieldname": "account_currency",
+   "fieldtype": "Data",
+   "label": "Account Currency",
+   "print_hide": 1,
+   "read_only": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "exchange_rate",
+   "fieldtype": "Float",
+   "label": "Exchange Rate",
+   "print_hide": 1
+  },
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "label": "Series"
   },
   {
    "fieldname": "invoices_section",
@@ -185,19 +143,14 @@
    "label": "Outstanding Invoices"
   },
   {
-   "fieldname": "invoices",
+   "fieldname": "invoice",
    "fieldtype": "Table",
    "label": "Invoices",
    "options": "Receipt Item"
   },
   {
-   "fieldname": "totals_section",
-   "fieldtype": "Section Break"
-  },
-  {
    "fieldname": "total_amount",
    "fieldtype": "Currency",
-   "in_list_view": 1,
    "label": "Total Amount (Base)",
    "read_only": 1
   },
@@ -212,42 +165,53 @@
    "fieldtype": "Link",
    "label": "Payment Entry",
    "options": "Payment Entry",
-   "print_hide": 1,
    "read_only": 1
   },
   {
-   "fieldname": "amended_from",
+   "fieldname": "ammended_form",
    "fieldtype": "Link",
    "label": "Amended From",
+   "no_copy": 1,
    "options": "Receipting",
-   "print_hide": 1,
    "read_only": 1
   },
   {
-   "fieldname": "column_break_afoe",
+   "fieldname": "column_break_ssab",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_gqaj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_rleb",
    "fieldtype": "Column Break"
   }
  ],
- "is_submittable": 1,
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-06 11:14:55.935628",
+ "modified": "2026-03-07 22:57:50.737095",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipting",
  "owner": "Administrator",
  "permissions": [
   {
-   "amend": 1,
-   "cancel": 1,
    "create": 1,
    "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
    "read": 1,
+   "report": 1,
    "role": "System Manager",
-   "submit": 1,
+   "share": 1,
    "write": 1
   }
  ],
  "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": []

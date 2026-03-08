@@ -95,7 +95,7 @@
   "modified": "2026-03-06 22:30:18.496671",
   "module": null,
   "name": "Student - Lock Opening Balance on Edit",
-  "script": "\nfrappe.ui.form.on('Student', {\n    refresh: function(frm) {\n        if (!frm.is_new()) {\n            frm.set_df_property('has_opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance_date', 'read_only', 1);\n        }\n    }\n});\n",
+  "script": "\nfrappe.ui.form.on('Student', {\n    refresh: function(frm) {\n        if (!frm.is_new()) {\n            frm.set_df_property('has_opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance', 'read_only', 1);\n            frm.set_df_property('opening_balance_date', 'read_only', 1);\n        }\n\n        // Override all attach image fields to not auto-save\n        ['student_image', 'father_photo', 'mother_photo', 'guardian_photo'].forEach(function(fieldname) {\n            var field = frm.get_field(fieldname);\n            if (field && field.df) {\n                field.on_upload_complete = function() {\n                    frm.dirty();\n                };\n            }\n        });\n    }\n});\n\n// Intercept the file upload save\nfrappe.ui.form.on('Student', {\n    student_image: function(frm) { frm.dirty(); },\n    father_photo: function(frm) { frm.dirty(); },\n    mother_photo: function(frm) { frm.dirty(); },\n    guardian_photo: function(frm) { frm.dirty(); }\n});\n\n// Block auto save after file upload on Student form\n$(document).on('frappe.ui.form.on_upload_complete', function() {\n    if (cur_frm && cur_frm.doctype === 'Student' && cur_frm.is_new()) {\n        cur_frm.save_disabled = true;\n    }\n});\n",
   "view": "Form"
  }
 ]

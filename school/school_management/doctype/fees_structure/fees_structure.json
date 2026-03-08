@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:fees_structure_code",
- "creation": "2026-03-05 12:56:15.189437",
+ "creation": "2026-03-07 22:28:10.626232",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -10,9 +10,7 @@
   "fees_structure_section",
   "fees_structure_code",
   "fees_structure_name",
-  "year",
   "column_break_fwlr",
-  "term",
   "fees_items_section",
   "fees_items"
  ],
@@ -49,26 +47,14 @@
    "label": "Fees Structure"
   },
   {
-   "fieldname": "year",
-   "fieldtype": "Link",
-   "label": "Year",
-   "options": "Academic Year"
-  },
-  {
    "fieldname": "column_break_fwlr",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "term",
-   "fieldtype": "Link",
-   "label": "Term",
-   "options": "Term"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-05 13:04:39.659420",
+ "modified": "2026-03-07 23:07:30.621864",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Fees Structure",
