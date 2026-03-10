@@ -2,40 +2,48 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-08 09:31:04.656661",
+ "creation": "2026-03-10 13:26:39.998375",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "student_details_section",
   "student_reg_no",
-  "date_of_admission",
-  "student_phone_number",
-  "date_of_birth",
-  "column_break_1",
   "first_name",
-  "student_class",
+  "second_name",
+  "last_name",
+  "column_break_1",
+  "date_of_admission",
   "student_category",
   "religion",
+  "date_of_birth",
   "column_break_gqhl",
-  "second_name",
-  "section",
+  "student_image",
+  "student_phone_number",
   "gender",
+  "column_break_dkfp",
+  "student_class",
+  "section",
   "house",
-  "column_break_ydlm",
-  "last_name",
+  "column_break_oixq",
   "has_opening_balance",
   "opening_balance",
   "cost_center",
   "opening_balance_date",
   "medical_history_section",
   "medical_history",
+  "other_filtering_section",
+  "category_1",
+  "category_2",
+  "category_3",
+  "column_break_filtering",
+  "area",
+  "territory",
+  "fees_category",
   "academic_details_section",
-  "column_break_pcre",
+  "column_break_aokb",
   "column_break_2",
   "full_name",
-  "column_break_orrq",
-  "column_break_olbl",
   "transport_details_section",
   "route_list",
   "column_break_eylr",
@@ -55,25 +63,25 @@
   "column_break_atfu",
   "father_occupation",
   "mother_occupation",
-  "column_break_gpav",
-  "father_photo",
+  "column_break_jojc",
   "mother_photo",
+  "father_photo",
   "guardian_section",
   "if_guardian_is",
-  "guardian_name",
-  "column_break_guardian",
-  "guardian_occupation",
-  "guardian_email",
-  "column_break_oeey",
-  "guardian_phone",
   "guardian_relation",
-  "column_break_iijr",
+  "column_break_guardian",
+  "guardian_name",
   "guardian_address",
+  "column_break_oeey",
+  "guardian_occupation",
+  "guardian_phone",
+  "column_break_jjlr",
+  "guardian_email",
   "guardian_photo",
   "address_details_section",
   "if_guardian_address_is_current_address",
   "current_address",
-  "column_break_vigs",
+  "column_break_gefb",
   "if_permanent_address_is_current_address",
   "permanent_address",
   "miscellaneous_details_section",
@@ -89,9 +97,7 @@
   "previous_school_details",
   "create_user_section",
   "create_user",
-  "portal_email",
-  "column_break_jxle",
-  "student_image"
+  "portal_email"
  ],
  "fields": [
   {
@@ -126,7 +132,7 @@
   {
    "fieldname": "student_phone_number",
    "fieldtype": "Phone",
-   "label": "Student Phone No"
+   "label": "Student Phone Number"
   },
   {
    "fieldname": "column_break_1",
@@ -136,39 +142,34 @@
    "fieldname": "date_of_admission",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date of Admission",
-   "reqd": 1
+   "label": "Date of Admission"
   },
   {
    "fieldname": "student_category",
    "fieldtype": "Link",
    "label": "Category",
-   "options": "Customer Group",
-   "reqd": 1
+   "options": "Customer Group"
   },
   {
    "fieldname": "religion",
-   "fieldtype": "Link",
-   "label": "Religion",
-   "options": "Religion"
+   "fieldtype": "Data",
+   "label": "Religion"
   },
   {
    "fieldname": "student_image",
-   "fieldtype": "Attach",
+   "fieldtype": "Attach Image",
    "label": "Student Photo"
   },
   {
    "fieldname": "gender",
    "fieldtype": "Select",
    "label": "Gender",
-   "options": "\nMale\nFemale\nOther",
-   "reqd": 1
+   "options": "\nMale\nFemale\nOther"
   },
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth",
-   "reqd": 1
+   "label": "Date of Birth"
   },
   {
    "fieldname": "medical_history_section",
@@ -206,28 +207,21 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "in_filter": 1,
+   "in_global_search": 1,
+   "in_list_view": 1,
+   "label": "Full Name",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
    "fieldname": "house",
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "House",
    "options": "House"
-  },
-  {
-   "fieldname": "create_user_section",
-   "fieldtype": "Section Break",
-   "label": "Portal Access"
-  },
-  {
-   "default": "0",
-   "fieldname": "create_user",
-   "fieldtype": "Check",
-   "label": "Create Portal User"
-  },
-  {
-   "depends_on": "eval:doc.create_user==1",
-   "fieldname": "portal_email",
-   "fieldtype": "Data",
-   "label": "Portal Email"
   },
   {
    "default": "0",
@@ -236,18 +230,66 @@
    "label": "Has Opening Balance"
   },
   {
-   "depends_on": "eval:doc.has_opening_balance == 1",
    "fieldname": "opening_balance",
    "fieldtype": "Currency",
-   "label": "Opening Balance",
-   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
+   "label": "Opening Balance"
   },
   {
-   "depends_on": "eval:doc.has_opening_balance == 1",
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "Cost Center",
+   "options": "Cost Center"
+  },
+  {
    "fieldname": "opening_balance_date",
    "fieldtype": "Date",
-   "label": "As Of Date",
-   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
+   "label": "As Of Date"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "other_filtering_section",
+   "fieldtype": "Section Break",
+   "label": "Other Filtering"
+  },
+  {
+   "fieldname": "category_1",
+   "fieldtype": "Link",
+   "label": "Category 1",
+   "options": "Category 1"
+  },
+  {
+   "fieldname": "category_2",
+   "fieldtype": "Link",
+   "label": "Category 2",
+   "options": "Category 2"
+  },
+  {
+   "fieldname": "category_3",
+   "fieldtype": "Link",
+   "label": "Category 3",
+   "options": "Category 3"
+  },
+  {
+   "fieldname": "column_break_filtering",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Link",
+   "label": "Area",
+   "options": "Area"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "fees_category",
+   "fieldtype": "Link",
+   "label": "Fees Category",
+   "options": "Fees Category"
   },
   {
    "collapsible": 1,
@@ -428,6 +470,10 @@
    "label": "Current Address"
   },
   {
+   "fieldname": "column_break_gefb",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "fieldname": "if_permanent_address_is_current_address",
    "fieldtype": "Check",
@@ -496,11 +542,40 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_orrq",
+   "fieldname": "column_break_atkv",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_olbl",
+   "fieldname": "column_break_atfu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_oeey",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_govj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "create_user_section",
+   "fieldtype": "Section Break",
+   "label": "Portal Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "create_user",
+   "fieldtype": "Check",
+   "label": "Create Portal User"
+  },
+  {
+   "depends_on": "eval:doc.create_user==1",
+   "fieldname": "portal_email",
+   "fieldtype": "Data",
+   "label": "Portal Email"
+  },
+  {
+   "fieldname": "column_break_gqhl",
    "fieldtype": "Column Break"
   },
   {
@@ -520,52 +595,30 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "full_name",
-   "fieldtype": "Data",
-   "in_filter": 1,
-   "in_global_search": 1,
-   "in_list_view": 1,
-   "label": "Full Name",
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "column_break_vigs",
+   "fieldname": "column_break_dkfp",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_ydlm",
+   "fieldname": "column_break_oixq",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_pcre",
+   "fieldname": "column_break_aokb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_jxle",
+   "fieldname": "column_break_jojc",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_gpav",
+   "fieldname": "column_break_jjlr",
    "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_iijr",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.has_opening_balance == 1",
-   "fieldname": "cost_center",
-   "fieldtype": "Link",
-   "label": "Cost Center",
-   "mandatory_depends_on": "eval:doc.has_opening_balance == 1",
-   "options": "Cost Center"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-08 10:33:03.151907",
+ "modified": "2026-03-10 14:30:01.360252",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

@@ -2,23 +2,34 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "naming_series:",
- "creation": "2026-03-05 12:56:17.592442",
+ "creation": "2026-03-10 14:32:04.493473",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "date",
-  "cost_center",
   "project",
-  "term",
-  "year",
+  "category_1",
+  "number_of_students",
   "column_break_1",
+  "date",
   "student_class",
   "section",
-  "number_of_students",
-  "fees_structure",
+  "category_2",
+  "column_break_filters",
+  "cost_center",
+  "area",
+  "category_3",
   "amended_from",
+  "column_break_izpr",
+  "term",
+  "territory",
+  "fees_structure",
+  "column_break_ycam",
+  "year",
+  "fees_category",
+  "student",
+  "total_amount",
   "items_section",
   "items"
  ],
@@ -52,6 +63,18 @@
    "options": "Project"
   },
   {
+   "fieldname": "term",
+   "fieldtype": "Link",
+   "label": "Term",
+   "options": "Term"
+  },
+  {
+   "fieldname": "year",
+   "fieldtype": "Link",
+   "label": "Year",
+   "options": "Academic Year"
+  },
+  {
    "fieldname": "column_break_1",
    "fieldtype": "Column Break"
   },
@@ -60,14 +83,59 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Class",
-   "options": "Student Class",
-   "reqd": 1
+   "options": "Student Class"
   },
   {
    "fieldname": "section",
    "fieldtype": "Link",
    "label": "Section",
    "options": "Section"
+  },
+  {
+   "fieldname": "category_1",
+   "fieldtype": "Link",
+   "label": "Category 1",
+   "options": "Category 1"
+  },
+  {
+   "fieldname": "category_2",
+   "fieldtype": "Link",
+   "label": "Category 2",
+   "options": "Category 2"
+  },
+  {
+   "fieldname": "category_3",
+   "fieldtype": "Link",
+   "label": "Category 3",
+   "options": "Category 3"
+  },
+  {
+   "fieldname": "column_break_filters",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Link",
+   "label": "Area",
+   "options": "Area"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "fees_category",
+   "fieldtype": "Link",
+   "label": "Fees Category",
+   "options": "Fees Category"
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "label": "Student",
+   "options": "Student"
   },
   {
    "fieldname": "number_of_students",
@@ -85,6 +153,16 @@
    "reqd": 1
   },
   {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Billing",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
    "label": "Fee Items"
@@ -96,33 +174,26 @@
    "options": "Billing Item"
   },
   {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Billing",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "fieldname": "column_break_izpr",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "term",
-   "fieldtype": "Link",
-   "label": "Term",
-   "options": "Term"
+   "fieldname": "column_break_ycam",
+   "fieldtype": "Column Break"
   },
   {
-   "fieldname": "year",
-   "fieldtype": "Link",
-   "label": "Year",
-   "options": "Academic Year"
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Total Amount",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-05 13:02:39.897049",
+ "modified": "2026-03-10 14:32:04.749958",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Billing",
@@ -146,8 +217,8 @@
   }
  ],
  "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

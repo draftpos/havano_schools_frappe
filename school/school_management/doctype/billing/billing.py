@@ -8,17 +8,34 @@ class Billing(Document):
         self.calculate_amounts()
 
     def update_student_count(self):
-        filters = {"student_class": self.student_class}
+        if self.student:
+            self.number_of_students = 1
+            return
+        filters = {}
+        if self.student_class:
+            filters["student_class"] = self.student_class
         if self.section:
             filters["section"] = self.section
+        if self.category_1:
+            filters["category_1"] = self.category_1
+        if self.category_2:
+            filters["category_2"] = self.category_2
+        if self.category_3:
+            filters["category_3"] = self.category_3
+        if self.area:
+            filters["area"] = self.area
+        if self.territory:
+            filters["territory"] = self.territory
+        if self.fees_category:
+            filters["fees_category"] = self.fees_category
+        if not filters:
+            self.number_of_students = 0
+            return
         self.number_of_students = frappe.db.count("Student", filters=filters)
 
     def calculate_amounts(self):
-        total = 0
         for item in self.items:
             item.amount = (item.rate or 0) * (item.qty or 1)
-            total += item.amount
-        self.total_amount = total
 
     def on_submit(self):
         self.create_student_invoices()
@@ -37,14 +54,33 @@ class Billing(Document):
         return full_name
 
     def create_student_invoices(self):
-        filters = {"student_class": self.student_class}
-        if self.section:
-            filters["section"] = self.section
-
-        students = frappe.get_all("Student", filters=filters, fields=["name", "full_name"])
+        if self.student:
+            student_doc = frappe.get_doc("Student", self.student)
+            students = [{"name": student_doc.name, "full_name": student_doc.full_name}]
+        else:
+            filters = {}
+            if self.student_class:
+                filters["student_class"] = self.student_class
+            if self.section:
+                filters["section"] = self.section
+            if self.category_1:
+                filters["category_1"] = self.category_1
+            if self.category_2:
+                filters["category_2"] = self.category_2
+            if self.category_3:
+                filters["category_3"] = self.category_3
+            if self.area:
+                filters["area"] = self.area
+            if self.territory:
+                filters["territory"] = self.territory
+            if self.fees_category:
+                filters["fees_category"] = self.fees_category
+            if not filters:
+                frappe.throw("Please select at least one filter to bill students.")
+            students = frappe.get_all("Student", filters=filters, fields=["name", "full_name"])
 
         if not students:
-            frappe.throw("No students found for the selected class/section.")
+            frappe.throw("No students found for the selected filters.")
 
         company = frappe.defaults.get_global_default("company")
         created = 0
