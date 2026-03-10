@@ -2,29 +2,29 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-10 15:57:39.196670",
+ "creation": "2026-03-10 21:58:46.666057",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "student_details_section",
-  "student_reg_no",
   "first_name",
   "second_name",
   "last_name",
   "column_break_1",
+  "student_reg_no",
   "date_of_admission",
   "student_category",
-  "religion",
-  "date_of_birth",
   "column_break_gqhl",
   "student_phone_number",
   "gender",
+  "date_of_birth",
   "column_break_dkfp",
   "student_class",
   "house",
   "section",
   "column_break_oixq",
+  "religion",
   "has_opening_balance",
   "opening_balance",
   "cost_center",
@@ -236,20 +236,26 @@
    "label": "Has Opening Balance"
   },
   {
+   "depends_on": "eval:doc.has_opening_balance == 1",
    "fieldname": "opening_balance",
    "fieldtype": "Currency",
-   "label": "Opening Balance"
+   "label": "Opening Balance",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
   },
   {
+   "depends_on": "eval:doc.has_opening_balance == 1",
    "fieldname": "cost_center",
    "fieldtype": "Link",
    "label": "Cost Center",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1",
    "options": "Cost Center"
   },
   {
+   "depends_on": "eval:doc.has_opening_balance == 1",
    "fieldname": "opening_balance_date",
    "fieldtype": "Date",
-   "label": "As Of Date"
+   "label": "As Of Date",
+   "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
   },
   {
    "collapsible": 1,
@@ -628,7 +634,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-10 15:57:39.526631",
+ "modified": "2026-03-10 21:57:14.846802",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

@@ -30,7 +30,7 @@ frappe.ui.form.on("Billing", {
             callback: function(r) {
                 if (!r.message) return;
                 frm.clear_table("items");
-                (r.message.items || []).forEach(function(item) {
+                (r.message.fees_items || []).forEach(function(item) {
                     let row = frm.add_child("items");
                     row.item_code = item.item_code;
                     row.item_name = item.item_name;
