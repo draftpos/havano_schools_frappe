@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-10 13:26:39.998375",
+ "creation": "2026-03-10 15:57:39.196670",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -18,13 +18,12 @@
   "religion",
   "date_of_birth",
   "column_break_gqhl",
-  "student_image",
   "student_phone_number",
   "gender",
   "column_break_dkfp",
   "student_class",
-  "section",
   "house",
+  "section",
   "column_break_oixq",
   "has_opening_balance",
   "opening_balance",
@@ -97,7 +96,14 @@
   "previous_school_details",
   "create_user_section",
   "create_user",
-  "portal_email"
+  "portal_email",
+  "column_break_mkyy",
+  "student_image",
+  "column_break_gqhl",
+  "column_break_atkv",
+  "column_break_atfu",
+  "column_break_oeey",
+  "column_break_govj"
  ],
  "fields": [
   {
@@ -613,12 +619,16 @@
   {
    "fieldname": "column_break_jjlr",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_mkyy",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-10 14:30:01.360252",
+ "modified": "2026-03-10 15:57:39.526631",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

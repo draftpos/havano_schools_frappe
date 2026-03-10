@@ -1,12 +1,20 @@
 // Copyright (c) 2026, Ashley and contributors
 // For license information, please see license.txt
-
 frappe.ui.form.on("Billing", {
-
     refresh(frm) {
         toggle_student_filters(frm);
-        // Make class optional
         frm.set_df_property("student_class", "reqd", 0);
+
+        // Auto set cost center to Main-SS
+        if (!frm.doc.cost_center) {
+            frm.set_value("cost_center", "Main - SS");
+        }
+    },
+
+    onload(frm) {
+        if (!frm.doc.cost_center) {
+            frm.set_value("cost_center", "Main - SS");
+        }
     },
 
     student(frm) {
@@ -14,15 +22,33 @@ frappe.ui.form.on("Billing", {
         update_student_count(frm);
     },
 
+    fees_structure(frm) {
+        if (!frm.doc.fees_structure) return;
+        frappe.call({
+            method: "frappe.client.get",
+            args: { doctype: "Fees Structure", name: frm.doc.fees_structure },
+            callback: function(r) {
+                if (!r.message) return;
+                frm.clear_table("items");
+                (r.message.items || []).forEach(function(item) {
+                    let row = frm.add_child("items");
+                    row.item_code = item.item_code;
+                    row.item_name = item.item_name;
+                    row.qty = item.qty || 1;
+                    row.rate = item.rate || 0;
+                    row.amount = (item.qty || 1) * (item.rate || 0);
+                    row.cost_center = frm.doc.cost_center || "Main - SS";
+                });
+                frm.refresh_field("items");
+            }
+        });
+    },
+
     student_class(frm) {
         frm.set_value("section", "");
         update_student_count(frm);
     },
-
-    section(frm) {
-        update_student_count(frm);
-    },
-
+    section(frm) { update_student_count(frm); },
     category_1(frm) {
         frm.set_query("category_2", function() {
             return { filters: { category_1: frm.doc.category_1 } };
@@ -31,7 +57,6 @@ frappe.ui.form.on("Billing", {
         frm.set_value("category_3", "");
         update_student_count(frm);
     },
-
     category_2(frm) {
         frm.set_query("category_3", function() {
             return { filters: { category_2: frm.doc.category_2 } };
@@ -39,24 +64,13 @@ frappe.ui.form.on("Billing", {
         frm.set_value("category_3", "");
         update_student_count(frm);
     },
-
-    category_3(frm) {
-        update_student_count(frm);
-    },
-
+    category_3(frm) { update_student_count(frm); },
     area(frm) {
         frm.set_value("territory", "");
         update_student_count(frm);
     },
-
-    territory(frm) {
-        update_student_count(frm);
-    },
-
-    fees_category(frm) {
-        update_student_count(frm);
-    },
-
+    territory(frm) { update_student_count(frm); },
+    fees_category(frm) { update_student_count(frm); },
 });
 
 function update_student_count(frm) {
@@ -78,7 +92,6 @@ function update_student_count(frm) {
         frm.set_value("number_of_students", 0);
         return;
     }
-
     frappe.call({
         method: "frappe.client.get_count",
         args: { doctype: "Student", filters: filters },
