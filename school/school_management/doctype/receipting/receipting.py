@@ -61,8 +61,6 @@ class Receipting(Document):
         pe.flags.ignore_mandatory = True
         pe.flags.ignore_account_permission = True
         pe.insert(ignore_mandatory=True)
-        frappe.db.commit()
-        pe.reload()
         pe.submit()
         self.payment_entry = pe.name
         frappe.msgprint(f"Payment Entry {pe.name} created successfully.")
