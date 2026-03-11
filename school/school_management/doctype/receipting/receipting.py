@@ -1,11 +1,9 @@
 # Copyright (c) 2026, Ashley and contributors
 # For license information, please see license.txt
-
 import frappe
 from frappe.model.document import Document
 
 class Receipting(Document):
-
     def validate(self):
         self.calculate_totals()
 
@@ -46,11 +44,11 @@ class Receipting(Document):
                     "reference_doctype": "Sales Invoice",
                     "reference_name": row.invoice_number,
                     "allocated_amount": row.allocated,
-                    "total_amount": row.total,
                     "outstanding_amount": row.outstanding,
                 })
 
         pe.flags.ignore_permissions = True
+        pe.flags.ignore_validate = True
         pe.insert()
         pe.submit()
         self.payment_entry = pe.name
