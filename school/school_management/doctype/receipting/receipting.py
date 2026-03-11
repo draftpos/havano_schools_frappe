@@ -27,16 +27,26 @@ class Receipting(Document):
         company = frappe.defaults.get_global_default("company")
         student = frappe.get_doc("Student", self.student_name)
 
+        company_currency = frappe.db.get_value("Company", company, "default_currency")
+        receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
+        paid_to_account = self.account
+        paid_to_currency = frappe.db.get_value("Account", paid_to_account, "account_currency") or company_currency
+        total_paid = sum(row.allocated or 0 for row in self.invoice)
+
         pe = frappe.new_doc("Payment Entry")
         pe.payment_type = "Receive"
         pe.party_type = "Customer"
         pe.party = student.full_name
         pe.company = company
         pe.posting_date = self.date or frappe.utils.today()
-        pe.paid_to = self.account
-        pe.paid_amount = sum(row.allocated or 0 for row in self.invoice)
-        pe.received_amount = pe.paid_amount
+        pe.paid_from = receivable_account
+        pe.paid_to = paid_to_account
+        pe.paid_from_account_currency = company_currency
+        pe.paid_to_account_currency = paid_to_currency
+        pe.source_exchange_rate = 1
         pe.target_exchange_rate = 1
+        pe.paid_amount = total_paid
+        pe.received_amount = total_paid
 
         for row in self.invoice:
             if row.invoice_number and (row.allocated or 0) > 0:
