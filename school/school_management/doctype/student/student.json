@@ -99,12 +99,7 @@
   "create_user",
   "portal_email",
   "column_break_mkyy",
-  "student_image",
-  "column_break_gqhl",
-  "column_break_atkv",
-  "column_break_atfu",
-  "column_break_oeey",
-  "column_break_govj"
+  "student_image"
  ],
  "fields": [
   {
@@ -639,7 +634,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-11 14:56:08.683786",
+ "modified": "2026-03-11 15:04:03.129361",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
