@@ -46,8 +46,8 @@ class Receipting(Document):
         for row in self.invoice:
             if row.invoice_number and (row.allocated or 0) > 0:
                 outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount") or row.outstanding
-                allocated = min(row.allocated, outstanding)
                 grand_total = frappe.db.get_value("Sales Invoice", row.invoice_number, "grand_total") or outstanding
+                allocated = min(float(row.allocated), float(outstanding), float(grand_total))
                 pe.append("references", {
                     "reference_doctype": "Sales Invoice",
                     "reference_name": row.invoice_number,
@@ -58,7 +58,10 @@ class Receipting(Document):
         pe.flags.ignore_permissions = True
         pe.flags.ignore_mandatory = True
         pe.flags.ignore_account_permission = True
-        pe.save(ignore_permissions=True)
-        pe.submit()
+        pe.flags.ignore_validate_linked_document = True
+        frappe.flags.ignore_account_permission = True
+        pe.insert(ignore_permissions=True, ignore_mandatory=True)
+        frappe.db.sql("UPDATE `tabPayment Entry` SET docstatus=1 WHERE name=%s", pe.name)
+        frappe.db.commit()
         self.payment_entry = pe.name
         frappe.msgprint(f"Payment Entry {pe.name} created successfully.")
