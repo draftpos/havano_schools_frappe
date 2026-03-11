@@ -60,7 +60,9 @@ class Receipting(Document):
         pe.flags.ignore_account_permission = True
         pe.flags.ignore_validate_linked_document = True
         frappe.flags.ignore_account_permission = True
+        frappe.local.message_log = []
         pe.insert(ignore_permissions=True, ignore_mandatory=True)
+        frappe.local.message_log = []
         frappe.db.sql("UPDATE `tabPayment Entry` SET docstatus=1 WHERE name=%s", pe.name)
         frappe.db.commit()
         self.payment_entry = pe.name
