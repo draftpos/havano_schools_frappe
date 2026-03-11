@@ -46,10 +46,11 @@ class Receipting(Document):
         for row in self.invoice:
             if row.invoice_number and (row.allocated or 0) > 0:
                 outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount") or row.outstanding
+                allocated = min(row.allocated, outstanding)
                 pe.append("references", {
                     "reference_doctype": "Sales Invoice",
                     "reference_name": row.invoice_number,
-                    "allocated_amount": row.allocated,
+                    "allocated_amount": allocated,
                     "outstanding_amount": outstanding,
                 })
         pe.flags.ignore_permissions = True
