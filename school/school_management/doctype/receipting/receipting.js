@@ -1,14 +1,26 @@
 // Copyright (c) 2026, Ashley and contributors
-// For license information, please see license.txt
-
 frappe.ui.form.on("Receipting", {
-
     refresh(frm) {
+        if (frm.doc.__islocal && !frm.doc.date) {
+            frm.set_value("date", frappe.datetime.get_today());
+        }
+        frm.set_query("account", function() {
+            return {
+                filters: {
+                    account_type: ["in", ["Cash", "Bank"]],
+                    company: frappe.defaults.get_default("company")
+                }
+            };
+        });
         if (frm.doc.student_name && frm.doc.docstatus === 0) {
             load_student_invoices(frm);
         }
     },
-
+    onload(frm) {
+        if (frm.doc.__islocal && !frm.doc.date) {
+            frm.set_value("date", frappe.datetime.get_today());
+        }
+    },
     student_name(frm) {
         if (frm.doc.student_name) {
             frappe.call({
@@ -30,7 +42,6 @@ frappe.ui.form.on("Receipting", {
             frm.set_value("total_balance", 0);
         }
     },
-
 });
 
 frappe.ui.form.on("Receipt Item", {
@@ -45,15 +56,12 @@ frappe.ui.form.on("Receipt Item", {
 function load_student_invoices(frm) {
     frm.clear_table("invoice");
     frm.refresh_field("invoice");
-
     frappe.call({
         method: "frappe.client.get",
         args: { doctype: "Student", name: frm.doc.student_name },
         callback: function(r) {
             if (!r.message) return;
             let student = r.message;
-
-            // Add opening balance row if applicable
             if (student.has_opening_balance && student.opening_balance > 0) {
                 let row = frm.add_child("invoice");
                 row.invoice_number = "";
@@ -62,8 +70,6 @@ function load_student_invoices(frm) {
                 row.outstanding = student.opening_balance;
                 row.allocated = 0;
             }
-
-            // Load outstanding Sales Invoices
             frappe.call({
                 method: "frappe.client.get_list",
                 args: {
@@ -98,12 +104,10 @@ function load_student_invoices(frm) {
 function calculate_totals(frm) {
     let total_outstanding = 0;
     let total_allocated = 0;
-
     (frm.doc.invoice || []).forEach(function(row) {
         total_outstanding += row.outstanding || 0;
         total_allocated += row.allocated || 0;
     });
-
     frm.set_value("total_outstanding", total_outstanding);
     frm.set_value("total_allocated", total_allocated);
     frm.set_value("total_balance", total_outstanding - total_allocated);

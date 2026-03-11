@@ -1,5 +1,4 @@
 # Copyright (c) 2026, Ashley and contributors
-# For license information, please see license.txt
 import frappe
 from frappe.model.document import Document
 
@@ -23,7 +22,6 @@ class Receipting(Document):
     def create_payment_entry(self):
         if not self.invoice:
             frappe.throw("No invoices to pay.")
-
         company = frappe.defaults.get_global_default("company")
         student = frappe.get_doc("Student", self.student_name)
         company_currency = frappe.db.get_value("Company", company, "default_currency")
@@ -31,7 +29,6 @@ class Receipting(Document):
         paid_to_account = self.account
         paid_to_currency = frappe.db.get_value("Account", paid_to_account, "account_currency") or company_currency
         total_paid = sum(row.allocated or 0 for row in self.invoice)
-
         pe = frappe.new_doc("Payment Entry")
         pe.payment_type = "Receive"
         pe.party_type = "Customer"
@@ -46,21 +43,19 @@ class Receipting(Document):
         pe.target_exchange_rate = 1
         pe.paid_amount = total_paid
         pe.received_amount = total_paid
-
         for row in self.invoice:
             if row.invoice_number and (row.allocated or 0) > 0:
+                outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount") or row.outstanding
                 pe.append("references", {
                     "reference_doctype": "Sales Invoice",
                     "reference_name": row.invoice_number,
                     "allocated_amount": row.allocated,
-                    "outstanding_amount": row.outstanding,
+                    "outstanding_amount": outstanding,
                 })
-
         pe.flags.ignore_permissions = True
-        pe.flags.ignore_validate = True
         pe.flags.ignore_mandatory = True
         pe.flags.ignore_account_permission = True
-        pe.insert(ignore_mandatory=True)
+        pe.save(ignore_permissions=True)
         pe.submit()
         self.payment_entry = pe.name
         frappe.msgprint(f"Payment Entry {pe.name} created successfully.")
