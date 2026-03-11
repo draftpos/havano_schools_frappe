@@ -28,6 +28,7 @@
   "cost_center",
   "opening_balance",
   "opening_balance_date",
+  "column_break_ntbs",
   "other_filtering_section",
   "category_1",
   "fees_category",
@@ -624,12 +625,16 @@
   {
    "fieldname": "column_break_mznx",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ntbs",
+   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-11 15:18:47.766700",
+ "modified": "2026-03-11 15:28:06.663049",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
