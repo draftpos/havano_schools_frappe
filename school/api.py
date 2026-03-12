@@ -350,7 +350,7 @@ def get_student_invoices(student):
 
     invoices = frappe.db.sql("""
         SELECT si.name, si.grand_total, si.outstanding_amount,
-               COALESCE(fs.structure_name, si.fees_structure, si.remarks, '') as fees_structure
+               COALESCE(fs.fees_structure_name, si.fees_structure, si.remarks, '') as fees_structure
         FROM `tabSales Invoice` si
         LEFT JOIN `tabFees Structure` fs ON fs.name = si.fees_structure
         WHERE si.customer = %s
