@@ -67,7 +67,10 @@ class Receipting(Document):
         frappe.db.commit()
 
         # Update outstanding amounts on Sales Invoices manually
+        total_opening_allocated = 0
         for row in self.invoice:
+            if not row.invoice_number and (row.allocated or 0) > 0:
+                total_opening_allocated += row.allocated
             if row.invoice_number and (row.allocated or 0) > 0:
                 current_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount") or 0
                 new_outstanding = max(0, float(current_outstanding) - float(row.allocated))
@@ -76,6 +79,11 @@ class Receipting(Document):
                     "UPDATE `tabSales Invoice` SET outstanding_amount=%s, status=%s WHERE name=%s",
                     (new_outstanding, new_status, row.invoice_number)
                 )
+        # Update opening balance on student
+        if total_opening_allocated > 0:
+            current_ob = frappe.db.get_value("Student", self.student_name, "opening_balance") or 0
+            new_ob = max(0, float(current_ob) - float(total_opening_allocated))
+            frappe.db.sql("UPDATE `tabStudent` SET opening_balance=%s WHERE name=%s", (new_ob, self.student_name))
         frappe.db.commit()
         self.payment_entry = pe.name
         frappe.msgprint(f"Payment Entry {pe.name} created successfully.")
