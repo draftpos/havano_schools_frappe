@@ -12,9 +12,7 @@ frappe.ui.form.on("Receipting", {
                 }
             };
         });
-        if (frm.doc.student_name && frm.doc.docstatus === 0) {
-            load_student_invoices(frm);
-        }
+
     },
     onload(frm) {
         if (frm.doc.__islocal && !frm.doc.date) {
@@ -79,7 +77,7 @@ function load_student_invoices(frm) {
                         docstatus: 1,
                         outstanding_amount: [">", 0]
                     },
-                    fields: ["name", "grand_total", "outstanding_amount", "remarks"],
+                    fields: ["name", "grand_total", "outstanding_amount", "remarks", "fees_structure"],
                     order_by: "posting_date asc"
                 },
                 callback: function(r2) {
@@ -87,7 +85,7 @@ function load_student_invoices(frm) {
                         r2.message.forEach(function(inv) {
                             let row = frm.add_child("invoice");
                             row.invoice_number = inv.name;
-                            row.fees_structure = inv.remarks || "";
+                            row.fees_structure = inv.fees_structure || inv.remarks || "";
                             row.total = inv.grand_total;
                             row.outstanding = inv.outstanding_amount;
                             row.allocated = 0;
