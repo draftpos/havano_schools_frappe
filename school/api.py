@@ -336,8 +336,7 @@ def get_my_account():
 def get_student_invoices(student):
     student_doc = frappe.get_doc("Student", student)
     full_name = student_doc.full_name
-    
-    # Find customer - try exact match first, then case-insensitive
+
     customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
     if not customer:
         result = frappe.db.sql(
@@ -345,18 +344,20 @@ def get_student_invoices(student):
             full_name, as_dict=True
         )
         customer = result[0].name if result else None
-    
+
     if not customer:
         return []
-    
+
     invoices = frappe.db.sql("""
-        SELECT name, grand_total, outstanding_amount, fees_structure
-        FROM `tabSales Invoice`
-        WHERE customer = %s
-        AND docstatus = 1
-        AND outstanding_amount > 0
-        AND status NOT IN ('Paid', 'Return', 'Credit Note Issued')
-        ORDER BY posting_date DESC
+        SELECT si.name, si.grand_total, si.outstanding_amount,
+               COALESCE(fs.structure_name, si.fees_structure, si.remarks, '') as fees_structure
+        FROM `tabSales Invoice` si
+        LEFT JOIN `tabFees Structure` fs ON fs.name = si.fees_structure
+        WHERE si.customer = %s
+        AND si.docstatus = 1
+        AND si.outstanding_amount > 0
+        AND si.status NOT IN ('Paid', 'Return', 'Credit Note Issued')
+        ORDER BY si.posting_date DESC
     """, customer, as_dict=True)
-    
+
     return invoices
