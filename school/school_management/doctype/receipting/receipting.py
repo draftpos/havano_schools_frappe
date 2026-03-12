@@ -69,7 +69,7 @@ class Receipting(Document):
         # Update outstanding amounts on Sales Invoices manually
         total_opening_allocated = 0
         for row in self.invoice:
-            if not row.invoice_number and (row.allocated or 0) > 0:
+            if not (row.invoice_number or '').strip() and (row.allocated or 0) > 0:
                 total_opening_allocated += row.allocated
             if row.invoice_number and (row.allocated or 0) > 0:
                 current_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount") or 0
