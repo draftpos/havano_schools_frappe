@@ -203,7 +203,7 @@ def get_billing_summary():
 
     # Get receipts by student name
     receipts = frappe.db.sql("""
-        SELECT r.name, r.date, r.total_amount, r.total_allocated,
+        SELECT r.name, r.date, r.total_allocated,
                r.total_outstanding, r.payment_method, r.docstatus
         FROM `tabReceipting` r
         WHERE r.student_name = %s
@@ -355,6 +355,7 @@ def get_student_invoices(student):
         WHERE customer = %s
         AND docstatus = 1
         AND outstanding_amount > 0
+        AND status NOT IN ('Paid', 'Return', 'Credit Note Issued')
         ORDER BY posting_date DESC
     """, customer, as_dict=True)
     
