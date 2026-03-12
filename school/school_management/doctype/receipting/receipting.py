@@ -17,9 +17,6 @@ class Receipting(Document):
         self.total_balance = total_outstanding - total_allocated
 
     def on_submit(self):
-        self.create_payment_entry()
-
-    def create_payment_entry(self):
         if not self.invoice:
             frappe.throw("No invoices to pay.")
         company = frappe.defaults.get_global_default("company")
