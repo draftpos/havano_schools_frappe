@@ -1,6 +1,10 @@
 {
  "actions": [],
+<<<<<<< Updated upstream
  "creation": "2026-03-12 11:44:18.814940",
+=======
+ "creation": "2026-03-12 08:03:02.082387",
+>>>>>>> Stashed changes
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -24,7 +28,10 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Fees Structure",
+<<<<<<< Updated upstream
    "options": "Fees Structure",
+=======
+>>>>>>> Stashed changes
    "read_only": 1
   },
   {
@@ -43,7 +50,11 @@
  ],
  "istable": 1,
  "links": [],
+<<<<<<< Updated upstream
  "modified": "2026-03-12 11:53:32.059250",
+=======
+ "modified": "2026-03-12 08:36:58.247477",
+>>>>>>> Stashed changes
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipt Item",
