@@ -1,54 +1,54 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "autoname": "field:pickup_point",
-    "creation": "2026-03-05 11:10:54.053961",
-    "doctype": "DocType",
-    "engine": "InnoDB",
-    "field_order": [
-     "pickup_point_section",
-     "pickup_point"
-    ],
-    "fields": [
-     {
-      "fieldname": "pickup_point_section",
-      "fieldtype": "Section Break",
-      "label": "Pickup Point"
-     },
-     {
-      "fieldname": "pickup_point",
-      "fieldtype": "Data",
-      "label": "Pickup Point",
-      "reqd": 1
-     }
-    ],
-    "grid_page_length": 50,
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2026-03-05 11:11:53.256294",
-    "modified_by": "Administrator",
-    "module": "School Management",
-    "name": "Pickup Point",
-    "naming_rule": "By fieldname",
-    "owner": "Administrator",
-    "permissions": [
-     {
-      "create": 1,
-      "delete": 1,
-      "email": 1,
-      "export": 1,
-      "print": 1,
-      "read": 1,
-      "report": 1,
-      "role": "System Manager",
-      "share": 1,
-      "write": 1
-     }
-    ],
-    "row_format": "Dynamic",
-    "rows_threshold_for_grid_search": 20,
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": [],
-    "title_field": "pickup_point"
-   }
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:pickup_point",
+ "creation": "2026-03-05 11:10:54.053961",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "pickup_point_section",
+  "pickup_point"
+ ],
+ "fields": [
+  {
+   "fieldname": "pickup_point_section",
+   "fieldtype": "Section Break",
+   "label": "Pickup Point"
+  },
+  {
+   "fieldname": "pickup_point",
+   "fieldtype": "Data",
+   "label": "Pickup Point",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-03-11 11:33:51.906732",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Pickup Point",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "pickup_point"
+}
