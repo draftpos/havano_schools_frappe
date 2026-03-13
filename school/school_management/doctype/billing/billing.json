@@ -8,32 +8,27 @@
  "engine": "InnoDB",
  "field_order": [
   "naming_series",
-  "project",
-  "number_of_students",
-  "column_break_1",
   "date",
-  "student_class",
-  "column_break_filters",
   "cost_center",
-  "section",
-  "amended_from",
-  "column_break_izpr",
+  "project",
   "term",
-  "fees_structure",
-  "column_break_ycam",
+  "col_break_1",
   "year",
-  "total_amount",
-  "other_filtering",
+  "fees_structure",
+  "student_class",
+  "section",
+  "col_break_2",
   "category_1",
-  "area",
-  "column_break_mkem",
   "category_2",
-  "fees_category",
-  "column_break_ydmt",
   "category_3",
+  "col_break_3",
+  "area",
   "territory",
-  "column_break_yrnw",
+  "fees_category",
+  "col_break_4",
   "student",
+  "number_of_students",
+  "total_amount",
   "items_section",
   "items"
  ],
@@ -43,7 +38,8 @@
    "fieldname": "naming_series",
    "fieldtype": "Select",
    "label": "Series",
-   "options": "BILL-.YYYY.-"
+   "options": "BILL-.YYYY.-",
+   "hidden": 1
   },
   {
    "default": "Today",
@@ -73,14 +69,22 @@
    "options": "Term"
   },
   {
+   "fieldname": "col_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "year",
    "fieldtype": "Link",
    "label": "Year",
    "options": "Academic Year"
   },
   {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
+   "fieldname": "fees_structure",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fees Structure",
+   "options": "Fees Structure",
+   "reqd": 1
   },
   {
    "fieldname": "student_class",
@@ -94,6 +98,10 @@
    "fieldtype": "Link",
    "label": "Section",
    "options": "Section"
+  },
+  {
+   "fieldname": "col_break_2",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "category_1",
@@ -114,7 +122,7 @@
    "options": "Category 3"
   },
   {
-   "fieldname": "column_break_filters",
+   "fieldname": "col_break_3",
    "fieldtype": "Column Break"
   },
   {
@@ -136,6 +144,10 @@
    "options": "Fees Category"
   },
   {
+   "fieldname": "col_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "student",
    "fieldtype": "Link",
    "label": "Student",
@@ -149,22 +161,11 @@
    "read_only": 1
   },
   {
-   "fieldname": "fees_structure",
-   "fieldtype": "Link",
+   "fieldname": "total_amount",
+   "fieldtype": "Currency",
    "in_list_view": 1,
-   "label": "Fees Structure",
-   "options": "Fees Structure",
-   "reqd": 1
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Billing",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
+   "label": "Total Amount",
+   "read_only": 1
   },
   {
    "fieldname": "items_section",
@@ -176,39 +177,6 @@
    "fieldtype": "Table",
    "label": "Items",
    "options": "Billing Item"
-  },
-  {
-   "fieldname": "column_break_izpr",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_ycam",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "total_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Total Amount",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "other_filtering",
-   "fieldtype": "Section Break",
-   "label": "Other Filtering"
-  },
-  {
-   "fieldname": "column_break_mkem",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_ydmt",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_yrnw",
-   "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,

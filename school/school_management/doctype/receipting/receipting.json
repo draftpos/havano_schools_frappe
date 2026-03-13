@@ -8,21 +8,21 @@
  "field_order": [
   "details_section",
   "student_name",
-  "column_break_1",
+  "col_break_1",
   "student_class",
-  "column_break_2",
+  "col_break_2",
   "section",
-  "column_break_3",
+  "col_break_3",
   "date",
-  "column_break_4",
+  "col_break_4",
   "account",
   "invoices_section",
   "invoice",
   "totals_section",
   "total_outstanding",
-  "column_break_totals_1",
+  "col_break_totals_1",
   "total_allocated",
-  "column_break_totals_2",
+  "col_break_totals_2",
   "total_balance"
  ],
  "fields": [
@@ -36,20 +36,22 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Student",
-   "options": "Student"
+   "options": "Student",
+   "reqd": 1
   },
   {
-   "fieldname": "column_break_1",
+   "fieldname": "col_break_1",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "student_class",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Class",
    "options": "Student Class"
   },
   {
-   "fieldname": "column_break_2",
+   "fieldname": "col_break_2",
    "fieldtype": "Column Break"
   },
   {
@@ -59,24 +61,26 @@
    "options": "Section"
   },
   {
-   "fieldname": "column_break_3",
+   "fieldname": "col_break_3",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date"
+   "label": "Date",
+   "reqd": 1
   },
   {
-   "fieldname": "column_break_4",
+   "fieldname": "col_break_4",
    "fieldtype": "Column Break"
   },
   {
    "fieldname": "account",
    "fieldtype": "Link",
    "label": "Account Paid To",
-   "options": "Account"
+   "options": "Account",
+   "reqd": 1
   },
   {
    "fieldname": "invoices_section",
@@ -102,39 +106,37 @@
    "read_only": 1
   },
   {
-   "fieldname": "column_break_totals_1",
-   "fieldtype": "Column Break",
-   "read_only": 1
+   "fieldname": "col_break_totals_1",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "total_allocated",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Total Allocated",
    "read_only": 1
   },
   {
-   "fieldname": "column_break_totals_2",
-   "fieldtype": "Column Break",
-   "read_only": 1
+   "fieldname": "col_break_totals_2",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "total_balance",
    "fieldtype": "Currency",
+   "in_list_view": 1,
    "label": "Total Balance",
    "read_only": 1
   }
  ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2026-03-12 11:53:33.311937",
- "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipting",
  "naming_rule": "Expression",
- "owner": "Administrator",
  "permissions": [
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
    "delete": 1,
    "email": 1,
@@ -144,12 +146,11 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],
- "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "track_changes": 1
 }
