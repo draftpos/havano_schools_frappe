@@ -1,16 +1,14 @@
 {
  "actions": [],
- "creation": "2026-03-12 09:23:33.414803",
+ "creation": "2026-03-12 11:44:18.814940",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "invoice_number",
   "fees_structure",
-  "total",
   "outstanding",
-  "allocated",
-  "allocated_foreign"
+  "allocated"
  ],
  "fields": [
   {
@@ -26,13 +24,7 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Fees Structure",
-   "read_only": 1
-  },
-  {
-   "fieldname": "total",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Total",
+   "options": "Fees Structure",
    "read_only": 1
   },
   {
@@ -46,19 +38,12 @@
    "fieldname": "allocated",
    "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Allocated (Base)"
-  },
-  {
-   "fieldname": "allocated_foreign",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Allocated (Foreign)",
-   "read_only": 1
+   "label": "Allocated"
   }
  ],
  "istable": 1,
  "links": [],
- "modified": "2026-03-12 11:40:46",
+ "modified": "2026-03-12 11:53:32.059250",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipt Item",
