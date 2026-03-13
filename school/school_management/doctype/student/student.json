@@ -1,42 +1,49 @@
 {
  "actions": [],
- "allow_import": 1,
  "allow_rename": 1,
  "autoname": "field:student_reg_no",
- "creation": "2026-03-10 15:49:20.662113",
+ "creation": "2026-03-11 15:16:28.634227",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
   "student_details_section",
   "student_reg_no",
-  "date_of_admission",
-  "student_phone_number",
-  "date_of_birth",
-  "column_break_1",
   "first_name",
-  "student_class",
-  "student_category",
-  "religion",
-  "column_break_gqhl",
   "second_name",
-  "section",
-  "gender",
-  "house",
-  "column_break_ydlm",
   "last_name",
+  "column_break_1",
+  "student_class",
+  "section",
+  "house",
+  "gender",
+  "column_break_gqhl",
+  "date_of_admission",
+  "date_of_birth",
+  "student_category",
+  "student_phone_number",
+  "column_break_dkfp",
+  "religion",
   "has_opening_balance",
-  "opening_balance",
   "cost_center",
+  "opening_balance",
   "opening_balance_date",
+  "column_break_ntbs",
+  "other_filtering_section",
+  "category_1",
+  "fees_category",
+  "column_break_filtering",
+  "category_2",
+  "area",
+  "column_break_mznx",
+  "category_3",
+  "territory",
   "medical_history_section",
   "medical_history",
   "academic_details_section",
-  "column_break_pcre",
+  "column_break_aokb",
   "column_break_2",
   "full_name",
-  "column_break_orrq",
-  "column_break_olbl",
   "transport_details_section",
   "route_list",
   "column_break_eylr",
@@ -56,25 +63,25 @@
   "column_break_atfu",
   "father_occupation",
   "mother_occupation",
-  "column_break_gpav",
-  "father_photo",
+  "column_break_jojc",
   "mother_photo",
+  "father_photo",
   "guardian_section",
   "if_guardian_is",
-  "guardian_name",
-  "column_break_guardian",
-  "guardian_occupation",
-  "guardian_email",
-  "column_break_oeey",
-  "guardian_phone",
   "guardian_relation",
-  "column_break_iijr",
+  "column_break_guardian",
+  "guardian_name",
   "guardian_address",
+  "column_break_oeey",
+  "guardian_occupation",
+  "guardian_phone",
+  "column_break_jjlr",
+  "guardian_email",
   "guardian_photo",
   "address_details_section",
   "if_guardian_address_is_current_address",
   "current_address",
-  "column_break_vigs",
+  "column_break_gefb",
   "if_permanent_address_is_current_address",
   "permanent_address",
   "miscellaneous_details_section",
@@ -91,8 +98,13 @@
   "create_user_section",
   "create_user",
   "portal_email",
-  "column_break_jxle",
-  "student_image"
+  "column_break_mkyy",
+  "student_image",
+  "column_break_gqhl",
+  "column_break_atkv",
+  "column_break_atfu",
+  "column_break_oeey",
+  "column_break_govj"
  ],
  "fields": [
   {
@@ -127,7 +139,7 @@
   {
    "fieldname": "student_phone_number",
    "fieldtype": "Phone",
-   "label": "Student Phone No"
+   "label": "Student Phone Number"
   },
   {
    "fieldname": "column_break_1",
@@ -137,39 +149,34 @@
    "fieldname": "date_of_admission",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date of Admission",
-   "reqd": 1
+   "label": "Date of Admission"
   },
   {
    "fieldname": "student_category",
    "fieldtype": "Link",
    "label": "Category",
-   "options": "Customer Group",
-   "reqd": 1
+   "options": "Customer Group"
   },
   {
    "fieldname": "religion",
-   "fieldtype": "Link",
-   "label": "Religion",
-   "options": "Religion"
+   "fieldtype": "Data",
+   "label": "Religion"
   },
   {
    "fieldname": "student_image",
-   "fieldtype": "Attach",
+   "fieldtype": "Attach Image",
    "label": "Student Photo"
   },
   {
    "fieldname": "gender",
    "fieldtype": "Select",
    "label": "Gender",
-   "options": "\nMale\nFemale\nOther",
-   "reqd": 1
+   "options": "\nMale\nFemale\nOther"
   },
   {
    "fieldname": "date_of_birth",
    "fieldtype": "Date",
-   "label": "Date of Birth",
-   "reqd": 1
+   "label": "Date of Birth"
   },
   {
    "fieldname": "medical_history_section",
@@ -551,42 +558,88 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_ydlm",
+   "fieldname": "column_break_dkfp",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_pcre",
+   "fieldname": "column_break_ntbs",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_orrq",
+   "collapsible": 1,
+   "fieldname": "other_filtering_section",
+   "fieldtype": "Section Break",
+   "label": "Other Filtering"
+  },
+  {
+   "fieldname": "category_1",
+   "fieldtype": "Link",
+   "label": "Category 1",
+   "options": "Category 1"
+  },
+  {
+   "fieldname": "fees_category",
+   "fieldtype": "Link",
+   "label": "Fees Category",
+   "options": "Fees Category"
+  },
+  {
+   "fieldname": "column_break_filtering",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_olbl",
+   "fieldname": "category_2",
+   "fieldtype": "Link",
+   "label": "Category 2",
+   "options": "Category 2"
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Link",
+   "label": "Area",
+   "options": "Area"
+  },
+  {
+   "fieldname": "column_break_mznx",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_gpav",
+   "fieldname": "category_3",
+   "fieldtype": "Link",
+   "label": "Category 3",
+   "options": "Category 3"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "column_break_aokb",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_iijr",
+   "fieldname": "column_break_jojc",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_vigs",
+   "fieldname": "column_break_jjlr",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_jxle",
+   "fieldname": "column_break_gefb",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_mkyy",
    "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-12 08:19:35.673464",
+ "modified": "2026-03-11 17:18:23.170615",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
@@ -598,7 +651,6 @@
    "delete": 1,
    "email": 1,
    "export": 1,
-   "import": 1,
    "print": 1,
    "read": 1,
    "report": 1,
@@ -609,7 +661,7 @@
  ],
  "row_format": "Dynamic",
  "rows_threshold_for_grid_search": 20,
- "search_fields": "full_name,student_class,section",
+ "search_fields": "full_name,student_reg_no",
  "show_title_field_in_link": 1,
  "sort_field": "modified",
  "sort_order": "DESC",

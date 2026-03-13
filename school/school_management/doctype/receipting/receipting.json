@@ -1,34 +1,29 @@
 {
  "actions": [],
  "allow_rename": 1,
-<<<<<<< Updated upstream
- "autoname": "naming_series:",
- "creation": "2026-03-12 09:23:36.318368",
-=======
  "autoname": "REC-.YYYY.-.####",
  "creation": "2026-03-10 15:41:08.587261",
->>>>>>> Stashed changes
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
   "details_section",
   "student_name",
-  "account",
-  "column_break_ssab",
+  "column_break_1",
   "student_class",
-  "time",
-  "column_break_gqaj",
+  "column_break_2",
   "section",
+  "column_break_3",
   "date",
-  "column_break_rleb",
-  "term",
+  "column_break_4",
+  "account",
   "invoices_section",
   "invoice",
-  "total_amount",
+  "totals_section",
   "total_outstanding",
-  "payment_entry",
-  "ammended_form",
-  "naming_series"
+  "column_break_totals_1",
+  "total_allocated",
+  "column_break_totals_2",
+  "total_balance"
  ],
  "fields": [
   {
@@ -41,15 +36,21 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Student",
-   "options": "Student",
-   "reqd": 1
+   "options": "Student"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "student_class",
    "fieldtype": "Link",
-   "in_list_view": 1,
    "label": "Class",
    "options": "Student Class"
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "section",
@@ -58,19 +59,24 @@
    "options": "Section"
   },
   {
-   "default": "Today",
+   "fieldname": "column_break_3",
+   "fieldtype": "Column Break"
+  },
+  {
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
+   "label": "Date"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
   },
   {
    "fieldname": "account",
    "fieldtype": "Link",
    "label": "Account Paid To",
-   "options": "Account",
-   "reqd": 1
+   "options": "Account"
   },
   {
    "fieldname": "invoices_section",
@@ -84,72 +90,44 @@
    "options": "Receipt Item"
   },
   {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totals"
+  },
+  {
    "fieldname": "total_outstanding",
    "fieldtype": "Currency",
-   "label": "Total Remaining",
-   "read_only": 1
-  },
-  {
-   "fieldname": "column_break_ssab",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "now",
-   "fieldname": "time",
-   "fieldtype": "Time",
-   "label": "Time"
-  },
-  {
-   "fieldname": "column_break_gqaj",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "column_break_rleb",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "term",
-   "fieldtype": "Link",
    "in_list_view": 1,
-   "label": "Term",
-   "options": "Term"
+   "label": "Total Outstanding",
+   "read_only": 1
   },
   {
-   "fieldname": "total_amount",
+   "fieldname": "column_break_totals_1",
+   "fieldtype": "Column Break",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_allocated",
    "fieldtype": "Currency",
-   "label": "Total Amount (Base)",
+   "label": "Total Allocated",
    "read_only": 1
   },
   {
-   "fieldname": "payment_entry",
-   "fieldtype": "Link",
-   "label": "Payment Entry",
-   "options": "Payment Entry",
+   "fieldname": "column_break_totals_2",
+   "fieldtype": "Column Break",
    "read_only": 1
   },
   {
-   "fieldname": "ammended_form",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Receipting",
+   "fieldname": "total_balance",
+   "fieldtype": "Currency",
+   "label": "Total Balance",
    "read_only": 1
-  },
-  {
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Series"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
-<<<<<<< Updated upstream
- "modified": "2026-03-12 09:23:36.445072",
-=======
- "modified": "2026-03-12 08:54:04.743265",
->>>>>>> Stashed changes
+ "modified": "2026-03-12 11:53:33.311937",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Receipting",
