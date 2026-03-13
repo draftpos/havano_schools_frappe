@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"HwgkKF2xTR\",\"type\":\"header\",\"data\":{\"text\":\"<b>Students &amp; Finance</b>\",\"col\":12}},{\"id\":\"V4tI8KUI5m\",\"type\":\"header\",\"data\":{\"text\":\"<b>Academics</b>\",\"col\":12}},{\"id\":\"ZIukHNr24_\",\"type\":\"header\",\"data\":{\"text\":\"<b>Setup</b>\",\"col\":12}},{\"id\":\"ob_5oKA_dh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fees Structure\",\"col\":3}},{\"id\":\"zw_B08tKPI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Student\",\"col\":3}},{\"id\":\"ptAIHUJzcu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Grading\",\"col\":3}},{\"id\":\"vvcdcshK4u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Section\",\"col\":3}},{\"id\":\"bN5uVVTwI-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Class\",\"col\":3}},{\"id\":\"U4_2FQFFb0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Student Attendance\",\"col\":3}},{\"id\":\"nRnHkjErOz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Staff Attendance\",\"col\":3}},{\"id\":\"_J1u6W0sRY\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Academic Year\",\"col\":3}},{\"id\":\"oIfPC7zxBt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Term\",\"col\":3}},{\"id\":\"3pvIPsVInX\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Homework\",\"col\":3}},{\"id\":\"wVjagAnXTH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Class Result\",\"col\":3}},{\"id\":\"-FForYD5Ir\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam Result\",\"col\":3}},{\"id\":\"Ca-rafRhzq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam Schedule\",\"col\":3}},{\"id\":\"H4gTuXWSXL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam\",\"col\":3}},{\"id\":\"_D2z62BhR6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fees Structure\",\"col\":3}},{\"id\":\"i0aR53HfS2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"tTx7Pzc9f8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"LOSdeenGtM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Receipting\",\"col\":3}},{\"id\":\"VkrE7it6u1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Billing\",\"col\":3}},{\"id\":\"jVXzWmcj2T\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"School Settings\",\"col\":3}}]",
+ "content": "[{\"type\": \"header\", \"data\": {\"text\": \"<b>Students & Finance</b>\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Student\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Billing\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Receipting\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Sales Invoice\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Payment Entry\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Fees Structure\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Promote\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Student ID Card\", \"col\": 4}}, {\"type\": \"header\", \"data\": {\"text\": \"<b>Academics</b>\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Exam\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Exam Schedule\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Exam Result\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Class Result\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Homework\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Course\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Attendance\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Staff Attendance\", \"col\": 4}}, {\"type\": \"header\", \"data\": {\"text\": \"<b>Setup</b>\", \"level\": 4, \"col\": 12}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Student Class\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Section\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Subject\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Term\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Academic Year\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Grade\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Month\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"House\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Hostel\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Route List\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Pickup Point\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Category 1\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Category 2\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Category 3\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Area\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"Fees Category\", \"col\": 4}}, {\"type\": \"card\", \"data\": {\"card_name\": \"School Settings\", \"col\": 4}}]",
  "creation": "2026-03-03 12:06:07.804503",
  "custom_blocks": [],
  "docstatus": 0,
@@ -16,12 +16,312 @@
   {
    "hidden": 0,
    "is_query_report": 0,
+   "label": "Student",
+   "link_count": 0,
+   "link_to": "Student",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Billing",
+   "link_count": 0,
+   "link_to": "Billing",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Receipting",
+   "link_count": 0,
+   "link_to": "Receipting",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Sales Invoice",
+   "link_count": 0,
+   "link_to": "Sales Invoice",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Payment Entry",
+   "link_count": 0,
+   "link_to": "Payment Entry",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Fees Structure",
+   "link_count": 0,
+   "link_to": "Fees Structure",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Promote",
+   "link_count": 0,
+   "link_to": "Promote",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Student ID Card",
+   "link_count": 0,
+   "link_to": "Student ID Card",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam",
+   "link_count": 0,
+   "link_to": "Exam",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam Schedule",
+   "link_count": 0,
+   "link_to": "Exam Schedule",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Exam Result",
+   "link_count": 0,
+   "link_to": "Exam Result",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Class Result",
+   "link_count": 0,
+   "link_to": "Class Result",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Homework",
+   "link_count": 0,
+   "link_to": "Homework",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Course",
+   "link_count": 0,
+   "link_to": "Course",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Attendance",
+   "link_count": 0,
+   "link_to": "Student Attendance",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
    "label": "Staff Attendance",
    "link_count": 0,
    "link_to": "Staff Attendance",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Student Class",
+   "link_count": 0,
+   "link_to": "Student Class",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Section",
+   "link_count": 0,
+   "link_to": "Section",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Subject",
+   "link_count": 0,
+   "link_to": "Subject",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Term",
+   "link_count": 0,
+   "link_to": "Term",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Academic Year",
+   "link_count": 0,
+   "link_to": "Academic Year",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Grade",
+   "link_count": 0,
+   "link_to": "Grade",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Month",
+   "link_count": 0,
+   "link_to": "Month",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "House",
+   "link_count": 0,
+   "link_to": "House",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Hostel",
+   "link_count": 0,
+   "link_to": "Hostel",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Route List",
+   "link_count": 0,
+   "link_to": "Route List",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Pickup Point",
+   "link_count": 0,
+   "link_to": "Pickup Point",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Category 1",
+   "link_count": 0,
+   "link_to": "Category 1",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Category 2",
+   "link_count": 0,
+   "link_to": "Category 2",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Category 3",
+   "link_count": 0,
+   "link_to": "Category 3",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "Area",
+   "link_count": 0,
+   "link_to": "Area",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   },
   {
    "hidden": 0,
@@ -31,10 +331,20 @@
    "link_to": "Fees Category",
    "link_type": "DocType",
    "onboard": 0,
-   "type": "Card Break"
+   "type": "Link"
+  },
+  {
+   "hidden": 0,
+   "is_query_report": 0,
+   "label": "School Settings",
+   "link_count": 0,
+   "link_to": "School Settings1",
+   "link_type": "DocType",
+   "onboard": 0,
+   "type": "Link"
   }
  ],
- "modified": "2026-03-12 08:27:37.359744",
+ "modified": "2026-03-11 07:58:28.998421",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Management",
@@ -47,131 +357,168 @@
  "sequence_id": 3.0,
  "shortcuts": [
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Grading",
-   "link_to": "Grade",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Fees Structure",
-   "link_to": "Fees Structure",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Section",
-   "link_to": "Section",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Class",
-   "link_to": "Student Class",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
    "label": "Student",
    "link_to": "Student",
-   "stats_filter": "[]",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Billing",
    "link_to": "Billing",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Receipting",
    "link_to": "Receipting",
    "type": "DocType"
   },
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Student Attendance",
-   "link_to": "Student Attendance",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
    "label": "Sales Invoice",
    "link_to": "Sales Invoice",
    "type": "DocType"
   },
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Staff Attendance",
-   "link_to": "Staff Attendance",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
    "label": "Payment Entry",
    "link_to": "Payment Entry",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
+   "label": "Fees Structure",
+   "link_to": "Fees Structure",
+   "type": "DocType"
+  },
+  {
    "label": "Exam",
    "link_to": "Exam",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Exam Schedule",
    "link_to": "Exam Schedule",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Exam Result",
    "link_to": "Exam Result",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Class Result",
    "link_to": "Class Result",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Homework",
    "link_to": "Homework",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
+   "label": "Course",
+   "link_to": "Course",
+   "type": "DocType"
+  },
+  {
    "label": "Term",
    "link_to": "Term",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
    "label": "Academic Year",
    "link_to": "Academic Year",
    "type": "DocType"
   },
   {
-   "doc_view": "List",
+   "label": "Attendance",
+   "link_to": "Student Attendance",
+   "type": "DocType"
+  },
+  {
+   "label": "Staff Attendance",
+   "link_to": "Staff Attendance",
+   "type": "DocType"
+  },
+  {
+   "label": "Student Class",
+   "link_to": "Student Class",
+   "type": "DocType"
+  },
+  {
+   "label": "Section",
+   "link_to": "Section",
+   "type": "DocType"
+  },
+  {
+   "label": "Subject",
+   "link_to": "Subject",
+   "type": "DocType"
+  },
+  {
+   "label": "House",
+   "link_to": "House",
+   "type": "DocType"
+  },
+  {
+   "label": "Hostel",
+   "link_to": "Hostel",
+   "type": "DocType"
+  },
+  {
+   "label": "Route List",
+   "link_to": "Route List",
+   "type": "DocType"
+  },
+  {
+   "label": "Pickup Point",
+   "link_to": "Pickup Point",
+   "type": "DocType"
+  },
+  {
+   "label": "Grade",
+   "link_to": "Grade",
+   "type": "DocType"
+  },
+  {
+   "label": "Category 1",
+   "link_to": "Category 1",
+   "type": "DocType"
+  },
+  {
+   "label": "Category 2",
+   "link_to": "Category 2",
+   "type": "DocType"
+  },
+  {
+   "label": "Category 3",
+   "link_to": "Category 3",
+   "type": "DocType"
+  },
+  {
+   "label": "Area",
+   "link_to": "Area",
+   "type": "DocType"
+  },
+  {
+   "label": "Fees Category",
+   "link_to": "Fees Category",
+   "type": "DocType"
+  },
+  {
+   "label": "Month",
+   "link_to": "Month",
+   "type": "DocType"
+  },
+  {
    "label": "School Settings",
    "link_to": "School Settings1",
+   "type": "DocType"
+  },
+  {
+   "label": "Promote",
+   "link_to": "Promote",
+   "type": "DocType"
+  },
+  {
+   "label": "Student ID Card",
+   "link_to": "Student ID Card",
    "type": "DocType"
   }
  ],

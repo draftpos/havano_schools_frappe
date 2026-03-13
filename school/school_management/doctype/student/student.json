@@ -99,12 +99,7 @@
   "create_user",
   "portal_email",
   "column_break_mkyy",
-  "student_image",
-  "column_break_gqhl",
-  "column_break_atkv",
-  "column_break_atfu",
-  "column_break_oeey",
-  "column_break_govj"
+  "student_image"
  ],
  "fields": [
   {
@@ -257,6 +252,52 @@
    "fieldtype": "Date",
    "label": "As Of Date",
    "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "other_filtering_section",
+   "fieldtype": "Section Break",
+   "label": "Other Filtering"
+  },
+  {
+   "fieldname": "category_1",
+   "fieldtype": "Link",
+   "label": "Category 1",
+   "options": "Category 1"
+  },
+  {
+   "fieldname": "category_2",
+   "fieldtype": "Link",
+   "label": "Category 2",
+   "options": "Category 2"
+  },
+  {
+   "fieldname": "category_3",
+   "fieldtype": "Link",
+   "label": "Category 3",
+   "options": "Category 3"
+  },
+  {
+   "fieldname": "column_break_filtering",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "area",
+   "fieldtype": "Link",
+   "label": "Area",
+   "options": "Area"
+  },
+  {
+   "fieldname": "territory",
+   "fieldtype": "Link",
+   "label": "Territory",
+   "options": "Territory"
+  },
+  {
+   "fieldname": "fees_category",
+   "fieldtype": "Link",
+   "label": "Fees Category",
+   "options": "Fees Category"
   },
   {
    "collapsible": 1,
@@ -437,6 +478,10 @@
    "label": "Current Address"
   },
   {
+   "fieldname": "column_break_gefb",
+   "fieldtype": "Column Break"
+  },
+  {
    "default": "0",
    "fieldname": "if_permanent_address_is_current_address",
    "fieldtype": "Check",
@@ -562,60 +607,6 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_ntbs",
-   "fieldtype": "Column Break"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "other_filtering_section",
-   "fieldtype": "Section Break",
-   "label": "Other Filtering"
-  },
-  {
-   "fieldname": "category_1",
-   "fieldtype": "Link",
-   "label": "Category 1",
-   "options": "Category 1"
-  },
-  {
-   "fieldname": "fees_category",
-   "fieldtype": "Link",
-   "label": "Fees Category",
-   "options": "Fees Category"
-  },
-  {
-   "fieldname": "column_break_filtering",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "category_2",
-   "fieldtype": "Link",
-   "label": "Category 2",
-   "options": "Category 2"
-  },
-  {
-   "fieldname": "area",
-   "fieldtype": "Link",
-   "label": "Area",
-   "options": "Area"
-  },
-  {
-   "fieldname": "column_break_mznx",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "category_3",
-   "fieldtype": "Link",
-   "label": "Category 3",
-   "options": "Category 3"
-  },
-  {
-   "fieldname": "territory",
-   "fieldtype": "Link",
-   "label": "Territory",
-   "options": "Territory"
-  },
-  {
    "fieldname": "column_break_aokb",
    "fieldtype": "Column Break"
   },
@@ -628,18 +619,22 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_gefb",
+   "fieldname": "column_break_mkyy",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "column_break_mkyy",
+   "fieldname": "column_break_mznx",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ntbs",
    "fieldtype": "Column Break"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-11 17:18:23.170615",
+ "modified": "2026-03-11 15:28:06.663049",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
