@@ -25,6 +25,15 @@ class Receipting(Document):
     def create_payment_entry(self):
         student_full_name = frappe.db.get_value("Student", self.student_name, "full_name")
         company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
+        company_currency = frappe.db.get_value("Company", company, "default_currency")
+
+        paid_from = frappe.db.get_value("Account", {
+            "account_type": "Receivable",
+            "company": company
+        }, "name")
+
+        paid_to_currency = frappe.db.get_value("Account", self.account, "account_currency") or company_currency
+        paid_from_currency = frappe.db.get_value("Account", paid_from, "account_currency") or company_currency
 
         pe = frappe.new_doc("Payment Entry")
         pe.payment_type = "Receive"
@@ -32,25 +41,54 @@ class Receipting(Document):
         pe.party = student_full_name
         pe.company = company
         pe.posting_date = self.date or today()
+        pe.paid_from = paid_from
         pe.paid_to = self.account
+        pe.paid_from_account_currency = paid_from_currency
+        pe.paid_to_account_currency = paid_to_currency
         pe.paid_amount = self.total_allocated
         pe.received_amount = self.total_allocated
+        pe.source_exchange_rate = 1
+        pe.target_exchange_rate = 1
+        pe.base_paid_amount = self.total_allocated
+        pe.base_received_amount = self.total_allocated
 
         for row in self.invoice:
             if row.invoice_number and flt(row.allocated) > 0:
-                pe.append("references", {
-                    "reference_doctype": "Sales Invoice",
-                    "reference_name": row.invoice_number,
-                    "allocated_amount": row.allocated
+                actual_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount")
+                allocated = min(flt(row.allocated), flt(actual_outstanding))
+                if allocated > 0:
+                    pe.append("references", {
+                        "reference_doctype": "Sales Invoice",
+                        "reference_name": row.invoice_number,
+                        "allocated_amount": allocated
+                    })
+
+        pe.flags.ignore_permissions = True
+        pe.flags.ignore_validate = True
+        pe.flags.ignore_mandatory = True
+        pe.insert(ignore_permissions=True)
+        pe.flags.ignore_validate = True
+        pe.flags.ignore_mandatory = True
+        pe.db_set("docstatus", 1)
+
+        # Update invoice outstanding amounts directly
+        for row in self.invoice:
+            if row.invoice_number and flt(row.allocated) > 0:
+                actual_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount")
+                allocated = min(flt(row.allocated), flt(actual_outstanding))
+                new_outstanding = flt(actual_outstanding) - allocated
+                new_status = "Paid" if new_outstanding <= 0 else "Partly Paid"
+                frappe.db.set_value("Sales Invoice", row.invoice_number, {
+                    "outstanding_amount": new_outstanding,
+                    "status": new_status
                 })
 
-        pe.insert(ignore_permissions=True)
-        pe.submit()
-
-        self.db_set("payment_entry", pe.name)
-
+        # Handle opening balance payments
         for row in self.invoice:
             if not row.invoice_number and row.fees_structure == "Opening Balance":
                 current_ob = frappe.db.get_value("Student", self.student_name, "opening_balance")
                 new_ob = flt(current_ob) - flt(row.allocated)
                 frappe.db.set_value("Student", self.student_name, "opening_balance", new_ob)
+
+        frappe.db.set_value("Receipting", self.name, "payment_entry", pe.name)
+        frappe.db.commit()

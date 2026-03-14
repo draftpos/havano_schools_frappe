@@ -14,6 +14,10 @@ class Student(Document):
                 if class_code:
                     self.student_class = class_code
 
+        # Sync school selection to cost_center
+        if self.get("school"):
+            self.cost_center = self.school
+
     def after_insert(self):
         self.create_customer()
 
