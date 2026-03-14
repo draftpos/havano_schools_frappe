@@ -1,14 +1,9 @@
 app_name = "school"
 app_title = "School Management"
-app_publisher = "Ashley"
-app_description = "School Management System"
-app_email = "makonia20@gmail.com"
+app_publisher = "Havano"
+app_description = "Customized school management application"
+app_email = "nyashagumbo0@gmail.com"
 app_license = "mit"
-home_page = "index"
-
-website_route_rules = [
-    {"from_route": "/", "to_route": "index"}
-]
 
 fixtures = [
     {
@@ -17,15 +12,23 @@ fixtures = [
     },
     {
         "dt": "Server Script",
-        "filters": [["reference_doctype", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Attendance Settings"]]]
+        "filters": [["reference_doctype", "in", ["Student", "Test Schedule", "Home Schedule", "Receipting", "Promote", "Student ID Card", "Attendance Settings", "Billing", "Sales Invoice", "Payment Entry", "Purchase Invoice", "Sales Order", "Journal Entry"]]]
     },
     {
         "dt": "Custom Field",
-        "filters": [["dt", "=", "Sales Invoice"]]
+        "filters": [["dt", "in", ["Sales Invoice", "Ha User Mapping"]]]
     },
     {
         "dt": "Role",
-        "filters": [["role_name", "in", ["Student", "Student Portal"]]]
+        "filters": [["role_name", "in", ["Student", "Student Portal", "School User"]]]
+    },
+    {
+        "dt": "Custom DocPerm",
+        "filters": [["role", "in", ["School User"]]]
+    },
+    {
+        "dt": "DocType",
+        "filters": [["name", "in", ["HA POS Settings", "Ha User Mapping"]]]
     }
 ]
 
