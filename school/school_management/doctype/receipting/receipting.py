@@ -90,5 +90,4 @@ class Receipting(Document):
                 new_ob = flt(current_ob) - flt(row.allocated)
                 frappe.db.set_value("Student", self.student_name, "opening_balance", new_ob)
 
-        frappe.db.set_value("Receipting", self.name, "payment_entry", pe.name)
         frappe.db.commit()
