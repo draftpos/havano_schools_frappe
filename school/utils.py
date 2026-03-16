@@ -32,3 +32,36 @@ def _run_export():
         )
     except Exception as e:
         frappe.log_error(str(e), "Auto Export Fixtures Failed")
+
+@frappe.whitelist(allow_guest=False)
+def get_dashboard_data():
+    data = {}
+    try: data['students'] = frappe.db.count('Student')
+    except: data['students'] = 0
+    try: data['exams'] = frappe.db.count('Exam Schedule')
+    except: data['exams'] = 0
+    try: data['tests'] = frappe.db.count('Test Schedule')
+    except: data['tests'] = 0
+    try: data['homework'] = frappe.db.count('Home Schedule')
+    except: data['homework'] = 0
+    try:
+        data['invoices'] = frappe.get_all('Sales Invoice',
+            filters={'docstatus': 1},
+            fields=['grand_total','outstanding_amount','status','customer','posting_date'],
+            limit=50)
+    except: data['invoices'] = []
+    try: data['classes'] = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
+    except: data['classes'] = []
+    try:
+        data['exams_list'] = frappe.get_all('Exam Schedule',
+            fields=['name','title','subject','date'], limit=6, order_by='date asc')
+    except: data['exams_list'] = []
+    try:
+        data['homework_list'] = frappe.get_all('Home Schedule',
+            fields=['name','subject','student_class','date'], limit=6, order_by='date desc')
+    except: data['homework_list'] = []
+    try:
+        user = frappe.get_doc('User', frappe.session.user)
+        data['user'] = {'full_name': user.full_name}
+    except: data['user'] = {'full_name': 'Administrator'}
+    return data

@@ -1,8 +1,12 @@
 {
  "charts": [],
- "content": "[{\"id\":\"HwgkKF2xTR\",\"type\":\"header\",\"data\":{\"text\":\"<b>Students &amp; Finance</b>\",\"col\":12}},{\"id\":\"V4tI8KUI5m\",\"type\":\"header\",\"data\":{\"text\":\"<b>Academics</b>\",\"col\":12}},{\"id\":\"ZIukHNr24_\",\"type\":\"header\",\"data\":{\"text\":\"<b>Setup</b>\",\"col\":12}},{\"id\":\"ob_5oKA_dh\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fees Structure\",\"col\":3}},{\"id\":\"zw_B08tKPI\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Student\",\"col\":3}},{\"id\":\"ptAIHUJzcu\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Grading\",\"col\":3}},{\"id\":\"vvcdcshK4u\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Section\",\"col\":3}},{\"id\":\"bN5uVVTwI-\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Class\",\"col\":3}},{\"id\":\"U4_2FQFFb0\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Student Attendance\",\"col\":3}},{\"id\":\"nRnHkjErOz\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Staff Attendance\",\"col\":3}},{\"id\":\"_J1u6W0sRY\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Academic Year\",\"col\":3}},{\"id\":\"oIfPC7zxBt\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Term\",\"col\":3}},{\"id\":\"3pvIPsVInX\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Homework\",\"col\":3}},{\"id\":\"wVjagAnXTH\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Class Result\",\"col\":3}},{\"id\":\"-FForYD5Ir\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam Result\",\"col\":3}},{\"id\":\"Ca-rafRhzq\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam Schedule\",\"col\":3}},{\"id\":\"H4gTuXWSXL\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Exam\",\"col\":3}},{\"id\":\"_D2z62BhR6\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Fees Structure\",\"col\":3}},{\"id\":\"i0aR53HfS2\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Payment Entry\",\"col\":3}},{\"id\":\"tTx7Pzc9f8\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Sales Invoice\",\"col\":3}},{\"id\":\"LOSdeenGtM\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Receipting\",\"col\":3}},{\"id\":\"VkrE7it6u1\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Billing\",\"col\":3}},{\"id\":\"jVXzWmcj2T\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"School Settings\",\"col\":3}}]",
- "creation": "2026-03-03 12:06:07.804503",
- "custom_blocks": [],
+ "content": "[{\"type\":\"paragraph\",\"attrs\":{\"align\":\"left\"},\"content\":[{\"type\":\"text\",\"text\":\"Loading dashboard...\"}]}]",
+ "creation": "2026-03-15 17:27:27.794540",
+ "custom_blocks": [
+  {
+   "label": "School Dashboard"
+  }
+ ],
  "docstatus": 0,
  "doctype": "Workspace",
  "for_user": "",
@@ -34,7 +38,7 @@
    "type": "Card Break"
   }
  ],
- "modified": "2026-03-12 08:27:37.359744",
+ "modified": "2026-03-16 09:24:27.826648",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Management",
@@ -44,135 +48,14 @@
  "public": 1,
  "quick_lists": [],
  "roles": [],
- "sequence_id": 3.0,
+ "sequence_id": 10.0,
  "shortcuts": [
   {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Grading",
-   "link_to": "Grade",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Fees Structure",
-   "link_to": "Fees Structure",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Section",
-   "link_to": "Section",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Class",
-   "link_to": "Student Class",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Student",
-   "link_to": "Student",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Billing",
-   "link_to": "Billing",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Receipting",
-   "link_to": "Receipting",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Student Attendance",
-   "link_to": "Student Attendance",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Sales Invoice",
-   "link_to": "Sales Invoice",
-   "type": "DocType"
-  },
-  {
-   "color": "Grey",
-   "doc_view": "List",
-   "label": "Staff Attendance",
-   "link_to": "Staff Attendance",
-   "stats_filter": "[]",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Payment Entry",
-   "link_to": "Payment Entry",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Exam",
-   "link_to": "Exam",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Exam Schedule",
-   "link_to": "Exam Schedule",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Exam Result",
-   "link_to": "Exam Result",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Class Result",
-   "link_to": "Class Result",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Homework",
-   "link_to": "Homework",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Term",
-   "link_to": "Term",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "Academic Year",
-   "link_to": "Academic Year",
-   "type": "DocType"
-  },
-  {
-   "doc_view": "List",
-   "label": "School Settings",
-   "link_to": "School Settings1",
-   "type": "DocType"
+   "color": "#6366f1",
+   "doc_view": "",
+   "label": "Open Dashboard",
+   "link_to": "admin-school-managem",
+   "type": "Page"
   }
  ],
  "title": "School Management"

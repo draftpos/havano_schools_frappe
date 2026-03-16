@@ -45,3 +45,7 @@ doc_events = {
 }
 
 on_login = "school.utils.redirect_to_portal"
+
+app_include_js = [
+    '/assets/school/js/school_redirect.js'
+]
