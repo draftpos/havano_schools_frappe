@@ -35,12 +35,34 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Receipting",
+  "enabled": 0,
+  "modified": "2026-03-16 17:11:11.831540",
+  "module": null,
+  "name": "Receipting-Form",
+  "script": "\nfrappe.ui.form.on('Receipting', {\n    refresh: function(frm) {\n        console.log(\"Receipting Script Loaded\");\n        frm.trigger('set_account_query');\n    },\n\n    set_account_query: function(frm) {\n        frm.set_query('account', function() {\n            return {\n                filters: [\n                    ['Account', 'account_type', 'in', ['Bank', 'Cash']],\n                    ['Account', 'is_group', '=', 0]\n                ]\n            };\n        });\n    },\n\n    payment_method: function(frm) {\n        console.log(\"Payment Method Changed to: \" + frm.doc.payment_method);\n        if (frm.doc.payment_method) {\n            let parent_acc = (frm.doc.payment_method === \"Bank\") ? \"Bank Accounts - SS\" : \"Cash In Hand - SS\";\n            \n            frappe.db.get_value('Account', {'parent_account': parent_acc, 'is_group': 0}, 'name', (r) => {\n                if (r && r.name) {\n                    console.log(\"Setting account to: \" + r.name);\n                    frm.set_value('account', r.name);\n                }\n            });\n        }\n    }\n});\n",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Sales Order",
   "enabled": 1,
   "modified": "2026-03-16 16:00:42.553475",
   "module": null,
   "name": "Cash and Bank",
   "script": "frappe.ui.form.on('Sales Order', {\r\n    custom_payment_method: function(frm) {\r\n        if (frm.doc.custom_payment_method) {\r\n            let parent_account = \"\";\r\n            \r\n            if (frm.doc.custom_payment_method === \"Bank\") {\r\n                parent_account = \"Bank Accounts - SS\";\r\n            } else if (frm.doc.custom_payment_method === \"Cash\") {\r\n                parent_account = \"Cash In Hand - SS\";\r\n            }\r\n\r\n            if (parent_account) {\r\n                frappe.db.get_value('Account', \r\n                    {'parent_account': parent_account, 'is_group': 0}, \r\n                    'name', \r\n                    (r) => {\r\n                        if (r && r.name) {\r\n                            frm.set_value('custom_account_paid_to', r.name);\r\n                        } else {\r\n                            frm.set_value('custom_account_paid_to', '');\r\n                        }\r\n                    }\r\n                );\r\n            }\r\n        }\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2026-03-16 16:54:08.116727",
+  "module": null,
+  "name": "Sales Order Account Filter",
+  "script": "\nfrappe.ui.form.on('Sales Order', {\n    onload: function(frm) {\n        frm.set_query('custom_account_paid_to', function() {\n            return {\n                filters: [\n                    ['Account', 'account_type', 'in', ['Bank', 'Cash']],\n                    ['Account', 'is_group', '=', 0],\n                    ['Account', 'company', '=', frm.doc.company]\n                ]\n            };\n        });\n    },\n    custom_payment_method: function(frm) {\n        if (frm.doc.custom_payment_method) {\n            let parent_acc = (frm.doc.custom_payment_method === \"Bank\") ? \"Bank Accounts - SS\" : \"Cash In Hand - SS\";\n            frappe.db.get_value('Account', {'parent_account': parent_acc, 'is_group': 0}, 'name', (r) => {\n                if (r && r.name) {\n                    frm.set_value('custom_account_paid_to', r.name);\n                }\n            });\n        }\n    }\n});\n",
   "view": "Form"
  }
 ]

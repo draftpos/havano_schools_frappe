@@ -23,6 +23,13 @@ class Receipting(Document):
         self.create_payment_entry()
 
     def create_payment_entry(self):
+        # Prevent duplicate payment entries
+        existing = frappe.get_all('Payment Entry',
+            filters={'reference_no': self.name, 'docstatus': ['!=', 2]},
+            limit=1)
+        if existing:
+            frappe.msgprint('Payment Entry already exists for this receipt. Skipping.')
+            return
         student_full_name = frappe.db.get_value("Student", self.student_name, "full_name")
         company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
         company_currency = frappe.db.get_value("Company", company, "default_currency")

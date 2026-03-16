@@ -53,5 +53,5 @@ app_include_js = [
 # Fixtures for synchronization
 fixtures = [
     {"dt": "Server Script", "filters": [["name", "in", ["Sales Order Auto Payment Entry"]]]},
-    {"dt": "Client Script", "filters": [["dt", "in", ["Sales Order"]]]}
+    {"dt": "Client Script", "filters": [["dt", "in", ["Sales Order", "Receipting"]]]}
 ]

@@ -9,7 +9,9 @@ frappe.ui.form.on("Receipting", {
         frm.set_query("account", function() {
             return {
                 filters: {
-                    "name": ["in", ["Cash - SS", "Bank Payment - SS"]]
+                    "account_type": ["in", ["Bank", "Cash"]],
+                    "is_group": 0,
+                    "company": frappe.defaults.get_default("company")
                 }
             };
         });
@@ -22,7 +24,9 @@ frappe.ui.form.on("Receipting", {
         frm.set_query("account", function() {
             return {
                 filters: {
-                    "name": ["in", ["Cash - SS", "Bank Payment - SS"]]
+                    "account_type": ["in", ["Bank", "Cash"]],
+                    "is_group": 0,
+                    "company": frappe.defaults.get_default("company")
                 }
             };
         });
