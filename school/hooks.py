@@ -49,3 +49,9 @@ on_login = "school.utils.redirect_to_portal"
 app_include_js = [
     '/assets/school/js/school_redirect.js'
 ]
+
+# Fixtures for synchronization
+fixtures = [
+    {"dt": "Server Script", "filters": [["name", "in", ["Sales Order Auto Payment Entry"]]]},
+    {"dt": "Client Script", "filters": [["dt", "in", ["Sales Order"]]]}
+]
