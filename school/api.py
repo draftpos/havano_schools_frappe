@@ -104,3 +104,116 @@ def get_my_account():
         student["class_name"] = frappe.db.get_value("Student Class", student.student_class, "class_name") or student.student_class
         student["date_of_admission"] = str(student.date_of_admission) if student.date_of_admission else "-"
     return student
+@frappe.whitelist()
+def get_portal_dashboard():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name", "first_name", "second_name", "last_name", "full_name",
+         "student_reg_no", "student_class", "section", "house", "student_image"], as_dict=True)
+    if not student:
+        return {"error": "Student not found"}
+    sname = student.name
+    # Count records by student's class and section
+    s_class   = student.student_class or ""
+    s_section = student.section or ""
+    s_reg_no  = student.student_reg_no or sname
+
+    class_filters   = {"student_class": s_class} if s_class else {}
+    section_filters = {"student_class": s_class, "section": s_section} if s_class and s_section else class_filters
+
+    exam_schedules = frappe.db.count("Exam Schedule",  section_filters) if s_class else 0
+    home_schedules = frappe.db.count("Home Schedule",  section_filters) if s_class else 0
+    test_schedules = frappe.db.count("Test Schedule",  section_filters) if s_class else 0
+    exam_results   = frappe.db.count("Exam Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Exam Schedule Item") else 0
+    inclass_tests  = frappe.db.count("Inclass Test",   {}) if frappe.db.exists("DocType", "Inclass Test") else 0
+    homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Home Schedule Item") else 0
+    billing_summary  = frappe.db.sql("""
+        SELECT SUM(outstanding_amount) as balance
+        FROM `tabSales Invoice`
+        WHERE customer_name = %s AND docstatus = 1
+    """, student.full_name, as_dict=True)
+    balance = billing_summary[0].balance if billing_summary and billing_summary[0].balance else 0
+    class_name = frappe.db.get_value("Student Class", student.student_class, "class_name") or student.student_class or ""
+    return {
+        "student": {
+            "name":       sname,
+            "full_name":  student.full_name or f"{student.first_name or ''} {student.last_name or ''}".strip(),
+            "reg_no":     student.student_reg_no or "",
+            "class_name": class_name,
+            "section":    student.section or "",
+            "house":      student.house or "",
+            "image":      student.student_image or "",
+            "initials":   (student.first_name or "S")[0].upper()
+        },
+        "counts": {
+            "exam_schedules": exam_schedules,
+            "home_schedules": home_schedules,
+            "test_schedules": test_schedules,
+            "exam_results":   exam_results,
+            "inclass_tests":  inclass_tests,
+            "homework":       homework,
+            "balance":        float(balance)
+        }
+    }
+
+@frappe.whitelist()
+def get_exam_schedules():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return []
+    return frappe.get_all("Exam Schedule Item",
+        filters={"student": student},
+        fields=["exam_name", "subject_name", "class_name", "date", "start_time",
+                "exam_type", "max_marks", "min_marks", "total_questions",
+                "room_number", "number_of_students", "remarks"],
+        order_by="date asc")
+
+@frappe.whitelist()
+def get_home_schedules():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return []
+    return frappe.get_all("Home Schedule Item", filters={"student": student}, fields=["*"], order_by="date asc")
+
+@frappe.whitelist()
+def get_test_schedules():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return []
+    return frappe.get_all("Test Schedule Item", filters={"student": student}, fields=["*"], order_by="date asc")
+
+@frappe.whitelist()
+def get_exam_results():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return []
+    return frappe.get_all("Exam Result", filters={"student": student}, fields=["*"], order_by="creation desc")
+
+@frappe.whitelist()
+def get_inclass_tests():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return []
+    return frappe.get_all("Inclass Test", filters={"student": student}, fields=["*"], order_by="creation desc")
+
+@frappe.whitelist()
+def get_user_redirect():
+    """Returns where to redirect the logged in user."""
+    user = frappe.session.user
+    if not user or user == "Guest":
+        return {"redirect": "/portal-login"}
+    roles = frappe.get_roles(user)
+    if "System Manager" in roles or "Administrator" in roles:
+        return {"redirect": "/app", "role": "admin"}
+    if frappe.db.exists("Student", {"portal_email": user}):
+        return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}
+    if "School User" in roles:
+        return {"redirect": "/app", "role": "school_user"}
+    return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}

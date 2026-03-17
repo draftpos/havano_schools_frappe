@@ -1,28 +1,11 @@
 import frappe
 import subprocess
 import os
+import frappe
 
 def redirect_to_portal():
-    user = frappe.session.user
-    if not user or user == "Guest":
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/portal-login"
-        return
-    roles = frappe.get_roles(user)
-    # Admin/System Manager always go to ERPNext dashboard first
-    if "System Manager" in roles or "Administrator" in roles:
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/app"
-    elif frappe.db.exists("Student", {"portal_email": user}):
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/assets/school/html/student-portal.html"
-    elif "School User" in roles:
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/app"
-    else:
-        frappe.local.response["type"] = "redirect"
-        frappe.local.response["location"] = "/assets/school/html/student-portal.html"
-
+    frappe.local.response["type"] = "redirect"
+    frappe.local.response["location"] = "/assets/school/html/student-portal.html"
 SCHOOL_MODULES = ["School Management"]
 
 def export_doctype_on_save(doc, method=None):
