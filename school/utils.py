@@ -65,8 +65,15 @@ def get_dashboard_data():
         data['invoices'] = frappe.get_all('Sales Invoice',
             filters={'docstatus': 1},
             fields=['grand_total','outstanding_amount','status','customer','posting_date'],
-            limit=50)
+            limit=0)
     except: data['invoices'] = []
+    try:
+        opening_students = frappe.get_all('Student',
+            filters={'has_opening_balance': 1},
+            fields=['full_name', 'opening_balance', 'opening_balance_date'])
+        data['opening_balance_total'] = sum(s.opening_balance or 0 for s in opening_students)
+    except:
+        data['opening_balance_total'] = 0
     try: data['classes'] = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
     except: data['classes'] = []
     try:

@@ -1350,6 +1350,7 @@ async function loadDashboard() {
   const invoices = data.invoices || [];
   if (invoices.length) {
     let collected=0, outstanding=0, paid=0, unpaid=0, partial=0, overdue=0;
+    const openingBalance = data.opening_balance_total || 0;
     invoices.forEach(inv => {
       collected += (inv.grand_total||0) - (inv.outstanding_amount||0);
       outstanding += inv.outstanding_amount||0;
@@ -1358,6 +1359,7 @@ async function loadDashboard() {
       else if (inv.status==='Overdue') overdue++;
       else partial++;
     });
+    outstanding += openingBalance;
     $('stat-collected').textContent = fmtMoney(collected);
     $('stat-outstanding').textContent = fmtMoney(outstanding);
     const pct = (collected+outstanding) > 0 ? Math.round(collected/(collected+outstanding)*100) : 0;
