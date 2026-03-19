@@ -51,9 +51,16 @@ def _run_export():
         frappe.log_error(str(e), "Auto Export Fixtures Failed")
 
 @frappe.whitelist(allow_guest=False)
-def get_dashboard_data():
+def get_dashboard_data(cost_center=None):
     data = {}
-    try: data['students'] = frappe.db.count('Student')
+
+    student_filters = {}
+    invoice_filters = {'docstatus': 1}
+    if cost_center:
+        student_filters['cost_center'] = cost_center
+        invoice_filters['cost_center'] = cost_center
+
+    try: data['students'] = frappe.db.count('Student', filters=student_filters)
     except: data['students'] = 0
     try: data['exams'] = frappe.db.count('Exam Schedule')
     except: data['exams'] = 0
@@ -63,19 +70,32 @@ def get_dashboard_data():
     except: data['homework'] = 0
     try:
         data['invoices'] = frappe.get_all('Sales Invoice',
-            filters={'docstatus': 1},
-            fields=['grand_total','outstanding_amount','status','customer','posting_date'],
+            filters=invoice_filters,
+            fields=['grand_total','outstanding_amount','status','customer','posting_date','cost_center'],
             limit=0)
     except: data['invoices'] = []
     try:
+        ob_filters = {'has_opening_balance': 1}
+        if cost_center:
+            ob_filters['cost_center'] = cost_center
         opening_students = frappe.get_all('Student',
-            filters={'has_opening_balance': 1},
+            filters=ob_filters,
             fields=['full_name', 'opening_balance', 'opening_balance_date'])
         data['opening_balance_total'] = sum(s.opening_balance or 0 for s in opening_students)
+        data['opening_balance_students'] = [
+            {'name': s.full_name, 'amount': s.opening_balance or 0}
+            for s in opening_students
+        ]
     except:
         data['opening_balance_total'] = 0
+        data['opening_balance_students'] = []
     try: data['classes'] = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
     except: data['classes'] = []
+    try:
+        data['cost_centers'] = frappe.get_all('Cost Center',
+            filters={'is_group': 0},
+            fields=['name'], limit=50)
+    except: data['cost_centers'] = []
     try:
         data['exams_list'] = frappe.get_all('Exam Schedule',
             fields=['name','title','subject','date'], limit=6, order_by='date asc')

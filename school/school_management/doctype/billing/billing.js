@@ -47,6 +47,7 @@ frappe.ui.form.on("Billing", {
         update_student_count(frm);
     },
     section: function(frm) { update_student_count(frm); },
+    cost_center: function(frm) { update_student_count(frm); },
     category_1: function(frm) {
         frm.set_query("category_2", function() {
             return { filters: { category_1: frm.doc.category_1 } };
@@ -79,6 +80,7 @@ function update_student_count(frm) {
     var filters = {};
     if (frm.doc.student_class) filters["student_class"] = frm.doc.student_class;
     if (frm.doc.section) filters["section"] = frm.doc.section;
+    if (frm.doc.cost_center)   filters["cost_center"]   = frm.doc.cost_center;
     if (frm.doc.category_1) filters["category_1"] = frm.doc.category_1;
     if (frm.doc.category_2) filters["category_2"] = frm.doc.category_2;
     if (frm.doc.category_3) filters["category_3"] = frm.doc.category_3;

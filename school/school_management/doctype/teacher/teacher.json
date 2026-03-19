@@ -2,7 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:teacher_id",
- "creation": "2026-03-17 10:46:37.437229",
+ "creation": "2026-03-18 16:06:55.631688",
  "doctype": "DocType",
  "editable_grid": 1,
  "engine": "InnoDB",
@@ -21,10 +21,7 @@
   "email",
   "address",
   "academic_section",
-  "qualification",
-  "column_break_4",
-  "date_of_joining",
-  "department",
+  "qualifications",
   "portal_section",
   "create_user",
   "portal_email",
@@ -107,23 +104,10 @@
    "label": "Academic Details"
   },
   {
-   "fieldname": "qualification",
-   "fieldtype": "Data",
-   "label": "Qualification"
-  },
-  {
-   "fieldname": "column_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "date_of_joining",
-   "fieldtype": "Date",
-   "label": "Date of Joining"
-  },
-  {
-   "fieldname": "department",
-   "fieldtype": "Data",
-   "label": "Department"
+   "fieldname": "qualifications",
+   "fieldtype": "Table",
+   "label": "Qualifications",
+   "options": "Teacher Qualification"
   },
   {
    "fieldname": "portal_section",
@@ -154,10 +138,11 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-17 10:59:50.463364",
+ "modified": "2026-03-18 16:08:34.740784",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Teacher",
+ "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
   {

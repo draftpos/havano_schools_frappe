@@ -16,6 +16,8 @@ class Billing(Document):
             filters["student_class"] = self.student_class
         if self.section:
             filters["section"] = self.section
+        if self.cost_center:
+            filters["cost_center"] = self.cost_center
         if self.category_1:
             filters["category_1"] = self.category_1
         if self.category_2:
@@ -63,6 +65,8 @@ class Billing(Document):
                 filters["student_class"] = self.student_class
             if self.section:
                 filters["section"] = self.section
+            if self.cost_center:
+                filters["cost_center"] = self.cost_center
             if self.category_1:
                 filters["category_1"] = self.category_1
             if self.category_2:

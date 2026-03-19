@@ -104,6 +104,7 @@ def get_my_account():
         student["class_name"] = frappe.db.get_value("Student Class", student.student_class, "class_name") or student.student_class
         student["date_of_admission"] = str(student.date_of_admission) if student.date_of_admission else "-"
     return student
+
 @frappe.whitelist()
 def get_portal_dashboard():
     user = frappe.session.user
@@ -204,16 +205,76 @@ def get_inclass_tests():
     return frappe.get_all("Inclass Test", filters={"student": student}, fields=["*"], order_by="creation desc")
 
 @frappe.whitelist()
+def get_teacher_portal_dashboard():
+    """API endpoint for teacher portal dashboard data"""
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+    
+    teacher = frappe.db.get_value("Teacher", {"portal_email": user},
+        ["name", "teacher_id", "first_name", "last_name", "full_name", 
+         "department", "date_of_joining", "email", "phone", "teacher_image"], as_dict=True)
+    
+    if not teacher:
+        return {"error": "Teacher not found"}
+    
+    # Get counts for various doctypes
+    counts = {
+        "classes": frappe.db.count("Student Class"),
+        "subjects": frappe.db.count("Subject", {"teacher": teacher.name}) if frappe.db.exists("Subject", {"teacher": teacher.name}) else frappe.db.count("Subject"),
+        "students": frappe.db.count("Student"),
+        "exam_schedules": frappe.db.count("Exam Schedule"),
+        "home_schedules": frappe.db.count("Home Schedule"),
+        "test_schedules": frappe.db.count("Test Schedule"),
+        "courses": frappe.db.count("Course"),
+        "sections": frappe.db.count("Section"),
+    }
+    
+    # Get recent items
+    recent_exams = frappe.get_all("Exam Schedule", 
+        fields=["name", "exam_name", "subject", "date", "class_name"],
+        order_by="date desc", limit=5)
+    
+    recent_homework = frappe.get_all("Home Schedule",
+        fields=["name", "subject", "student_class", "date"],
+        order_by="date desc", limit=5)
+    
+    recent_tests = frappe.get_all("Test Schedule",
+        fields=["name", "subject", "student_class", "date"],
+        order_by="date desc", limit=5)
+    
+    return {
+        "teacher": teacher,
+        "counts": counts,
+        "recent_exams": recent_exams,
+        "recent_homework": recent_homework,
+        "recent_tests": recent_tests
+    }
+
+@frappe.whitelist()
 def get_user_redirect():
     """Returns where to redirect the logged in user."""
     user = frappe.session.user
     if not user or user == "Guest":
         return {"redirect": "/portal-login"}
+    
     roles = frappe.get_roles(user)
+    
+    # Admin goes to desk
     if "System Manager" in roles or "Administrator" in roles:
         return {"redirect": "/app", "role": "admin"}
+    
+    # Check if user is a teacher (by portal_email)
+    if frappe.db.exists("Teacher", {"portal_email": user}):
+        return {"redirect": "/assets/school/html/teacher-portal.html", "role": "teacher"}
+    
+    # Check if user is a student (by portal_email)
     if frappe.db.exists("Student", {"portal_email": user}):
         return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}
+    
+    # School users go to desk
     if "School User" in roles:
         return {"redirect": "/app", "role": "school_user"}
-    return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}
+    
+    # Default fallback
+    return {"redirect": "/portal-login", "role": "guest"}

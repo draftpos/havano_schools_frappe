@@ -1038,6 +1038,15 @@ body::before {
       <span>🔍</span>
       <input type="text" placeholder="Search students, exams…" />
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:8px;">
+      <span style="font-size:12px;color:var(--text3);font-weight:600;white-space:nowrap;">Cost Centre</span>
+      <select id="cc-filter" onchange="onCostCenterChange()" style="
+        height:34px;padding:0 10px;border-radius:8px;border:1px solid var(--border);
+        background:var(--surface2);color:var(--text);font-family:Outfit,sans-serif;
+        font-size:12px;font-weight:600;cursor:pointer;min-width:140px;">
+        <option value="">All</option>
+      </select>
+    </div>
     <div class="topbar-right">
       <button class="icon-btn" onclick="refreshData()" title="Refresh">🔄</button>
       <a class="tb-btn" href="/app">⬅ Havano</a>
@@ -1270,9 +1279,17 @@ Chart.defaults.borderColor = 'rgba(0,0,0,0.06)';
 Chart.defaults.font.family = 'Outfit';
 
 /* ─── FETCH DATA ─── */
+let activeCostCenter = '';
+
+function onCostCenterChange() {
+  activeCostCenter = document.getElementById('cc-filter').value;
+  refreshData();
+}
+
 async function fetchData() {
   try {
-    const r = await fetch('/api/method/school.utils.get_dashboard_data', {
+    const params = activeCostCenter ? '?cost_center=' + encodeURIComponent(activeCostCenter) : '';
+    const r = await fetch('/api/method/school.utils.get_dashboard_data' + params, {
       method: 'GET',
       headers: {'Accept': 'application/json'},
       credentials: 'include'
@@ -1402,6 +1419,18 @@ async function loadDashboard() {
   if (data.user && data.user.full_name) {
     $('user-name').textContent = data.user.full_name;
     $('user-avatar').textContent = data.user.full_name.charAt(0).toUpperCase();
+  }
+
+  // Populate cost center dropdown (only first load when empty)
+  const ccSel = document.getElementById('cc-filter');
+  if (ccSel && ccSel.options.length === 1 && data.cost_centers && data.cost_centers.length) {
+    data.cost_centers.forEach(cc => {
+      const opt = document.createElement('option');
+      opt.value = cc.name;
+      opt.textContent = cc.name;
+      if (cc.name === activeCostCenter) opt.selected = true;
+      ccSel.appendChild(opt);
+    });
   }
 }
 
