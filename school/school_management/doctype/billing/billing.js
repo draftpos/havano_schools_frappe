@@ -84,28 +84,31 @@ frappe.ui.form.on("Billing", {
 function apply_cost_center_filters(frm) {
     var cc = frm.doc.cost_center;
 
-    // Filter student_class to only show classes that have students in this cost center
+    // Filter student_class — show all classes (no cost center on Student Class doctype)
     frm.set_query("student_class", function() {
-        if (!cc) return {};
-        return {
-            query: "frappe.client.get_list",
-            filters: {}
-        };
+        return {};
     });
 
-    // Filter section — only sections that have students in selected cost center
+    // Filter section — only sections linked to selected class
     frm.set_query("section", function() {
         var f = {};
         if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
         return { filters: f };
     });
 
-    // Filter student link — only students in selected cost center
+    // Filter student — only students in selected cost center + class + section
     frm.set_query("student", function() {
         var f = {};
         if (cc) f["cost_center"] = cc;
         if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
         if (frm.doc.section) f["section"] = frm.doc.section;
+        return { filters: f };
+    });
+
+    // Filter fees_structure — only show fees structures for selected cost center
+    frm.set_query("fees_structure", function() {
+        var f = {};
+        if (cc) f["cost_center"] = cc;
         return { filters: f };
     });
 }

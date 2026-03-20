@@ -12,7 +12,8 @@
   "fees_structure_name",
   "column_break_fwlr",
   "fees_items_section",
-  "fees_items"
+  "fees_items",
+  "cost_center"
  ],
  "fields": [
   {
@@ -22,6 +23,14 @@
    "label": "Fees Structure Code",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Cost Center",
+   "options": "Cost Center"
   },
   {
    "fieldname": "fees_structure_name",
@@ -54,7 +63,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-11 11:34:12.177854",
+ "modified": "2026-03-20 09:42:12.740185",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Fees Structure",
@@ -70,6 +79,39 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
    "share": 1,
    "write": 1
   }
