@@ -1,5 +1,6 @@
 import frappe
 from frappe.model.document import Document
+from frappe.utils import flt
 
 class Student(Document):
 
@@ -14,34 +15,31 @@ class Student(Document):
                 if class_code:
                     self.student_class = class_code
 
-        # Sync school selection to cost_center
         if self.get("school"):
             self.cost_center = self.school
 
     def after_insert(self):
         self.create_customer()
         self.create_opening_balance_entry()
+        self.create_admin_fee_invoice()
 
     def on_update(self):
         if self.flags.get("ignore_on_update"):
             return
         self.create_customer()
         self.create_opening_balance_entry()
+        self.create_admin_fee_invoice()
 
     def create_customer(self):
         if not self.full_name:
             return
-
         if frappe.db.exists("Customer", {"customer_name": self.full_name}):
             return
-
         try:
             customer_group = frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups"
             territory = frappe.db.get_single_value("Selling Settings", "territory") or "All Territories"
-
             if self.student_category:
                 customer_group = self.student_category
-
             customer = frappe.get_doc({
                 "doctype": "Customer",
                 "customer_name": self.full_name,
@@ -49,12 +47,10 @@ class Student(Document):
                 "customer_group": customer_group,
                 "territory": territory,
             })
-
             customer.insert(ignore_permissions=True)
-
         except Exception:
             frappe.log_error(
-                title=f"Customer creation failed for {self.full_name}",
+                title="Customer creation failed for {}".format(self.full_name),
                 message=frappe.get_traceback()
             )
 
@@ -63,23 +59,31 @@ class Student(Document):
             return
         if not self.full_name:
             return
-
-        # Avoid duplicate journal entries
         existing = frappe.db.exists("Journal Entry", {
             "user_remark": "Opening Balance for {}".format(self.full_name),
             "docstatus": 1
         })
         if existing:
             return
-
         try:
             company = frappe.defaults.get_global_default("company")
-            receivable_account = frappe.db.get_value(
-                "Company", company, "default_receivable_account"
+            receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
+
+            # Use Opening Balance Equity account for the credit side
+            opening_account = (
+                frappe.db.get_value("Account", {
+                    "account_type": "Equity",
+                    "company": company,
+                    "is_group": 0,
+                    "account_name": ["like", "%Opening Balance%"]
+                }, "name") or
+                frappe.db.get_value("Account", {
+                    "account_type": "Temporary",
+                    "company": company,
+                    "is_group": 0
+                }, "name") or
+                "Opening Balance Equity - SS"
             )
-            opening_account = frappe.db.get_value(
-                "Company", company, "default_payable_account"
-            ) or "Temporary Opening - SS"
 
             je = frappe.get_doc({
                 "doctype": "Journal Entry",
@@ -107,10 +111,151 @@ class Student(Document):
             je.flags.ignore_permissions = True
             je.insert()
             je.submit()
-
         except Exception:
             frappe.log_error(
                 title="Opening balance JE failed for {}".format(self.full_name),
                 message=frappe.get_traceback()
             )
 
+    def create_admin_fee_invoice(self):
+        # Only run if Paying Admin Fee is checked and a fees structure is selected
+        if not self.paying_admin_fee or not self.admin_fees_structure:
+            return
+        if not self.full_name:
+            return
+
+        # Prevent duplicate billing
+        existing_billing = frappe.db.exists("Billing", {
+            "student": self.name,
+            "fees_structure": self.admin_fees_structure,
+            "docstatus": ["!=", 2]
+        })
+        if existing_billing:
+            if self.admin_fee_paid:
+                # Get the sales invoice created by this billing
+                inv = frappe.db.get_value("Sales Invoice", {
+                    "customer": self.full_name,
+                    "fees_structure": self.admin_fees_structure,
+                    "docstatus": ["!=", 2]
+                }, "name")
+                if inv:
+                    self.create_admin_fee_receipting(inv)
+            return
+
+        try:
+            company = frappe.defaults.get_global_default("company")
+
+            # Ensure customer exists
+            if not frappe.db.exists("Customer", {"customer_name": self.full_name}):
+                self.create_customer()
+
+            # Get fees structure items
+            fees_doc = frappe.get_doc("Fees Structure", self.admin_fees_structure)
+            if not fees_doc.fees_items:
+                frappe.log_error(
+                    title="create_admin_fee_invoice",
+                    message="Fees Structure {} has no items".format(self.admin_fees_structure)
+                )
+                return
+
+            # Create Billing doc — it will create Sales Invoice on submit
+            billing = frappe.new_doc("Billing")
+            billing.date = frappe.utils.today()
+            billing.cost_center = self.cost_center or self.school
+            billing.fees_structure = self.admin_fees_structure
+            billing.student = self.name
+            billing.student_class = self.student_class
+            billing.section = self.section
+
+            for item in fees_doc.fees_items:
+                billing.append("items", {
+                    "item_code": item.item_code,
+                    "item_name": item.item_name,
+                    "qty": 1,
+                    "rate": item.rate or 0,
+                    "amount": flt(item.rate or 0),
+                    "cost_center": self.cost_center or self.school,
+                })
+
+            billing.flags.ignore_permissions = True
+            billing.flags.ignore_mandatory = True
+            billing.insert(ignore_permissions=True)
+            billing.submit()
+
+            frappe.db.commit()
+
+            # Get the sales invoice created by billing submit
+            invoice_name = frappe.db.get_value("Sales Invoice", {
+                "customer": self.full_name,
+                "fees_structure": self.admin_fees_structure,
+                "docstatus": ["!=", 2]
+            }, "name")
+
+            # If Paid is also checked, create receipting immediately
+            if self.admin_fee_paid and invoice_name:
+                self.create_admin_fee_receipting(invoice_name)
+
+        except Exception:
+            frappe.log_error(
+                title="Admin fee billing failed for {}".format(self.full_name),
+                message=frappe.get_traceback()
+            )
+
+    def create_admin_fee_receipting(self, invoice_name):
+        if not invoice_name:
+            return
+
+        # Prevent duplicate receipting
+        existing = frappe.db.exists("Receipting", {
+            "student_name": self.name,
+            "docstatus": ["!=", 2]
+        })
+        if existing:
+            return
+
+        try:
+            outstanding = frappe.db.get_value("Sales Invoice", invoice_name, "outstanding_amount")
+            if not flt(outstanding) > 0:
+                return
+
+            # Get default cash account
+            company = frappe.defaults.get_global_default("company")
+            account = frappe.db.get_value("Account", {
+                "account_type": "Cash",
+                "company": company,
+                "is_group": 0
+            }, "name")
+
+            if not account:
+                frappe.log_error(
+                    title="create_admin_fee_receipting",
+                    message="No cash account found for company {}".format(company)
+                )
+                return
+
+            receipt = frappe.new_doc("Receipting")
+            receipt.student_name = self.name
+            receipt.student_class = self.student_class
+            receipt.section = self.section
+            receipt.date = frappe.utils.today()
+            receipt.account = account
+
+            receipt.append("invoice", {
+                "invoice_number": invoice_name,
+                "outstanding": flt(outstanding),
+                "allocated": flt(outstanding),
+                "fees_structure": self.admin_fees_structure,
+            })
+
+            receipt.flags.ignore_permissions = True
+            receipt.flags.ignore_mandatory = True
+            receipt.insert(ignore_permissions=True)
+            receipt.submit()
+
+            frappe.db.commit()
+
+        except Exception:
+            frappe.log_error(
+                title="Admin fee receipting failed for {}".format(self.full_name),
+                message=frappe.get_traceback()
+            )

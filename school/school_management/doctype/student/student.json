@@ -30,6 +30,41 @@
   "opening_balance",
   "cost_center",
   "opening_balance_date",
+  "paying_admin_fee",
+  "admin_fee_paid",
+  "admin_fees_structure",
+  "parent_guardian_detail_section",
+  "father_name",
+  "mother_name",
+  "column_break_uluu",
+  "phone_number",
+  "father_email",
+  "mother_phone",
+  "mother_email",
+  "column_break_atfu",
+  "father_occupation",
+  "mother_occupation",
+  "column_break_gpav",
+  "father_photo",
+  "mother_photo",
+  "guardian_section",
+  "if_guardian_is",
+  "guardian_name",
+  "column_break_guardian",
+  "guardian_occupation",
+  "guardian_email",
+  "column_break_oeey",
+  "guardian_phone",
+  "guardian_relation",
+  "column_break_iijr",
+  "guardian_address",
+  "guardian_photo",
+  "address_details_section",
+  "if_guardian_address_is_current_address",
+  "current_address",
+  "column_break_vigs",
+  "if_permanent_address_is_current_address",
+  "permanent_address",
   "medical_history_section",
   "other_filtering_section",
   "category_1",
@@ -57,36 +92,6 @@
   "hostel_name",
   "column_break_jutv",
   "dorm",
-  "parent_guardian_detail_section",
-  "father_name",
-  "mother_name",
-  "column_break_uluu",
-  "phone_number",
-  "mother_phone",
-  "column_break_atfu",
-  "father_occupation",
-  "mother_occupation",
-  "column_break_gpav",
-  "father_photo",
-  "mother_photo",
-  "guardian_section",
-  "if_guardian_is",
-  "guardian_name",
-  "column_break_guardian",
-  "guardian_occupation",
-  "guardian_email",
-  "column_break_oeey",
-  "guardian_phone",
-  "guardian_relation",
-  "column_break_iijr",
-  "guardian_address",
-  "guardian_photo",
-  "address_details_section",
-  "if_guardian_address_is_current_address",
-  "current_address",
-  "column_break_vigs",
-  "if_permanent_address_is_current_address",
-  "permanent_address",
   "miscellaneous_details_section",
   "bank_account_number",
   "bank_name",
@@ -246,6 +251,195 @@
    "mandatory_depends_on": "eval:doc.has_opening_balance == 1"
   },
   {
+   "default": "0",
+   "fieldname": "paying_admin_fee",
+   "fieldtype": "Check",
+   "label": "Paying Admin Fee"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:doc.paying_admin_fee == 1",
+   "fieldname": "admin_fee_paid",
+   "fieldtype": "Check",
+   "label": "Paid"
+  },
+  {
+   "depends_on": "eval:doc.paying_admin_fee == 1",
+   "fieldname": "admin_fees_structure",
+   "fieldtype": "Link",
+   "label": "Admin Fees Structure",
+   "mandatory_depends_on": "eval:doc.paying_admin_fee == 1",
+   "options": "Fees Structure"
+  },
+  {
+   "fieldname": "parent_guardian_detail_section",
+   "fieldtype": "Section Break",
+   "label": "Parent & Guardian Details"
+  },
+  {
+   "fieldname": "father_name",
+   "fieldtype": "Data",
+   "label": "Father Name"
+  },
+  {
+   "fieldname": "mother_name",
+   "fieldtype": "Data",
+   "label": "Mother Name"
+  },
+  {
+   "fieldname": "column_break_uluu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Father Phone"
+  },
+  {
+   "fieldname": "father_email",
+   "fieldtype": "Data",
+   "label": "Father Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "mother_phone",
+   "fieldtype": "Data",
+   "label": "Mother Phone"
+  },
+  {
+   "fieldname": "mother_email",
+   "fieldtype": "Data",
+   "label": "Mother Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_atfu",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "father_occupation",
+   "fieldtype": "Data",
+   "label": "Father Occupation"
+  },
+  {
+   "fieldname": "mother_occupation",
+   "fieldtype": "Data",
+   "label": "Mother Occupation"
+  },
+  {
+   "fieldname": "column_break_gpav",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "father_photo",
+   "fieldtype": "Attach Image",
+   "label": "Father Photo"
+  },
+  {
+   "fieldname": "mother_photo",
+   "fieldtype": "Attach Image",
+   "label": "Mother Photo"
+  },
+  {
+   "fieldname": "guardian_section",
+   "fieldtype": "Section Break",
+   "label": "Guardian Details"
+  },
+  {
+   "fieldname": "if_guardian_is",
+   "fieldtype": "Select",
+   "label": "If Guardian Is",
+   "options": "\nFather\nMother\nOther"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_name",
+   "fieldtype": "Data",
+   "label": "Guardian Name"
+  },
+  {
+   "fieldname": "column_break_guardian",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_occupation",
+   "fieldtype": "Data",
+   "label": "Guardian Occupation"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_email",
+   "fieldtype": "Data",
+   "label": "Guardian Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "column_break_oeey",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_phone",
+   "fieldtype": "Data",
+   "label": "Guardian Phone"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_relation",
+   "fieldtype": "Data",
+   "label": "Guardian Relation"
+  },
+  {
+   "fieldname": "column_break_iijr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_address",
+   "fieldtype": "Data",
+   "label": "Guardian Address"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_is == 'Other'",
+   "fieldname": "guardian_photo",
+   "fieldtype": "Attach Image",
+   "label": "Guardian Photo"
+  },
+  {
+   "fieldname": "address_details_section",
+   "fieldtype": "Section Break",
+   "label": "Address Details"
+  },
+  {
+   "default": "0",
+   "fieldname": "if_guardian_address_is_current_address",
+   "fieldtype": "Check",
+   "label": "If Guardian Address Is Current Address"
+  },
+  {
+   "depends_on": "eval:doc.if_guardian_address_is_current_address == 0",
+   "fieldname": "current_address",
+   "fieldtype": "Data",
+   "label": "Current Address"
+  },
+  {
+   "fieldname": "column_break_vigs",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "if_permanent_address_is_current_address",
+   "fieldtype": "Check",
+   "label": "If Permanent Address Is Current Address"
+  },
+  {
+   "depends_on": "eval:doc.if_permanent_address_is_current_address == 0",
+   "fieldname": "permanent_address",
+   "fieldtype": "Data",
+   "label": "Permanent Address"
+  },
+  {
    "collapsible": 1,
    "fieldname": "medical_history_section",
    "fieldtype": "Section Break",
@@ -358,7 +552,6 @@
    "fieldname": "months",
    "fieldtype": "Link",
    "label": "Month",
-   "link_filters": "[[\"Month\", \"total_months_selected\", \"=\", \"12\"]]",
    "options": "Month"
   },
   {
@@ -392,165 +585,6 @@
    "fieldtype": "Link",
    "label": "Dorm",
    "options": "Dorm No"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "parent_guardian_detail_section",
-   "fieldtype": "Section Break",
-   "label": "Parent Guardian Detail"
-  },
-  {
-   "fieldname": "father_name",
-   "fieldtype": "Data",
-   "label": "Father Name"
-  },
-  {
-   "fieldname": "mother_name",
-   "fieldtype": "Data",
-   "label": "Mother Name"
-  },
-  {
-   "fieldname": "column_break_uluu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "phone_number",
-   "fieldtype": "Data",
-   "label": "Father Phone"
-  },
-  {
-   "fieldname": "mother_phone",
-   "fieldtype": "Data",
-   "label": "Mother Phone"
-  },
-  {
-   "fieldname": "column_break_atfu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "father_occupation",
-   "fieldtype": "Data",
-   "label": "Father Occupation"
-  },
-  {
-   "fieldname": "mother_occupation",
-   "fieldtype": "Data",
-   "label": "Mother Occupation"
-  },
-  {
-   "fieldname": "column_break_gpav",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "father_photo",
-   "fieldtype": "Attach Image",
-   "label": "Father Photo"
-  },
-  {
-   "fieldname": "mother_photo",
-   "fieldtype": "Attach Image",
-   "label": "Mother Photo"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "guardian_section",
-   "fieldtype": "Section Break",
-   "label": "Guardian Details"
-  },
-  {
-   "fieldname": "if_guardian_is",
-   "fieldtype": "Select",
-   "label": "If Guardian Is",
-   "options": "\nFather\nMother\nOther"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_name",
-   "fieldtype": "Data",
-   "label": "Guardian Name"
-  },
-  {
-   "fieldname": "column_break_guardian",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_occupation",
-   "fieldtype": "Data",
-   "label": "Guardian Occupation"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_email",
-   "fieldtype": "Data",
-   "label": "Guardian Email",
-   "options": "Email"
-  },
-  {
-   "fieldname": "column_break_oeey",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_phone",
-   "fieldtype": "Data",
-   "label": "Guardian Phone"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_relation",
-   "fieldtype": "Data",
-   "label": "Guardian Relation"
-  },
-  {
-   "fieldname": "column_break_iijr",
-   "fieldtype": "Column Break"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_address",
-   "fieldtype": "Data",
-   "label": "Guardian Address"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_is == 'Other'",
-   "fieldname": "guardian_photo",
-   "fieldtype": "Attach Image",
-   "label": "Guardian Photo"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "address_details_section",
-   "fieldtype": "Section Break",
-   "label": "Address Details"
-  },
-  {
-   "default": "0",
-   "fieldname": "if_guardian_address_is_current_address",
-   "fieldtype": "Check",
-   "label": "If Guardian Address Is Current Address"
-  },
-  {
-   "depends_on": "eval:doc.if_guardian_address_is_current_address == 0",
-   "fieldname": "current_address",
-   "fieldtype": "Data",
-   "label": "Current Address"
-  },
-  {
-   "fieldname": "column_break_vigs",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "0",
-   "fieldname": "if_permanent_address_is_current_address",
-   "fieldtype": "Check",
-   "label": "If Permanent Address Is Current Address"
-  },
-  {
-   "depends_on": "eval:doc.if_permanent_address_is_current_address == 0",
-   "fieldname": "permanent_address",
-   "fieldtype": "Data",
-   "label": "Permanent Address"
   },
   {
    "collapsible": 1,

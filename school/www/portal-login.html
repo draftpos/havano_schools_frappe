@@ -12,69 +12,232 @@ title: School Portal Login
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <style>
         *{box-sizing:border-box;margin:0;padding:0;}
-        body{background:#f0f2f5;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;}
-        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-30px)}}
-        @keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+        body{background:#0f172a;min-height:100vh;display:flex;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;}
+
+        .left-panel{
+            width:30%;
+            min-height:100vh;
+            background:#ffffff;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:40px 36px;
+            position:relative;
+            z-index:10;
+            box-shadow:8px 0 40px rgba(0,0,0,0.25);
+        }
+        .login-inner{width:100%;max-width:340px;}
+
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
-        .login-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:24px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,0.08);position:relative;z-index:1;animation:fadeInUp 0.6s ease both;}
-        .logo-wrap{text-align:center;margin-bottom:28px;}
-        .logo-circle{width:72px;height:72px;background:linear-gradient(135deg,#2e86de,#1e3a5f);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(46,134,222,0.4);margin-bottom:16px;}
-        .logo-wrap h2{color:#0f172a;font-size:22px;font-weight:700;margin-bottom:6px;}
-        .logo-wrap p{color:#64748b;font-size:13.5px;}
-        .field-label{display:block;font-size:12px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;color:#64748b;margin-bottom:8px;}
-        .input-wrap{position:relative;margin-bottom:18px;}
-        .input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#3b82f6;font-size:14px;pointer-events:none;}
-        .form-control{background:#f8fafc!important;border:1px solid #e2e8f0!important;border-radius:12px!important;padding:13px 42px 13px 40px!important;color:#0f172a!important;font-size:14px!important;width:100%;transition:all 0.2s!important;}
+
+        .login-inner{animation:fadeInUp 0.6s ease both;}
+        .logo-wrap{text-align:center;margin-bottom:32px;}
+        .logo-circle{width:68px;height:68px;background:linear-gradient(135deg,#2e86de,#1e3a5f);border-radius:18px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(46,134,222,0.4);margin-bottom:14px;}
+        .logo-wrap h2{color:#0f172a;font-size:21px;font-weight:800;margin-bottom:5px;}
+        .logo-wrap p{color:#64748b;font-size:13px;}
+
+        .field-label{display:block;font-size:11px;font-weight:700;letter-spacing:0.9px;text-transform:uppercase;color:#64748b;margin-bottom:7px;}
+        .input-wrap{position:relative;margin-bottom:16px;}
+        .input-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#3b82f6;font-size:13px;pointer-events:none;}
+        .form-control{background:#f8fafc!important;border:1.5px solid #e2e8f0!important;border-radius:11px!important;padding:12px 40px 12px 38px!important;color:#0f172a!important;font-size:13.5px!important;width:100%;transition:all 0.2s!important;}
         .form-control::placeholder{color:#94a3b8!important;}
-        .form-control:focus{outline:none!important;border-color:rgba(46,134,222,0.6)!important;background:rgba(46,134,222,0.08)!important;box-shadow:0 0 0 3px rgba(46,134,222,0.15)!important;}
-        .eye-toggle{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:#3b82f6;cursor:pointer;font-size:15px;z-index:2;}
-        .input-wrap.has-error .form-control{border-color:rgba(239,68,68,0.6)!important;background:rgba(239,68,68,0.06)!important;}
-        .alert-msg{border-radius:12px;padding:12px 16px;font-size:13px;font-weight:500;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+        .form-control:focus{outline:none!important;border-color:rgba(46,134,222,0.6)!important;background:rgba(46,134,222,0.05)!important;box-shadow:0 0 0 3px rgba(46,134,222,0.12)!important;}
+        .eye-toggle{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;color:#3b82f6;cursor:pointer;font-size:14px;z-index:2;}
+        .input-wrap.has-error .form-control{border-color:rgba(239,68,68,0.6)!important;background:rgba(239,68,68,0.05)!important;}
+
+        .alert-msg{border-radius:10px;padding:10px 14px;font-size:12.5px;font-weight:500;margin-bottom:16px;display:flex;align-items:center;gap:9px;}
         .alert-msg.hidden{display:none!important;}
-        .alert-error{background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;}
-        .alert-success{background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);color:#6ee7b7;}
-        .alert-info{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);color:#93c5fd;}
-        .btn-login{background:linear-gradient(135deg,#2e86de,#1a5fa8);color:white;border-radius:12px;padding:14px;font-size:14px;font-weight:700;border:none;width:100%;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(46,134,222,0.35);}
+        .alert-error{background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:#ef4444;}
+        .alert-success{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);color:#10b981;}
+        .alert-info{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2);color:#3b82f6;}
+
+        .btn-login{background:linear-gradient(135deg,#2e86de,#1a5fa8);color:white;border-radius:11px;padding:13px;font-size:13.5px;font-weight:700;border:none;width:100%;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(46,134,222,0.35);}
         .btn-login:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 24px rgba(46,134,222,0.45);}
         .btn-login:disabled{opacity:0.7;cursor:not-allowed;}
-        .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+        .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
         .shake{animation:shake 0.4s ease both;}
-        .back-link{text-align:center;margin-top:20px;}
-        .back-link a{color:#64748b;text-decoration:none;font-size:12.5px;display:inline-flex;align-items:center;gap:6px;}
+        .back-link{text-align:center;margin-top:18px;}
+        .back-link a{color:#94a3b8;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:5px;transition:color 0.2s;}
         .back-link a:hover{color:#1e3a5f;}
+
+        /* ── RIGHT PANEL ── */
+        .right-panel{
+            width:70%;
+            min-height:100vh;
+            position:relative;
+            overflow:hidden;
+            background:#0a0f1e;
+        }
+
+        .slide{
+            position:absolute;
+            inset:0;
+            opacity:0;
+            transition:opacity 0.8s ease;
+        }
+        .slide.active{opacity:1;}
+
+        .slide img{
+            position:absolute;
+            top:0;left:0;
+            width:100%;
+            height:100%;
+            display:block;
+            object-fit:cover;
+            object-position:center;
+            user-select:none;
+            pointer-events:none;
+            transform:translateZ(0);
+            backface-visibility:hidden;
+            -webkit-backface-visibility:hidden;
+            image-rendering:auto;
+        }
+
+        .slide-dots{
+            position:absolute;
+            bottom:20px;
+            left:50%;
+            transform:translateX(-50%);
+            display:flex;
+            gap:8px;
+            z-index:10;
+        }
+        .dot{
+            width:8px;height:8px;
+            border-radius:50%;
+            background:rgba(255,255,255,0.35);
+            cursor:pointer;
+            transition:all 0.3s;
+            border:none;
+            padding:0;
+        }
+        .dot.active{
+            background:#ffffff;
+            width:26px;
+            border-radius:4px;
+        }
+
+        .slide-progress{
+            position:absolute;
+            bottom:0;left:0;right:0;
+            height:3px;
+            background:rgba(255,255,255,0.1);
+            z-index:10;
+        }
+        .slide-progress-fill{
+            height:100%;
+            background:rgba(255,255,255,0.7);
+            width:0%;
+            transition:width 1s linear;
+        }
+
+        @media(max-width:900px){
+            .left-panel{width:100%;}
+            .right-panel{display:none;}
+        }
     </style>
 </head>
 <body>
-    <div class="login-card" id="login-card">
-        <div class="logo-wrap">
-            <div class="logo-circle"><i class="fa fa-graduation-cap fa-2x text-white"></i></div>
-            <h2>School Portal</h2>
-            <p>Enter your credentials to continue</p>
+
+    <!-- ══ LEFT: LOGIN FORM (30%) ══ -->
+    <div class="left-panel">
+        <div class="login-inner" id="login-card">
+            <div class="logo-wrap">
+                <div class="logo-circle"><i class="fa fa-graduation-cap fa-2x text-white"></i></div>
+                <h2>School Portal</h2>
+                <p>Enter your credentials to continue</p>
+            </div>
+
+            <div class="alert-msg alert-error hidden" id="msg-error"><i class="fa fa-exclamation-circle"></i><span id="msg-error-text">Invalid email or password.</span></div>
+            <div class="alert-msg alert-success hidden" id="msg-success"><i class="fa fa-check-circle"></i><span id="msg-success-text">Login successful! Redirecting…</span></div>
+            <div class="alert-msg alert-info hidden" id="msg-info"><i class="fa fa-info-circle"></i><span id="msg-info-text">Checking your session…</span></div>
+
+            <div class="mb-1"><label class="field-label">Email Address</label></div>
+            <div class="input-wrap" id="wrap-email">
+                <i class="fa fa-envelope input-icon"></i>
+                <input type="email" class="form-control" id="email" placeholder="you@example.com" autocomplete="email"/>
+            </div>
+
+            <div class="mb-1"><label class="field-label">Password</label></div>
+            <div class="input-wrap" id="wrap-password">
+                <i class="fa fa-lock input-icon"></i>
+                <input type="password" class="form-control" id="password" placeholder="Enter your password" autocomplete="current-password"/>
+                <button class="eye-toggle" type="button" onclick="togglePassword()" tabindex="-1"><i class="fa fa-eye" id="eye-icon"></i></button>
+            </div>
+
+            <button class="btn-login" id="btn-login" onclick="doLogin()">
+                <div class="spinner" id="spinner"></div>
+                <i class="fa fa-sign-in-alt" id="btn-icon"></i>
+                <span id="btn-text">Login</span>
+            </button>
+
+            <div class="back-link"><a href="/"><i class="fa fa-arrow-left"></i> Back to Home</a></div>
         </div>
-        <div class="alert-msg alert-error hidden" id="msg-error"><i class="fa fa-exclamation-circle"></i><span id="msg-error-text">Invalid email or password.</span></div>
-        <div class="alert-msg alert-success hidden" id="msg-success"><i class="fa fa-check-circle"></i><span id="msg-success-text">Login successful! Redirecting…</span></div>
-        <div class="alert-msg alert-info hidden" id="msg-info"><i class="fa fa-info-circle"></i><span id="msg-info-text">Checking your session…</span></div>
-        <div class="mb-1"><label class="field-label">Email Address</label></div>
-        <div class="input-wrap" id="wrap-email">
-            <i class="fa fa-envelope input-icon"></i>
-            <input type="email" class="form-control" id="email" placeholder="you@example.com" autocomplete="email"/>
-        </div>
-        <div class="mb-1"><label class="field-label">Password</label></div>
-        <div class="input-wrap" id="wrap-password">
-            <i class="fa fa-lock input-icon"></i>
-            <input type="password" class="form-control" id="password" placeholder="Enter your password" autocomplete="current-password"/>
-            <button class="eye-toggle" type="button" onclick="togglePassword()" tabindex="-1"><i class="fa fa-eye" id="eye-icon"></i></button>
-        </div>
-        <button class="btn-login" id="btn-login" onclick="doLogin()">
-            <div class="spinner" id="spinner"></div>
-            <i class="fa fa-sign-in-alt" id="btn-icon"></i>
-            <span id="btn-text">Login</span>
-        </button>
-        <div class="back-link"><a href="/"><i class="fa fa-arrow-left"></i> Back to Home</a></div>
     </div>
+
+    <!-- ══ RIGHT: SINGLE IMAGE SLIDESHOW (70%) ══ -->
+    <div class="right-panel">
+
+        <div class="slide active" id="slide-0">
+            <img src="/assets/school/img/login/slide1.jpg" alt=""/>
+        </div>
+        <div class="slide" id="slide-1">
+            <img src="/assets/school/img/login/slide2.jpg" alt=""/>
+        </div>
+        <div class="slide" id="slide-2">
+            <img src="/assets/school/img/login/slide3.jpg" alt=""/>
+        </div>
+        <div class="slide" id="slide-3">
+            <img src="/assets/school/img/login/slide4.jpg" alt=""/>
+        </div>
+
+        <div class="slide-dots">
+            <button class="dot active" onclick="goSlide(0)"></button>
+            <button class="dot" onclick="goSlide(1)"></button>
+            <button class="dot" onclick="goSlide(2)"></button>
+            <button class="dot" onclick="goSlide(3)"></button>
+        </div>
+
+        <div class="slide-progress"><div class="slide-progress-fill" id="progress-fill"></div></div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
+        var currentSlide = 0;
+        var totalSlides  = 4;
+        var autoTimer;
+
+        function goSlide(n) {
+            document.getElementById('slide-' + currentSlide).classList.remove('active');
+            document.querySelectorAll('.dot')[currentSlide].classList.remove('active');
+            currentSlide = (n + totalSlides) % totalSlides;
+            document.getElementById('slide-' + currentSlide).classList.add('active');
+            document.querySelectorAll('.dot')[currentSlide].classList.add('active');
+            resetProgress();
+        }
+
+        function resetProgress() {
+            var fill = document.getElementById('progress-fill');
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+            setTimeout(function() {
+                fill.style.transition = 'width 1s linear';
+                fill.style.width = '100%';
+            }, 50);
+        }
+
+        function startAuto() {
+            autoTimer = setInterval(function() {
+                goSlide(currentSlide + 1);
+            }, 1000);
+        }
+
+        resetProgress();
+        startAuto();
+
+        /* ── LOGIN LOGIC ── */
         function togglePassword(){var i=document.getElementById('password'),e=document.getElementById('eye-icon');i.type=i.type==='password'?'text':'password';e.className=i.type==='text'?'fa fa-eye-slash':'fa fa-eye';}
         function showMsg(t,x){['error','success','info'].forEach(function(n){document.getElementById('msg-'+n).classList.add('hidden');});if(!t)return;var e=document.getElementById('msg-'+t);if(x)document.getElementById('msg-'+t+'-text').textContent=x;e.classList.remove('hidden');}
         function setLoading(on){document.getElementById('spinner').style.display=on?'block':'none';document.getElementById('btn-icon').style.display=on?'none':'inline';document.getElementById('btn-text').textContent=on?'Logging in…':'Login';document.getElementById('btn-login').disabled=on;}
@@ -125,7 +288,6 @@ title: School Portal Login
         document.getElementById('email').addEventListener('input',function(){document.getElementById('wrap-email').classList.remove('has-error');});
         document.getElementById('password').addEventListener('input',function(){document.getElementById('wrap-password').classList.remove('has-error');});
 
-        // Only auto-redirect if user came from another page (not a fresh login page visit)
         if (document.referrer && !document.referrer.includes('/portal-login')) {
             $.ajax({url:'/api/method/frappe.auth.get_logged_user',success:function(r){
                 if(r.message&&r.message!=='Guest'){

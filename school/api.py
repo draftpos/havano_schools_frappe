@@ -18,7 +18,8 @@ def get_billing_summary():
     # 1. Fetch Invoices (Sales Invoices)
     # Note: Using customer_name to link to Sales Invoice
     invoices = frappe.db.sql("""
-        SELECT name, posting_date, due_date, grand_total, outstanding_amount, status
+        SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+               cost_center, fees_structure
         FROM `tabSales Invoice`
         WHERE customer_name = %s 
         ORDER BY posting_date DESC
@@ -278,3 +279,87 @@ def get_user_redirect():
     
     # Default fallback
     return {"redirect": "/portal-login", "role": "guest"}
+
+
+@frappe.whitelist()
+def get_fees_balance():
+    """
+    Fees Balance report — fetches from Accounts Receivable Summary
+    filtered by student customers. Supports cost_center filter.
+    """
+    user = frappe.session.user
+    if not user or user == "Guest":
+        return {"error": "Not authorized"}
+
+    cost_center = frappe.form_dict.get("cost_center") or None
+
+    # Get all students with their full_name (used as customer name)
+    student_filters = {}
+    if cost_center:
+        student_filters["cost_center"] = cost_center
+
+    students = frappe.get_all("Student",
+        filters=student_filters,
+        fields=["name", "full_name", "student_class", "section",
+                "cost_center", "school"])
+
+    if not students:
+        return []
+
+    student_names = [s.full_name for s in students if s.full_name]
+    student_map = {s.full_name: s for s in students}
+
+    if not student_names:
+        return []
+
+    # Fetch receivable summary from Sales Invoice
+    placeholders = ", ".join(["%s"] * len(student_names))
+    receivables = frappe.db.sql("""
+        SELECT
+            si.customer,
+            si.customer_name,
+            si.cost_center,
+            si.fees_structure,
+            SUM(si.grand_total) as total_billed,
+            SUM(si.outstanding_amount) as total_outstanding,
+            SUM(si.grand_total - si.outstanding_amount) as total_paid
+        FROM `tabSales Invoice` si
+        WHERE si.customer IN ({placeholders})
+          AND si.docstatus = 1
+        GROUP BY si.customer, si.cost_center, si.fees_structure
+        ORDER BY si.customer ASC
+    """.format(placeholders=placeholders), student_names, as_dict=True)
+
+    # Add opening balances
+    opening_balances = frappe.db.sql("""
+        SELECT
+            jea.party,
+            SUM(jea.debit_in_account_currency) as opening_balance
+        FROM `tabJournal Entry Account` jea
+        JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE je.voucher_type = 'Opening Entry'
+          AND jea.party_type = 'Customer'
+          AND jea.party IN ({placeholders})
+          AND je.docstatus = 1
+        GROUP BY jea.party
+    """.format(placeholders=placeholders), student_names, as_dict=True)
+
+    ob_map = {r.party: r.opening_balance for r in opening_balances}
+
+    result = []
+    for row in receivables:
+        student = student_map.get(row.customer_name) or student_map.get(row.customer) or {}
+        ob = ob_map.get(row.customer, 0)
+        result.append({
+            "student_name": row.customer_name or row.customer,
+            "student_class": student.get("student_class") if isinstance(student, dict) else getattr(student, "student_class", ""),
+            "section": student.get("section") if isinstance(student, dict) else getattr(student, "section", ""),
+            "cost_center": row.cost_center or (student.get("cost_center") if isinstance(student, dict) else getattr(student, "cost_center", "")),
+            "fees_structure": row.fees_structure or "",
+            "opening_balance": float(ob or 0),
+            "total_billed": float(row.total_billed or 0),
+            "total_paid": float(row.total_paid or 0),
+            "total_outstanding": float(row.total_outstanding or 0) + float(ob or 0),
+        })
+
+    return result

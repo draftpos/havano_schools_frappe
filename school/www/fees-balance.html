@@ -1,0 +1,223 @@
+---
+no_cache: 1
+title: Fees Balance Report
+---
+<style>
+.report-header{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
+.report-header h2{margin:0;}
+.report-header p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
+.filter-bar{background:white;border-radius:12px;padding:16px 20px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,0.07);display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;}
+.filter-bar label{font-size:0.8rem;font-weight:600;color:#555;display:block;margin-bottom:4px;}
+.filter-bar select,.filter-bar input{border:1px solid #ddd;border-radius:8px;padding:8px 12px;font-size:0.9rem;min-width:180px;}
+.filter-bar button{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border:none;border-radius:8px;padding:9px 20px;font-size:0.9rem;font-weight:600;cursor:pointer;}
+.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+.summary-card{background:white;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
+.summary-card.blue{border-top:4px solid #2e86de;}
+.summary-card.green{border-top:4px solid #34a853;}
+.summary-card.red{border-top:4px solid #ea4335;}
+.summary-card.orange{border-top:4px solid #fbbc04;}
+.summary-card-value{font-size:1.3rem;font-weight:700;color:#1e3a5f;margin-bottom:4px;}
+.summary-card-label{font-size:0.78rem;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
+.section-card{background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:24px;overflow:hidden;}
+.section-card .section-head{padding:16px 20px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;}
+.section-card table{width:100%;border-collapse:collapse;}
+.section-card table th{background:#f0f4ff;padding:12px 16px;text-align:left;font-size:0.82rem;font-weight:600;color:#555;text-transform:uppercase;}
+.section-card table td{padding:12px 16px;border-bottom:1px solid #f5f5f5;font-size:0.9rem;color:#333;}
+.section-card table tr:last-child td{border-bottom:none;}
+.section-card table tr:hover td{background:#f8f9fa;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;}
+.badge-paid{background:#e6f4ea;color:#2e7d32;}
+.badge-owing{background:#fce8e6;color:#b71c1c;}
+.badge-clear{background:#e6f4ea;color:#2e7d32;}
+.no-data{text-align:center;padding:30px;color:#aaa;font-size:0.95rem;}
+.export-btn{background:#34a853;color:white;border:none;border-radius:8px;padding:8px 16px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-left:8px;}
+</style>
+
+<div class="report-header">
+    <a href="/app" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.85rem;display:inline-block;margin-bottom:12px;">&#8592; Back</a>
+    <h2>&#128202; Fees Balance Report</h2>
+    <p>Student outstanding balances fetched from Accounts Receivable</p>
+</div>
+
+<div class="filter-bar">
+    <div>
+        <label>Cost Centre / School</label>
+        <select id="cc-filter">
+            <option value="">All Schools</option>
+        </select>
+    </div>
+    <div>
+        <label>Class</label>
+        <select id="class-filter">
+            <option value="">All Classes</option>
+        </select>
+    </div>
+    <div>
+        <label>Search Student</label>
+        <input type="text" id="search-filter" placeholder="Type name..."/>
+    </div>
+    <div>
+        <button onclick="loadReport()">&#128269; Filter</button>
+        <button class="export-btn" onclick="exportCSV()">&#8659; Export CSV</button>
+    </div>
+</div>
+
+<div id="summary-cards" class="summary-cards"></div>
+<div id="report-content"></div>
+<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading report...</div>
+
+<script>
+var allData = [];
+
+function fmt(n){return "$"+parseFloat(n||0).toFixed(2);}
+
+function loadCostCenters(){
+    frappe.call({
+        method:"frappe.client.get_list",
+        args:{doctype:"Cost Center",filters:{is_group:0},fields:["name"],limit:50},
+        callback:function(r){
+            if(r.message){
+                var sel=document.getElementById("cc-filter");
+                r.message.forEach(function(cc){
+                    var o=document.createElement("option");
+                    o.value=cc.name;o.textContent=cc.name;
+                    sel.appendChild(o);
+                });
+            }
+        }
+    });
+}
+
+function loadClasses(){
+    frappe.call({
+        method:"frappe.client.get_list",
+        args:{doctype:"Student Class",fields:["name","class_name"],limit:50},
+        callback:function(r){
+            if(r.message){
+                var sel=document.getElementById("class-filter");
+                r.message.forEach(function(c){
+                    var o=document.createElement("option");
+                    o.value=c.name;o.textContent=c.class_name||c.name;
+                    sel.appendChild(o);
+                });
+            }
+        }
+    });
+}
+
+function loadReport(){
+    document.getElementById("loading").style.display="block";
+    document.getElementById("report-content").innerHTML="";
+    document.getElementById("summary-cards").innerHTML="";
+    var cc=document.getElementById("cc-filter").value;
+    var params = cc ? "?cost_center="+encodeURIComponent(cc) : "";
+    frappe.call({
+        method:"school.api.get_fees_balance"+params,
+        args: cc ? {cost_center: cc} : {},
+        callback:function(r){
+            document.getElementById("loading").style.display="none";
+            if(!r.message||!r.message.length){
+                document.getElementById("report-content").innerHTML="<div class='no-data'>No data found</div>";
+                return;
+            }
+            allData = r.message;
+            renderReport(allData);
+        }
+    });
+}
+
+function renderReport(data){
+    var classFilter = document.getElementById("class-filter").value;
+    var search = document.getElementById("search-filter").value.toLowerCase();
+
+    var filtered = data.filter(function(row){
+        var matchClass = !classFilter || row.student_class === classFilter;
+        var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
+        return matchClass && matchSearch;
+    });
+
+    // Summary
+    var totalBilled=0, totalPaid=0, totalOutstanding=0, totalOB=0;
+    filtered.forEach(function(r){
+        totalBilled += r.total_billed;
+        totalPaid += r.total_paid;
+        totalOutstanding += r.total_outstanding;
+        totalOB += r.opening_balance;
+    });
+
+    var sc = "";
+    sc += "<div class='summary-card blue'><div class='summary-card-value'>"+filtered.length+"</div><div class='summary-card-label'>Students</div></div>";
+    sc += "<div class='summary-card orange'><div class='summary-card-value'>"+fmt(totalBilled)+"</div><div class='summary-card-label'>Total Billed</div></div>";
+    sc += "<div class='summary-card green'><div class='summary-card-value'>"+fmt(totalPaid)+"</div><div class='summary-card-label'>Total Paid</div></div>";
+    sc += "<div class='summary-card red'><div class='summary-card-value'>"+fmt(totalOutstanding)+"</div><div class='summary-card-label'>Total Outstanding</div></div>";
+    document.getElementById("summary-cards").innerHTML = sc;
+
+    var h = "<div class='section-card'>";
+    h += "<div class='section-head'><span>&#128202; Fees Balance</span><span style='font-size:0.85rem;color:#888;'>"+filtered.length+" student(s)</span></div>";
+
+    if(!filtered.length){
+        h += "<div class='no-data'>No records match the filter</div>";
+    } else {
+        h += "<table><thead><tr>";
+        h += "<th>Student</th><th>Class</th><th>Section</th><th>Cost Centre</th><th>Fees Structure</th>";
+        h += "<th>Opening Bal.</th><th>Total Billed</th><th>Total Paid</th><th>Outstanding</th><th>Status</th>";
+        h += "</tr></thead><tbody>";
+        filtered.forEach(function(row){
+            var status = row.total_outstanding > 0
+                ? "<span class='badge badge-owing'>Owing</span>"
+                : "<span class='badge badge-clear'>Clear</span>";
+            h += "<tr>";
+            h += "<td><b>"+(row.student_name||"-")+"</b></td>";
+            h += "<td>"+(row.student_class||"-")+"</td>";
+            h += "<td>"+(row.section||"-")+"</td>";
+            h += "<td>"+(row.cost_center||"-")+"</td>";
+            h += "<td>"+(row.fees_structure||"-")+"</td>";
+            h += "<td>"+fmt(row.opening_balance)+"</td>";
+            h += "<td>"+fmt(row.total_billed)+"</td>";
+            h += "<td>"+fmt(row.total_paid)+"</td>";
+            h += "<td><b>"+fmt(row.total_outstanding)+"</b></td>";
+            h += "<td>"+status+"</td>";
+            h += "</tr>";
+        });
+        h += "</tbody></table>";
+    }
+    h += "</div>";
+    document.getElementById("report-content").innerHTML = h;
+}
+
+function exportCSV(){
+    if(!allData.length){alert("No data to export");return;}
+    var classFilter = document.getElementById("class-filter").value;
+    var search = document.getElementById("search-filter").value.toLowerCase();
+    var filtered = allData.filter(function(row){
+        var matchClass = !classFilter || row.student_class === classFilter;
+        var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
+        return matchClass && matchSearch;
+    });
+    var rows = [["Student","Class","Section","Cost Centre","Fees Structure","Opening Balance","Total Billed","Total Paid","Outstanding"]];
+    filtered.forEach(function(r){
+        rows.push([
+            r.student_name||"",r.student_class||"",r.section||"",
+            r.cost_center||"",r.fees_structure||"",
+            r.opening_balance||0,r.total_billed||0,r.total_paid||0,r.total_outstanding||0
+        ]);
+    });
+    var csv = rows.map(function(r){return r.join(",");}).join("\n");
+    var blob = new Blob([csv],{type:"text/csv"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href=url;a.download="fees_balance.csv";a.click();
+}
+
+// Search on keyup
+document.getElementById("search-filter").addEventListener("keyup",function(){
+    if(allData.length) renderReport(allData);
+});
+document.getElementById("class-filter").addEventListener("change",function(){
+    if(allData.length) renderReport(allData);
+});
+
+loadCostCenters();
+loadClasses();
+loadReport();
+</script>

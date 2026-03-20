@@ -91,14 +91,17 @@ class Billing(Document):
         skipped = 0
 
         for student in students:
-            if not student.full_name:
+            full_name = student.full_name if hasattr(student, "full_name") else student.get("full_name")
+            if not full_name:
                 skipped += 1
                 continue
+            student = frappe._dict(student) if isinstance(student, dict) else student
             try:
-                self.ensure_customer_exists(student.full_name)
+                full_name = student.full_name if hasattr(student, "full_name") else student.get("full_name")
+                self.ensure_customer_exists(full_name)
 
                 invoice = frappe.new_doc("Sales Invoice")
-                invoice.customer          = student.full_name
+                invoice.customer          = full_name
                 invoice.fees_structure    = self.fees_structure
                 invoice.billing_reference = self.name
                 invoice.company           = company
@@ -125,8 +128,9 @@ class Billing(Document):
                 created += 1
 
             except Exception as e:
+                full_name = student.full_name if hasattr(student, "full_name") else student.get("full_name", "Unknown")
                 frappe.log_error(
-                    title=f"Invoice creation failed for {student.full_name}",
+                    title="Invoice creation failed for {}".format(full_name),
                     message=frappe.get_traceback()
                 )
                 skipped += 1

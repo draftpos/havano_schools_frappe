@@ -97,15 +97,17 @@ function render(d){
     if(invs.length===0){
         h+="<div class=\"no-data\">No invoices found</div>";
     } else {
-        h+="<table><thead><tr><th>Invoice No</th><th>Date</th><th>Due Date</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>";
+        h+="<table><thead><tr><th>Invoice No</th><th>Date</th><th>Due Date</th><th>Fees Structure</th><th>Cost Centre</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>";
         invs.forEach(function(inv){
             var iid=inv.name.replace(/[^a-z0-9]/gi,"");
             h+="<tr class=\"expand-row\" onclick=\"toggleDetail('inv"+iid+"')\">";
             h+="<td><b>"+inv.name+"</b> <small style=\"color:#aaa;\">&#9660;</small></td>";
             h+="<td>"+inv.posting_date+"</td><td>"+inv.due_date+"</td>";
+            h+="<td>"+(inv.fees_structure||"-")+"</td>";
+            h+="<td>"+(inv.cost_center||"-")+"</td>";
             h+="<td>"+fmt(inv.grand_total)+"</td><td>"+fmt(inv.outstanding_amount)+"</td>";
             h+="<td>"+statusBadge(inv.status)+"</td></tr>";
-            h+="<tr class=\"detail-row\" id=\"detail-inv"+iid+"\"><td colspan=\"6\"><div class=\"detail-inner\">";
+            h+="<tr class=\"detail-row\" id=\"detail-inv"+iid+"\"><td colspan=\"8\"><div class=\"detail-inner\">";
             if(inv.items&&inv.items.length>0){
                 h+="<table><tr style=\"background:#f0f4ff;\"><td><b>Item</b></td><td><b>Qty</b></td><td><b>Rate</b></td><td><b>Amount</b></td></tr>";
                 inv.items.forEach(function(it){h+="<tr><td>"+(it.item_name||"-")+"</td><td>"+it.qty+"</td><td>"+fmt(it.rate)+"</td><td>"+fmt(it.amount)+"</td></tr>";});

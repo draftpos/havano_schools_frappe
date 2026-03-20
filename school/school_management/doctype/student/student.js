@@ -55,6 +55,33 @@ frappe.ui.form.on("Student", {
             'Create'
             );
         }, __('Actions'));
+
+        // Show invoice/payment status if admin fee is set
+        if (frm.doc.paying_admin_fee && frm.doc.admin_fees_structure && !frm.is_new()) {
+            frappe.call({
+                method: "frappe.client.get_list",
+                args: {
+                    doctype: "Sales Invoice",
+                    filters: {
+                        customer: frm.doc.full_name,
+                        fees_structure: frm.doc.admin_fees_structure,
+                        docstatus: ["!=", 2]
+                    },
+                    fields: ["name", "outstanding_amount", "status"],
+                    limit: 1
+                },
+                callback: function(r) {
+                    if (r.message && r.message.length) {
+                        var inv = r.message[0];
+                        frm.dashboard.add_comment(
+                            '🧾 Admin Fee Invoice: <a href="/app/sales-invoice/' + inv.name + '">' + inv.name + '</a> — Status: <b>' + inv.status + '</b>',
+                            inv.status === "Paid" ? "green" : "orange",
+                            true
+                        );
+                    }
+                }
+            });
+        }
     },
 
     onload: function(frm) {
@@ -66,6 +93,38 @@ frappe.ui.form.on("Student", {
     school: function(frm) {
         if (frm.doc.school) {
             frm.set_value("cost_center", frm.doc.school);
+        }
+        // Filter admin fees structure by school/cost center
+        frm.set_query("admin_fees_structure", function() {
+            return {
+                filters: {
+                    cost_center: frm.doc.school
+                }
+            };
+        });
+    },
+
+    paying_admin_fee: function(frm) {
+        if (!frm.doc.paying_admin_fee) {
+            frm.set_value("admin_fee_paid", 0);
+            frm.set_value("admin_fees_structure", "");
+        }
+        // Filter admin fees structure by school/cost center
+        if (frm.doc.school) {
+            frm.set_query("admin_fees_structure", function() {
+                return {
+                    filters: {
+                        cost_center: frm.doc.school
+                    }
+                };
+            });
+        }
+    },
+
+    admin_fee_paid: function(frm) {
+        if (frm.doc.admin_fee_paid && !frm.doc.admin_fees_structure) {
+            frappe.msgprint(__("Please select an Admin Fees Structure before marking as Paid."));
+            frm.set_value("admin_fee_paid", 0);
         }
     }
 });
