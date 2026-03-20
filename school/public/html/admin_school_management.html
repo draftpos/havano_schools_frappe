@@ -443,6 +443,31 @@ body::before {
 
 .stat-card:hover { border-color: var(--sc); box-shadow: 0 6px 24px var(--sg), 0 0 0 1px var(--sc); }
 
+.card-cc-wrap {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+}
+.card-cc-sel {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
+  outline: none;
+  max-width: 110px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.card-cc-sel:hover, .card-cc-sel:focus {
+  border-color: var(--sc);
+  color: var(--text);
+}
+
 .stat-card::before {
   content: '';
   position: absolute;
@@ -735,6 +760,44 @@ body::before {
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
+}
+
+.school-overview-section {
+  margin-bottom: 28px;
+}
+.school-sec-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  margin-top: 28px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--border);
+}
+.school-sec-icon {
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--indigo), var(--blue));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.school-sec-title {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+.school-sec-sub {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 500;
+  margin-left: auto;
+}
+.school-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px;
 }
 
 .stat-card:nth-child(1) { animation-delay:.04s }
@@ -1150,49 +1213,95 @@ body::before {
       <div class="sec-title"><span></span>Overview</div>
     </div>
     <div class="stats-grid">
+
       <div class="stat-card s-indigo" onclick="location.href='/app/student'">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="students" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">🎓</div>
         <div class="stat-meta">Total Students</div>
         <div class="stat-value" id="stat-students">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-students"></div></div>
       </div>
+
       <div class="stat-card s-emerald">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="collected" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">💰</div>
         <div class="stat-meta">Fees Collected</div>
         <div class="stat-value" id="stat-collected">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-collected"></div></div>
       </div>
+
       <div class="stat-card s-rose">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="outstanding" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">⚠️</div>
         <div class="stat-meta">Outstanding</div>
         <div class="stat-value" id="stat-outstanding">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-outstanding"></div></div>
       </div>
+
       <div class="stat-card s-amber" onclick="location.href='/app/exam-schedule'">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="exams" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">📝</div>
         <div class="stat-meta">Exams Scheduled</div>
         <div class="stat-value" id="stat-exams">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:60%"></div></div>
       </div>
+
       <div class="stat-card s-blue" onclick="location.href='/app/test-schedule'">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="tests" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">✏️</div>
         <div class="stat-meta">Class Tests</div>
         <div class="stat-value" id="stat-tests">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:45%"></div></div>
       </div>
+
       <div class="stat-card s-cyan" onclick="location.href='/app/home-schedule'">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="homework" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">📚</div>
         <div class="stat-meta">Homework Sets</div>
         <div class="stat-value" id="stat-homework">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:35%"></div></div>
       </div>
+
       <div class="stat-card s-violet" onclick="location.href='/app/sales-invoice'">
+        <div class="card-cc-wrap" onclick="event.stopPropagation()">
+          <select class="card-cc-sel" data-card="invoices" onchange="onCardCCChange(this)">
+            <option value="">All</option>
+          </select>
+        </div>
         <div class="stat-icon-wrap">🧾</div>
         <div class="stat-meta">Total Invoices</div>
         <div class="stat-value" id="stat-invoices">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:70%"></div></div>
       </div>
+
     </div>
+
+    <!-- Per-School Overview -->
+    <div id="school-overviews"></div>
 
     <!-- Recent Activity -->
     <div class="sec-head">
@@ -1350,6 +1459,69 @@ function initCharts() {
   });
 }
 
+/* ── PER-CARD COST CENTRE STATE & LOGIC ── */
+const cardCC = {
+  students: '', collected: '', outstanding: '',
+  exams: '', tests: '', homework: '', invoices: ''
+};
+const cardDataCache = {};  // keyed by cost_center string
+
+async function fetchCardData(cc) {
+  const key = cc || '__all__';
+  if (cardDataCache[key]) return cardDataCache[key];
+  try {
+    const params = cc ? '?cost_center=' + encodeURIComponent(cc) : '';
+    const r = await fetch('/api/method/school.utils.get_dashboard_data' + params, {
+      headers: {'Accept': 'application/json'}, credentials: 'include'
+    });
+    const d = await r.json();
+    cardDataCache[key] = d.message || {};
+    return cardDataCache[key];
+  } catch(e) { return {}; }
+}
+
+function populateCardDropdowns(costCenters) {
+  document.querySelectorAll('.card-cc-sel').forEach(sel => {
+    const cur = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    costCenters.forEach(cc => {
+      const o = document.createElement('option');
+      o.value = cc.name; o.textContent = cc.name;
+      if (cc.name === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+  });
+}
+
+async function onCardCCChange(sel) {
+  const card = sel.dataset.card;
+  const cc   = sel.value;
+  cardCC[card] = cc;
+  const data = await fetchCardData(cc);
+  updateCard(card, data);
+}
+
+function updateCard(card, data) {
+  const invoices = data.invoices || [];
+  let collected = 0, outstanding = 0;
+  invoices.forEach(inv => {
+    collected   += (inv.grand_total || 0) - (inv.outstanding_amount || 0);
+    outstanding += inv.outstanding_amount || 0;
+  });
+  outstanding += data.opening_balance_total || 0;
+
+  const map = {
+    students:    () => { $('stat-students').textContent = fmt(data.students || 0); },
+    collected:   () => { $('stat-collected').textContent = fmtMoney(collected); },
+    outstanding: () => { $('stat-outstanding').textContent = fmtMoney(outstanding); },
+    exams:       () => { $('stat-exams').textContent = fmt(data.exams || 0); },
+    tests:       () => { $('stat-tests').textContent = fmt(data.tests || 0); },
+    homework:    () => { $('stat-homework').textContent = fmt(data.homework || 0); },
+    invoices:    () => { $('stat-invoices').textContent = fmt(invoices.length); },
+  };
+  if (map[card]) map[card]();
+}
+
 /* ─── LOAD DASHBOARD ─── */
 async function loadDashboard() {
   initCharts();
@@ -1432,6 +1604,13 @@ async function loadDashboard() {
       ccSel.appendChild(opt);
     });
   }
+
+  // Populate per-card dropdowns and seed cache with all-data
+  if (data.cost_centers && data.cost_centers.length) {
+    populateCardDropdowns(data.cost_centers);
+    cardDataCache['__all__'] = data;
+    loadSchoolOverviews(data.cost_centers);
+  }
 }
 
 function refreshData() {
@@ -1439,7 +1618,79 @@ function refreshData() {
   if (invoiceChart) invoiceChart.destroy();
   if (classChart) classChart.destroy();
   if (examChart) examChart.destroy();
+  Object.keys(cardDataCache).forEach(k => delete cardDataCache[k]);
   loadDashboard();
+}
+
+async function loadSchoolOverviews(costCenters) {
+  const container = document.getElementById('school-overviews');
+  if (!container || !costCenters || !costCenters.length) return;
+  container.innerHTML = '';
+
+  const colors = ['s-indigo','s-emerald','s-rose','s-amber','s-blue','s-cyan','s-violet','s-pink'];
+
+  for (let i = 0; i < costCenters.length; i++) {
+    const cc = costCenters[i];
+    const data = await fetchCardData(cc.name);
+    const invoices = data.invoices || [];
+    let collected = 0, outstanding = 0, paid = 0, unpaid = 0;
+    invoices.forEach(inv => {
+      collected   += (inv.grand_total || 0) - (inv.outstanding_amount || 0);
+      outstanding += inv.outstanding_amount || 0;
+      if (inv.status === 'Paid') paid++;
+      else unpaid++;
+    });
+    outstanding += data.opening_balance_total || 0;
+    const color = colors[i % colors.length];
+
+    const section = document.createElement('div');
+    section.className = 'school-overview-section';
+    section.innerHTML = `
+      <div class="school-sec-head">
+        <div class="school-sec-icon">🏫</div>
+        <div class="school-sec-title">${cc.name}</div>
+        <div class="school-sec-sub">${data.students || 0} students &nbsp;•&nbsp; ${invoices.length} invoices</div>
+      </div>
+      <div class="school-stats-grid">
+        <div class="stat-card ${color}" onclick="location.href='/app/student?cost_center=${encodeURIComponent(cc.name)}'">
+          <div class="stat-icon-wrap">🎓</div>
+          <div class="stat-meta">Students</div>
+          <div class="stat-value">${fmt(data.students || 0)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:80%"></div></div>
+        </div>
+        <div class="stat-card s-emerald">
+          <div class="stat-icon-wrap">💰</div>
+          <div class="stat-meta">Fees Collected</div>
+          <div class="stat-value">${fmtMoney(collected)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${collected+outstanding>0?Math.round(collected/(collected+outstanding)*100):0}%"></div></div>
+        </div>
+        <div class="stat-card s-rose">
+          <div class="stat-icon-wrap">⚠️</div>
+          <div class="stat-meta">Outstanding</div>
+          <div class="stat-value">${fmtMoney(outstanding)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${collected+outstanding>0?Math.round(outstanding/(collected+outstanding)*100):0}%"></div></div>
+        </div>
+        <div class="stat-card s-amber">
+          <div class="stat-icon-wrap">🧾</div>
+          <div class="stat-meta">Total Invoices</div>
+          <div class="stat-value">${fmt(invoices.length)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:70%"></div></div>
+        </div>
+        <div class="stat-card s-blue">
+          <div class="stat-icon-wrap">✅</div>
+          <div class="stat-meta">Paid Invoices</div>
+          <div class="stat-value">${fmt(paid)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${invoices.length>0?Math.round(paid/invoices.length*100):0}%"></div></div>
+        </div>
+        <div class="stat-card s-violet">
+          <div class="stat-icon-wrap">⏳</div>
+          <div class="stat-meta">Unpaid Invoices</div>
+          <div class="stat-value">${fmt(unpaid)}</div>
+          <div class="stat-bar"><div class="stat-bar-fill" style="width:${invoices.length>0?Math.round(unpaid/invoices.length*100):0}%"></div></div>
+        </div>
+      </div>`;
+    container.appendChild(section);
+  }
 }
 
 loadDashboard();

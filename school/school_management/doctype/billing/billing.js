@@ -7,12 +7,14 @@ frappe.ui.form.on("Billing", {
         if (!frm.doc.cost_center) {
             frm.set_value("cost_center", "Main - SS");
         }
+        apply_cost_center_filters(frm);
     },
 
     onload: function(frm) {
         if (!frm.doc.cost_center) {
             frm.set_value("cost_center", "Main - SS");
         }
+        apply_cost_center_filters(frm);
     },
 
     student: function(frm) {
@@ -47,7 +49,14 @@ frappe.ui.form.on("Billing", {
         update_student_count(frm);
     },
     section: function(frm) { update_student_count(frm); },
-    cost_center: function(frm) { update_student_count(frm); },
+    cost_center: function(frm) {
+        // Clear dependent fields when cost center changes
+        frm.set_value("student_class", "");
+        frm.set_value("section", "");
+        frm.set_value("student", "");
+        apply_cost_center_filters(frm);
+        update_student_count(frm);
+    },
     category_1: function(frm) {
         frm.set_query("category_2", function() {
             return { filters: { category_1: frm.doc.category_1 } };
@@ -71,6 +80,35 @@ frappe.ui.form.on("Billing", {
     territory: function(frm) { update_student_count(frm); },
     fees_category: function(frm) { update_student_count(frm); }
 });
+
+function apply_cost_center_filters(frm) {
+    var cc = frm.doc.cost_center;
+
+    // Filter student_class to only show classes that have students in this cost center
+    frm.set_query("student_class", function() {
+        if (!cc) return {};
+        return {
+            query: "frappe.client.get_list",
+            filters: {}
+        };
+    });
+
+    // Filter section — only sections that have students in selected cost center
+    frm.set_query("section", function() {
+        var f = {};
+        if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
+        return { filters: f };
+    });
+
+    // Filter student link — only students in selected cost center
+    frm.set_query("student", function() {
+        var f = {};
+        if (cc) f["cost_center"] = cc;
+        if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
+        if (frm.doc.section) f["section"] = frm.doc.section;
+        return { filters: f };
+    });
+}
 
 function update_student_count(frm) {
     if (frm.doc.student) {
