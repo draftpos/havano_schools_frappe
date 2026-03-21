@@ -33,21 +33,57 @@ class Student(Document):
     def create_customer(self):
         if not self.full_name:
             return
-        if frappe.db.exists("Customer", {"customer_name": self.full_name}):
-            return
         try:
             customer_group = frappe.db.get_single_value("Selling Settings", "customer_group") or "All Customer Groups"
             territory = frappe.db.get_single_value("Selling Settings", "territory") or "All Territories"
             if self.student_category:
                 customer_group = self.student_category
-            customer = frappe.get_doc({
-                "doctype": "Customer",
-                "customer_name": self.full_name,
-                "customer_type": "Individual",
-                "customer_group": customer_group,
-                "territory": territory,
-            })
-            customer.insert(ignore_permissions=True)
+
+            # Build customer details summary
+            details_parts = []
+            if self.student_class:
+                details_parts.append("Class: {}".format(self.student_class))
+            if self.section:
+                details_parts.append("Section: {}".format(self.section))
+            if self.school:
+                details_parts.append("School: {}".format(self.school))
+            if self.student_reg_no:
+                details_parts.append("Reg No: {}".format(self.student_reg_no))
+            if self.student_type:
+                details_parts.append("Type: {}".format(self.student_type))
+            customer_details = " | ".join(details_parts)
+
+            existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
+
+            if existing:
+                # Update existing customer with latest info
+                customer = frappe.get_doc("Customer", existing)
+                customer.customer_group = customer_group
+                customer.territory = territory
+                customer.mobile_no = self.phone_number or customer.mobile_no
+                customer.custom_student_section = self.section or ""
+                customer.customer_details = customer_details
+                if self.student_image:
+                    customer.image = self.student_image
+                customer.flags.ignore_permissions = True
+                customer.flags.ignore_mandatory = True
+                customer.save(ignore_permissions=True)
+            else:
+                # Create new customer
+                customer = frappe.get_doc({
+                    "doctype": "Customer",
+                    "customer_name": self.full_name,
+                    "customer_type": "Individual",
+                    "customer_group": customer_group,
+                    "territory": territory,
+                    "mobile_no": self.phone_number or "",
+                    "custom_student_section": self.section or "",
+                    "customer_details": customer_details,
+                    "image": self.student_image or "",
+                })
+                customer.flags.ignore_permissions = True
+                customer.insert(ignore_permissions=True)
+
         except Exception:
             frappe.log_error(
                 title="Customer creation failed for {}".format(self.full_name),
