@@ -211,7 +211,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-20 09:40:18.530735",
+ "modified": "2026-03-21 08:12:16.261311",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Billing",
@@ -234,7 +234,10 @@
    "write": 1
   },
   {
+   "amend": 1,
+   "cancel": 1,
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,

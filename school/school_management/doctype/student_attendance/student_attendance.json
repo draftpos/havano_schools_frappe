@@ -121,7 +121,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-11 11:33:58.874627",
+ "modified": "2026-03-21 08:12:22.036569",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student Attendance",
@@ -151,6 +151,21 @@
    "report": 1,
    "role": "All",
    "share": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School User",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

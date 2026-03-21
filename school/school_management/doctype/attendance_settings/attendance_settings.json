@@ -132,7 +132,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-03-11 11:34:19.568473",
+ "modified": "2026-03-21 08:12:25.506832",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Attendance Settings",
@@ -145,6 +145,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "School User",
    "share": 1,
    "write": 1
   }

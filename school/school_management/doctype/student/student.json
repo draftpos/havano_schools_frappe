@@ -673,7 +673,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-20 09:42:13.757405",
+ "modified": "2026-03-21 08:12:15.134915",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
@@ -694,6 +694,7 @@
   },
   {
    "create": 1,
+   "delete": 1,
    "email": 1,
    "export": 1,
    "print": 1,
