@@ -102,6 +102,21 @@ frappe.ui.form.on("Student", {
                 }
             };
         });
+        // Auto-generate student_reg_no when school changes
+        if (frm.doc.school) {
+            frappe.call({
+                method: "school.school_management.doctype.student.student.generate_reg_no_for_school",
+                args: {
+                    school: frm.doc.school,
+                    current_student: frm.doc.name || null
+                },
+                callback: function(r) {
+                    if (r.message) {
+                        frm.set_value("student_reg_no", r.message);
+                    }
+                }
+            });
+        }
     },
 
     paying_admin_fee: function(frm) {

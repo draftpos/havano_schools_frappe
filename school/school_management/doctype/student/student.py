@@ -18,7 +18,46 @@ class Student(Document):
         if self.get("school"):
             self.cost_center = self.school
 
+        # Auto-generate student_reg_no if empty
+        if not self.student_reg_no and self.school:
+            self.student_reg_no = self.generate_reg_no()
+            self.name = self.student_reg_no
+
+    def generate_reg_no(self):
+        # Use full school name before " - " as prefix
+        # Extract only alphanumeric chars, uppercase, no spaces
+        school_name = self.school or ""
+        prefix_raw = school_name.split(" - ")[0].strip()
+        prefix = "".join([c for c in prefix_raw if c.isalnum()]).upper()
+        if not prefix:
+            prefix = "STU"
+
+        # Find the last reg no matching this prefix + 5 digits pattern
+        last = frappe.db.sql("""
+            SELECT student_reg_no FROM `tabStudent`
+            WHERE student_reg_no REGEXP %s
+            ORDER BY CAST(SUBSTRING(student_reg_no, %s) AS UNSIGNED) DESC
+            LIMIT 1
+        """, ("^" + prefix + "[0-9]{5}$", len(prefix) + 1), as_dict=True)
+
+        if last and last[0].student_reg_no:
+            last_no = last[0].student_reg_no
+            num_part = last_no[len(prefix):]
+            try:
+                next_num = int(num_part) + 1
+            except ValueError:
+                next_num = 1
+        else:
+            next_num = 1
+
+        return "{}{:05d}".format(prefix, next_num)
+
     def after_insert(self):
+        # If reg no was not set before insert, generate and update now
+        if not self.student_reg_no and self.school:
+            reg_no = self.generate_reg_no()
+            frappe.db.set_value("Student", self.name, "student_reg_no", reg_no)
+            self.student_reg_no = reg_no
         self.create_customer()
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
@@ -62,6 +101,11 @@ class Student(Document):
                 customer.territory = territory
                 customer.mobile_no = self.phone_number or customer.mobile_no
                 customer.custom_student_section = self.section or ""
+                customer.custom_student_class = self.student_class or ""
+                customer.custom_school = self.school or ""
+                customer.custom_student_reg_no = self.student_reg_no or ""
+                customer.custom_student_type = self.student_type or ""
+                customer.custom_gender = self.gender or ""
                 customer.customer_details = customer_details
                 if self.student_image:
                     customer.image = self.student_image
@@ -78,6 +122,11 @@ class Student(Document):
                     "territory": territory,
                     "mobile_no": self.phone_number or "",
                     "custom_student_section": self.section or "",
+                    "custom_student_class": self.student_class or "",
+                    "custom_school": self.school or "",
+                    "custom_student_reg_no": self.student_reg_no or "",
+                    "custom_student_type": self.student_type or "",
+                    "custom_gender": self.gender or "",
                     "customer_details": customer_details,
                     "image": self.student_image or "",
                 })
@@ -295,3 +344,39 @@ class Student(Document):
                 title="Admin fee receipting failed for {}".format(self.full_name),
                 message=frappe.get_traceback()
             )
+
+
+@frappe.whitelist()
+def generate_reg_no_for_school(school, current_student=None):
+    """Generate next student reg no for a given school (cost center)."""
+    prefix_raw = school.split(" - ")[0].strip()
+    prefix = "".join([c for c in prefix_raw if c.isalnum()]).upper()
+    if not prefix:
+        prefix = "STU"
+
+    # Exclude current student if editing
+    exclude_clause = ""
+    params = ["^" + prefix + "[0-9]{5}$", len(prefix) + 1]
+    if current_student:
+        exclude_clause = "AND name != %s"
+        params.append(current_student)
+
+    last = frappe.db.sql("""
+        SELECT student_reg_no FROM `tabStudent`
+        WHERE student_reg_no REGEXP %s
+        {exclude}
+        ORDER BY CAST(SUBSTRING(student_reg_no, %s) AS UNSIGNED) DESC
+        LIMIT 1
+    """.format(exclude=exclude_clause), params, as_dict=True)
+
+    if last and last[0].student_reg_no:
+        last_no = last[0].student_reg_no
+        num_part = last_no[len(prefix):]
+        try:
+            next_num = int(num_part) + 1
+        except ValueError:
+            next_num = 1
+    else:
+        next_num = 1
+
+    return "{}{:05d}".format(prefix, next_num)
