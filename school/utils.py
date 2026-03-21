@@ -75,17 +75,10 @@ def get_dashboard_data(cost_center=None):
             limit=0)
     except: data['invoices'] = []
     try:
-        ob_filters = {'has_opening_balance': 1}
-        if cost_center:
-            ob_filters['cost_center'] = cost_center
-        opening_students = frappe.get_all('Student',
-            filters=ob_filters,
-            fields=['full_name', 'opening_balance', 'opening_balance_date'])
-        data['opening_balance_total'] = sum(s.opening_balance or 0 for s in opening_students)
-        data['opening_balance_students'] = [
-            {'name': s.full_name, 'amount': s.opening_balance or 0}
-            for s in opening_students
-        ]
+        # Opening balances now have their own Sales Invoices so no need to add separately
+        # Just return 0 to avoid double counting with invoice outstanding
+        data['opening_balance_total'] = 0
+        data['opening_balance_students'] = []
     except:
         data['opening_balance_total'] = 0
         data['opening_balance_students'] = []
