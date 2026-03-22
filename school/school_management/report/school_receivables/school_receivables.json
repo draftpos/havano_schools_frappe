@@ -1,0 +1,18 @@
+{
+ "add_total_row": 1,
+ "columns": [],
+ "disabled": 0,
+ "doctype": "Report",
+ "filters": [],
+ "is_standard": "Yes",
+ "module": "School Management",
+ "name": "School Receivables",
+ "report_name": "School Receivables",
+ "report_type": "Script Report",
+ "roles": [
+  {"role": "System Manager"},
+  {"role": "School User"},
+  {"role": "Accounts Manager"},
+  {"role": "Accounts User"}
+ ]
+}
