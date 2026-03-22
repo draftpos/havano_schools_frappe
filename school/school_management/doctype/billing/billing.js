@@ -8,6 +8,35 @@ frappe.ui.form.on("Billing", {
             frm.set_value("cost_center", "Main - SS");
         }
         apply_cost_center_filters(frm);
+
+        // Add toggle buttons for billing mode
+        if (frm.doc.docstatus === 0) {
+            frm.page.clear_inner_toolbar();
+            frm.page.add_inner_button(__("Bill Single Student"), function() {
+                frm.set_df_property("student", "hidden", 0);
+                frm.set_df_property("student_class", "hidden", 1);
+                frm.set_df_property("section", "hidden", 1);
+                frm.set_df_property("other_filtering_section", "hidden", 1);
+                frm.set_value("student_class", "");
+                frm.set_value("section", "");
+                frm.set_value("category_1", "");
+                frm.set_value("category_2", "");
+                frm.set_value("category_3", "");
+                frm.set_value("area", "");
+                frm.set_value("territory", "");
+                frm.set_value("fees_category", "");
+                frappe.show_alert({message: __("Single Student Mode"), indicator: "blue"});
+            }).addClass("btn-primary");
+
+            frm.page.add_inner_button(__("Bill By Class/Section"), function() {
+                frm.set_df_property("student", "hidden", 1);
+                frm.set_df_property("student_class", "hidden", 0);
+                frm.set_df_property("section", "hidden", 0);
+                frm.set_df_property("other_filtering_section", "hidden", 0);
+                frm.set_value("student", "");
+                frappe.show_alert({message: __("Class/Section Mode"), indicator: "green"});
+            }).addClass("btn-default");
+        }
     },
 
     onload: function(frm) {
@@ -149,10 +178,13 @@ function toggle_student_filters(frm) {
     frm.set_df_property("student_class", "reqd", 0);
     frm.set_df_property("student_class", "hidden", single ? 1 : 0);
     frm.set_df_property("section", "hidden", single ? 1 : 0);
+    frm.set_df_property("other_filtering_section", "hidden", single ? 1 : 0);
     frm.set_df_property("category_1", "hidden", single ? 1 : 0);
     frm.set_df_property("category_2", "hidden", single ? 1 : 0);
     frm.set_df_property("category_3", "hidden", single ? 1 : 0);
     frm.set_df_property("area", "hidden", single ? 1 : 0);
     frm.set_df_property("territory", "hidden", single ? 1 : 0);
     frm.set_df_property("fees_category", "hidden", single ? 1 : 0);
+    // Show student field clearly when in single mode
+    frm.set_df_property("student", "hidden", 0);
 }
