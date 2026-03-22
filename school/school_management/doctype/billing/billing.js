@@ -9,34 +9,7 @@ frappe.ui.form.on("Billing", {
         }
         apply_cost_center_filters(frm);
 
-        // Add toggle buttons for billing mode
-        if (frm.doc.docstatus === 0) {
-            frm.page.clear_inner_toolbar();
-            frm.page.add_inner_button(__("Bill Single Student"), function() {
-                frm.set_df_property("student", "hidden", 0);
-                frm.set_df_property("student_class", "hidden", 1);
-                frm.set_df_property("section", "hidden", 1);
-                frm.set_df_property("other_filtering_section", "hidden", 1);
-                frm.set_value("student_class", "");
-                frm.set_value("section", "");
-                frm.set_value("category_1", "");
-                frm.set_value("category_2", "");
-                frm.set_value("category_3", "");
-                frm.set_value("area", "");
-                frm.set_value("territory", "");
-                frm.set_value("fees_category", "");
-                frappe.show_alert({message: __("Single Student Mode"), indicator: "blue"});
-            }).addClass("btn-primary");
 
-            frm.page.add_inner_button(__("Bill By Class/Section"), function() {
-                frm.set_df_property("student", "hidden", 1);
-                frm.set_df_property("student_class", "hidden", 0);
-                frm.set_df_property("section", "hidden", 0);
-                frm.set_df_property("other_filtering_section", "hidden", 0);
-                frm.set_value("student", "");
-                frappe.show_alert({message: __("Class/Section Mode"), indicator: "green"});
-            }).addClass("btn-default");
-        }
     },
 
     onload: function(frm) {
