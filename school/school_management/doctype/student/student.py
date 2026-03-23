@@ -8,6 +8,25 @@ class Student(Document):
         parts = [self.first_name, self.second_name, self.last_name]
         self.full_name = " ".join([p for p in parts if p])
 
+        # Auto-assign admin fees from School Settings defaults based on student_type
+        if self.student_type:
+            try:
+                settings = frappe.get_single("School Settings")
+                for row in settings.get("fee_structure_defaults", []):
+                    if row.status == self.student_type:
+                        self.paying_admin_fee = 1
+                        self.admin_fees_structure = row.fees_structure
+                        break
+
+                # Auto-check billed_on_registration if enabled in settings
+                if settings.enable_registration_billing:
+                    for row in settings.get("registration_billing_defaults", []):
+                        if row.status == self.student_type:
+                            self.fees_structure = row.fees_structure
+                            break
+            except Exception:
+                pass
+
         if self.student_class:
             class_code = frappe.db.get_value("Student Class", {"name": self.student_class}, "name")
             if not class_code:
@@ -61,6 +80,7 @@ class Student(Document):
         self.create_customer()
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
+        self.create_registration_billing()
 
     def on_update(self):
         if self.flags.get("ignore_on_update"):
@@ -68,6 +88,7 @@ class Student(Document):
         self.create_customer()
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
+        self.create_registration_billing()
 
     def create_customer(self):
         if not self.full_name:
@@ -202,6 +223,8 @@ class Student(Document):
                 message=frappe.get_traceback()
             )
 
+
+    
     def create_admin_fee_invoice(self):
         # Only run if Paying Admin Fee is checked and a fees structure is selected
         if not self.paying_admin_fee or not self.admin_fees_structure:
@@ -303,18 +326,12 @@ class Student(Document):
             if not flt(outstanding) > 0:
                 return
 
-            # Get default cash account
-            company = frappe.defaults.get_global_default("company")
-            account = frappe.db.get_value("Account", {
-                "account_type": "Cash",
-                "company": company,
-                "is_group": 0
-            }, "name")
-
+            # Use account selected on Student form
+            account = self.account
             if not account:
                 frappe.log_error(
                     title="create_admin_fee_receipting",
-                    message="No cash account found for company {}".format(company)
+                    message="No account selected on Student {}".format(self.name)
                 )
                 return
 
@@ -345,6 +362,71 @@ class Student(Document):
                 message=frappe.get_traceback()
             )
 
+
+
+    
+    
+    
+    
+    
+    def create_registration_billing(self):
+        """Create a billing document when student is first created based on student_type"""
+        
+        if hasattr(self, 'billed_on_registration') and self.billed_on_registration:
+            return
+        
+        try:
+            settings = frappe.get_single("School Settings")
+            
+            if not self.student_type:
+                return
+            
+            # Get fees structure from registration_billing table
+            fees_structure = None
+            for row in settings.get("registration_billing", []):
+                if row.status == self.student_type:
+                    fees_structure = row.billing
+                    break
+            
+            if not fees_structure:
+                return
+            
+            # Create billing document
+            billing = frappe.new_doc("Billing")
+            billing.student = self.name
+            billing.student_class = self.student_class
+            billing.section = self.section
+            billing.date = frappe.utils.today()
+            billing.fees_structure = fees_structure
+            
+            # Add items from fees structure
+            if fees_structure:
+                fs_doc = frappe.get_doc("Fees Structure", fees_structure)
+                if fs_doc.get("fees_items"):
+                    for item in fs_doc.get("fees_items", []):
+                        billing.append("items", {
+                            "item_code": item.item_code,
+                            "item_name": item.item_name,
+                            "qty": 1,
+                            "rate": item.rate or 0,
+                            "amount": flt(item.rate or 0),
+                            "cost_center": self.cost_center or self.school,
+                        })
+            
+            # Save and submit
+            billing.flags.ignore_permissions = True
+            billing.insert(ignore_permissions=True)
+            billing.submit()
+            
+            # Mark as billed
+            frappe.db.set_value("Student", self.name, "billed_on_registration", 1)
+            self.billed_on_registration = 1
+            
+        except Exception as e:
+            frappe.log_error(
+                title="Registration Billing Error",
+                message="Student: " + self.name + " Error: " + str(e)
+            )
 
 @frappe.whitelist()
 def generate_reg_no_for_school(school, current_student=None):

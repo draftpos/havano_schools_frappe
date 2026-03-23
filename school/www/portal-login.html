@@ -276,33 +276,54 @@ title: School Portal Login
         // Start loading slides
         loadSlides(1, 0);
 
-        /* ── LOGIN LOGIC ── */
+        /* ── LOGIN HELPERS ── */
         function togglePassword(){var i=document.getElementById('password'),e=document.getElementById('eye-icon');i.type=i.type==='password'?'text':'password';e.className=i.type==='text'?'fa fa-eye-slash':'fa fa-eye';}
         function showMsg(t,x){['error','success','info'].forEach(function(n){document.getElementById('msg-'+n).classList.add('hidden');});if(!t)return;var e=document.getElementById('msg-'+t);if(x)document.getElementById('msg-'+t+'-text').textContent=x;e.classList.remove('hidden');}
         function setLoading(on){document.getElementById('spinner').style.display=on?'block':'none';document.getElementById('btn-icon').style.display=on?'none':'inline';document.getElementById('btn-text').textContent=on?'Logging in…':'Login';document.getElementById('btn-login').disabled=on;}
         function shakeCard(){var c=document.getElementById('login-card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');}
         function validate(){var e=document.getElementById('email').value.trim(),p=document.getElementById('password').value,ok=true;document.getElementById('wrap-email').classList.remove('has-error');document.getElementById('wrap-password').classList.remove('has-error');if(!e){document.getElementById('wrap-email').classList.add('has-error');ok=false;}if(!p){document.getElementById('wrap-password').classList.add('has-error');ok=false;}return ok;}
 
-        function redirectByRole(email){
+        /* ── ROLE-BASED REDIRECT (fixed) ── */
+        function redirectByRole(email) {
             $.ajax({
-                url:'/api/method/school.api.get_user_redirect',
-                type:'GET',
-                success:function(r){
-                    if(r.message&&r.message.redirect){
-                        if(r.message.role==='admin'||r.message.role==='school_user'){
-                            showMsg('success','Welcome! Loading admin dashboard…');
+                url: '/api/method/school.api.get_user_redirect',
+                type: 'GET',
+                success: function(r) {
+                    if (r.message && r.message.redirect) {
+                        var role = r.message.role;
+                        var dest = r.message.redirect;
+
+                        // FIX 1 & 4 & 5: correct message for every role
+                        if (role === 'admin' || role === 'school_user') {
+                            showMsg('success', 'Welcome! Loading admin dashboard…');
+                        } else if (role === 'teacher') {
+                            showMsg('success', 'Welcome! Loading your teacher portal…');
+                        } else if (role === 'parent') {
+                            showMsg('success', 'Welcome! Loading your parent portal…');
+                        } else if (role === 'student') {
+                            showMsg('success', 'Welcome! Loading your student portal…');
                         } else {
-                            showMsg('success','Welcome! Loading your student portal…');
+                            showMsg('success', 'Login successful! Redirecting…');
                         }
-                        setTimeout(function(){window.location=r.message.redirect;},900);
+
+                        setTimeout(function() { window.location = dest; }, 900);
+
                     } else {
-                        setTimeout(function(){window.location='/assets/school/html/student-portal.html';},900);
+                        // FIX 2: API returned no redirect — call redirect again via
+                        // get_user_redirect so the server decides, not the client
+                        showMsg('error', 'Could not load your portal. Please contact your administrator.');
+                        setLoading(false);
                     }
                 },
-                error:function(){setTimeout(function(){window.location='/assets/school/html/student-portal.html';},900);}
+                // FIX 3: error handler no longer hardcodes student portal
+                error: function() {
+                    showMsg('error', 'Connection error. Please try again.');
+                    setLoading(false);
+                }
             });
         }
 
+        /* ── LOGIN ── */
         function doLogin(){
             ['error','success','info'].forEach(function(t){document.getElementById('msg-'+t).classList.add('hidden');});
             if(!validate()){showMsg('error','Please fill in all fields.');shakeCard();return;}

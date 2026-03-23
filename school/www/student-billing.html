@@ -2,152 +2,132 @@
 no_cache: 1
 title: Account Statement
 ---
+<script>
+(function(){
+  var p=new URLSearchParams(window.location.search);
+  window.BACK_URL=p.get('from')==='parent'?'/assets/school/html/parent-portal.html':'/assets/school/html/student-portal.html';
+})();
+</script>
 <style>
-.bill-header{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
-.bill-header h2{margin:0;}.bill-header p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
-.summary-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
-.summary-card{background:white;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.07);}
-.summary-card.blue{border-top:4px solid #2e86de;}.summary-card.green{border-top:4px solid #34a853;}
-.summary-card.red{border-top:4px solid #ea4335;}.summary-card.orange{border-top:4px solid #fbbc04;}
-.summary-card-icon{font-size:1.8rem;margin-bottom:8px;}
-.summary-card-value{font-size:1.3rem;font-weight:700;color:#1e3a5f;margin-bottom:4px;}
-.summary-card-label{font-size:0.78rem;color:#888;text-transform:uppercase;letter-spacing:0.5px;}
-.section-card{background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.07);margin-bottom:24px;overflow:hidden;}
-.section-card .section-head{padding:16px 20px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;}
-.section-card table{width:100%;border-collapse:collapse;}
-.section-card table th{background:#f0f4ff;padding:12px 16px;text-align:left;font-size:0.82rem;font-weight:600;color:#555;text-transform:uppercase;}
-.section-card table td{padding:12px 16px;border-bottom:1px solid #f5f5f5;font-size:0.9rem;color:#333;}
-.section-card table tr:last-child td{border-bottom:none;}
-.section-card table tr:hover td{background:#f8f9fa;}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.78rem;font-weight:600;}
-.badge-overdue{background:#fce8e6;color:#b71c1c;}
-.badge-paid{background:#e6f4ea;color:#2e7d32;}
-.badge-unpaid{background:#fff3e0;color:#e65100;}
-.badge-partial{background:#e8f0fe;color:#1565c0;}
-.badge-submitted{background:#e6f4ea;color:#2e7d32;}
-.badge-draft{background:#f5f5f5;color:#666;}
-.expand-row{cursor:pointer;}
-.expand-row:hover td{background:#f0f4ff !important;}
-.detail-row{display:none;background:#fafafa;}
-.detail-row td{padding:0 !important;}
-.detail-inner{padding:12px 20px 12px 40px;}
-.detail-inner table{width:100%;font-size:0.85rem;}
-.detail-inner table td{padding:6px 12px;border-bottom:1px solid #eee;color:#555;}
-.detail-inner table tr:last-child td{border-bottom:none;}
-.no-data{text-align:center;padding:30px;color:#aaa;font-size:0.95rem;}
-@media(max-width:768px){
-  .summary-cards{grid-template-columns:repeat(2,1fr);}
-  .section-card table th:nth-child(3),.section-card table td:nth-child(3),
-  .section-card table th:nth-child(4),.section-card table td:nth-child(4){display:none;}
-}
+.bh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
+.bh h2{margin:0;}.bh p{margin:6px 0 0;opacity:.85;font-size:.95rem;}
+.sc{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:24px;}
+.sc-box{background:white;border-radius:12px;padding:20px 16px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.07);}
+.sc-box.bl{border-top:4px solid #2e86de;}.sc-box.gr{border-top:4px solid #34a853;}
+.sc-box.rd{border-top:4px solid #ea4335;}.sc-box.or{border-top:4px solid #fbbc04;}
+.sc-icon{font-size:1.8rem;margin-bottom:8px;}
+.sc-val{font-size:1.3rem;font-weight:700;color:#1e3a5f;margin-bottom:4px;}
+.sc-lbl{font-size:.78rem;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+.tc{background:white;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,.07);margin-bottom:24px;overflow:hidden;}
+.tc-head{padding:16px 20px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;background:#f8f9fa;display:flex;justify-content:space-between;align-items:center;}
+.tc table{width:100%;border-collapse:collapse;}
+.tc table th{background:#f0f4ff;padding:12px 16px;text-align:left;font-size:.82rem;font-weight:600;color:#555;text-transform:uppercase;}
+.tc table td{padding:12px 16px;border-bottom:1px solid #f5f5f5;font-size:.9rem;color:#333;}
+.tc table tr:last-child td{border-bottom:none;}
+.tc table tr:hover td{background:#f8f9fa;}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:.78rem;font-weight:600;}
+.b-ov{background:#fce8e6;color:#b71c1c;}.b-pd{background:#e6f4ea;color:#2e7d32;}
+.b-up{background:#fff3e0;color:#e65100;}.b-pp{background:#e8f0fe;color:#1565c0;}
+.b-sb{background:#e6f4ea;color:#2e7d32;}.b-dr{background:#f5f5f5;color:#666;}
+.xr{cursor:pointer;}.xr:hover td{background:#f0f4ff !important;}
+.dr{display:none;background:#fafafa;}.dr td{padding:0 !important;}
+.di{padding:12px 20px 12px 40px;}
+.di table{width:100%;font-size:.85rem;}
+.di table td{padding:6px 12px;border-bottom:1px solid #eee;color:#555;}
+.di table tr:last-child td{border-bottom:none;}
+.nd{text-align:center;padding:30px;color:#aaa;font-size:.95rem;}
+.bb{background:rgba(255,255,255,.2);color:white;border:1px solid rgba(255,255,255,.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:.85rem;display:inline-block;margin-bottom:12px;}
+.bb:hover{background:rgba(255,255,255,.3);color:white;text-decoration:none;}
+@media(max-width:768px){.sc{grid-template-columns:repeat(2,1fr);}
+.tc table th:nth-child(3),.tc table td:nth-child(3),.tc table th:nth-child(4),.tc table td:nth-child(4){display:none;}}
 </style>
 
-<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading billing info...</div>
-<div id="billing-content" style="display:none;"></div>
+<div id="ld" style="text-align:center;padding:60px;color:#888;">Loading billing info...</div>
+<div id="bc" style="display:none;"></div>
 
 <script>
-function fmt(amt){return "$"+parseFloat(amt||0).toFixed(2);}
-function statusBadge(s){
-    var map={"Overdue":"badge-overdue","Paid":"badge-paid","Unpaid":"badge-unpaid","Partly Paid":"badge-partial","Return":"badge-draft"};
-    var cls = map[s] || "badge-draft";
-    return '<span class="badge ' + cls + '">' + s + '</span>';
-}
-function toggleDetail(id){$("#detail-"+id).toggle();}
+function fm(a){return "$"+parseFloat(a||0).toFixed(2);}
+function sb(s){var m={"Overdue":"b-ov","Paid":"b-pd","Unpaid":"b-up","Partly Paid":"b-pp","Return":"b-dr"};return '<span class="badge '+(m[s]||"b-dr")+'">'+s+'</span>';}
+function td(id){var e=document.getElementById("dr-"+id);if(e)e.style.display=e.style.display==="table-row"?"none":"table-row";}
 
-window.addEventListener("load", function(){
-    fetch("/api/method/school.api.get_billing_summary",
-        type:"GET",
-        success:function(r){
-            if(!r.message||Array.isArray(r.message)){
-                $("#loading").html("<div style=\"text-align:center;padding:40px;\"><p>No billing information found.</p><a href=\"/student-portal\" class=\"btn btn-primary btn-sm\">Back to Dashboard</a></div>");
-                return;
-            }
-            render(r.message);
-        },
-        error:function(){
-            $("#loading").html("<div style=\"text-align:center;padding:40px;\"><p>Error loading billing information.</p><a href=\"/student-portal\" class=\"btn btn-primary btn-sm\">Back to Dashboard</a></div>");
-        }
-    });
+window.addEventListener("load",function(){
+  fetch("/api/method/school.api.get_billing_summary",{credentials:"same-origin"})
+  .then(function(r){return r.json();})
+  .then(function(r){
+    var d=r.message;
+    if(!d||d.error||Array.isArray(d)){
+      document.getElementById("ld").innerHTML='<div style="text-align:center;padding:40px;"><p>No billing information found.</p><a href="'+window.BACK_URL+'" class="btn btn-primary btn-sm">Back</a></div>';
+      return;
+    }
+    render(d);
+  })
+  .catch(function(){
+    document.getElementById("ld").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading.</p><a href="'+window.BACK_URL+'" class="btn btn-primary btn-sm">Back</a></div>';
+  });
 });
 
 function render(d){
-    var invs=d.invoices||[];
-    var recs=d.receipts||[];
-    var totalBilled=invs.reduce(function(s,i){return s+i.grand_total;},0);
-    var totalOutstanding=invs.reduce(function(s,i){return s+i.outstanding_amount;},0);
-    var totalPaid=totalBilled-totalOutstanding;
-
-    var h="";
-    h+="<div class=\"bill-header\">";
-    h+="<a href=\"/student-portal\" style=\"background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.85rem;display:inline-block;margin-bottom:12px;\">&#8592; Dashboard</a>";
-    h+="<h2>&#128196; Account Statement</h2>";
-    h+="<p>"+d.student.full_name+" &bull; Class: "+d.student.student_class+"</p>";
-    h+="</div>";
-
-    h+="<div class=\"summary-cards\">";
-    h+="<div class=\"summary-card blue\"><div class=\"summary-card-icon\">&#128203;</div><div class=\"summary-card-value\">"+fmt(totalBilled)+"</div><div class=\"summary-card-label\">Total Billed</div></div>";
-    h+="<div class=\"summary-card green\"><div class=\"summary-card-icon\">&#9989;</div><div class=\"summary-card-value\">"+fmt(totalPaid)+"</div><div class=\"summary-card-label\">Total Paid</div></div>";
-    h+="<div class=\"summary-card red\"><div class=\"summary-card-icon\">&#9888;</div><div class=\"summary-card-value\">"+fmt(totalOutstanding)+"</div><div class=\"summary-card-label\">Outstanding</div></div>";
-    h+="<div class=\"summary-card orange\"><div class=\"summary-card-icon\">&#128176;</div><div class=\"summary-card-value\">"+recs.length+"</div><div class=\"summary-card-label\">Receipts</div></div>";
-    h+="</div>";
-
-    // Invoices
-    h+="<div class=\"section-card\">";
-    h+="<div class=\"section-head\"><span>&#128196; Invoices</span><span style=\"font-size:0.85rem;color:#888;\">"+invs.length+" invoice(s)</span></div>";
-    if(invs.length===0){
-        h+="<div class=\"no-data\">No invoices found</div>";
-    } else {
-        h+="<table><thead><tr><th>Invoice No</th><th>Date</th><th>Due Date</th><th>Fees Structure</th><th>Cost Centre</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>";
-        invs.forEach(function(inv){
-            var iid=inv.name.replace(/[^a-z0-9]/gi,"");
-            h+="<tr class=\"expand-row\" onclick=\"toggleDetail('inv"+iid+"')\">";
-            h+="<td><b>"+inv.name+"</b> <small style=\"color:#aaa;\">&#9660;</small></td>";
-            h+="<td>"+inv.posting_date+"</td><td>"+inv.due_date+"</td>";
-            h+="<td>"+(inv.fees_structure||"-")+"</td>";
-            h+="<td>"+(inv.cost_center||"-")+"</td>";
-            h+="<td>"+fmt(inv.grand_total)+"</td><td>"+fmt(inv.outstanding_amount)+"</td>";
-            h+="<td>"+statusBadge(inv.status)+"</td></tr>";
-            h+="<tr class=\"detail-row\" id=\"detail-inv"+iid+"\"><td colspan=\"8\"><div class=\"detail-inner\">";
-            if(inv.items&&inv.items.length>0){
-                h+="<table><tr style=\"background:#f0f4ff;\"><td><b>Item</b></td><td><b>Qty</b></td><td><b>Rate</b></td><td><b>Amount</b></td></tr>";
-                inv.items.forEach(function(it){h+="<tr><td>"+(it.item_name||"-")+"</td><td>"+it.qty+"</td><td>"+fmt(it.rate)+"</td><td>"+fmt(it.amount)+"</td></tr>";});
-                h+="</table>";
-            } else { h+="<p style=\"color:#aaa;margin:0;\">No line items</p>"; }
-            h+="</div></td></tr>";
-        });
-        h+="</tbody></table>";
-    }
-    h+="</div>";
-
-    // Receipts
-    h+="<div class=\"section-card\">";
-    h+="<div class=\"section-head\"><span>&#128176; Payment Receipts</span><span style=\"font-size:0.85rem;color:#888;\">"+recs.length+" receipt(s)</span></div>";
-    if(recs.length===0){
-        h+="<div class=\"no-data\">No receipts found</div>";
-    } else {
-        h+="<table><thead><tr><th>Receipt No</th><th>Date</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead><tbody>";
-        recs.forEach(function(rec){
-            var rid=rec.name.replace(/[^a-z0-9]/gi,"");
-            var status=rec.docstatus===1?"Submitted":"Draft";
-            var bc=rec.docstatus===1?"badge-submitted":"badge-draft";
-            h+="<tr class=\"expand-row\" onclick=\"toggleDetail('rec"+rid+"')\">";
-            h+="<td><b>"+rec.name+"</b> <small style=\"color:#aaa;\">&#9660;</small></td>";
-            h+="<td>"+rec.date+"</td><td>"+fmt(rec.total_amount)+"</td>";
-            h+="<td>"+(rec.payment_method||"-")+"</td>";
-            h+="<td><span class=\"badge "+bc+"\">"+status+"</span></td></tr>";
-            h+="<tr class=\"detail-row\" id=\"detail-rec"+rid+"\"><td colspan=\"5\"><div class=\"detail-inner\">";
-            if(rec.items&&rec.items.length>0){
-                h+="<table><tr style=\"background:#f0f4ff;\"><td><b>Invoice</b></td><td><b>Fees Structure</b></td><td><b>Total</b></td><td><b>Allocated</b></td></tr>";
-                rec.items.forEach(function(it){h+="<tr><td>"+(it.invoice_number||"-")+"</td><td>"+(it.fees_structure||"-")+"</td><td>"+fmt(it.total)+"</td><td>"+fmt(it.allocated)+"</td></tr>";});
-                h+="</table>";
-            } else { h+="<p style=\"color:#aaa;margin:0;\">No items</p>"; }
-            h+="</div></td></tr>";
-        });
-        h+="</tbody></table>";
-    }
-    h+="</div>";
-
-    $("#billing-content").html(h).show();
-    $("#loading").hide();
+  var inv=d.invoices||[],rec=d.receipts||[];
+  var tb=inv.reduce(function(s,i){return s+(i.grand_total||0);},0);
+  var to=inv.reduce(function(s,i){return s+(i.outstanding_amount||0);},0);
+  var tp=tb-to;
+  var bu=window.BACK_URL||'/assets/school/html/student-portal.html';
+  var h='';
+  h+='<div class="bh"><a href="'+bu+'" class="bb">&#8592; Dashboard</a>';
+  h+='<h2>&#128196; Account Statement</h2>';
+  h+='<p>'+(d.student&&d.student.full_name?d.student.full_name:'')+'</p></div>';
+  h+='<div class="sc">';
+  h+='<div class="sc-box bl"><div class="sc-icon">&#128203;</div><div class="sc-val">'+fm(tb)+'</div><div class="sc-lbl">Total Billed</div></div>';
+  h+='<div class="sc-box gr"><div class="sc-icon">&#9989;</div><div class="sc-val">'+fm(tp)+'</div><div class="sc-lbl">Total Paid</div></div>';
+  h+='<div class="sc-box rd"><div class="sc-icon">&#9888;</div><div class="sc-val">'+fm(to)+'</div><div class="sc-lbl">Outstanding</div></div>';
+  h+='<div class="sc-box or"><div class="sc-icon">&#128176;</div><div class="sc-val">'+rec.length+'</div><div class="sc-lbl">Receipts</div></div>';
+  h+='</div>';
+  // Invoices
+  h+='<div class="tc"><div class="tc-head"><span>&#128196; Invoices</span><span style="font-size:.85rem;color:#888;">'+inv.length+' invoice(s)</span></div>';
+  if(!inv.length){h+='<div class="nd">No invoices found</div>';}
+  else{
+    h+='<table><thead><tr><th>Invoice</th><th>Date</th><th>Due Date</th><th>Fees Structure</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>';
+    inv.forEach(function(i){
+      var id=i.name.replace(/[^a-z0-9]/gi,"");
+      h+='<tr class="xr" onclick="td(\'inv'+id+'\')"><td><b>'+i.name+'</b> <small style="color:#aaa;">&#9660;</small></td>';
+      h+='<td>'+i.posting_date+'</td><td>'+i.due_date+'</td><td>'+(i.fees_structure||"-")+'</td>';
+      h+='<td>'+fm(i.grand_total)+'</td><td>'+fm(i.outstanding_amount)+'</td><td>'+sb(i.status)+'</td></tr>';
+      h+='<tr class="dr" id="dr-inv'+id+'"><td colspan="7"><div class="di">';
+      if(i.items&&i.items.length){
+        h+='<table><tr style="background:#f0f4ff;"><td><b>Item</b></td><td><b>Qty</b></td><td><b>Rate</b></td><td><b>Amount</b></td></tr>';
+        i.items.forEach(function(it){h+='<tr><td>'+(it.item_name||"-")+'</td><td>'+it.qty+'</td><td>'+fm(it.rate)+'</td><td>'+fm(it.amount)+'</td></tr>';});
+        h+='</table>';
+      }else{h+='<p style="color:#aaa;margin:0;">No line items</p>';}
+      h+='</div></td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</div>';
+  // Receipts
+  h+='<div class="tc"><div class="tc-head"><span>&#128176; Receipts</span><span style="font-size:.85rem;color:#888;">'+rec.length+' receipt(s)</span></div>';
+  if(!rec.length){h+='<div class="nd">No receipts found</div>';}
+  else{
+    h+='<table><thead><tr><th>Receipt</th><th>Date</th><th>Outstanding</th><th>Allocated</th><th>Balance</th><th>Status</th></tr></thead><tbody>';
+    rec.forEach(function(r){
+      var id=r.name.replace(/[^a-z0-9]/gi,"");
+      var st=r.docstatus===1?"Submitted":"Draft";
+      var bc=r.docstatus===1?"b-sb":"b-dr";
+      h+='<tr class="xr" onclick="td(\'rec'+id+'\')"><td><b>'+r.name+'</b> <small style="color:#aaa;">&#9660;</small></td>';
+      h+='<td>'+r.date+'</td><td>'+fm(r.total_outstanding)+'</td><td>'+fm(r.total_allocated)+'</td><td>'+fm(r.total_balance)+'</td>';
+      h+='<td><span class="badge '+bc+'">'+st+'</span></td></tr>';
+      h+='<tr class="dr" id="dr-rec'+id+'"><td colspan="6"><div class="di">';
+      if(r.items&&r.items.length){
+        h+='<table><tr style="background:#f0f4ff;"><td><b>Invoice</b></td><td><b>Fees Structure</b></td><td><b>Outstanding</b></td><td><b>Allocated</b></td></tr>';
+        r.items.forEach(function(it){h+='<tr><td>'+(it.invoice_number||"-")+'</td><td>'+(it.fees_structure||"-")+'</td><td>'+fm(it.outstanding)+'</td><td>'+fm(it.allocated)+'</td></tr>';});
+        h+='</table>';
+      }else{h+='<p style="color:#aaa;margin:0;">No items</p>';}
+      h+='</div></td></tr>';
+    });
+    h+='</tbody></table>';
+  }
+  h+='</div>';
+  document.getElementById("bc").innerHTML=h;
+  document.getElementById("bc").style.display="block";
+  document.getElementById("ld").style.display="none";
 }
 </script>

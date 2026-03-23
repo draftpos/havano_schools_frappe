@@ -2,6 +2,24 @@
 no_cache: 1
 title: My Account
 ---
+
+<script>
+// Smart back button — goes to parent portal if viewing as parent
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var backUrl = params.get('from') === 'parent'
+    ? '/assets/school/html/parent-portal.html'
+    : '/assets/school/html/student-portal.html';
+  // Update all back links on the page
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('a[href="/assets/school/html/student-portal.html"]').forEach(function(a){
+      a.href = backUrl;
+    });
+  });
+  window.BACK_URL = backUrl;
+})();
+</script>
+
 <style>
 .ah{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
 .ah h2{margin:0;}.ah p{margin:4px 0 0 0;opacity:0.85;}
@@ -30,13 +48,13 @@ window.addEventListener("load", function(){
   .then(function(res){return res.json();})
   .then(function(r){
     if(!r.message||Array.isArray(r.message)){
-      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No account found.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No account found.</p><a href="/assets/school/html/student-portal.html" class="btn btn-primary btn-sm">Back</a></div>';
       return;
     }
     var s=r.message;
     var ini=((s.first_name||"?")[0]+(s.last_name||"?")[0]).toUpperCase();
     var h="";
-    h+='<div class="ah"><a href="/student-portal" class="bb">&#8592; Dashboard</a><div class="av">'+ini+'</div><h2>'+s.full_name+'</h2><p>'+s.portal_email+'</p></div>';
+    h+='<div class="ah"><a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a><div class="av">'+ini+'</div><h2>'+s.full_name+'</h2><p>'+s.portal_email+'</p></div>';
     h+='<div class="ic">';
     h+='<div class="ic-box b"><div class="ic-icon">&#127979;</div><div class="ic-val">'+(s.class_name||"-")+'</div><div class="ic-lbl">Class</div></div>';
     h+='<div class="ic-box g"><div class="ic-icon">&#127968;</div><div class="ic-val">'+(s.section_name||"-")+'</div><div class="ic-lbl">Section</div></div>';
@@ -60,7 +78,7 @@ window.addEventListener("load", function(){
     el("loading").style.display="none";
   })
   .catch(function(){
-    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading profile.</p><a href="/student-portal" class="btn btn-primary btn-sm">Back</a></div>';
+    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading profile.</p><a href="/assets/school/html/student-portal.html" class="btn btn-primary btn-sm">Back</a></div>';
   });
 });
 </script>

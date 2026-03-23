@@ -107,7 +107,10 @@
   "create_user",
   "portal_email",
   "column_break_jxle",
-  "student_image"
+  "student_image",
+  "fees_structure",
+  "account",
+  "billed_on_registration"
  ],
  "fields": [
   {
@@ -203,7 +206,8 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Student Type",
-   "options": "\nDay\nBoarding"
+   "options": "\nDay\nBoarding",
+   "reqd": 1
   },
   {
    "fieldname": "house",
@@ -270,6 +274,26 @@
    "label": "Admin Fees Structure",
    "mandatory_depends_on": "eval:doc.paying_admin_fee == 1",
    "options": "Fees Structure"
+  },
+  {
+   "fieldname": "fees_structure",
+   "fieldtype": "Link",
+   "label": "Billing Fees Structure",
+   "options": "Fees Structure",
+   "read_only": 1
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Account",
+   "options": "Account"
+  },
+  {
+   "default": "0",
+   "fieldname": "billed_on_registration",
+   "fieldtype": "Check",
+   "label": "Billed on Registration",
+   "read_only": 1
   },
   {
    "fieldname": "parent_guardian_detail_section",
@@ -673,7 +697,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-21 08:12:15.134915",
+ "modified": "2026-03-23 17:08:38.656701",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",

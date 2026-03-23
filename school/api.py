@@ -16,7 +16,6 @@ def get_billing_summary():
         return {"error": "Student record not found"}
 
     # 1. Fetch Invoices (Sales Invoices)
-    # Note: Using customer_name to link to Sales Invoice
     invoices = frappe.db.sql("""
         SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
                cost_center, fees_structure
@@ -32,8 +31,7 @@ def get_billing_summary():
                                       filters={"parent": inv['name']}, 
                                       fields=["item_name", "qty", "rate", "amount"])
 
-    # 2. Fetch Receipts (Based on your new Receipting DocType)
-    # Using student.name (ID) as per your form requirements
+    # 2. Fetch Receipts
     receipts = frappe.db.sql("""
         SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
         FROM `tabReceipting` 
@@ -43,7 +41,6 @@ def get_billing_summary():
 
     for rec in receipts:
         rec['date'] = str(rec['date'])
-        # Matching the fields in your Receipt Item table
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
                                       fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
@@ -54,6 +51,7 @@ def get_billing_summary():
         "receipts": receipts
     }
 
+
 @frappe.whitelist()
 def get_student_invoices(student):
     """
@@ -63,15 +61,10 @@ def get_student_invoices(student):
     if not student:
         return []
 
-    # Get the Full Name to find the Customer record
     full_name = frappe.db.get_value("Student", student, "full_name")
-    
-    # In ERPNext, Sales Invoices link to 'Customer'. 
-    # This assumes Customer Name matches Student Full Name.
     customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
     
     if not customer:
-        # Fallback: check if the Student ID is used directly as the Customer ID
         customer = frappe.db.get_value("Customer", student, "name")
 
     if not customer:
@@ -91,7 +84,6 @@ def get_student_invoices(student):
         
     return invoices
 
-# --- Profile and Schedules remain as previously defined ---
 
 @frappe.whitelist()
 def get_my_account():
@@ -106,6 +98,7 @@ def get_my_account():
         student["date_of_admission"] = str(student.date_of_admission) if student.date_of_admission else "-"
     return student
 
+
 @frappe.whitelist()
 def get_portal_dashboard():
     user = frappe.session.user
@@ -117,7 +110,6 @@ def get_portal_dashboard():
     if not student:
         return {"error": "Student not found"}
     sname = student.name
-    # Count records by student's class and section
     s_class   = student.student_class or ""
     s_section = student.section or ""
     s_reg_no  = student.student_reg_no or sname
@@ -131,7 +123,7 @@ def get_portal_dashboard():
     exam_results   = frappe.db.count("Exam Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Exam Schedule Item") else 0
     inclass_tests  = frappe.db.count("Inclass Test",   {}) if frappe.db.exists("DocType", "Inclass Test") else 0
     homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Home Schedule Item") else 0
-    billing_summary  = frappe.db.sql("""
+    billing_summary = frappe.db.sql("""
         SELECT SUM(outstanding_amount) as balance
         FROM `tabSales Invoice`
         WHERE customer_name = %s AND docstatus = 1
@@ -160,50 +152,269 @@ def get_portal_dashboard():
         }
     }
 
+
 @frappe.whitelist()
 def get_exam_schedules():
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name", "student_reg_no", "student_class", "section"], as_dict=True)
     if not student: return []
-    return frappe.get_all("Exam Schedule Item",
-        filters={"student": student},
-        fields=["exam_name", "subject_name", "class_name", "date", "start_time",
-                "exam_type", "max_marks", "min_marks", "total_questions",
-                "room_number", "number_of_students", "remarks"],
-        order_by="date asc")
+    s_reg_no  = student.student_reg_no or student.name
+    s_class   = student.student_class or ""
+    s_section = student.section or ""
+    # Get schedules for this student's class/section
+    schedules = frappe.get_all("Exam Schedule",
+        filters={"student_class": s_class, "section": s_section},
+        fields=["name","title","subject","date","start_time","max_marks","min_marks",
+                "total_questions","room_number","number_of_students","exam_type"],
+        order_by="date asc") if s_class else []
+    # Get student's marks from exam items
+    marks_map = {}
+    if schedules:
+        items = frappe.db.sql("""
+            SELECT parent, marks_obtained, status
+            FROM `tabExam Schedule Item`
+            WHERE student_admission_no = %s
+        """, s_reg_no, as_dict=True)
+        marks_map = {i.parent: i for i in items}
+    result = []
+    for s in schedules:
+        sub_name = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
+        item = marks_map.get(s.name, {})
+        result.append({
+            "exam_name":        s.title or sub_name,
+            "subject_name":     sub_name,
+            "class_name":       s_class,
+            "date":             str(s.date) if s.date else "",
+            "start_time":       str(s.start_time) if s.start_time else "",
+            "exam_type":        s.exam_type or "",
+            "max_marks":        s.max_marks or 0,
+            "min_marks":        s.min_marks or 0,
+            "total_questions":  s.total_questions or 0,
+            "room_number":      s.room_number or "",
+            "number_of_students": s.number_of_students or 0,
+            "marks_obtained":   item.get("marks_obtained", "") if item else "",
+            "status":           item.get("status", "") if item else "",
+            "remarks":          "",
+        })
+    return result
+
 
 @frappe.whitelist()
 def get_home_schedules():
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
-    return frappe.get_all("Home Schedule Item", filters={"student": student}, fields=["*"], order_by="date asc")
+    s_reg_no  = student.student_reg_no or student.name
+    s_class   = student.student_class or ""
+    s_section = student.section or ""
+    schedules = frappe.get_all("Home Schedule",
+        filters={"student_class": s_class, "section": s_section},
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
+        order_by="date asc") if s_class else []
+    marks_map = {}
+    if schedules:
+        items = frappe.db.sql("""
+            SELECT parent, marks_obtained, status
+            FROM `tabHome Schedule Item`
+            WHERE student_admission_no = %s
+        """, s_reg_no, as_dict=True)
+        marks_map = {i.parent: i for i in items}
+    result = []
+    for s in schedules:
+        sub_name = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
+        hw_name  = frappe.db.get_value("Homework", s.test_name, "home_name") or s.test_name or ""
+        item = marks_map.get(s.name, {})
+        result.append({
+            "exam_name":       hw_name,
+            "subject_name":    sub_name,
+            "class_name":      s_class,
+            "date":            str(s.date) if s.date else "",
+            "start_time":      str(s.start_time) if s.start_time else "",
+            "max_marks":       s.max_marks or 0,
+            "min_marks":       s.min_marks or 0,
+            "marks_obtained":  item.get("marks_obtained","") if item else "",
+            "status":          item.get("status","") if item else "",
+            "remarks":         "",
+        })
+    return result
+
 
 @frappe.whitelist()
 def get_test_schedules():
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
-    return frappe.get_all("Test Schedule Item", filters={"student": student}, fields=["*"], order_by="date asc")
+    s_reg_no  = student.student_reg_no or student.name
+    s_class   = student.student_class or ""
+    s_section = student.section or ""
+    schedules = frappe.get_all("Test Schedule",
+        filters={"student_class": s_class, "section": s_section},
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
+        order_by="date asc") if s_class else []
+    marks_map = {}
+    if schedules:
+        items = frappe.db.sql("""
+            SELECT parent, marks_obtained, status
+            FROM `tabTest Schedule Item`
+            WHERE student_admission_no = %s
+        """, s_reg_no, as_dict=True)
+        marks_map = {i.parent: i for i in items}
+    result = []
+    for s in schedules:
+        sub_name  = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
+        test_name = frappe.db.get_value("Inclass Test", s.test_name, "exam_name") or s.test_name or ""
+        item = marks_map.get(s.name, {})
+        result.append({
+            "exam_name":       test_name,
+            "subject_name":    sub_name,
+            "class_name":      s_class,
+            "date":            str(s.date) if s.date else "",
+            "start_time":      str(s.start_time) if s.start_time else "",
+            "max_marks":       s.max_marks or 0,
+            "min_marks":       s.min_marks or 0,
+            "marks_obtained":  item.get("marks_obtained","") if item else "",
+            "status":          item.get("status","") if item else "",
+            "remarks":         "",
+        })
+    return result
+
 
 @frappe.whitelist()
 def get_exam_results():
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
-    return frappe.get_all("Exam Result", filters={"student": student}, fields=["*"], order_by="creation desc")
+    s_reg_no   = student.student_reg_no or student.name
+    s_class    = student.student_class or ""
+    full_name  = student.full_name or ""
+    rows = frappe.db.sql("""
+        SELECT esi.parent as schedule_name, esi.marks_obtained, esi.status,
+               es.title, es.subject, es.date, es.max_marks, es.min_marks,
+               es.exam_type, es.number_of_students
+        FROM `tabExam Schedule Item` esi
+        JOIN `tabExam Schedule` es ON es.name = esi.parent
+        WHERE esi.student_admission_no = %s
+        ORDER BY es.date DESC
+    """, s_reg_no, as_dict=True)
+    result = []
+    for r in rows:
+        sub_name = frappe.db.get_value("Subject", r.subject, "subject_name") or r.subject or ""
+        pct = round((r.marks_obtained / r.max_marks * 100), 1) if r.max_marks and r.marks_obtained else 0
+        result.append({
+            "exam_name":      r.title or sub_name,
+            "subject_name":   sub_name,
+            "class_name":     s_class,
+            "date":           str(r.date) if r.date else "",
+            "max_marks":      r.max_marks or 0,
+            "min_marks":      r.min_marks or 0,
+            "exam_type":      r.exam_type or "",
+            "total_students": r.number_of_students or 0,
+            "scores": [{
+                "student_full_name":    full_name,
+                "student_admission_no": s_reg_no,
+                "marks_obtained":       r.marks_obtained or 0,
+                "status":               r.status or "",
+            }]
+        })
+    return result
+
 
 @frappe.whitelist()
 def get_inclass_tests():
+    return get_class_test_results()
+
+@frappe.whitelist()
+def get_class_test_results():
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
-    return frappe.get_all("Inclass Test", filters={"student": student}, fields=["*"], order_by="creation desc")
+    s_reg_no  = student.student_reg_no or student.name
+    s_class   = student.student_class or ""
+    full_name = student.full_name or ""
+    rows = frappe.db.sql("""
+        SELECT tsi.parent as schedule_name, tsi.marks_obtained, tsi.status,
+               ts.test_name, ts.subject, ts.date, ts.max_marks, ts.min_marks,
+               ts.number_of_students
+        FROM `tabTest Schedule Item` tsi
+        JOIN `tabTest Schedule` ts ON ts.name = tsi.parent
+        WHERE tsi.student_admission_no = %s
+        ORDER BY ts.date DESC
+    """, s_reg_no, as_dict=True)
+    result = []
+    for r in rows:
+        sub_name  = frappe.db.get_value("Subject", r.subject, "subject_name") or r.subject or ""
+        test_name = frappe.db.get_value("Inclass Test", r.test_name, "exam_name") or r.test_name or ""
+        pct = round((r.marks_obtained / r.max_marks * 100), 1) if r.max_marks and r.marks_obtained else 0
+        result.append({
+            "exam_name":      test_name,
+            "subject_name":   sub_name,
+            "class_name":     s_class,
+            "date":           str(r.date) if r.date else "",
+            "max_marks":      r.max_marks or 0,
+            "min_marks":      r.min_marks or 0,
+            "exam_type":      "",
+            "total_students": r.number_of_students or 0,
+            "scores": [{
+                "student_full_name":    full_name,
+                "student_admission_no": s_reg_no,
+                "marks_obtained":       r.marks_obtained or 0,
+                "status":               r.status or "",
+            }]
+        })
+    return result
+
+@frappe.whitelist()
+def get_homework_results():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    if not student: return []
+    s_reg_no  = student.student_reg_no or student.name
+    s_class   = student.student_class or ""
+    full_name = student.full_name or ""
+    rows = frappe.db.sql("""
+        SELECT hsi.parent as schedule_name, hsi.marks_obtained, hsi.status,
+               hs.test_name, hs.subject, hs.date, hs.max_marks, hs.min_marks,
+               hs.number_of_students
+        FROM `tabHome Schedule Item` hsi
+        JOIN `tabHome Schedule` hs ON hs.name = hsi.parent
+        WHERE hsi.student_admission_no = %s
+        ORDER BY hs.date DESC
+    """, s_reg_no, as_dict=True)
+    result = []
+    for r in rows:
+        sub_name  = frappe.db.get_value("Subject", r.subject, "subject_name") or r.subject or ""
+        hw_name   = frappe.db.get_value("Homework", r.test_name, "home_name") or r.test_name or ""
+        hw_type   = frappe.db.get_value("Homework", r.test_name, "homework_type") or ""
+        result.append({
+            "homework_name":  hw_name,
+            "subject_name":   sub_name,
+            "class_name":     s_class,
+            "date":           str(r.date) if r.date else "",
+            "max_marks":      r.max_marks or 0,
+            "min_marks":      r.min_marks or 0,
+            "homework_type":  hw_type,
+            "total_students": r.number_of_students or 0,
+            "scores": [{
+                "student_full_name":    full_name,
+                "student_admission_no": s_reg_no,
+                "marks_obtained":       r.marks_obtained or 0,
+                "status":               r.status or "",
+            }]
+        })
+    return result
+
 
 @frappe.whitelist()
 def get_teacher_portal_dashboard():
@@ -219,7 +430,6 @@ def get_teacher_portal_dashboard():
     if not teacher:
         return {"error": "Teacher not found"}
     
-    # Get counts for various doctypes
     counts = {
         "classes": frappe.db.count("Student Class"),
         "subjects": frappe.db.count("Subject", {"teacher": teacher.name}) if frappe.db.exists("Subject", {"teacher": teacher.name}) else frappe.db.count("Subject"),
@@ -231,7 +441,6 @@ def get_teacher_portal_dashboard():
         "sections": frappe.db.count("Section"),
     }
     
-    # Get recent items
     recent_exams = frappe.get_all("Exam Schedule", 
         fields=["name", "exam_name", "subject", "date", "class_name"],
         order_by="date desc", limit=5)
@@ -252,6 +461,7 @@ def get_teacher_portal_dashboard():
         "recent_tests": recent_tests
     }
 
+
 @frappe.whitelist()
 def get_user_redirect():
     """Returns where to redirect the logged in user."""
@@ -261,23 +471,22 @@ def get_user_redirect():
     
     roles = frappe.get_roles(user)
     
-    # Admin goes to desk
     if "System Manager" in roles or "Administrator" in roles:
         return {"redirect": "/app", "role": "admin"}
     
-    # Check if user is a teacher (by portal_email)
     if frappe.db.exists("Teacher", {"portal_email": user}):
         return {"redirect": "/assets/school/html/teacher-portal.html", "role": "teacher"}
     
-    # Check if user is a student (by portal_email)
     if frappe.db.exists("Student", {"portal_email": user}):
         return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}
+
+    # Parent redirect — checked after student so a user who is both goes to student portal
+    if frappe.db.exists("Parent", {"portal_email": user}):
+        return {"redirect": "/assets/school/html/parent-portal.html", "role": "parent"}
     
-    # School users go to desk
     if "School User" in roles:
         return {"redirect": "/app", "role": "school_user"}
     
-    # Default fallback
     return {"redirect": "/portal-login", "role": "guest"}
 
 
@@ -293,7 +502,6 @@ def get_fees_balance():
 
     cost_center = frappe.form_dict.get("cost_center") or None
 
-    # Get all students with their full_name (used as customer name)
     student_filters = {}
     if cost_center:
         student_filters["cost_center"] = cost_center
@@ -312,7 +520,6 @@ def get_fees_balance():
     if not student_names:
         return []
 
-    # Fetch receivable summary from Sales Invoice
     placeholders = ", ".join(["%s"] * len(student_names))
     receivables = frappe.db.sql("""
         SELECT
@@ -330,7 +537,6 @@ def get_fees_balance():
         ORDER BY si.customer ASC
     """.format(placeholders=placeholders), student_names, as_dict=True)
 
-    # Add opening balances
     opening_balances = frappe.db.sql("""
         SELECT
             jea.party,
@@ -363,3 +569,448 @@ def get_fees_balance():
         })
 
     return result
+
+
+# ─────────────────────────────────────────────────────────────
+#  PARENT PORTAL APIs
+# ─────────────────────────────────────────────────────────────
+
+@frappe.whitelist()
+def get_parent_dashboard():
+    """
+    Dashboard for parent portal.
+    Looks up the Parent record by portal_email, then returns the parent's
+    info plus an array of their linked children — each with their own
+    schedule / result / balance counts (same logic as get_portal_dashboard).
+
+    Assumes:
+      - Parent doctype has: portal_email, full_name, mobile_no, parent_image
+      - Parent has a child table named "Parent Child" with a `student` Link field
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    parent = frappe.db.get_value("Parent", {"portal_email": user},
+        ["name", "full_name", "mobile_no", "parent_image", "portal_email"], as_dict=True)
+
+    if not parent:
+        return {"error": "Parent record not found"}
+
+    parent_data = {
+        "full_name": parent.full_name or "",
+        "email":     parent.portal_email or user,
+        "mobile_no": parent.mobile_no or "",
+        "image":     parent.parent_image or "",
+        "initials":  _make_initials(parent.full_name or "", "P"),
+    }
+
+    # Reads the `children` child table on the Parent doctype.
+    # Each row must have a `student` Link field pointing to the Student doctype.
+    child_links = frappe.get_all("Parent Child",
+        filters={"parent": parent.name},
+        fields=["student"],
+        order_by="idx asc")
+
+    children_data = []
+    for row in child_links:
+        student_name = row.get("student")
+        if not student_name:
+            continue
+
+        student = frappe.db.get_value("Student", student_name,
+            ["name", "first_name", "last_name", "full_name",
+             "student_reg_no", "student_class", "section", "house", "student_image"],
+            as_dict=True)
+
+        if not student:
+            continue
+
+        class_name = frappe.db.get_value("Student Class", student.student_class, "class_name") \
+                     or student.student_class or ""
+
+        children_data.append({
+            "name":       student.name,
+            "full_name":  student.full_name or f"{student.first_name or ''} {student.last_name or ''}".strip(),
+            "reg_no":     student.student_reg_no or "",
+            "class_name": class_name,
+            "section":    student.section or "",
+            "house":      student.house or "",
+            "image":      student.student_image or "",
+            "initials":   _make_initials(student.full_name or student.first_name or "", "S"),
+            "counts":     _get_student_counts(student),
+        })
+
+    return {
+        "parent":   parent_data,
+        "children": children_data,
+    }
+
+
+@frappe.whitelist()
+def get_parent_billing_summary():
+    """
+    Returns invoices and receipts for ALL children of the logged-in parent.
+    Optional ?child=STUDENT_ID query param to filter to one child.
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    parent = frappe.db.get_value("Parent", {"portal_email": user}, "name")
+    if not parent:
+        return {"error": "Parent record not found"}
+
+    child_filter = frappe.form_dict.get("child") or None
+
+    child_links = frappe.get_all("Parent Child",
+        filters={"parent": parent},
+        fields=["student"],
+        order_by="idx asc")
+
+    result = []
+    for row in child_links:
+        student_name = row.get("student")
+        if not student_name:
+            continue
+        if child_filter and student_name != child_filter:
+            continue
+
+        student = frappe.db.get_value("Student", student_name,
+            ["name", "full_name"], as_dict=True)
+        if not student:
+            continue
+
+        invoices = frappe.db.sql("""
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount,
+                   status, cost_center, fees_structure
+            FROM `tabSales Invoice`
+            WHERE customer_name = %s
+            ORDER BY posting_date DESC
+        """, student.full_name, as_dict=True)
+
+        for inv in invoices:
+            inv['posting_date'] = str(inv['posting_date'])
+            inv['due_date']     = str(inv['due_date'])
+            inv['items'] = frappe.get_all("Sales Invoice Item",
+                filters={"parent": inv['name']},
+                fields=["item_name", "qty", "rate", "amount"])
+
+        receipts = frappe.db.sql("""
+            SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
+            FROM `tabReceipting`
+            WHERE student_name = %s
+            ORDER BY date DESC
+        """, student.name, as_dict=True)
+
+        for rec in receipts:
+            rec['date'] = str(rec['date'])
+            rec['items'] = frappe.get_all("Receipt Item",
+                filters={"parent": rec['name']},
+                fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
+
+        result.append({
+            "name":      student.name,
+            "full_name": student.full_name,
+            "invoices":  invoices,
+            "receipts":  receipts,
+        })
+
+    return {"children": result}
+
+
+@frappe.whitelist()
+def get_parent_schedules():
+    """
+    Returns exam / home / test schedules for all children of the logged-in parent.
+    Optional ?child=STUDENT_ID and ?type=exam|home|test filters.
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    parent = frappe.db.get_value("Parent", {"portal_email": user}, "name")
+    if not parent:
+        return {"error": "Parent record not found"}
+
+    child_filter  = frappe.form_dict.get("child") or None
+    schedule_type = frappe.form_dict.get("type") or None   # exam | home | test
+
+    child_links = frappe.get_all("Parent Child",
+        filters={"parent": parent},
+        fields=["student"],
+        order_by="idx asc")
+
+    result = []
+    for row in child_links:
+        student_name = row.get("student")
+        if not student_name:
+            continue
+        if child_filter and student_name != child_filter:
+            continue
+
+        student = frappe.db.get_value("Student", student_name,
+            ["name", "full_name", "student_class", "section", "student_reg_no"], as_dict=True)
+        if not student:
+            continue
+
+        entry = {
+            "name":       student.name,
+            "full_name":  student.full_name or "",
+            "class_name": frappe.db.get_value("Student Class", student.student_class, "class_name") or student.student_class or "",
+            "section":    student.section or "",
+        }
+
+        if not schedule_type or schedule_type == "exam":
+            entry["exam_schedules"] = frappe.get_all("Exam Schedule Item",
+                filters={"student": student.name},
+                fields=["exam_name", "subject_name", "class_name", "date", "start_time",
+                        "exam_type", "max_marks", "min_marks", "total_questions",
+                        "room_number", "number_of_students", "remarks"],
+                order_by="date asc")
+
+        if not schedule_type or schedule_type == "home":
+            entry["home_schedules"] = frappe.get_all("Home Schedule Item",
+                filters={"student": student.name},
+                fields=["*"],
+                order_by="date asc")
+
+        if not schedule_type or schedule_type == "test":
+            entry["test_schedules"] = frappe.get_all("Test Schedule Item",
+                filters={"student": student.name},
+                fields=["*"],
+                order_by="date asc")
+
+        result.append(entry)
+
+    return {"children": result}
+
+
+@frappe.whitelist()
+def get_parent_results():
+    """
+    Returns exam results, inclass test results and homework results
+    for all children of the logged-in parent.
+    Optional ?child=STUDENT_ID filter.
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    parent = frappe.db.get_value("Parent", {"portal_email": user}, "name")
+    if not parent:
+        return {"error": "Parent record not found"}
+
+    child_filter = frappe.form_dict.get("child") or None
+
+    child_links = frappe.get_all("Parent Child",
+        filters={"parent": parent},
+        fields=["student"],
+        order_by="idx asc")
+
+    result = []
+    for row in child_links:
+        student_name = row.get("student")
+        if not student_name:
+            continue
+        if child_filter and student_name != child_filter:
+            continue
+
+        student = frappe.db.get_value("Student", student_name,
+            ["name", "full_name"], as_dict=True)
+        if not student:
+            continue
+
+        entry = {
+            "name":      student.name,
+            "full_name": student.full_name or "",
+            "exam_results": frappe.get_all("Exam Result",
+                filters={"student": student.name},
+                fields=["*"],
+                order_by="creation desc"),
+            "inclass_tests": frappe.get_all("Inclass Test",
+                filters={"student": student.name},
+                fields=["*"],
+                order_by="creation desc") if frappe.db.exists("DocType", "Inclass Test") else [],
+            "homework_results": frappe.get_all("Home Schedule Item",
+                filters={"student": student.name},
+                fields=["*"],
+                order_by="date desc"),
+        }
+
+        result.append(entry)
+
+    return {"children": result}
+
+
+# ─────────────────────────────────────────────────────────────
+#  SHARED HELPERS
+# ─────────────────────────────────────────────────────────────
+
+def _get_student_counts(student):
+    """
+    Build schedule / result / balance counts for a single student dict/object.
+    Mirrors get_portal_dashboard so both portals stay in sync.
+    """
+    sname     = student.name if hasattr(student, "name") else student["name"]
+    s_class   = (student.student_class  if hasattr(student, "student_class")  else student.get("student_class"))  or ""
+    s_section = (student.section        if hasattr(student, "section")        else student.get("section"))        or ""
+    s_reg_no  = (student.student_reg_no if hasattr(student, "student_reg_no") else student.get("student_reg_no")) or sname
+    full_name = (student.full_name      if hasattr(student, "full_name")      else student.get("full_name"))      or ""
+
+    class_filters   = {"student_class": s_class} if s_class else {}
+    section_filters = {"student_class": s_class, "section": s_section} if s_class and s_section else class_filters
+
+    exam_schedules = frappe.db.count("Exam Schedule",  section_filters) if s_class else 0
+    home_schedules = frappe.db.count("Home Schedule",  section_filters) if s_class else 0
+    test_schedules = frappe.db.count("Test Schedule",  section_filters) if s_class else 0
+    exam_results   = frappe.db.count("Exam Schedule Item", {"student_admission_no": s_reg_no}) \
+                     if frappe.db.exists("DocType", "Exam Schedule Item") else 0
+    inclass_tests  = 0
+    homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) \
+                     if frappe.db.exists("DocType", "Home Schedule Item") else 0
+
+    billing = frappe.db.sql("""
+        SELECT SUM(outstanding_amount) as balance
+        FROM `tabSales Invoice`
+        WHERE customer_name = %s AND docstatus = 1
+    """, full_name, as_dict=True)
+    balance = float(billing[0].balance) if billing and billing[0].balance else 0.0
+
+    return {
+        "exam_schedules": exam_schedules or 0,
+        "home_schedules": home_schedules or 0,
+        "test_schedules": test_schedules or 0,
+        "exam_results":   exam_results   or 0,
+        "inclass_tests":  inclass_tests  or 0,
+        "homework":       homework       or 0,
+        "balance":        balance,
+    }
+
+
+def _make_initials(full_name, fallback="?"):
+    """Return up-to-2-letter initials from a full name."""
+    parts = (full_name or "").strip().split()
+    if len(parts) >= 2:
+        return (parts[0][0] + parts[-1][0]).upper()
+    elif parts:
+        return parts[0][0].upper()
+    return fallback
+
+@frappe.whitelist()
+def get_student_sidebar_data():
+    """
+    Returns schedule and result data for the logged-in student.
+    Schedules fetched by student_class + section.
+    Results fetched by student_admission_no (student_reg_no).
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    student = frappe.db.get_value("Student", {"portal_email": user},
+        ["name", "full_name", "student_reg_no", "student_class", "section",
+         "house", "student_image", "first_name"], as_dict=True)
+
+    if not student:
+        return {"error": "Student not found"}
+
+    s_class   = student.student_class or ""
+    s_section = student.section or ""
+    s_reg_no  = student.student_reg_no or student.name
+
+    filters = {"student_class": s_class, "section": s_section}
+
+    # ── Schedules (by class + section) ──
+    exam_schedules = frappe.get_all("Exam Schedule",
+        filters=filters,
+        fields=["name","title","subject","date","start_time","room_number","max_marks","exam_type"],
+        order_by="date asc") if s_class else []
+
+    home_schedules = frappe.get_all("Home Schedule",
+        filters=filters,
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
+        order_by="date asc") if s_class else []
+
+    test_schedules = frappe.get_all("Test Schedule",
+        filters=filters,
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
+        order_by="date asc") if s_class else []
+
+    # ── Results (by student_admission_no) ──
+    exam_schedule_results = frappe.db.sql("""
+        SELECT esi.parent as schedule_name, esi.marks_obtained, esi.status,
+               es.subject, es.date, es.max_marks, es.exam_type
+        FROM `tabExam Schedule Item` esi
+        JOIN `tabExam Schedule` es ON es.name = esi.parent
+        WHERE esi.student_admission_no = %s
+        ORDER BY es.date DESC
+    """, s_reg_no, as_dict=True)
+
+    home_results = frappe.db.sql("""
+        SELECT hsi.parent as schedule_name, hsi.marks_obtained, hsi.status,
+               hs.subject, hs.date, hs.max_marks
+        FROM `tabHome Schedule Item` hsi
+        JOIN `tabHome Schedule` hs ON hs.name = hsi.parent
+        WHERE hsi.student_admission_no = %s
+        ORDER BY hs.date DESC
+    """, s_reg_no, as_dict=True)
+
+    test_results = frappe.db.sql("""
+        SELECT tsi.parent as schedule_name, tsi.marks_obtained, tsi.status,
+               ts.subject, ts.date, ts.max_marks
+        FROM `tabTest Schedule Item` tsi
+        JOIN `tabTest Schedule` ts ON ts.name = tsi.parent
+        WHERE tsi.student_admission_no = %s
+        ORDER BY ts.date DESC
+    """, s_reg_no, as_dict=True)
+
+    exam_results_raw = frappe.db.sql("""
+        SELECT er.name, er.source_doc, er.student_class, er.subject, er.date,
+               tsi.marks_obtained, tsi.status
+        FROM `tabExam Result` er
+        JOIN `tabTest Schedule Item` tsi ON tsi.parent = er.name
+        WHERE tsi.student_admission_no = %s
+        ORDER BY er.date DESC
+    """, s_reg_no, as_dict=True)
+
+    # Stringify dates
+    for row in list(exam_schedules)+list(home_schedules)+list(test_schedules)+\
+               list(exam_schedule_results)+list(home_results)+list(test_results)+list(exam_results_raw):
+        if row.get("date"): row["date"] = str(row["date"])
+        if row.get("start_time"): row["start_time"] = str(row["start_time"])
+
+    class_name = frappe.db.get_value("Student Class", s_class, "class_name") or s_class
+
+    return {
+        "student": {
+            "name":       student.name,
+            "full_name":  student.full_name or "",
+            "reg_no":     s_reg_no,
+            "class_name": class_name,
+            "section":    s_section,
+            "house":      student.house or "",
+            "image":      student.student_image or "",
+            "initials":   (student.first_name or "S")[0].upper(),
+        },
+        "schedules": {
+            "exam": exam_schedules,
+            "home": home_schedules,
+            "test": test_schedules,
+        },
+        "results": {
+            "exam_schedule": exam_schedule_results,
+            "exam_result":   exam_results_raw,
+            "home":          home_results,
+            "test":          test_results,
+        },
+        "counts": {
+            "exam_schedules": len(exam_schedules),
+            "home_schedules": len(home_schedules),
+            "test_schedules": len(test_schedules),
+            "exam_results":   len(exam_schedule_results) + len(exam_results_raw),
+            "home_results":   len(home_results),
+            "test_results":   len(test_results),
+        }
+    }
+

@@ -1,0 +1,73 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-23 15:53:57.488423",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "fee_structure_defaults_section",
+  "fee_structure_defaults",
+  "registration_billing_section",
+  "enable_registration_billing",
+  "registration_billing_defaults"
+ ],
+ "fields": [
+  {
+   "fieldname": "fee_structure_defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Fee Structure Defaults"
+  },
+  {
+   "fieldname": "fee_structure_defaults",
+   "fieldtype": "Table",
+   "label": "Fee Structure Defaults",
+   "options": "Fee Structure Defaults"
+  },
+  {
+   "fieldname": "registration_billing_section",
+   "fieldtype": "Section Break",
+   "label": "Registration Billing"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_registration_billing",
+   "fieldtype": "Check",
+   "label": "Enable Registration Billing"
+  },
+  {
+   "depends_on": "eval:doc.enable_registration_billing == 1",
+   "description": "Map student status (Day/Boarding) to fees structure for registration billing",
+   "fieldname": "registration_billing_defaults",
+   "fieldtype": "Table",
+   "label": "Registration Billing Defaults",
+   "options": "Registration Billing Defaults"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-03-23 17:37:11.587493",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "School Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
