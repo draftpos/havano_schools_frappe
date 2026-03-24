@@ -39,14 +39,27 @@
 frappe.ui.form.on('Student', {
     refresh: function(frm) {
         if (!frm.doc.school) {
-            frm.set_value("school", "Main - SS");
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: {
+                    doctype: "User",
+                    filters: { name: frappe.session.user },
+                    fieldname: "school"
+                },
+                callback: function(r) {
+                    if (r.message && r.message.school) {
+                        frm.set_value("school", r.message.school);
+                    }
+                }
+            });
         }
 
         frm.set_query("account", function() {
             return {
                 filters: {
                     is_group: 0,
-                    company: frappe.defaults.get_default("company")
+                    company: frappe.defaults.get_default("company"),
+                    account_type: ["in", ["Bank", "Cash"]]
                 }
             };
         });

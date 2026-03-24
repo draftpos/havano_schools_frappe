@@ -81,6 +81,7 @@ class Student(Document):
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
         self.create_registration_billing()
+        self.create_portal_users()
 
     def on_update(self):
         if self.flags.get("ignore_on_update"):
@@ -89,6 +90,69 @@ class Student(Document):
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
         self.create_registration_billing()
+        self.create_portal_users()
+
+    def create_portal_users(self):
+        """Create portal users for student and parent if create_user is checked"""
+        if not self.create_user:
+            return
+
+        sender_email = "makonia20@gmail.com"
+        emails_to_create = []
+
+        if self.portal_email:
+            emails_to_create.append({"email": self.portal_email, "full_name": self.full_name or self.first_name})
+        if self.father_email:
+            emails_to_create.append({"email": self.father_email, "full_name": self.father_name or "Parent"})
+        if self.mother_email:
+            emails_to_create.append({"email": self.mother_email, "full_name": self.mother_name or "Parent"})
+
+        for entry in emails_to_create:
+            email = entry["email"]
+            full_name = entry["full_name"]
+            try:
+                if frappe.db.exists("User", email):
+                    user = frappe.get_doc("User", email)
+                    roles = [r.role for r in user.roles]
+                    if "Website User" not in roles:
+                        user.append("roles", {"role": "Website User"})
+                        user.flags.ignore_permissions = True
+                        user.save(ignore_permissions=True)
+                    continue
+
+                user = frappe.get_doc({
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": full_name,
+                    "enabled": 1,
+                    "user_type": "Website User",
+                    "send_welcome_email": 0,
+                    "roles": [{"role": "Website User"}]
+                })
+                user.flags.ignore_permissions = True
+                user.insert(ignore_permissions=True)
+
+                reset_key = user.reset_password()
+                frappe.sendmail(
+                    recipients=[email],
+                    sender=sender_email,
+                    subject="Your School Portal Access",
+                    message="""<p>Dear {name},</p>
+<p>Your portal account has been created.</p>
+<p>Email: {email}</p>
+<p>Please click below to set your password:</p>
+<p><a href="{url}/update-password?key={key}">Set Password & Login</a></p>
+<p>Regards,<br>School Administration</p>""".format(
+                        name=full_name, email=email,
+                        url=frappe.utils.get_url(), key=reset_key
+                    )
+                )
+                frappe.db.commit()
+            except Exception:
+                frappe.log_error(
+                    title="Portal user creation failed for {}".format(email),
+                    message=frappe.get_traceback()
+                )
 
     def create_customer(self):
         if not self.full_name:
