@@ -19,7 +19,7 @@
   "col_break_3",
   "student_class",
   "section",
-  "section",
+  "section1",
   "col_break_4",
   "number_of_students",
   "total_amount",
@@ -212,13 +212,19 @@
    "print_hide": 1,
    "read_only": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "section1",
+   "fieldtype": "Link",
+   "label": "Section1",
+   "options": "Section"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-21 08:12:16.261311",
+ "modified": "2026-03-24 17:09:19.074862",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Billing",

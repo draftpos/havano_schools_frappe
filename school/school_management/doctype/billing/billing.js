@@ -1,5 +1,6 @@
 // Copyright (c) 2026, Ashley and contributors
 // For license information, please see license.txt
+
 frappe.ui.form.on("Billing", {
     refresh: function(frm) {
         toggle_student_filters(frm);
@@ -26,24 +27,8 @@ frappe.ui.form.on("Billing", {
     },
 
     onload: function(frm) {
-        if (!frm.doc.cost_center) {
-            frappe.call({
-                method: "frappe.client.get_value",
-                args: {
-                    doctype: "User",
-                    filters: { name: frappe.session.user },
-                    fieldname: "school"
-                },
-                callback: function(r) {
-                    if (r.message && r.message.school) {
-                        frm.set_value("cost_center", r.message.school);
-                    }
-                    apply_cost_center_filters(frm);
-                }
-            });
-        } else {
-            apply_cost_center_filters(frm);
-        }
+        // Run filter application on load to ensure dropdowns are ready
+        apply_cost_center_filters(frm);
     },
 
     student: function(frm) {
@@ -74,13 +59,18 @@ frappe.ui.form.on("Billing", {
     },
 
     student_class: function(frm) {
+        // Clear section and section1 when class changes
         frm.set_value("section", "");
+        frm.set_value("section1", "");
         update_student_count(frm);
         apply_cost_center_filters(frm);
-        frappe.show_alert({
-            message: __("Class set. Section list updated."),
-            indicator: "green"
-        }, 3);
+        
+        if (frm.doc.student_class) {
+            frappe.show_alert({
+                message: __("Class set. Section list updated."),
+                indicator: "green"
+            }, 3);
+        }
     },
 
     section: function(frm) {
@@ -99,6 +89,7 @@ frappe.ui.form.on("Billing", {
     cost_center: function(frm) {
         frm.set_value("student_class", "");
         frm.set_value("section", "");
+        frm.set_value("section1", "");
         frm.set_value("student", "");
         apply_cost_center_filters(frm);
         update_student_count(frm);
@@ -136,14 +127,17 @@ function apply_cost_center_filters(frm) {
         return {};
     });
 
-    // Filter section — by class if selected, otherwise show all sections for this cost center via students
-    frm.set_query("section", function() {
-        var f = {};
-        if (frm.doc.student_class) {
-            f["student_class"] = frm.doc.student_class;
-        }
-        return { filters: f };
-    });
+    // REPLACED: Optimized Section Filter (Matching your working section1 logic)
+    let section_query = function() {
+        return {
+            filters: {
+                'student_class': frm.doc.student_class
+            }
+        };
+    };
+
+    frm.set_query("section", section_query);
+    frm.set_query("section1", section_query);
 
     // Filter student
     frm.set_query("student", function() {
@@ -198,6 +192,7 @@ function toggle_student_filters(frm) {
     frm.set_df_property("student_class", "reqd", 0);
     frm.set_df_property("student_class", "hidden", single ? 1 : 0);
     frm.set_df_property("section", "hidden", single ? 1 : 0);
+    frm.set_df_property("section1", "hidden", single ? 1 : 0);
     frm.set_df_property("other_filtering_section", "hidden", single ? 1 : 0);
     frm.set_df_property("category_1", "hidden", single ? 1 : 0);
     frm.set_df_property("category_2", "hidden", single ? 1 : 0);
