@@ -8,13 +8,10 @@ from frappe.utils import today, flt
 class Billing(Document):
 
     def validate(self):
-        # Ensure rates and quantities are calculated before saving
         self.calculate_amounts()
-        # Update the student count based on selected filters
         self.update_student_count()
 
     def update_student_count(self):
-        """Counts how many students match the current filters."""
         if self.student:
             self.number_of_students = 1
             return
@@ -28,7 +25,6 @@ class Billing(Document):
         self.number_of_students = frappe.db.count("Student", filters=filters)
 
     def calculate_amounts(self):
-        """Calculates item totals and the document total amount."""
         total = 0
         for item in self.items:
             item.qty = flt(item.qty) or 1.0
@@ -38,30 +34,33 @@ class Billing(Document):
         self.total_amount = total
 
     def get_student_filters(self):
-        """Helper to build the filter dictionary for Student queries."""
         filters = {}
-        # Prioritize 'section' but fall back to 'section1' if used
-        active_section = self.section or self.section1
         
-        # MODIFIED: Section is independent - no class requirement
-        if self.student_class:   filters["student_class"] = self.student_class
-        if active_section:       filters["section"] = active_section
-        if self.cost_center:     filters["school"] = self.cost_center  # Mapping cost_center to Student.school
-        if self.category_1:      filters["category_1"] = self.category_1
-        if self.category_2:      filters["category_2"] = self.category_2
-        if self.category_3:      filters["category_3"] = self.category_3
-        if self.area:            filters["area"] = self.area
-        if self.territory:       filters["territory"] = self.territory
-        if self.fees_category:   filters["fees_category"] = self.fees_category
+        if self.student_class:
+            filters["student_class"] = self.student_class
+        if self.section:
+            filters["section"] = self.section
+        if self.cost_center:
+            filters["school"] = self.cost_center
+        if self.category_1:
+            filters["category_1"] = self.category_1
+        if self.category_2:
+            filters["category_2"] = self.category_2
+        if self.category_3:
+            filters["category_3"] = self.category_3
+        if self.area:
+            filters["area"] = self.area
+        if self.territory:
+            filters["territory"] = self.territory
+        if self.fees_category:
+            filters["fees_category"] = self.fees_category
         
         return filters
 
     def on_submit(self):
-        """Trigger invoice creation once the Billing record is submitted."""
         self.create_student_invoices()
 
     def ensure_customer_exists(self, full_name):
-        """Checks if a Customer exists by name; creates one if not."""
         if not frappe.db.exists("Customer", full_name):
             customer = frappe.get_doc({
                 "doctype": "Customer",
@@ -75,7 +74,6 @@ class Billing(Document):
         return full_name
 
     def create_student_invoices(self):
-        """Generates a Sales Invoice for every student matching the filters."""
         students = []
         if self.student:
             student_doc = frappe.get_doc("Student", self.student)
@@ -95,7 +93,6 @@ class Billing(Document):
         skipped = 0
 
         for s in students:
-            # Handle both dict (get_all) and doc objects
             full_name = s.get("full_name") if isinstance(s, dict) else getattr(s, "full_name", None)
             
             if not full_name:
@@ -108,7 +105,6 @@ class Billing(Document):
                 invoice = frappe.new_doc("Sales Invoice")
                 invoice.customer = full_name
                 invoice.fees_structure = self.fees_structure
-                # Custom fields for tracking back to this billing run
                 invoice.update({
                     "billing_reference": self.name,
                     "company": company,
