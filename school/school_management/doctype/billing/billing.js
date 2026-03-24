@@ -49,6 +49,16 @@ frappe.ui.form.on("Billing", {
     student_class: function(frm) {
         frm.set_value("section", "");
         update_student_count(frm);
+        // Refresh section filter when class changes
+        if (frm.fields_dict.section) {
+            frm.fields_dict.section.set_query(function() {
+                var f = {};
+                if (frm.doc.student_class) {
+                    f["student_class"] = frm.doc.student_class;
+                }
+                return { filters: f };
+            });
+        }
     },
     section: function(frm) { update_student_count(frm); },
     cost_center: function(frm) {
@@ -91,10 +101,12 @@ function apply_cost_center_filters(frm) {
         return {};
     });
 
-    // Filter section — only sections linked to selected class
+    // Filter section — show all sections when no class selected, otherwise only sections linked to selected class
     frm.set_query("section", function() {
         var f = {};
-        if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
+        if (frm.doc.student_class) {
+            f["student_class"] = frm.doc.student_class;
+        }
         return { filters: f };
     });
 
