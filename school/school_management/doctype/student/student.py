@@ -97,7 +97,7 @@ class Student(Document):
         if not self.create_user:
             return
 
-        sender_email = "makonia20@gmail.com"
+        sender_email = "makoniashleytadiswa@gmail.com"
         emails_to_create = []
 
         if self.portal_email:
