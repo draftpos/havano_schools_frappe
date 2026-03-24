@@ -4,19 +4,46 @@ frappe.ui.form.on("Billing", {
     refresh: function(frm) {
         toggle_student_filters(frm);
         frm.set_df_property("student_class", "reqd", 0);
+
         if (!frm.doc.cost_center) {
-            frm.set_value("cost_center", "Main - SS");
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: {
+                    doctype: "User",
+                    filters: { name: frappe.session.user },
+                    fieldname: "school"
+                },
+                callback: function(r) {
+                    if (r.message && r.message.school) {
+                        frm.set_value("cost_center", r.message.school);
+                    }
+                    apply_cost_center_filters(frm);
+                }
+            });
+        } else {
+            apply_cost_center_filters(frm);
         }
-        apply_cost_center_filters(frm);
-
-
     },
 
     onload: function(frm) {
         if (!frm.doc.cost_center) {
-            frm.set_value("cost_center", "Main - SS");
+            frappe.call({
+                method: "frappe.client.get_value",
+                args: {
+                    doctype: "User",
+                    filters: { name: frappe.session.user },
+                    fieldname: "school"
+                },
+                callback: function(r) {
+                    if (r.message && r.message.school) {
+                        frm.set_value("cost_center", r.message.school);
+                    }
+                    apply_cost_center_filters(frm);
+                }
+            });
+        } else {
+            apply_cost_center_filters(frm);
         }
-        apply_cost_center_filters(frm);
     },
 
     student: function(frm) {
@@ -39,7 +66,7 @@ frappe.ui.form.on("Billing", {
                     row.qty = item.qty || 1;
                     row.rate = item.rate || 0;
                     row.amount = (item.qty || 1) * (item.rate || 0);
-                    row.cost_center = frm.doc.cost_center || "Main - SS";
+                    row.cost_center = frm.doc.cost_center || "";
                 });
                 frm.refresh_field("items");
             }
@@ -49,26 +76,34 @@ frappe.ui.form.on("Billing", {
     student_class: function(frm) {
         frm.set_value("section", "");
         update_student_count(frm);
-        // Refresh section filter when class changes
-        if (frm.fields_dict.section) {
-            frm.fields_dict.section.set_query(function() {
-                var f = {};
-                if (frm.doc.student_class) {
-                    f["student_class"] = frm.doc.student_class;
-                }
-                return { filters: f };
-            });
-        }
+        apply_cost_center_filters(frm);
+        frappe.show_alert({
+            message: __("Class set. Section list updated."),
+            indicator: "green"
+        }, 3);
     },
-    section: function(frm) { update_student_count(frm); },
+
+    section: function(frm) {
+        if (frm.doc.section && !frm.doc.student_class) {
+            frappe.msgprint({
+                title: __("Selection Required"),
+                indicator: "red",
+                message: __("Please select a Student Class first.")
+            });
+            frm.set_value("section", "");
+            return;
+        }
+        update_student_count(frm);
+    },
+
     cost_center: function(frm) {
-        // Clear dependent fields when cost center changes
         frm.set_value("student_class", "");
         frm.set_value("section", "");
         frm.set_value("student", "");
         apply_cost_center_filters(frm);
         update_student_count(frm);
     },
+
     category_1: function(frm) {
         frm.set_query("category_2", function() {
             return { filters: { category_1: frm.doc.category_1 } };
@@ -96,12 +131,12 @@ frappe.ui.form.on("Billing", {
 function apply_cost_center_filters(frm) {
     var cc = frm.doc.cost_center;
 
-    // Filter student_class — show all classes (no cost center on Student Class doctype)
+    // Filter student_class — show all classes
     frm.set_query("student_class", function() {
         return {};
     });
 
-    // Filter section — show all sections when no class selected, otherwise only sections linked to selected class
+    // Filter section — by class if selected, otherwise show all sections for this cost center via students
     frm.set_query("section", function() {
         var f = {};
         if (frm.doc.student_class) {
@@ -110,16 +145,16 @@ function apply_cost_center_filters(frm) {
         return { filters: f };
     });
 
-    // Filter student — only students in selected cost center + class + section
+    // Filter student
     frm.set_query("student", function() {
         var f = {};
-        if (cc) f["cost_center"] = cc;
+        if (cc) f["school"] = cc;
         if (frm.doc.student_class) f["student_class"] = frm.doc.student_class;
         if (frm.doc.section) f["section"] = frm.doc.section;
         return { filters: f };
     });
 
-    // Filter fees_structure — only show fees structures for selected cost center
+    // Filter fees_structure by cost center
     frm.set_query("fees_structure", function() {
         var f = {};
         if (cc) f["cost_center"] = cc;
@@ -133,9 +168,9 @@ function update_student_count(frm) {
         return;
     }
     var filters = {};
+    if (frm.doc.cost_center) filters["school"] = frm.doc.cost_center;
     if (frm.doc.student_class) filters["student_class"] = frm.doc.student_class;
     if (frm.doc.section) filters["section"] = frm.doc.section;
-    if (frm.doc.cost_center)   filters["cost_center"]   = frm.doc.cost_center;
     if (frm.doc.category_1) filters["category_1"] = frm.doc.category_1;
     if (frm.doc.category_2) filters["category_2"] = frm.doc.category_2;
     if (frm.doc.category_3) filters["category_3"] = frm.doc.category_3;
@@ -170,6 +205,5 @@ function toggle_student_filters(frm) {
     frm.set_df_property("area", "hidden", single ? 1 : 0);
     frm.set_df_property("territory", "hidden", single ? 1 : 0);
     frm.set_df_property("fees_category", "hidden", single ? 1 : 0);
-    // Show student field clearly when in single mode
     frm.set_df_property("student", "hidden", 0);
 }

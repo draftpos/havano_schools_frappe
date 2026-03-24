@@ -19,6 +19,7 @@
   "col_break_3",
   "student_class",
   "section",
+  "section",
   "col_break_4",
   "number_of_students",
   "total_amount",
@@ -104,6 +105,12 @@
    "in_list_view": 1,
    "label": "Class",
    "options": "Student Class"
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "label": "Section",
+   "options": "Section"
   },
   {
    "fieldname": "section",
