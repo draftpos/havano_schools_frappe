@@ -293,6 +293,7 @@
    "default": "0",
    "fieldname": "billed_on_registration",
    "fieldtype": "Check",
+   "hidden": 1,
    "label": "Billed on Registration",
    "read_only": 1
   },
@@ -691,7 +692,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-24 09:43:42.554802",
+ "modified": "2026-03-24 09:57:30.305929",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
