@@ -59,30 +59,20 @@ frappe.ui.form.on("Billing", {
     },
 
     student_class: function(frm) {
-        // Clear section and section1 when class changes
+        // Clear section when class changes
         frm.set_value("section", "");
         frm.set_value("section1", "");
         update_student_count(frm);
-        apply_cost_center_filters(frm);
         
         if (frm.doc.student_class) {
             frappe.show_alert({
-                message: __("Class set. Section list updated."),
+                message: __("Class set."),
                 indicator: "green"
             }, 3);
         }
     },
 
     section: function(frm) {
-        if (frm.doc.section && !frm.doc.student_class) {
-            frappe.msgprint({
-                title: __("Selection Required"),
-                indicator: "red",
-                message: __("Please select a Student Class first.")
-            });
-            frm.set_value("section", "");
-            return;
-        }
         update_student_count(frm);
     },
 
@@ -127,13 +117,9 @@ function apply_cost_center_filters(frm) {
         return {};
     });
 
-    // REPLACED: Optimized Section Filter (Matching your working section1 logic)
+    // MODIFIED: Section filter - shows ALL sections regardless of class
     let section_query = function() {
-        return {
-            filters: {
-                'student_class': frm.doc.student_class
-            }
-        };
+        return {};  // No filters - shows all sections
     };
 
     frm.set_query("section", section_query);

@@ -43,9 +43,10 @@ class Billing(Document):
         # Prioritize 'section' but fall back to 'section1' if used
         active_section = self.section or self.section1
         
+        # MODIFIED: Section is independent - no class requirement
         if self.student_class:   filters["student_class"] = self.student_class
         if active_section:       filters["section"] = active_section
-        if self.cost_center:     filters["school"] = self.cost_center # Mapping cost_center to Student.school
+        if self.cost_center:     filters["school"] = self.cost_center  # Mapping cost_center to Student.school
         if self.category_1:      filters["category_1"] = self.category_1
         if self.category_2:      filters["category_2"] = self.category_2
         if self.category_3:      filters["category_3"] = self.category_3
