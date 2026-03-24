@@ -33,6 +33,9 @@
   "paying_admin_fee",
   "admin_fee_paid",
   "admin_fees_structure",
+  "fees_structure",
+  "account",
+  "billed_on_registration",
   "parent_guardian_detail_section",
   "father_name",
   "mother_name",
@@ -47,6 +50,11 @@
   "column_break_gpav",
   "father_photo",
   "mother_photo",
+  "create_user_section",
+  "create_user",
+  "portal_email",
+  "column_break_jxle",
+  "student_image",
   "guardian_section",
   "if_guardian_is",
   "guardian_name",
@@ -65,7 +73,6 @@
   "column_break_vigs",
   "if_permanent_address_is_current_address",
   "permanent_address",
-  "medical_history_section",
   "other_filtering_section",
   "category_1",
   "area",
@@ -102,15 +109,7 @@
   "national_identification_number",
   "local_identification_number",
   "previous_school_details_section",
-  "previous_school_details",
-  "create_user_section",
-  "create_user",
-  "portal_email",
-  "column_break_jxle",
-  "student_image",
-  "fees_structure",
-  "account",
-  "billed_on_registration"
+  "previous_school_details"
  ],
  "fields": [
   {
@@ -276,9 +275,11 @@
    "options": "Fees Structure"
   },
   {
+   "depends_on": "eval:doc.billed_on_registration == 1",
    "fieldname": "fees_structure",
    "fieldtype": "Link",
-   "label": "Billing Fees Structure",
+   "label": "Registration Fees Structure",
+   "mandatory_depends_on": "eval:doc.billed_on_registration == 1",
    "options": "Fees Structure",
    "read_only": 1
   },
@@ -462,12 +463,6 @@
    "fieldname": "permanent_address",
    "fieldtype": "Data",
    "label": "Permanent Address"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "medical_history_section",
-   "fieldtype": "Section Break",
-   "label": "Medical History"
   },
   {
    "collapsible": 1,
@@ -667,7 +662,6 @@
    "label": "Previous School Details"
   },
   {
-   "collapsible": 1,
    "fieldname": "create_user_section",
    "fieldtype": "Section Break",
    "label": "Portal Access"
@@ -697,7 +691,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-23 17:08:38.656701",
+ "modified": "2026-03-24 09:43:42.554802",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Student",
