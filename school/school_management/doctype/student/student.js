@@ -13,6 +13,14 @@ frappe.ui.form.on('Student', {
             };
         });
 
+        frm.set_query("section", function() {
+            return {
+                filters: frm.doc.student_class
+                    ? { student_class: frm.doc.student_class }
+                    : {}
+            };
+        });
+
         frappe.call({
             method: "frappe.client.get",
             args: { doctype: "School Settings", name: "School Settings" },
@@ -21,6 +29,17 @@ frappe.ui.form.on('Student', {
                     frm.set_df_property("billed_on_registration", "read_only", 1);
                 }
             }
+        });
+    },
+
+    student_class: function(frm) {
+        frm.set_value("section", "");
+        frm.set_query("section", function() {
+            return {
+                filters: frm.doc.student_class
+                    ? { student_class: frm.doc.student_class }
+                    : {}
+            };
         });
     },
 
