@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Student Online Registration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#0f1e35;--navy-mid:#1a2f50;--gold:#c9a84c;--gold-light:#e8c97a;--cream:#f9f5ee;--white:#ffffff;--text:#2c3e50;--muted:#7f8c8d;--border:#ddd5c3;--success:#27ae60;--error:#e74c3c;--input-bg:#fdfbf7;--shadow:0 4px 24px rgba(15,30,53,.10)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh}
+    .portal-header{background:var(--navy);position:relative;overflow:hidden}
+    .portal-header::before{content:'';position:absolute;top:-60px;right:-60px;width:280px;height:280px;border-radius:50%;background:rgba(201,168,76,.08)}
+    .header-inner{max-width:900px;margin:0 auto;padding:48px 32px 40px;position:relative;z-index:1}
+    .school-badge{display:inline-flex;align-items:center;gap:10px;background:rgba(201,168,76,.15);border:1px solid rgba(201,168,76,.3);border-radius:100px;padding:6px 18px;margin-bottom:20px}
+    .school-badge span{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-light)}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--gold)}
+    h1.portal-title{font-family:'Playfair Display',serif;font-size:clamp(28px,5vw,46px);font-weight:900;color:var(--white);line-height:1.15;margin-bottom:12px}
+    h1.portal-title span{color:var(--gold)}
+    .portal-subtitle{font-size:15px;color:rgba(255,255,255,.6);font-weight:300;max-width:480px;line-height:1.6}
+    .progress-wrap{max-width:900px;margin:0 auto;padding:0 32px;background:var(--navy)}
+    .steps-bar{display:flex;border-top:1px solid rgba(255,255,255,.08)}
+    .step-tab{flex:1;padding:16px 8px 14px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.35);cursor:pointer;border-bottom:3px solid transparent;transition:all .25s}
+    .step-tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    .step-tab.done{color:rgba(255,255,255,.55)}
+    .step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);font-size:10px;margin-right:6px;transition:all .25s}
+    .step-tab.active .step-num{background:var(--gold);color:var(--navy)}
+    .step-tab.done .step-num{background:var(--success);color:#fff}
+    .form-container{max-width:900px;margin:0 auto;padding:32px 32px 80px}
+    .form-card{background:var(--white);border-radius:16px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:24px}
+    .card-header{background:var(--navy);padding:20px 28px;display:flex;align-items:center;gap:14px}
+    .card-icon{width:38px;height:38px;border-radius:10px;background:rgba(201,168,76,.2);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .card-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--white)}
+    .card-body{padding:28px}
+    .field-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px 20px}
+    .field-grid.two-col{grid-template-columns:1fr 1fr}
+    @media(max-width:700px){.field-grid,.field-grid.two-col{grid-template-columns:1fr}}
+    .field-full{grid-column:1/-1}
+    .field-group{display:flex;flex-direction:column;gap:6px}
+    .field-group label{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+    .req{color:var(--gold);margin-left:3px}
+    .field-group input,.field-group select,.field-group textarea{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);background:var(--input-bg);transition:border .2s,box-shadow .2s;appearance:none}
+    .field-group input:focus,.field-group select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.12)}
+    .field-group input.error,.field-group select.error{border-color:var(--error)}
+    .select-wrap{position:relative}
+    .select-wrap::after{content:'▾';position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:13px}
+    .select-wrap select{padding-right:32px}
+    .billing-notice{background:linear-gradient(135deg,#fffbf0,#fff8e3);border:1.5px solid var(--gold-light);border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start}
+    .billing-notice .icon{font-size:20px;margin-top:1px}
+    .billing-notice p{font-size:13px;color:#7a6020;line-height:1.5}
+    .nav-buttons{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s;letter-spacing:.02em}
+    .btn-prev{background:transparent;color:var(--navy-mid);border:1.5px solid var(--border)}
+    .btn-prev:hover{border-color:var(--navy);background:var(--cream)}
+    .btn-next{background:var(--navy);color:var(--white);margin-left:auto}
+    .btn-next:hover{background:var(--navy-mid);transform:translateY(-1px);box-shadow:0 4px 16px rgba(15,30,53,.25)}
+    .btn-submit{background:linear-gradient(135deg,var(--gold),#b8922e);color:var(--navy);font-weight:700;margin-left:auto}
+    .btn-submit:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,168,76,.4)}
+    .btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important}
+    .form-step{display:none}
+    .form-step.active{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    .success-screen{display:none;text-align:center;padding:60px 32px;background:var(--white);border-radius:16px;box-shadow:var(--shadow)}
+    .success-screen.show{display:block;animation:fadeIn .5s ease}
+    .success-icon{width:80px;height:80px;background:linear-gradient(135deg,#e8f8ef,#c8f0d8);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px}
+    .success-screen h2{font-family:'Playfair Display',serif;font-size:28px;color:var(--navy);margin-bottom:12px}
+    .success-screen p{color:var(--muted);font-size:15px;line-height:1.6;max-width:400px;margin:0 auto 20px}
+    .ref-badge{display:inline-block;background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--navy);letter-spacing:.05em}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(15,30,53,.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .global-error{background:#fdf0f0;border:1px solid #f5c6c6;border-radius:8px;padding:12px 16px;color:var(--error);font-size:13px;margin-bottom:20px;display:none}
+    .global-error.show{display:block}
+    .portal-footer{text-align:center;padding:32px;color:var(--muted);font-size:12px}
+  </style>
+</head>
+<body>
+<header class="portal-header">
+  <div class="header-inner">
+    <div class="school-badge"><div class="dot"></div><span>Student Admission Portal</span></div>
+    <h1 class="portal-title">Online <span>Enrollment</span><br>Registration</h1>
+    <p class="portal-subtitle">Complete the form below to apply for admission. Fields marked <strong style="color:var(--gold)">*</strong> are required.</p>
+  </div>
+  <div class="progress-wrap">
+    <div class="steps-bar">
+      <div class="step-tab active" data-step="1"><span class="step-num">1</span>Student</div>
+      <div class="step-tab" data-step="2"><span class="step-num">2</span>Parents</div>
+      <div class="step-tab" data-step="3"><span class="step-num">3</span>Guardian</div>
+      <div class="step-tab" data-step="4"><span class="step-num">4</span>Address</div>
+      <div class="step-tab" data-step="5"><span class="step-num">5</span>Review</div>
+    </div>
+  </div>
+</header>
+
+<main class="form-container">
+  <div class="global-error" id="globalError"></div>
+
+  <!-- STEP 1 -->
+  <div class="form-step active" id="step1">
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">🎓</div><div class="card-title">Student Details</div></div>
+      <div class="card-body">
+        <div class="field-grid">
+          <div class="field-group">
+            <label>School / Cost Center <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="school">
+                <option value="">— Select School —</option>
+                {% for s in schools %}<option value="{{ s.name }}">{{ s.cost_center_name or s.name }}</option>{% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Class <span class="req">*</span></label>
+            <div class="select-wrap">
+              <select id="student_class">
+                <option value="">Loading classes...</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Section</label>
+            <div class="select-wrap">
+              <select id="section">
+                <option value="">Loading sections...</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group"><label>First Name <span class="req">*</span></label><input type="text" id="first_name" placeholder="e.g. Tariro"></div>
+          <div class="field-group"><label>Second Name</label><input type="text" id="second_name" placeholder="e.g. Faith"></div>
+          <div class="field-group"><label>Last Name <span class="req">*</span></label><input type="text" id="last_name" placeholder="e.g. Moyo"></div>
+          <div class="field-group"><label>Date of Birth</label><input type="date" id="date_of_birth"></div>
+          <div class="field-group"><label>Gender</label><div class="select-wrap"><select id="gender"><option value="">Select gender</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>
+          <div class="field-group"><label>Student Phone</label><input type="tel" id="student_phone_number" placeholder="+263 7XX XXX XXX"></div>
+          <div class="field-group"><label>Student Type <span class="req">*</span></label><div class="select-wrap"><select id="student_type"><option value="">Select type</option><option>Day</option><option>Boarding</option></select></div></div>
+          <div class="field-group"><label>Religion</label><div class="select-wrap"><select id="religion"><option value="">Select religion</option>{% for r in religions %}<option value="{{ r.name }}">{{ r.name }}</option>{% endfor %}</select></div></div>
+          <div class="field-group"><label>Date of Admission</label><input type="date" id="date_of_admission"></div>
+          <div class="field-group"><label>Student Photo</label><input type="file" id="student_image" accept="image/*"></div>
+          <div class="field-group"><label>National ID</label><input type="text" id="national_identification_number"></div>
+          <div class="field-group"><label>Local ID</label><input type="text" id="local_identification_number"></div>
+          <div class="field-group"><label>Medical History</label><input type="text" id="medical_history"></div>
+          <div class="field-group field-full"><label>Previous School</label><input type="text" id="previous_school_details"></div>
+          <div class="field-group"><label>Portal Email (for login)</label><input type="email" id="portal_email" placeholder="student@example.com"></div>
+        </div>
+      </div>
+    </div>
+    {% if bill_on_registration %}
+    <div class="billing-notice"><div class="icon">💳</div><p><strong>Registration Fee Notice:</strong> This school charges a registration fee based on your student type. You will select payment details in Step 4.</p></div>
+    {% endif %}
+    <div class="nav-buttons"><div></div><button class="btn btn-next" onclick="goToStep(2)">Next: Parents →</button></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="form-step" id="step2">
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">👨‍👩‍👧</div><div class="card-title">Parent Details</div></div>
+      <div class="card-body">
+        <div class="field-grid two-col">
+          <div class="field-group"><label>Father's Name</label><input type="text" id="father_name"></div>
+          <div class="field-group"><label>Mother's Name</label><input type="text" id="mother_name"></div>
+          <div class="field-group"><label>Father's Phone</label><input type="tel" id="phone_number"></div>
+          <div class="field-group"><label>Mother's Phone</label><input type="tel" id="mother_phone"></div>
+          <div class="field-group"><label>Father's Email</label><input type="email" id="father_email"></div>
+          <div class="field-group"><label>Mother's Email</label><input type="email" id="mother_email"></div>
+          <div class="field-group"><label>Father's Occupation</label><input type="text" id="father_occupation"></div>
+          <div class="field-group"><label>Mother's Occupation</label><input type="text" id="mother_occupation"></div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-buttons"><button class="btn btn-prev" onclick="goToStep(1)">← Previous</button><button class="btn btn-next" onclick="goToStep(3)">Next: Guardian →</button></div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="form-step" id="step3">
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">🧑‍🤝‍🧑</div><div class="card-title">Guardian Details</div></div>
+      <div class="card-body">
+        <div class="field-grid two-col">
+          <div class="field-group field-full"><label>Guardian Is</label><div class="select-wrap"><select id="if_guardian_is" onchange="toggleGuardian()"><option value="">Select…</option><option>Father</option><option>Mother</option><option>Other</option></select></div></div>
+          <div class="field-group g-other" style="display:none"><label>Guardian Name</label><input type="text" id="guardian_name"></div>
+          <div class="field-group g-other" style="display:none"><label>Guardian Relation</label><input type="text" id="guardian_relation"></div>
+          <div class="field-group g-other" style="display:none"><label>Guardian Phone</label><input type="tel" id="guardian_phone"></div>
+          <div class="field-group g-other" style="display:none"><label>Guardian Email</label><input type="email" id="guardian_email"></div>
+          <div class="field-group g-other" style="display:none"><label>Guardian Occupation</label><input type="text" id="guardian_occupation"></div>
+          <div class="field-group g-other field-full" style="display:none"><label>Guardian Address</label><input type="text" id="guardian_address"></div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-buttons"><button class="btn btn-prev" onclick="goToStep(2)">← Previous</button><button class="btn btn-next" onclick="goToStep(4)">Next: Address →</button></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="form-step" id="step4">
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">🏠</div><div class="card-title">Address Details</div></div>
+      <div class="card-body">
+        <div class="field-grid two-col">
+          <div class="field-group"><label>Current Address</label><input type="text" id="current_address"></div>
+          <div class="field-group"><label>Permanent Address</label><input type="text" id="permanent_address"></div>
+        </div>
+      </div>
+    </div>
+    {% if bill_on_registration %}
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">💳</div><div class="card-title">Payment Details</div></div>
+      <div class="card-body">
+        <div class="billing-notice" style="margin-bottom:20px"><div class="icon">ℹ️</div><p>A registration fee will be charged based on your selected student type.</p></div>
+        <div class="field-grid two-col">
+          <div class="field-group"><label>Payment Account <span class="req">*</span></label><div class="select-wrap"><select id="account"><option value="">Select account</option>{% for a in payment_accounts %}<option value="{{ a.name }}">{{ a.account_name or a.name }}</option>{% endfor %}</select></div></div>
+          <div class="field-group"><label>Payment Method <span class="req">*</span></label><div class="select-wrap"><select id="payment_method"><option value="">Select method</option><option>Cash</option><option>Bank Transfer</option><option>Cheque</option><option>Mobile Money</option></select></div></div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    <div class="nav-buttons"><button class="btn btn-prev" onclick="goToStep(3)">← Previous</button><button class="btn btn-next" onclick="goToStep(5)">Review →</button></div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="form-step" id="step5">
+    <div class="form-card">
+      <div class="card-header"><div class="card-icon">📋</div><div class="card-title">Review Your Application</div></div>
+      <div class="card-body"><div id="reviewContent" style="font-size:14px;line-height:1.8"></div></div>
+    </div>
+    <div class="form-card" style="border:2px solid var(--gold)">
+      <div class="card-body" style="display:flex;align-items:flex-start;gap:16px">
+        <input type="checkbox" id="declaration" style="margin-top:4px;width:16px;height:16px;accent-color:var(--gold)">
+        <label for="declaration" style="font-size:13px;line-height:1.6;cursor:pointer">I declare that all information provided is accurate and complete. I understand that false information may result in rejection of enrollment.</label>
+      </div>
+    </div>
+    <div class="nav-buttons">
+      <button class="btn btn-prev" onclick="goToStep(4)">← Previous</button>
+      <button class="btn btn-submit" id="submitBtn" onclick="submitRegistration()"><span id="btnText">Submit Application</span></button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-icon">✅</div>
+    <h2>Application Submitted!</h2>
+    <p id="successMsg">Your registration has been submitted successfully.</p>
+    <div class="ref-badge" id="refBadge"></div>
+    <br><br>
+    <button class="btn btn-next" onclick="location.reload()" style="margin:auto">Submit Another</button>
+  </div>
+</main>
+
+<footer class="portal-footer">Powered by School Management System · All submissions are secure.</footer>
+
+<script>
+// Global variables
+let billEnabled = {{ bill_on_registration or false }};
+let ALL_CLASSES = {{ all_classes_json or '[]' }};
+let ALL_SECTIONS = {{ all_sections_json or '[]' }};
+
+// Step navigation
+let cur = 1;
+
+// Load all classes (standalone)
+function loadAllClasses() {
+    const classSelect = document.getElementById('student_class');
+    if (!classSelect) return;
+    
+    classSelect.innerHTML = '<option value="">Select class</option>';
+    
+    if (ALL_CLASSES && ALL_CLASSES.length > 0) {
+        ALL_CLASSES.forEach(function(cls) {
+            const option = document.createElement('option');
+            option.value = cls.name;
+            option.textContent = cls.name;
+            classSelect.appendChild(option);
+        });
+        classSelect.disabled = false;
+    } else {
+        classSelect.innerHTML = '<option value="">No classes available</option>';
+        classSelect.disabled = true;
+    }
+}
+
+// Load all sections (standalone)
+function loadAllSections() {
+    const sectionSelect = document.getElementById('section');
+    if (!sectionSelect) return;
+    
+    sectionSelect.innerHTML = '<option value="">Select section</option>';
+    
+    if (ALL_SECTIONS && ALL_SECTIONS.length > 0) {
+        ALL_SECTIONS.forEach(function(section) {
+            const option = document.createElement('option');
+            option.value = section.name;
+            option.textContent = section.name;
+            sectionSelect.appendChild(option);
+        });
+        sectionSelect.disabled = false;
+    } else {
+        sectionSelect.innerHTML = '<option value="">No sections available</option>';
+        sectionSelect.disabled = true;
+    }
+}
+
+function goToStep(s) {
+  if (s > cur && !validate()) return;
+  document.getElementById('step' + cur).classList.remove('active');
+  document.querySelectorAll('.step-tab').forEach(function(t, i) {
+    t.classList.remove('active', 'done');
+    if (i + 1 < s) t.classList.add('done');
+  });
+  cur = s;
+  document.getElementById('step' + cur).classList.add('active');
+  document.querySelector('.step-tab[data-step="' + cur + '"]').classList.add('active');
+  window.scrollTo({top: 0, behavior: 'smooth'});
+  if (s === 5) buildReview();
+}
+
+function validate() {
+  var ok = true;
+  if (cur === 1) {
+    ['school', 'first_name', 'last_name', 'student_class', 'student_type'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (!el || !el.value.trim()) { if (el) el.classList.add('error'); ok = false; }
+      else el.classList.remove('error');
+    });
+  }
+  if (cur === 4 && billEnabled) {
+    ['account', 'payment_method'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el && !el.value) { el.classList.add('error'); ok = false; }
+      else if (el) el.classList.remove('error');
+    });
+  }
+  if (!ok) showErr('Please fill in all required fields.');
+  else hideErr();
+  return ok;
+}
+
+function toggleGuardian() {
+  var v = document.getElementById('if_guardian_is').value;
+  document.querySelectorAll('.g-other').forEach(function(el) {
+    el.style.display = v === 'Other' ? '' : 'none';
+  });
+}
+
+function v(id) {
+  var el = document.getElementById(id);
+  return el ? el.value.trim() : '';
+}
+
+function buildReview() {
+  var rows = {
+    'School': v('school'),
+    'Student Name': [v('first_name'), v('second_name'), v('last_name')].filter(Boolean).join(' '),
+    'Date of Birth': v('date_of_birth'),
+    'Gender': v('gender'),
+    'Class': v('student_class'),
+    'Section': v('section'),
+    'Student Type': v('student_type'),
+    'Phone': v('student_phone_number'),
+    'National ID': v('national_identification_number'),
+    'Father': v('father_name'),
+    'Mother': v('mother_name'),
+    'Father Phone': v('phone_number'),
+    'Mother Phone': v('mother_phone'),
+    'Guardian': v('if_guardian_is'),
+    'Address': v('current_address'),
+    'Portal Email': v('portal_email')
+  };
+  if (billEnabled) {
+    rows['Payment Account'] = v('account');
+    rows['Payment Method'] = v('payment_method');
+  }
+  var html = '<table style="width:100%;border-collapse:collapse">';
+  var i = 0;
+  for (var l in rows) {
+    var val = rows[l];
+    if (!val) continue;
+    html += '<tr style="background:' + (i % 2 ? '#fff' : '#fdfbf7') + '">' +
+            '<td style="padding:9px 14px;font-size:11px;font-weight:600;text-transform:uppercase;color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + l + '寿' +
+            '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + val + '寿' +
+            '</tr>';
+    i++;
+  }
+  html += '</table>';
+  document.getElementById('reviewContent').innerHTML = html;
+}
+
+async function submitRegistration() {
+  if (!document.getElementById('declaration').checked) { showErr('Please check the declaration.'); return; }
+  if (billEnabled && (!v('account') || !v('payment_method'))) { showErr('Payment account and method are required.'); return; }
+
+  var btn = document.getElementById('submitBtn');
+  var txt = document.getElementById('btnText');
+  btn.disabled = true;
+  txt.innerHTML = '<span class="spinner"></span> Submitting…';
+
+  var data = {};
+  ['school','first_name','second_name','last_name','date_of_birth','gender','student_phone_number',
+   'student_class','section','student_type','religion','date_of_admission',
+   'national_identification_number','local_identification_number','previous_school_details',
+   'medical_history','portal_email','father_name','mother_name','phone_number','mother_phone',
+   'father_email','mother_email','father_occupation','mother_occupation','if_guardian_is',
+   'guardian_name','guardian_relation','guardian_phone','guardian_email','guardian_occupation',
+   'guardian_address','current_address','permanent_address','account','payment_method'
+  ].forEach(function(f) { var val = v(f); if (val) data[f] = val; });
+
+  try {
+    var csrf = (document.cookie.split(';').map(function(c) { return c.trim(); }).find(function(c) { return c.startsWith('csrf_token='); }) || '').split('=')[1] || '';
+    var resp = await fetch('/api/method/school.www.student_registration.submit_registration', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', 'X-Frappe-CSRF-Token': csrf},
+      body: JSON.stringify({data: JSON.stringify(data)})
+    });
+    var res = await resp.json();
+    if (res.message && res.message.success) {
+      document.querySelectorAll('.form-step').forEach(function(s) { s.style.display = 'none'; });
+      var ss = document.getElementById('successScreen');
+      ss.classList.add('show');
+      document.getElementById('successMsg').textContent = res.message.message;
+      document.getElementById('refBadge').textContent = 'Reference: ' + res.message.name;
+    } else {
+      showErr((res.exception || res.message || 'Submission failed. Please try again.').toString().replace(/_/g, ' '));
+      btn.disabled = false;
+      txt.textContent = 'Submit Application';
+    }
+  } catch(e) {
+    showErr('Network error. Check your connection and try again.');
+    btn.disabled = false;
+    txt.textContent = 'Submit Application';
+  }
+}
+
+function showErr(m) { var e = document.getElementById('globalError'); e.textContent = m; e.classList.add('show'); e.scrollIntoView({behavior:'smooth',block:'center'}); }
+function hideErr() { document.getElementById('globalError').classList.remove('show'); }
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadAllClasses();
+    loadAllSections();
+    
+    document.querySelectorAll('input, select').forEach(function(field) {
+        field.addEventListener('change', function(e) { e.target.classList.remove('error'); });
+        field.addEventListener('input', function(e) { e.target.classList.remove('error'); });
+    });
+});
+</script>
+</body>
+</html>

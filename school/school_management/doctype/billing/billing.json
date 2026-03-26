@@ -20,6 +20,7 @@
   "student_class",
   "section",
   "col_break_4",
+  "status",
   "number_of_students",
   "total_amount",
   "other_filtering_section",
@@ -114,6 +115,12 @@
   {
    "fieldname": "col_break_4",
    "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "label": "Student Status",
+   "options": " \nDay\nBoarding"
   },
   {
    "fieldname": "number_of_students",
@@ -279,3 +286,4 @@
  "states": [],
  "track_changes": 1
 }
+

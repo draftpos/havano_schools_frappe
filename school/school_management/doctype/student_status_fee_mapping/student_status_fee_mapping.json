@@ -1,0 +1,52 @@
+{
+ "actions": [],
+ "allow_copy": 0,
+ "allow_guest_to_view": 0,
+ "autoname": "field:status",
+ "creation": "2026-01-01",
+ "default_print_format": null,
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "status",
+  "fees_structure"
+ ],
+ "fields": [
+  {
+   "bold": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Day\nBoarding",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "fees_structure",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Fees Structure",
+   "options": "Fees Structure",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "is_child": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-01-01",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Student Status Fee Mapping",
+ "owner": "Administrator",
+ "permissions": [],
+ "quick_entry": 1,
+ "show_name_in_global_search": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "status"
+}
+
