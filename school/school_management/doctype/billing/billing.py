@@ -123,6 +123,7 @@ class Billing(Document):
                     invoice.append("items", {
                         "item_code": item.item_code,
                         "item_name": item.item_name,
+                        "description": item.description or "",
                         "qty": item.qty or 1,
                         "rate": item.rate or 0,
                         "amount": item.amount or 0,
@@ -181,6 +182,3 @@ def get_student_count(student_class=None, section=None, status=None, cost_center
 #         if m.status == status:
 #             return m.fees_structure
 #     return None
-
-
-

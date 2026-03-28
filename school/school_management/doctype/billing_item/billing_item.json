@@ -9,6 +9,7 @@
   "item_code",
   "item_name",
   "price_list",
+  "description",
   "rate",
   "qty",
   "amount"
@@ -36,6 +37,13 @@
    "in_list_view": 1,
    "label": "Price List Name",
    "options": "Price List"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Description",
+   "reqd": 1
   },
   {
    "fieldname": "rate",
