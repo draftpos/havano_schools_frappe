@@ -1029,21 +1029,23 @@ def get_login_slides():
     slide_urls = []
     for s in slides:
         # Try File record first
-        file_url = frappe.db.get_value("File", {
+        file_doc = frappe.get_all("File", {
             "attached_to_doctype": "Login Slide Image",
             "attached_to_name": s.name
-        }, "file_url")
+        }, "name, file_url, is_private", limit=1)
         
-        # Fallback to raw filename
-        if not file_url and s.slide_image:
-            file_url = "/files/" + s.slide_image
+        if file_doc:
+            file_name = file_doc[0].name
+            # Make public if private
+            if file_doc[0].is_private:
+                file = frappe.get_doc("File", file_name)
+                file.is_private = 0
+                file.save()
             
-        if file_url:
-            # Fix URL path - ensure /files/ prefix
-            clean_url = file_url.lstrip('/')
-            if not clean_url.startswith('files/'):
-                clean_url = 'files/' + clean_url
-            slide_urls.append(frappe.utils.get_site_url(frappe.local.site) + '/' + clean_url)
+            slide_urls.append(frappe.get_url(file_doc[0].file_url))
+        elif s.slide_image:
+            slide_urls.append(frappe.utils.get_url("/files/" + s.slide_image))
     
+    frappe.log_error(f"Login slides URLs: {slide_urls}", "DEBUG_LOGIN_SLIDES")
     return slide_urls
 

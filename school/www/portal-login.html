@@ -8,6 +8,7 @@ title: School Portal Login
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Portal Login</title>
+    <link rel="icon" href="/assets/school/img/favicon.ico" type="image/x-icon"> <!-- Fix favicon 404 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.10.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -210,17 +211,48 @@ title: School Portal Login
                 // Blank right panel as before
                 container.innerHTML = '';
             } else {
-                slides.forEach(function(url, i) {
-                    var div = document.createElement('div');
-                    div.className = 'slide' + (i === 0 ? ' active' : '');
-                    div.id = 'slide-' + i;
-                    div.innerHTML = '<img src="' + url + '" alt="Slide"/>';
-                    container.appendChild(div);
+                var validSlides = [];
+                var testPromises = slides.map(function(url) {
+                    return new Promise(function(resolve) {
+                        testImage(url, resolve);
+                    });
+                });
+                
+                Promise.all(testPromises).then(function(results) {
+                    results.forEach(function(result, i) {
+                        var testUrl = result[0], valid = result[1];
+                        if (valid) {
+                            console.log('Image OK:', testUrl);
+                            validSlides.push(testUrl);
+                        } else {
+                            console.warn('Image skipped:', testUrl);
+                        }
+                    });
+                    
+                    // Now build slides and dots from valid ones only
+                    validSlides.forEach(function(url, i) {
+                        var div = document.createElement('div');
+                        div.className = 'slide' + (i === 0 ? ' active' : '');
+                        div.id = 'slide-' + i;
+                        var img = document.createElement('img');
+                        img.src = url;
+                        img.alt = 'Slide';
+                        img.onerror = function() { 
+                            console.log('Failed image:', url); 
+                            this.style.display = 'none'; 
+                        };
+                        div.appendChild(img);
+                        container.appendChild(div);
 
-                    var btn = document.createElement('button');
-                    btn.className = 'dot' + (i === 0 ? ' active' : '');
-                    btn.onclick = (function(idx){ return function(){ goSlide(idx); }; })(i);
-                    dots.appendChild(btn);
+                        var btn = document.createElement('button');
+                        btn.className = 'dot' + (i === 0 ? ' active' : '');
+                        btn.onclick = (function(idx) { return function() { goSlide(idx); }; })(i);
+                        dots.appendChild(btn);
+                    });
+                    
+                    if (validSlides.length > 0) {
+                        totalSlides = validSlides.length;
+                    }
                 });
             }
 
@@ -270,6 +302,13 @@ title: School Portal Login
                     initSlideshow();
                 }
             });
+        }
+
+        function testImage(url, callback) {
+            var img = new Image();
+            img.onload = function() { callback(url, true); };
+            img.onerror = function() { callback(url, false); };
+            img.src = url;
         }
 
         // Load slides from API
