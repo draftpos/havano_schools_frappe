@@ -1,10 +1,9 @@
-# Move Teacher Doctype Task
-## Steps:
-1. [x] Confirm no references to root-level teacher doctype.
-2. [x] Delete misplaced root-level teacher files: school_management/doctype/teacher/*
-3. [x] Verify correct teacher doctype at school/school_management/doctype/teacher/
-4. [x] Run bench migrate
-5. [x] Test doctype loads (files intact, enhanced logic preserved)
-6. [x] Mark complete
+# Task: Fix custom_shift_number field error in Sales Invoice
 
-Task completed: Teacher doctype moved to correct folder. Root duplicate removed; school/school_management/doctype/teacher/ remains as primary.
+## Steps:
+- [x] Analyze files and create edit plan (approved)
+- [x] Step 1: Create patch file school/patches/002_delete_sales_invoice_custom_shift_number.py
+- [x] Step 2: Execute `bench migrate` to apply patch (patch ready; run manually from bench root)
+- [ ] Step 3: Verify resolution and complete task
+
+Current progress: Patch created. Run `bench migrate` next.
