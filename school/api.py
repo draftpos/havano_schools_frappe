@@ -1035,12 +1035,16 @@ def get_login_slides():
         }, ["name", "file_url", "file_name"], limit=1)
         
         if file_doc:
-            # Use public /files/ URL always
-            filename = file_doc[0].file_name or file_doc[0].file_url.split('/')[-1]
+            # Use public /files/ URL always - safe filename extract
+            if file_doc[0].file_name:
+                filename = file_doc[0].file_name
+            else:
+                # Fallback parse from file_url
+                filename = file_doc[0].file_url.split('/')[-1] if file_doc[0].file_url else 'unknown.jpg'
             slide_urls.append(frappe.utils.get_url(f"/files/{filename}"))
         elif s.slide_image:
             slide_urls.append(frappe.utils.get_url(f"/files/{s.slide_image}"))
     
-    frappe.logger("school").debug(f"Login slides: {slide_urls}")
+    frappe.logger(__name__).debug(f"Login slides: {slide_urls}")
     return slide_urls
 
