@@ -1014,3 +1014,36 @@ def get_student_sidebar_data():
         }
     }
 
+@frappe.whitelist()
+def get_login_slides():
+    """
+    Returns list of enabled Login Slide Images file_url for portal-login.html slideshow.
+    Supports both attached File records and raw filename in slide_image field.
+    """
+    slides = frappe.get_all(
+        "Login Slide Image",
+        filters={"enabled": 1},
+        fields=["name", "slide_image"],
+        order_by="sort_order asc, name asc"
+    )
+    slide_urls = []
+    for s in slides:
+        # Try File record first
+        file_url = frappe.db.get_value("File", {
+            "attached_to_doctype": "Login Slide Image",
+            "attached_to_name": s.name
+        }, "file_url")
+        
+        # Fallback to raw filename
+        if not file_url and s.slide_image:
+            file_url = "/files/" + s.slide_image
+            
+        if file_url:
+            # Fix URL path - ensure /files/ prefix
+            clean_url = file_url.lstrip('/')
+            if not clean_url.startswith('files/'):
+                clean_url = 'files/' + clean_url
+            slide_urls.append(frappe.utils.get_site_url(frappe.local.site) + '/' + clean_url)
+    
+    return slide_urls
+

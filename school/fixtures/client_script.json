@@ -90,23 +90,23 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "Sales Invoice",
-  "enabled": 0,
-  "modified": "2026-03-03 09:47:30.723553",
-  "module": "Havano Restaurant Pos",
-  "name": "print invoice",
-  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(function(can_print_invoice) {\n            frm.can_print_invoice = can_print_invoice;\n            if (can_print_invoice) {\n                frm.add_custom_button(__('Print Invoice'), function() {\n                    downloadInvoice(frm.doc.name);\n                }, __('Actions'));\n            }\n        });\n    },\n    on_submit: function(frm) {\n        if (frm.doc.docstatus !== 1) return;\n        var doDownload = function(can_print) {\n            if (can_print) downloadInvoice(frm.doc.name);\n        };\n        if (frm.can_print_invoice !== undefined) {\n            doDownload(frm.can_print_invoice);\n        } else {\n            frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(doDownload);\n        }\n    }\n});\n\nfunction downloadInvoice(invoiceNumber) {\n    var url = frappe.urllib.get_full_url(\n        '/api/method/havano_restaurant_pos.api.download_invoice_json?name=' +\n        encodeURIComponent(invoiceNumber) + '&receipt_type='\n    );\n    var a = document.createElement('a');\n    a.href = url;\n    a.download = invoiceNumber + '.txt';\n    a.target = '_blank';\n    document.body.appendChild(a);\n    a.click();\n    document.body.removeChild(a);\n}",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
   "dt": "Student",
   "enabled": 0,
   "modified": "2026-03-24 17:16:45.727950",
   "module": "School Management",
   "name": "section1_filtering",
   "script": "frappe.ui.form.on('Student', {\r\n    refresh: function(frm) {\r\n        // This filters the Section1 dropdown\r\n        frm.set_query('section1', function() {\r\n            return {\r\n                filters: {\r\n                    'student_class': frm.doc.student_class\r\n                }\r\n            };\r\n        });\r\n    },\r\n    // This clears Section1 if you change the Class\r\n    student_class: function(frm) {\r\n        frm.set_value('section1, '');\r\n    }\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 0,
+  "modified": "2026-03-03 09:47:30.723553",
+  "module": "Havano Restaurant Pos",
+  "name": "print invoice",
+  "script": "frappe.ui.form.on('Sales Invoice', {\n    refresh: function(frm) {\n        frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(function(can_print_invoice) {\n            frm.can_print_invoice = can_print_invoice;\n            if (can_print_invoice) {\n                frm.add_custom_button(__('Print Invoice'), function() {\n                    downloadInvoice(frm.doc.name);\n                }, __('Actions'));\n            }\n        });\n    },\n    on_submit: function(frm) {\n        if (frm.doc.docstatus !== 1) return;\n        var doDownload = function(can_print) {\n            if (can_print) downloadInvoice(frm.doc.name);\n        };\n        if (frm.can_print_invoice !== undefined) {\n            doDownload(frm.can_print_invoice);\n        } else {\n            frappe.db.get_single_value('HA POS Settings', 'can_print_invoice').then(doDownload);\n        }\n    }\n});\n\nfunction downloadInvoice(invoiceNumber) {\n    var url = frappe.urllib.get_full_url(\n        '/api/method/havano_restaurant_pos.api.download_invoice_json?name=' +\n        encodeURIComponent(invoiceNumber) + '&receipt_type='\n    );\n    var a = document.createElement('a');\n    a.href = url;\n    a.download = invoiceNumber + '.txt';\n    a.target = '_blank';\n    document.body.appendChild(a);\n    a.click();\n    document.body.removeChild(a);\n}",
   "view": "Form"
  }
 ]

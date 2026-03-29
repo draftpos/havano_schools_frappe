@@ -1,0 +1,390 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
+  
+  table {
+    font-family: "Roboto", sans-serif !important;
+  }
+  
+  table, th, td {
+    border: 0px solid black;
+  }
+  
+  .middle p {
+    font-size: 9px;
+    font-weight: bold;
+    vertical-align: top;
+    text-align: center;
+  }
+  
+  .righth p, .righth h1 {
+    vertical-align: top;
+    text-align: right;
+  }
+  
+  hr {
+    margin-block-start: 0.0em !important;
+    margin-block-end: 0.1em !important;
+  }
+  
+  p.title {
+    font-size: 23px;
+    font-family: "sans-serif";
+    font-weight: bold;
+    vertical-align: top;
+    font-style: italic;
+  }
+  
+  .headb td {
+    border-radius: 10px;
+  }
+  
+  .text-uppercase {
+    text-transform: uppercase;
+  }
+  
+  .font-weight-bold {
+    font-weight: bold;
+  }
+  
+  .font-small {
+    font-size: 12px;
+  }
+  
+  .d-flex {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .padding-p p {
+    padding-bottom: 5px;
+  }
+  
+  .print-format {
+    font-size: 12px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0px;
+    padding: 0px;
+  }
+  
+  tfoot {
+    display: table-footer-group;
+  }
+  
+  table {
+    page-break-after: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  td {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  .main {
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-top: 10px;
+  }
+  
+  .no-border tr {
+    border: 0px solid #fff !important;
+    padding: 2px !important;
+  }
+  
+  .flex {
+    display: flex;
+    width: 100%;
+  }
+  
+  .footer {
+    display: flex;
+    width: 100%;
+    margin-top: 20px;
+  }
+  
+  .fleft {
+    width: 80%;
+  }
+  
+  .fright {
+    width: 50%;
+    margin-left: -0.75%;
+  }
+  
+  .body {
+    display: flex;
+    width: 100%;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+  
+  .left {
+    width: 70%;
+  }
+  
+  .right {
+    width: 30%;
+  }
+  
+  .bleft {
+    width: 50%;
+    border: 1px solid red;
+  }
+  
+  .bright {
+    width: 40%;
+    margin-left: 10%;
+    border: 1px solid red;
+  }
+  
+  @page {
+    size: A4;
+    width: 100%;
+    margin: 0.5cm;
+    padding: 0px;
+  }
+  
+  ul {
+    list-style-type: square;
+    color: red !important;
+  }
+  
+  .right table {
+    font-size: 10px;
+    margin-top: 20px;
+  }
+  
+  .fright table {
+    width: 95%;
+    font-size: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-left: 5%;
+  }
+  
+  .fright td {
+    padding: 2px !important;
+    border: 0px solid #fff !important;
+  }
+  
+  .fright1 table {
+    width: 100%;
+    font-size: 10px;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    margin-left: 5%;
+  }
+  
+  .fright1 td {
+    padding: 2px !important;
+    border: 0px solid #fff !important;
+  }
+  
+  .footer- {
+    background-color: black;
+    width: 100% !important;
+    position: fixed;
+    bottom: 0;
+    text-align: center;
+  }
+  
+  .logo-name {
+    position: relative;
+    display: inline-block;
+    padding: 20px 20px;
+  }
+  
+  .company-name {
+    font-size: 20px;
+    margin-left: 20px;
+    text-shadow: 5px 5px 5px rgb(204, 205, 204);
+    font-size: 24px;
+  }
+  
+  /* Make items table more compact */
+  .body-table {
+    border: 1px solid black;
+    page-break-inside: avoid;
+  }
+  
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .items-body tr {
+    height: auto;
+  }
+  
+  .items-body td {
+    padding: 3px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+  }
+  
+  .items-table th {
+    padding: 4px;
+    font-size: 12px;
+  }
+  
+  /* Ensure the summary section stays with the table */
+  .summary-section {
+    page-break-inside: avoid;
+  }
+  
+  /* Reduce some vertical spacing */
+  .compact-section {
+    margin-top: 5px;
+    margin-bottom: 5px;
+  }
+  
+  /* Optimize for print */
+  @media print {
+    .page-break {
+      page-break-before: always;
+    }
+    
+    .no-break {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+
+<table style="width:100%">
+  <thead></thead>
+  <tbody>
+    <tr>
+      <td>
+        <div class="main">
+          <table style="width:100%" class="headb">
+            <tbody>
+              <tr style="border:1x solid black">
+                <!-- Logo TD -->
+                <td style="width: 50%">
+                  <img alt="Logo" width="60%" style="width:80% !important; margin-top:22px;" src="https://erp1303.havano.cloud/private/files/Screenshot%20from%202026-03-02%2020-23-42.png">
+                </td>
+                <!-- end Logo TD -->
+                <td style="width: 10%; padding:0px">
+                  <div class="text-align-center">
+                    <h1 style="margin-bottom:0px; padding-bottom:0px; text-indent:5px;">FEES INVOICE</h1>
+                  </div>
+                </td>
+                <td style="width: 50%">
+                  {% if doc.doctype == "Sales Invoice" or doc.doctype == "Quotation" %}
+                  <div class="righth">
+                     <p class=""><b>{{ frappe.db.get_value("Company", doc.company, "company_name") or "" }}</b></p>
+                    <p class="" style="font-size:12px">{{ frappe.db.get_value("Company", doc.company, "custom_physical_address") or "" }}</p>
+                    <p class=""style="font-size:12px">{{ frappe.db.get_value("Company", doc.company, "email") or "" }}</p>
+                    <p class=""style="font-size:12px">{{ frappe.db.get_value("Company", doc.company, "phone_no") or "" }}</p>
+                  </div>
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="main compact-section">
+          <table style="border:1px solid black; margin-top:5px; width:100%">
+            <tbody>
+              <tr>
+                <td style="width:60%; border-top:0px solid #fff; padding:2px; margin:2px; font-size:12px">
+                  <p style="margin-top:4px; margin-bottom:2px"><strong>Customer Name: </strong>{{doc.customer_name}}</p>
+                </td>
+                <td style="width:10%"></td>
+                <td style="width:30%">
+                  <div>
+                    <table class="fright1" style="border-top:0px solid #fff; padding:2px; margin:2px; font-size:12px">
+                      <tr>
+                        <td class="font-weight-bold">Receipter: </td>
+                        <td style="text-align:right">{{ frappe.session.user }}</td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">Doc No: </td>
+                        <td class="text-uppercase font-weight-bold">{{doc.name}}</td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">Date: </td>
+                        <td>{{ frappe.db.get_value("Sales Invoice", doc.sale_invoice, "posting_date") or "" }}</td>
+                      </tr>
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <hr style="margin-top:2px; margin-bottom:2px;">
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="no-break">
+          <div class="main" style="margin-top:2px">
+            <div class="body-table">
+              <table class="items-table">
+                <thead>
+                  <tr>
+                      <th style="background-color: White!important; color: black !important; width:30%">Fees Type</th>
+                      <th style="background-color: White!important; color: black !important; width:11%">Total</th>
+                  </tr>
+                </thead>
+                <tbody class="items-body">
+                  {%- for row in doc.items -%}
+                  <tr>
+                    <td style="width:30%;">{{row.item_name}}</td>
+                    <td style="width:11%;">{{ "{:,.2f}".format((row.rate * row.qty ) + (doc.total_taxes_and_charges / doc.net_total * row.net_amount)) }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            
+            <div class="summary-section">
+              <table style="border:1px solid black; width:100%; border-collapse: collapse; margin-top:5px;">
+                <tbody>
+                  <tr>
+                    <td style="width:70%"></td>
+                    <td style="width:30%; text-align:right; vertical-align:top;">
+                      <table style="border-collapse: collapse; width: 100%;">
+                        <tr style="text-align:right;">
+                          <td class="font-weight-bold;">Total Incl:</td>
+                          <td style="padding:0px 3px;">{{doc.get_formatted("grand_total")}}</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr style="border-top: 1px solid black;">
+                    <td colspan="2" style="text-align: left; vertical-align: top; padding: 5px;">
+                    <strong style="display: block; font-size:14px;">Banking Details:</strong>
+                      <strong style="display: block; font-size:12px;">Bank Name: ZB BANK</strong>
+                      <strong style="display: block; font-size:12px;">Account Name:  Maranatha Christian High School</strong>
+                      <strong style="display: block; font-size:12px;">Bank Branch:Rotten Row</strong>
+                      <strong style="display: block; font-size:12px;">Account USD:4138-00691187-406</strong>
+                      <p style="font-size:14px !important;">{{doc.terms or ""}}</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>
+        <div class="footer-"></div>
+      </td>
+    </tr>
+  </tfoot>
+</table>

@@ -7,8 +7,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "section_name",
-  "student_class"
+  "section_name"
  ],
  "fields": [
   {
@@ -18,13 +17,6 @@
    "label": "Section Name",
    "reqd": 1,
    "unique": 1
-  },
-  {
-   "fieldname": "student_class",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Class",
-   "options": "Student Class"
   }
  ],
  "grid_page_length": 50,

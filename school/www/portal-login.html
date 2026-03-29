@@ -191,56 +191,39 @@ title: School Portal Login
         var autoTimer;
 
         // Try slide1.jpg through slide20.jpg — stop on first 404
-        var BASE = '/assets/school/img/login/';
-        var EXTS = ['jpg','jpeg','png','webp'];
         var slides = [];
 
-        function checkImage(url, cb) {
-            var img = new Image();
-            img.onload  = function(){ cb(true); };
-            img.onerror = function(){ cb(false); };
-            img.src = url;
-        }
-
-        function loadSlides(index, ext_index) {
-            if (index > 20) { initSlideshow(); return; }
-            if (ext_index >= EXTS.length) { loadSlides(index + 1, 0); return; }
-            var url = BASE + 'slide' + index + '.' + EXTS[ext_index];
-            checkImage(url, function(ok) {
-                if (ok) {
-                    slides.push(url);
-                    loadSlides(index + 1, 0);
-                } else {
-                    loadSlides(index, ext_index + 1);
-                }
-            });
-        }
 
         function initSlideshow() {
             var container = document.getElementById('slides-container');
             var dots = document.getElementById('dots-container');
 
-            if (!slides.length) {
-                // No images found — hide right panel gracefully
-                document.querySelector('.right-panel').style.display = 'none';
-                document.querySelector('.left-panel').style.width = '100%';
-                return;
-            }
+            // Always show right panel, even if no slides (preserve 30/70 design)
+            // Only hide if explicitly no media
+            
+            totalSlides = slides.length || 1; // Prevent 0 totalSlides errors
+
 
             totalSlides = slides.length;
 
-            slides.forEach(function(url, i) {
-                var div = document.createElement('div');
-                div.className = 'slide' + (i === 0 ? ' active' : '');
-                div.id = 'slide-' + i;
-                div.innerHTML = '<img src="' + url + '" alt=""/>';
-                container.appendChild(div);
+            if (slides.length === 0) {
+                // Blank right panel as before
+                container.innerHTML = '';
+            } else {
+                slides.forEach(function(url, i) {
+                    var div = document.createElement('div');
+                    div.className = 'slide' + (i === 0 ? ' active' : '');
+                    div.id = 'slide-' + i;
+                    div.innerHTML = '<img src="' + url + '" alt="Slide"/>';
+                    container.appendChild(div);
 
-                var btn = document.createElement('button');
-                btn.className = 'dot' + (i === 0 ? ' active' : '');
-                btn.onclick = (function(idx){ return function(){ goSlide(idx); }; })(i);
-                dots.appendChild(btn);
-            });
+                    var btn = document.createElement('button');
+                    btn.className = 'dot' + (i === 0 ? ' active' : '');
+                    btn.onclick = (function(idx){ return function(){ goSlide(idx); }; })(i);
+                    dots.appendChild(btn);
+                });
+            }
+
 
             resetProgress();
             startAuto();
@@ -273,11 +256,29 @@ title: School Portal Login
             }, 3000);
         }
 
-        // Start loading slides
-        loadSlides(1, 0);
+        function loadSlides() {
+            $.ajax({
+                url: '/api/method/school.api.get_login_slides',
+                type: 'GET',
+                success: function(data) {
+                    slides = data.message || data || [];
+                    console.log('Loaded slides:', slides);
+                    initSlideshow();
+                },
+                error: function() {
+                    console.warn('No login slides available');
+                    initSlideshow();
+                }
+            });
+        }
+
+        // Load slides from API
+        loadSlides();
+
 
         /* ── LOGIN HELPERS ── */
         function togglePassword(){var i=document.getElementById('password'),e=document.getElementById('eye-icon');i.type=i.type==='password'?'text':'password';e.className=i.type==='text'?'fa fa-eye-slash':'fa fa-eye';}
+
         function showMsg(t,x){['error','success','info'].forEach(function(n){document.getElementById('msg-'+n).classList.add('hidden');});if(!t)return;var e=document.getElementById('msg-'+t);if(x)document.getElementById('msg-'+t+'-text').textContent=x;e.classList.remove('hidden');}
         function setLoading(on){document.getElementById('spinner').style.display=on?'block':'none';document.getElementById('btn-icon').style.display=on?'none':'inline';document.getElementById('btn-text').textContent=on?'Logging in…':'Login';document.getElementById('btn-login').disabled=on;}
         function shakeCard(){var c=document.getElementById('login-card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake');}

@@ -1,0 +1,108 @@
+{
+ "allow_copy": 0, 
+ "allow_guest_to_view": 0, 
+ "allow_import": 1, 
+ "allow_rename": 1, 
+ "autoname": "field:slide_title", 
+ "creation": "2026-04-16", 
+ "default_print_format": null, 
+ "doctype": "DocType", 
+ "editable_grid": 1, 
+ "engine": "InnoDB", 
+ "field_order": [
+  "slide_title",
+  "enabled",
+  "sort_order",
+  "column_break_2",
+  "slide_image"
+ ], 
+ "fields": [
+  {
+   "fieldname": "slide_title", 
+   "fieldtype": "Data", 
+   "in_list_view": 1, 
+   "label": "Slide Title", 
+   "reqd": 1
+  },
+  {
+   "fieldname": "enabled", 
+   "fieldtype": "Check", 
+   "default": "1", 
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "sort_order", 
+   "fieldtype": "Int", 
+   "default": "0", 
+   "label": "Sort Order", 
+   "description": "Lower numbers appear first"
+  },
+  {
+   "fieldname": "column_break_2", 
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "slide_image", 
+"fieldtype": "Attach", 
+   "label": "Slide Media", 
+   "reqd": 1, 
+   "description": "Image or Video (MP4/WebM, recommended 1920x1080)"
+  },
+  {
+   "fieldname": "media_type", 
+   "fieldtype": "Select", 
+   "label": "Media Type", 
+   "options": "Image\nVideo",
+   "default": "Image"
+  }
+ ], 
+ "image_field": "slide_image", 
+ "index_web_pages_for_search": 1, 
+ "links": [], 
+ "module": "School Management", 
+ "modified": "2026-04-16", 
+ "modified_by": "Administrator", 
+ "module_def": "school_management", 
+ "name": "Login Slide Image", 
+ "naming_rule": "By \"field\"field:slide_title", 
+ "owner": "Administrator", 
+ "permissions": [
+  {
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "export": 1, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "System Manager", 
+   "share": 1, 
+   "write": 1
+  },
+  {
+   "create": 1, 
+   "delete": 1, 
+   "email": 1, 
+   "export": 1, 
+   "print": 1, 
+   "read": 1, 
+   "report": 1, 
+   "role": "School User", 
+   "share": 1, 
+   "write": 1
+  }
+ ], 
+ "show_name_in_global_search": 1, 
+ "sort_field": "modified", 
+ "sort_order": "DESC", 
+ "states": [],
+ "title_field": "slide_title",
+ "field_order": [
+  "slide_title",
+  "enabled",
+  "sort_order",
+  "column_break_2",
+  "slide_image",
+  "media_type"
+ ]
+}
