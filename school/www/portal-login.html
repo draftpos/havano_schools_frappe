@@ -211,49 +211,26 @@ title: School Portal Login
                 // Blank right panel as before
                 container.innerHTML = '';
             } else {
-                var validSlides = [];
-                var testPromises = slides.map(function(url) {
-                    return new Promise(function(resolve) {
-                        testImage(url, resolve);
-                    });
-                });
-                
-                Promise.all(testPromises).then(function(results) {
-                    results.forEach(function(result, i) {
-                        var testUrl = result[0], valid = result[1];
-                        if (valid) {
-                            console.log('Image OK:', testUrl);
-                            validSlides.push(testUrl);
-                        } else {
-                            console.warn('Image skipped:', testUrl);
-                        }
-                    });
-                    
-                    // Now build slides and dots from valid ones only
-                    validSlides.forEach(function(url, i) {
-                        var div = document.createElement('div');
-                        div.className = 'slide' + (i === 0 ? ' active' : '');
-                        div.id = 'slide-' + i;
-                        var img = document.createElement('img');
-                        img.src = url;
-                        img.alt = 'Slide';
-                        img.onerror = function() { 
-                            console.log('Failed image:', url); 
-                            this.style.display = 'none'; 
-                        };
-                        div.appendChild(img);
-                        container.appendChild(div);
+                slides.forEach(function(url, i) {
+                    console.log('Loading image:', url);
+                    var div = document.createElement('div');
+                    div.className = 'slide' + (i === 0 ? ' active' : '');
+                    div.id = 'slide-' + i;
+                    var img = document.createElement('img');
+                    img.src = url;
+                    img.alt = 'Slide ' + i;
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    div.appendChild(img);
+                    container.appendChild(div);
 
-                        var btn = document.createElement('button');
-                        btn.className = 'dot' + (i === 0 ? ' active' : '');
-                        btn.onclick = (function(idx) { return function() { goSlide(idx); }; })(i);
-                        dots.appendChild(btn);
-                    });
-                    
-                    if (validSlides.length > 0) {
-                        totalSlides = validSlides.length;
-                    }
+                    var btn = document.createElement('button');
+                    btn.className = 'dot' + (i === 0 ? ' active' : '');
+                    btn.onclick = (function(idx) { return function() { goSlide(idx); }; })(i);
+                    dots.appendChild(btn);
                 });
+                totalSlides = slides.length;
             }
 
 
@@ -304,12 +281,7 @@ title: School Portal Login
             });
         }
 
-        function testImage(url, callback) {
-            var img = new Image();
-            img.onload = function() { callback(url, true); };
-            img.onerror = function() { callback(url, false); };
-            img.src = url;
-        }
+
 
         // Load slides from API
         loadSlides();
