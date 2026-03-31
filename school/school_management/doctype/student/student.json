@@ -205,7 +205,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Student Type",
-   "options": "\nDay\nBoarding",
+   "options": "Day\nBoarding",
    "reqd": 1
   },
   {

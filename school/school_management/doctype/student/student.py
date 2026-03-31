@@ -5,40 +5,15 @@ from frappe.utils import flt
 class Student(Document):
 
     def before_save(self):
+        # Validate student_type is either Day or Boarding
+        if not self.student_type or self.student_type.strip() == "":
+            frappe.throw("Student Type is required. Please select Day or Boarding.")
+        
+        if self.student_type not in ["Day", "Boarding"]:
+            frappe.throw(f"Student Type must be either 'Day' or 'Boarding'. Got: {self.student_type}")
+        
         parts = [self.first_name, self.second_name, self.last_name]
         self.full_name = " ".join([p for p in parts if p])
-
-        if self.student_type:
-            try:
-                settings = frappe.get_single("School Settings")
-                for row in settings.get("fee_structure_defaults", []):
-                    if row.status == self.student_type:
-                        self.paying_admin_fee = 1
-                        self.admin_fees_structure = row.fees_structure
-                        break
-
-                if settings.enable_registration_billing:
-                    for row in settings.get("registration_billing_defaults", []):
-                        if row.status == self.student_type:
-                            self.fees_structure = row.fees_structure
-                            break
-            except Exception:
-                pass
-
-        if self.student_class:
-            class_code = frappe.db.get_value("Student Class", {"name": self.student_class}, "name")
-            if not class_code:
-                class_code = frappe.db.get_value("Student Class", {"class_name": self.student_class}, "name")
-                if class_code:
-                    self.student_class = class_code
-
-        if self.get("school"):
-            self.cost_center = self.school
-
-        if not self.student_reg_no and self.school:
-            self.student_reg_no = self.generate_reg_no()
-            self.name = self.student_reg_no
-
     def generate_reg_no(self):
         school_name = self.school or ""
         prefix_raw = school_name.split(" - ")[0].strip()
@@ -122,7 +97,6 @@ class Student(Document):
                 existing_parent = frappe.db.exists("Parent", {"portal_email": email})
 
                 if existing_parent:
-                    # Parent account already exists — just link the student
                     parent_doc = frappe.get_doc("Parent", existing_parent)
                     already_linked = any(row.student == self.name for row in parent_doc.get("children", []))
                     if not already_linked:
@@ -140,23 +114,19 @@ class Student(Document):
                             indicator="green",
                             alert=True
                         )
-                    # Ensure user has Parent role
                     self._ensure_user(email, full_name, "Parent", send_email=False)
 
                 else:
-                    # Create new Parent record
                     parent_doc = frappe.new_doc("Parent")
                     parent_doc.full_name    = full_name
                     parent_doc.portal_email = email
                     parent_doc.flags.ignore_permissions = True
                     parent_doc.insert(ignore_permissions=True)
 
-                    # Link this student
                     parent_doc.append("children", {"student": self.name})
                     parent_doc.flags.ignore_permissions = True
                     parent_doc.save(ignore_permissions=True)
 
-                    # Create user and send welcome email
                     self._ensure_user(email, full_name, "Parent", send_email=True, sender=sender_email)
 
             except Exception:
@@ -239,41 +209,48 @@ class Student(Document):
                 details_parts.append("Type: {}".format(self.student_type))
             customer_details = " | ".join(details_parts)
 
-            existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
+            # Primary lookup — reg no first, fallback to full name
+            existing = None
+            if self.student_reg_no:
+                existing = frappe.db.get_value("Customer",
+                    {"custom_student_reg_no": self.student_reg_no}, "name")
+            if not existing:
+                existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
 
             if existing:
                 customer = frappe.get_doc("Customer", existing)
-                customer.customer_group = customer_group
-                customer.territory = territory
-                customer.mobile_no = self.phone_number or customer.mobile_no
+                customer.customer_name          = self.full_name
+                customer.customer_group         = customer_group
+                customer.territory              = territory
+                customer.mobile_no              = self.phone_number or customer.mobile_no
+                customer.custom_student_reg_no  = self.student_reg_no or ""
                 customer.custom_student_section = self.section or ""
-                customer.custom_student_class = self.student_class or ""
-                customer.custom_school = self.school or ""
-                customer.custom_student_reg_no = self.student_reg_no or ""
-                customer.custom_student_type = self.student_type or ""
-                customer.custom_gender = self.gender or ""
-                customer.customer_details = customer_details
+                customer.custom_student_class   = self.student_class or ""
+                customer.custom_school          = self.school or ""
+                customer.custom_student_type    = self.student_type or ""
+                customer.custom_gender          = self.gender or ""
+                customer.customer_details       = customer_details
                 if self.student_image:
                     customer.image = self.student_image
                 customer.flags.ignore_permissions = True
-                customer.flags.ignore_mandatory = True
+                customer.flags.ignore_mandatory   = True
                 customer.save(ignore_permissions=True)
             else:
                 customer = frappe.get_doc({
-                    "doctype": "Customer",
-                    "customer_name": self.full_name,
-                    "customer_type": "Individual",
-                    "customer_group": customer_group,
-                    "territory": territory,
-                    "mobile_no": self.phone_number or "",
-                    "custom_student_section": self.section or "",
-                    "custom_student_class": self.student_class or "",
-                    "custom_school": self.school or "",
+                    "doctype":               "Customer",
+                    "customer_name":         self.full_name,
+                    "customer_type":         "Individual",
+                    "customer_group":        customer_group,
+                    "territory":             territory,
+                    "mobile_no":             self.phone_number or "",
                     "custom_student_reg_no": self.student_reg_no or "",
-                    "custom_student_type": self.student_type or "",
-                    "custom_gender": self.gender or "",
-                    "customer_details": customer_details,
-                    "image": self.student_image or "",
+                    "custom_student_section":self.section or "",
+                    "custom_student_class":  self.student_class or "",
+                    "custom_school":         self.school or "",
+                    "custom_student_type":   self.student_type or "",
+                    "custom_gender":         self.gender or "",
+                    "customer_details":      customer_details,
+                    "image":                 self.student_image or "",
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
