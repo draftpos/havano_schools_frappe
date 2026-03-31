@@ -254,7 +254,7 @@ class Student(Document):
                     "customer_details":      customer_details,
                     "image":                 self.student_image or "",
 					"custom_class":          self.name,
-					 "student_name":          self.full_name
+					"student_name":         self.full_name
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
