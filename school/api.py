@@ -413,6 +413,7 @@ def get_homework_results():
 
 @frappe.whitelist()
 def get_teacher_portal_dashboard():
+    """API endpoint for teacher portal dashboard data"""
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -458,6 +459,7 @@ def get_teacher_portal_dashboard():
 
 @frappe.whitelist()
 def get_user_redirect():
+    """Returns where to redirect the logged in user."""
     user = frappe.session.user
     if not user or user == "Guest":
         return {"redirect": "/portal-login"}
@@ -484,18 +486,24 @@ def get_user_redirect():
 
 @frappe.whitelist()
 def get_fees_balance():
+    """
+    Fees Balance report — fetches from Accounts Receivable Summary
+    filtered by student customers. Supports cost_center filter.
+    """
     user = frappe.session.user
     if not user or user == "Guest":
         return {"error": "Not authorized"}
 
     cost_center = frappe.form_dict.get("cost_center") or None
+
     student_filters = {}
     if cost_center:
         student_filters["cost_center"] = cost_center
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section", "cost_center", "school"])
+        fields=["name", "full_name", "student_class", "section",
+                "cost_center", "school"])
 
     if not students:
         return []
@@ -963,30 +971,42 @@ def get_student_sidebar_data():
     }
 
 
-@frappe.whitelist()
+# ─────────────────────────────────────────────────────────────
+#  LOGIN PAGE APIs — allow_guest=True so they work for
+#  everyone: unauthenticated visitors AND logged-in users,
+#  on ALL devices (not just the laptop that added the records)
+# ─────────────────────────────────────────────────────────────
+
+@frappe.whitelist(allow_guest=True)
 def get_login_slides():
     """
     Returns list of enabled Login Slide Images for portal-login.html.
-    Always uses relative URLs — works on ALL devices, not just localhost.
+    allow_guest=True  → works for unauthenticated visitors (login page).
+    Relative URLs     → works on ALL devices, not just localhost.
     """
-    slides = frappe.get_all(
-        "Login Slide Image",
-        filters={"enabled": 1},
-        fields=["name", "slide_image"],
-        order_by="sort_order asc, name asc"
-    )
-    slide_urls = []
-    for s in slides:
-        if s.slide_image:
-            url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
-            slide_urls.append(url)
-    return slide_urls
+    try:
+        slides = frappe.get_all(
+            "Login Slide Image",
+            filters={"enabled": 1},
+            fields=["name", "slide_image"],
+            order_by="sort_order asc, name asc"
+        )
+        slide_urls = []
+        for s in slides:
+            if s.slide_image:
+                url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
+                slide_urls.append(url)
+        return slide_urls
+    except Exception:
+        frappe.log_error(title="get_login_slides error", message=frappe.get_traceback())
+        return []
 
 
-@frappe.whitelist()
+@frappe.whitelist(allow_guest=True)
 def get_portal_header():
     """
-    Returns school portal header from Login Portal Header Single doc, or default.
+    Returns school portal header text for portal-login.html.
+    allow_guest=True  → works for unauthenticated visitors (login page).
     """
     try:
         if frappe.db.count("Login Portal Header") > 0:
@@ -994,5 +1014,5 @@ def get_portal_header():
             header = (doc.header_text or "").strip()
             return header if header else "School Portal"
     except Exception:
-        pass
+        frappe.log_error(title="get_portal_header error", message=frappe.get_traceback())
     return "School Portal"
