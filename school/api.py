@@ -413,7 +413,6 @@ def get_homework_results():
 
 @frappe.whitelist()
 def get_teacher_portal_dashboard():
-    """API endpoint for teacher portal dashboard data"""
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -459,7 +458,6 @@ def get_teacher_portal_dashboard():
 
 @frappe.whitelist()
 def get_user_redirect():
-    """Returns where to redirect the logged in user."""
     user = frappe.session.user
     if not user or user == "Guest":
         return {"redirect": "/portal-login"}
@@ -486,24 +484,18 @@ def get_user_redirect():
 
 @frappe.whitelist()
 def get_fees_balance():
-    """
-    Fees Balance report — fetches from Accounts Receivable Summary
-    filtered by student customers. Supports cost_center filter.
-    """
     user = frappe.session.user
     if not user or user == "Guest":
         return {"error": "Not authorized"}
 
     cost_center = frappe.form_dict.get("cost_center") or None
-
     student_filters = {}
     if cost_center:
         student_filters["cost_center"] = cost_center
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section",
-                "cost_center", "school"])
+        fields=["name", "full_name", "student_class", "section", "cost_center", "school"])
 
     if not students:
         return []
@@ -878,8 +870,7 @@ def get_student_sidebar_data():
     s_class   = student.student_class or ""
     s_section = student.section or ""
     s_reg_no  = student.student_reg_no or student.name
-
-    filters = {"student_class": s_class, "section": s_section}
+    filters   = {"student_class": s_class, "section": s_section}
 
     exam_schedules = frappe.get_all("Exam Schedule",
         filters=filters,
@@ -976,7 +967,7 @@ def get_student_sidebar_data():
 def get_login_slides():
     """
     Returns list of enabled Login Slide Images for portal-login.html.
-    Uses relative URLs so it works on all devices accessing the site.
+    Always uses relative URLs — works on ALL devices, not just localhost.
     """
     slides = frappe.get_all(
         "Login Slide Image",
@@ -986,23 +977,9 @@ def get_login_slides():
     )
     slide_urls = []
     for s in slides:
-        try:
-            file_doc = frappe.get_all("File", {
-                "attached_to_doctype": "Login Slide Image",
-                "attached_to_name": s.name
-            }, ["file_url", "file_name"], limit=1)
-
-            if file_doc:
-                file_name = file_doc[0].file_name or (file_doc[0].file_url or "").split("/")[-1]
-                if file_name:
-                    slide_urls.append(f"/files/{file_name}")
-            elif s.slide_image:
-                # Use relative URL — works for all devices
-                url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
-                slide_urls.append(url)
-        except Exception:
-            frappe.log_error(title="Login slide URL error", message=frappe.get_traceback())
-
+        if s.slide_image:
+            url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
+            slide_urls.append(url)
     return slide_urls
 
 
