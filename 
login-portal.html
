@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>School Portal Login</title>
+    <style>
+        .logo-wrap { text-align: center; }
+        .logo-circle { /* your styles */ }
+        #header-input { display: none; border: 1px solid #ccc; padding: 5px; }
+        #set-header-btn { background: #2e86de; color: white; border: none; padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="logo-wrap">
+        <div class="logo-circle"></div>
+        <h2 id="portal-header">School Portal</h2>
+        <p>Enter credentials to continue</p>
+        <input id="header-input" placeholder="Enter school name" />
+        <button id="set-header-btn" onclick="setHeader()">Set</button>
+    </div>
+    
+    <script>
+        // Load saved header
+        const saved = localStorage.getItem('school_portal_header');
+        if (saved) document.getElementById('portal-header').textContent = saved;
+
+        function setHeader() {
+            const input = document.getElementById('header-input');
+            const name = input.value.trim();
+            if (name) {
+                localStorage.setItem('school_portal_header', name);
+                document.getElementById('portal-header').textContent = name;
+            } else {
+                localStorage.removeItem('school_portal_header');
+                document.getElementById('portal-header').textContent = 'School Portal';
+            }
+            input.value = '';
+        }
+        
+        // Hide input after set
+        document.getElementById('set-header-btn').onclick = function() {
+            setHeader();
+            document.getElementById('header-input').style.display = 'none';
+            this.style.display = 'none';
+        };
+    </script>
+</body>
+</html>
+

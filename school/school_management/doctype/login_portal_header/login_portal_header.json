@@ -1,0 +1,45 @@
+
+{
+  "allow_copy": 0,
+  "allow_guest_to_view": 0,
+  "allow_import": 0,
+  "allow_rename": 0,
+  "doctype": "DocType",
+  "engine": "InnoDB",
+  "field_order": [
+    "header_text"
+  ],
+  "fields": [
+    {
+      "fieldname": "header_text",
+      "fieldtype": "Data",
+      "label": "School Portal Header",
+      "default": "",
+      "description": "Enter custom name or leave empty for 'School Portal'"
+    }
+  ],
+  "index_web_pages_for_search": 0,
+  "is_single": 1,
+  "module": "School Management",
+  "name": "Login Portal Header",
+  "owner": "Administrator",
+  "permissions": [
+    {
+      "create": 1,
+      "delete": 1,
+      "read": 1,
+      "write": 1,
+      "role": "System Manager"
+    },
+    {
+      "create": 1,
+      "read": 1,
+      "write": 1,
+      "role": "School User"
+    }
+  ],
+  "show_name_in_global_search": 0,
+  "sort_field": "modified",
+  "sort_order": "DESC"
+}
+

@@ -272,6 +272,7 @@ title: School Portal Login
                 success: function(data) {
                     slides = data.message || data || [];
                     console.log('Loaded slides:', slides);
+                    
                     initSlideshow();
                 },
                 error: function() {
@@ -286,8 +287,32 @@ title: School Portal Login
         // Load slides from API
         loadSlides();
 
+        // New section: Load Portal Header (separate from slides)
+        loadPortalHeader();
 
         /* ── LOGIN HELPERS ── */
+
+        function loadPortalHeader() {
+            $.ajax({
+                url: '/api/method/school.api.get_portal_header',
+                type: 'GET',
+                success: function(data) {
+                    var headerText = data.message || data || '';
+                    var headerEl = document.querySelector('.logo-wrap h2');
+                    if (headerText.trim()) {
+                        headerEl.textContent = headerText.trim();
+                        console.log('Portal header loaded:', headerText);
+                    } else {
+                        headerEl.textContent = 'School Portal';
+                        console.log('Using default portal header');
+                    }
+                },
+                error: function() {
+                    console.warn('No custom portal header available, using default');
+                    document.querySelector('.logo-wrap h2').textContent = 'School Portal';
+                }
+            });
+        }
         function togglePassword(){var i=document.getElementById('password'),e=document.getElementById('eye-icon');i.type=i.type==='password'?'text':'password';e.className=i.type==='text'?'fa fa-eye-slash':'fa fa-eye';}
 
         function showMsg(t,x){['error','success','info'].forEach(function(n){document.getElementById('msg-'+n).classList.add('hidden');});if(!t)return;var e=document.getElementById('msg-'+t);if(x)document.getElementById('msg-'+t+'-text').textContent=x;e.classList.remove('hidden');}

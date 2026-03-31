@@ -10,12 +10,10 @@ def get_billing_summary():
     if user in ("Administrator", "Guest"): 
         return {"error": "Invalid User"}
 
-    # Get student record
     student = frappe.db.get_value("Student", {"portal_email": user}, ["name", "full_name"], as_dict=True)
     if not student: 
         return {"error": "Student record not found"}
 
-    # 1. Fetch Invoices (Sales Invoices)
     invoices = frappe.db.sql("""
         SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
                cost_center, fees_structure
@@ -31,7 +29,6 @@ def get_billing_summary():
                                       filters={"parent": inv['name']}, 
                                       fields=["item_name", "qty", "rate", "amount"])
 
-    # 2. Fetch Receipts
     receipts = frappe.db.sql("""
         SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
         FROM `tabReceipting` 
@@ -56,7 +53,6 @@ def get_billing_summary():
 def get_student_invoices(student):
     """
     Used by the Receipting Form to auto-load outstanding invoices.
-    Targets student_name (ID) passed from the JS.
     """
     if not student:
         return []
@@ -163,13 +159,11 @@ def get_exam_schedules():
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
     s_section = student.section or ""
-    # Get schedules for this student's class/section
     schedules = frappe.get_all("Exam Schedule",
         filters={"student_class": s_class, "section": s_section},
         fields=["name","title","subject","date","start_time","max_marks","min_marks",
                 "total_questions","room_number","number_of_students","exam_type"],
         order_by="date asc") if s_class else []
-    # Get student's marks from exam items
     marks_map = {}
     if schedules:
         items = frappe.db.sql("""
@@ -373,6 +367,7 @@ def get_class_test_results():
         })
     return result
 
+
 @frappe.whitelist()
 def get_homework_results():
     user = frappe.session.user
@@ -422,14 +417,14 @@ def get_teacher_portal_dashboard():
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
-    
+
     teacher = frappe.db.get_value("Teacher", {"portal_email": user},
-        ["name", "teacher_id", "first_name", "last_name", "full_name", 
+        ["name", "teacher_id", "first_name", "last_name", "full_name",
          "department", "date_of_joining", "email", "phone", "teacher_image"], as_dict=True)
-    
+
     if not teacher:
         return {"error": "Teacher not found"}
-    
+
     counts = {
         "classes": frappe.db.count("Student Class"),
         "subjects": frappe.db.count("Subject", {"teacher": teacher.name}) if frappe.db.exists("Subject", {"teacher": teacher.name}) else frappe.db.count("Subject"),
@@ -440,19 +435,19 @@ def get_teacher_portal_dashboard():
         "courses": frappe.db.count("Course"),
         "sections": frappe.db.count("Section"),
     }
-    
-    recent_exams = frappe.get_all("Exam Schedule", 
+
+    recent_exams = frappe.get_all("Exam Schedule",
         fields=["name", "exam_name", "subject", "date", "class_name"],
         order_by="date desc", limit=5)
-    
+
     recent_homework = frappe.get_all("Home Schedule",
         fields=["name", "subject", "student_class", "date"],
         order_by="date desc", limit=5)
-    
+
     recent_tests = frappe.get_all("Test Schedule",
         fields=["name", "subject", "student_class", "date"],
         order_by="date desc", limit=5)
-    
+
     return {
         "teacher": teacher,
         "counts": counts,
@@ -468,25 +463,24 @@ def get_user_redirect():
     user = frappe.session.user
     if not user or user == "Guest":
         return {"redirect": "/portal-login"}
-    
+
     roles = frappe.get_roles(user)
-    
+
     if "System Manager" in roles or "Administrator" in roles:
         return {"redirect": "/app", "role": "admin"}
-    
+
     if frappe.db.exists("Teacher", {"portal_email": user}):
         return {"redirect": "/assets/school/html/teacher-portal.html", "role": "teacher"}
-    
+
     if frappe.db.exists("Student", {"portal_email": user}):
         return {"redirect": "/assets/school/html/student-portal.html", "role": "student"}
 
-    # Parent redirect — checked after student so a user who is both goes to student portal
     if frappe.db.exists("Parent", {"portal_email": user}):
         return {"redirect": "/assets/school/html/parent-portal.html", "role": "parent"}
-    
+
     if "School User" in roles:
         return {"redirect": "/app", "role": "school_user"}
-    
+
     return {"redirect": "/portal-login", "role": "guest"}
 
 
@@ -577,16 +571,6 @@ def get_fees_balance():
 
 @frappe.whitelist()
 def get_parent_dashboard():
-    """
-    Dashboard for parent portal.
-    Looks up the Parent record by portal_email, then returns the parent's
-    info plus an array of their linked children — each with their own
-    schedule / result / balance counts (same logic as get_portal_dashboard).
-
-    Assumes:
-      - Parent doctype has: portal_email, full_name, mobile_no, parent_image
-      - Parent has a child table named "Parent Child" with a `student` Link field
-    """
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -605,8 +589,6 @@ def get_parent_dashboard():
         "initials":  _make_initials(parent.full_name or "", "P"),
     }
 
-    # Reads the `children` child table on the Parent doctype.
-    # Each row must have a `student` Link field pointing to the Student doctype.
     child_links = frappe.get_all("Parent Child",
         filters={"parent": parent.name},
         fields=["student"],
@@ -649,10 +631,6 @@ def get_parent_dashboard():
 
 @frappe.whitelist()
 def get_parent_billing_summary():
-    """
-    Returns invoices and receipts for ALL children of the logged-in parent.
-    Optional ?child=STUDENT_ID query param to filter to one child.
-    """
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -721,10 +699,6 @@ def get_parent_billing_summary():
 
 @frappe.whitelist()
 def get_parent_schedules():
-    """
-    Returns exam / home / test schedules for all children of the logged-in parent.
-    Optional ?child=STUDENT_ID and ?type=exam|home|test filters.
-    """
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -734,7 +708,7 @@ def get_parent_schedules():
         return {"error": "Parent record not found"}
 
     child_filter  = frappe.form_dict.get("child") or None
-    schedule_type = frappe.form_dict.get("type") or None   # exam | home | test
+    schedule_type = frappe.form_dict.get("type") or None
 
     child_links = frappe.get_all("Parent Child",
         filters={"parent": parent},
@@ -788,11 +762,6 @@ def get_parent_schedules():
 
 @frappe.whitelist()
 def get_parent_results():
-    """
-    Returns exam results, inclass test results and homework results
-    for all children of the logged-in parent.
-    Optional ?child=STUDENT_ID filter.
-    """
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -848,10 +817,6 @@ def get_parent_results():
 # ─────────────────────────────────────────────────────────────
 
 def _get_student_counts(student):
-    """
-    Build schedule / result / balance counts for a single student dict/object.
-    Mirrors get_portal_dashboard so both portals stay in sync.
-    """
     sname     = student.name if hasattr(student, "name") else student["name"]
     s_class   = (student.student_class  if hasattr(student, "student_class")  else student.get("student_class"))  or ""
     s_section = (student.section        if hasattr(student, "section")        else student.get("section"))        or ""
@@ -889,7 +854,6 @@ def _get_student_counts(student):
 
 
 def _make_initials(full_name, fallback="?"):
-    """Return up-to-2-letter initials from a full name."""
     parts = (full_name or "").strip().split()
     if len(parts) >= 2:
         return (parts[0][0] + parts[-1][0]).upper()
@@ -897,13 +861,9 @@ def _make_initials(full_name, fallback="?"):
         return parts[0][0].upper()
     return fallback
 
+
 @frappe.whitelist()
 def get_student_sidebar_data():
-    """
-    Returns schedule and result data for the logged-in student.
-    Schedules fetched by student_class + section.
-    Results fetched by student_admission_no (student_reg_no).
-    """
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -921,7 +881,6 @@ def get_student_sidebar_data():
 
     filters = {"student_class": s_class, "section": s_section}
 
-    # ── Schedules (by class + section) ──
     exam_schedules = frappe.get_all("Exam Schedule",
         filters=filters,
         fields=["name","title","subject","date","start_time","room_number","max_marks","exam_type"],
@@ -937,7 +896,6 @@ def get_student_sidebar_data():
         fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
         order_by="date asc") if s_class else []
 
-    # ── Results (by student_admission_no) ──
     exam_schedule_results = frappe.db.sql("""
         SELECT esi.parent as schedule_name, esi.marks_obtained, esi.status,
                es.subject, es.date, es.max_marks, es.exam_type
@@ -974,7 +932,6 @@ def get_student_sidebar_data():
         ORDER BY er.date DESC
     """, s_reg_no, as_dict=True)
 
-    # Stringify dates
     for row in list(exam_schedules)+list(home_schedules)+list(test_schedules)+\
                list(exam_schedule_results)+list(home_results)+list(test_results)+list(exam_results_raw):
         if row.get("date"): row["date"] = str(row["date"])
@@ -1014,11 +971,12 @@ def get_student_sidebar_data():
         }
     }
 
+
 @frappe.whitelist()
 def get_login_slides():
     """
-    Returns list of enabled Login Slide Images file_url for portal-login.html slideshow.
-    Supports both attached File records and raw filename in slide_image field.
+    Returns list of enabled Login Slide Images for portal-login.html.
+    Uses relative URLs so it works on all devices accessing the site.
     """
     slides = frappe.get_all(
         "Login Slide Image",
@@ -1028,23 +986,36 @@ def get_login_slides():
     )
     slide_urls = []
     for s in slides:
-        # Try File record first
-        file_doc = frappe.get_all("File", {
-            "attached_to_doctype": "Login Slide Image",
-            "attached_to_name": s.name
-        }, ["name", "file_url", "file_name"], limit=1)
-        
-        if file_doc:
-            # Use public /files/ URL always - safe filename extract
-            if file_doc[0].file_name:
-                filename = file_doc[0].file_name
-            else:
-                # Fallback parse from file_url
-                filename = file_doc[0].file_url.split('/')[-1] if file_doc[0].file_url else 'unknown.jpg'
-            slide_urls.append(frappe.utils.get_url(f"/files/{filename}"))
-        elif s.slide_image:
-            slide_urls.append(frappe.utils.get_url(f"/files/{s.slide_image}"))
-    
-    frappe.logger(__name__).debug(f"Login slides: {slide_urls}")
+        try:
+            file_doc = frappe.get_all("File", {
+                "attached_to_doctype": "Login Slide Image",
+                "attached_to_name": s.name
+            }, ["file_url", "file_name"], limit=1)
+
+            if file_doc:
+                file_name = file_doc[0].file_name or (file_doc[0].file_url or "").split("/")[-1]
+                if file_name:
+                    slide_urls.append(f"/files/{file_name}")
+            elif s.slide_image:
+                # Use relative URL — works for all devices
+                url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
+                slide_urls.append(url)
+        except Exception:
+            frappe.log_error(title="Login slide URL error", message=frappe.get_traceback())
+
     return slide_urls
 
+
+@frappe.whitelist()
+def get_portal_header():
+    """
+    Returns school portal header from Login Portal Header Single doc, or default.
+    """
+    try:
+        if frappe.db.count("Login Portal Header") > 0:
+            doc = frappe.get_last_doc("Login Portal Header")
+            header = (doc.header_text or "").strip()
+            return header if header else "School Portal"
+    except Exception:
+        pass
+    return "School Portal"
