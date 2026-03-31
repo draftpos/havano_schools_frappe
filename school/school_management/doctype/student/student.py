@@ -230,6 +230,8 @@ class Student(Document):
                 customer.custom_student_type    = self.student_type or ""
                 customer.custom_gender          = self.gender or ""
                 customer.customer_details       = customer_details
+				customer.custom_class           = self.name
+				customer.student_name           = self.full_name
                 if self.student_image:
                     customer.image = self.student_image
                 customer.flags.ignore_permissions = True
@@ -251,6 +253,8 @@ class Student(Document):
                     "custom_gender":         self.gender or "",
                     "customer_details":      customer_details,
                     "image":                 self.student_image or "",
+					"custom_class":          self.name,
+					 "student_name":          self.full_name
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
