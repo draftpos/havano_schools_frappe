@@ -1,13 +1,11 @@
 // student_registration.js
-// Handles loading classes based on selected school
 
 frappe.ready(function() {
     console.log('Student Registration JS loaded');
 
     const schoolSelect = document.getElementById('school');
-    const classSelect = document.getElementById('student_class');
+    const classSelect  = document.getElementById('student_class');
 
-    // Ensure class select starts disabled
     if (classSelect) {
         classSelect.innerHTML = '<option value="">Select school first</option>';
         classSelect.disabled = true;
@@ -16,7 +14,6 @@ frappe.ready(function() {
     if (schoolSelect) {
         schoolSelect.addEventListener('change', function() {
             const selectedSchool = this.value;
-            console.log('School changed to:', selectedSchool);
 
             if (classSelect) {
                 classSelect.innerHTML = '<option value="">Select class</option>';
@@ -35,7 +32,6 @@ frappe.ready(function() {
         });
     }
 
-    // Clear error state on interaction
     document.querySelectorAll('input, select').forEach(function(field) {
         field.addEventListener('change', function(e) { e.target.classList.remove('error'); });
         field.addEventListener('input',  function(e) { e.target.classList.remove('error'); });
@@ -43,10 +39,37 @@ frappe.ready(function() {
 });
 
 // ---------------------------------------------------------------------------
-// Class loading
-// FIXED: 'X-Frappe-CSRF-Token': 'guest' — correct header for allow_guest endpoints
+// frappePost — sends requests as form-encoded using cmd= parameter.
+// This is the correct pattern for allow_guest=True endpoints because
+// Frappe's CSRF check is skipped entirely when using the cmd interface
+// with a guest-whitelisted method.
 // ---------------------------------------------------------------------------
+async function frappePost(method, params) {
+    const body = new URLSearchParams();
+    body.append('cmd', method);
+    for (const [key, val] of Object.entries(params)) {
+        body.append(key, val);
+    }
 
+    const response = await fetch('/api/method/' + method, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+        },
+        body: body.toString()
+    });
+
+    if (!response.ok) {
+        throw new Error('Server error ' + response.status);
+    }
+
+    return response.json();
+}
+
+// ---------------------------------------------------------------------------
+// Class loading
+// ---------------------------------------------------------------------------
 async function loadClassesBySchool(school) {
     const classSelect = document.getElementById('student_class');
 
@@ -62,20 +85,10 @@ async function loadClassesBySchool(school) {
     classSelect.disabled = true;
 
     try {
-        const resp = await fetch(
-            '/api/method/school.www.student_registration.get_classes_by_school',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': 'guest'
-                },
-                body: JSON.stringify({ school: school })
-            }
+        const r = await frappePost(
+            'school.www.student_registration.get_classes_by_school',
+            { school: school }
         );
-
-        const r = await resp.json();
 
         if (r.message && r.message.length > 0) {
             classSelect.innerHTML = '<option value="">Select class</option>';
@@ -100,9 +113,8 @@ async function loadClassesBySchool(school) {
 // ---------------------------------------------------------------------------
 // Guardian fields toggle
 // ---------------------------------------------------------------------------
-
 function toggleGuardianFields() {
-    const guardianIs = document.getElementById('if_guardian_is');
+    const guardianIs     = document.getElementById('if_guardian_is');
     const guardianFields = document.querySelectorAll('.g-other');
 
     if (guardianIs && guardianIs.value === 'Other') {
@@ -115,7 +127,6 @@ function toggleGuardianFields() {
 // ---------------------------------------------------------------------------
 // Field helper
 // ---------------------------------------------------------------------------
-
 function getFieldValue(fieldId) {
     const field = document.getElementById(fieldId);
     return field ? field.value.trim() : '';
@@ -124,18 +135,15 @@ function getFieldValue(fieldId) {
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
-
 function validateForm() {
     const requiredFields = ['school', 'first_name', 'last_name', 'student_type'];
 
-    // Only require student_class if the select is enabled (classes have loaded)
     const classSelect = document.getElementById('student_class');
     if (classSelect && !classSelect.disabled) {
         requiredFields.push('student_class');
     }
 
     let isValid = true;
-
     requiredFields.forEach(function(fieldId) {
         const field = document.getElementById(fieldId);
         if (field) {
@@ -148,7 +156,6 @@ function validateForm() {
         }
     });
 
-    // Payment fields only required when billing is enabled
     const billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
     if (billEnabled) {
         ['account', 'payment_method'].forEach(function(fieldId) {
@@ -170,7 +177,6 @@ function validateForm() {
 // ---------------------------------------------------------------------------
 // Step navigation
 // ---------------------------------------------------------------------------
-
 function goToStep(step) {
     const currentStep = document.querySelector('.form-step.active');
     const nextStep    = document.getElementById('step' + step);
@@ -179,7 +185,6 @@ function goToStep(step) {
 
     const currentNum = parseInt(currentStep.id.replace('step', ''), 10);
 
-    // Only validate when moving forward from step 1
     if (step > currentNum && currentNum === 1 && !validateForm()) {
         showError('Please fill in all required fields (School, First Name, Last Name, Student Type, and Class).');
         return;
@@ -207,7 +212,6 @@ function goToStep(step) {
 // ---------------------------------------------------------------------------
 // Review builder
 // ---------------------------------------------------------------------------
-
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -255,7 +259,6 @@ function buildReview() {
 // ---------------------------------------------------------------------------
 // Error display
 // ---------------------------------------------------------------------------
-
 function showError(message) {
     const errorDiv = document.getElementById('globalError');
     if (errorDiv) {
@@ -269,11 +272,8 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission
-// FIXED: 'X-Frappe-CSRF-Token': 'guest' — the correct way to call
-// allow_guest=True whitelisted methods without a session token
+// Submission — uses form-encoded POST with cmd= to bypass CSRF entirely
 // ---------------------------------------------------------------------------
-
 async function submitRegistration() {
     if (!validateForm()) {
         showError('Please fill in all required fields.');
@@ -333,28 +333,10 @@ async function submitRegistration() {
     };
 
     try {
-        const response = await fetch(
-            '/api/method/school.www.student_registration.submit_registration',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': 'guest'
-                },
-                body: JSON.stringify({ data: JSON.stringify(formData) })
-            }
+        const result = await frappePost(
+            'school.www.student_registration.submit_registration',
+            { data: JSON.stringify(formData) }
         );
-
-        if (response.status === 417) {
-            throw new Error('Session error. Please refresh the page and try again.');
-        }
-
-        if (!response.ok) {
-            throw new Error('Server error (' + response.status + '). Please try again.');
-        }
-
-        const result = await response.json();
 
         if (result.message && result.message.success) {
             document.querySelectorAll('.form-step').forEach(function(step) {
@@ -390,7 +372,6 @@ async function submitRegistration() {
 // ---------------------------------------------------------------------------
 // Global exports
 // ---------------------------------------------------------------------------
-
 window.loadClassesBySchool    = loadClassesBySchool;
 window.toggleGuardianFields   = toggleGuardianFields;
 window.submitRegistration     = submitRegistration;
