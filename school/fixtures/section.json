@@ -1,0 +1,27 @@
+[
+  {
+    "doctype": "Section",
+    "name": "G1-A",
+    "section_name": "Grade 1 - Section A"
+  },
+  {
+    "doctype": "Section",
+    "name": "G1-B",
+    "section_name": "Grade 1 - Section B"
+  },
+  {
+    "doctype": "Section",
+    "name": "G2-A",
+    "section_name": "Grade 2 - Section A"
+  },
+  {
+    "doctype": "Section",
+    "name": "G2-B",
+    "section_name": "Grade 2 - Section B"
+  },
+  {
+    "doctype": "Section",
+    "name": "G3-A",
+    "section_name": "Grade 3 - Section A"
+  }
+]

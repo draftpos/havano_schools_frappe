@@ -5,6 +5,16 @@ frappe.ready(function() {
     console.log('Student Registration JS loaded');
     loadAllClasses();
     loadAllSections();
+    
+    // Add cascade for class -> section
+    const classSelect = document.getElementById('student_class');
+    if (classSelect) {
+        classSelect.addEventListener('change', function() {
+            const selectedClass = this.value;
+            console.log('Class changed to:', selectedClass);
+            loadSectionsByClass(selectedClass);
+        });
+    }
 });
 
 function loadAllClasses() {
@@ -68,6 +78,44 @@ function loadAllSections() {
         },
         error: function(e) {
             console.error('Error loading sections:', e);
+            sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+        }
+    });
+}
+
+function loadSectionsByClass(student_class) {
+    const sectionSelect = document.getElementById('section');
+    
+    if (!sectionSelect) return;
+    
+    if (!student_class) {
+        loadAllSections();
+        return;
+    }
+    
+    sectionSelect.innerHTML = '<option value="">Loading sections for ' + student_class + '...</option>';
+    
+    frappe.call({
+        method: 'school.www.student_registration.get_sections_by_class',
+        args: {
+            student_class: student_class
+        },
+        callback: function(r) {
+            console.log('Filtered sections loaded:', r.message);
+            if (r.message && r.message.length > 0) {
+                sectionSelect.innerHTML = '<option value="">Select section</option>';
+                r.message.forEach(function(section) {
+                    const option = document.createElement('option');
+                    option.value = section.name;
+                    option.textContent = section.name;
+                    sectionSelect.appendChild(option);
+                });
+            } else {
+                sectionSelect.innerHTML = '<option value="">No sections for this class</option>';
+            }
+        },
+        error: function(e) {
+            console.error('Error loading filtered sections:', e);
             sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
         }
     });

@@ -1,17 +1,14 @@
-# Login Portal Header - Separate Doctype Fix
+# Student Registration Fix: Class and Section Fields
+Current working directory: //wsl.localhost/Ubuntu-24.04/home/ashley/frappe-bench-v15/apps/school
 
-**Status: Complete**
+## Steps:
+- [x] 1. Add `get_sections_by_class(student_class)` whitelisted method to school/www/student_registration.py
+- [x] 2. Update school/www/student_registration.js: Add event listener on student_class change to reload sections via new method
+- [x] 3. Populate sample data: school/fixtures/student_class.json, school/fixtures/section.json (matches cascade filter)
+- [x] 4. Test: Navigate to student_registration.html, select school → class → verify sections filter by class, submit form works
+- [x] 5. Complete task
 
-## Changes:
-- Slides API/JS reverted (images work)
-- **New**: Login Portal Header (Single doctype)
-- **New**: school.api.get_portal_header() (fallback default)
-- **New**: JS loadPortalHeader() (separate AJAX)
-
-## To Fix/Use:
-1. `cd /home/ashley/frappe-bench-v15 && bench migrate`
-2. Login admin → Search "Login Portal Header" → Create (auto due Single) → Set `header_text` → Save
-3. /portal-login → Check h2
-
-If doctype not showing: `bench --site [site] console` → `frappe.delete_doc("DocType", "Login Portal Header", ignore_missing=True); frappe.reload_doc("School Management", "doctype", "login_portal_header")`
+## Notes:
+- Minimal changes only to class/section cascade
+- No other code changes
 

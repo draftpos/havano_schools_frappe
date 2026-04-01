@@ -301,7 +301,6 @@ def get_exam_results():
     result = []
     for r in rows:
         sub_name = frappe.db.get_value("Subject", r.subject, "subject_name") or r.subject or ""
-        pct = round((r.marks_obtained / r.max_marks * 100), 1) if r.max_marks and r.marks_obtained else 0
         result.append({
             "exam_name":      r.title or sub_name,
             "subject_name":   sub_name,
@@ -348,7 +347,6 @@ def get_class_test_results():
     for r in rows:
         sub_name  = frappe.db.get_value("Subject", r.subject, "subject_name") or r.subject or ""
         test_name = frappe.db.get_value("Inclass Test", r.test_name, "exam_name") or r.test_name or ""
-        pct = round((r.marks_obtained / r.max_marks * 100), 1) if r.max_marks and r.marks_obtained else 0
         result.append({
             "exam_name":      test_name,
             "subject_name":   sub_name,
@@ -486,24 +484,18 @@ def get_user_redirect():
 
 @frappe.whitelist()
 def get_fees_balance():
-    """
-    Fees Balance report — fetches from Accounts Receivable Summary
-    filtered by student customers. Supports cost_center filter.
-    """
     user = frappe.session.user
     if not user or user == "Guest":
         return {"error": "Not authorized"}
 
     cost_center = frappe.form_dict.get("cost_center") or None
-
     student_filters = {}
     if cost_center:
         student_filters["cost_center"] = cost_center
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section",
-                "cost_center", "school"])
+        fields=["name", "full_name", "student_class", "section", "cost_center", "school"])
 
     if not students:
         return []
@@ -972,31 +964,45 @@ def get_student_sidebar_data():
 
 
 # ─────────────────────────────────────────────────────────────
-#  LOGIN PAGE APIs — allow_guest=True so they work for
-#  everyone: unauthenticated visitors AND logged-in users,
-#  on ALL devices (not just the laptop that added the records)
+#  LOGIN PAGE APIs
+#  allow_guest=True  → works for ALL visitors before login
+#
+#  HOW IT WORKS:
+#  1. Go to Login Slide Image doctype on your LIVE site
+#  2. Create a record, set slide_title, upload image, set enabled=1
+#  3. The image is saved to the live server's /files/ folder
+#  4. This API reads it from the live DB and returns relative URLs
+#  5. The login page shows it to EVERY visitor on ANY device
+#
+#  No syncing, no scp, no console needed. Just add via the UI on live.
 # ─────────────────────────────────────────────────────────────
 
 @frappe.whitelist(allow_guest=True)
 def get_login_slides():
     """
-    Returns list of enabled Login Slide Images for portal-login.html.
-    allow_guest=True  → works for unauthenticated visitors (login page).
-    Relative URLs     → works on ALL devices, not just localhost.
+    Reads Login Slide Image records from the database.
+    Add slides via Frappe UI → they automatically show on login page
+    for ALL devices and ALL visitors without any extra steps.
     """
     try:
         slides = frappe.get_all(
             "Login Slide Image",
             filters={"enabled": 1},
-            fields=["name", "slide_image"],
-            order_by="sort_order asc, name asc"
+            fields=["name", "slide_title", "slide_image", "media_type", "sort_order"],
+            order_by="sort_order asc, creation asc"
         )
-        slide_urls = []
+        result = []
         for s in slides:
-            if s.slide_image:
-                url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
-                slide_urls.append(url)
-        return slide_urls
+            if not s.slide_image:
+                continue
+            # Relative URL — works on all devices regardless of domain
+            url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
+            result.append({
+                "url":        url,
+                "media_type": s.media_type or "Image",
+                "title":      s.slide_title or "",
+            })
+        return result
     except Exception:
         frappe.log_error(title="get_login_slides error", message=frappe.get_traceback())
         return []
@@ -1005,8 +1011,8 @@ def get_login_slides():
 @frappe.whitelist(allow_guest=True)
 def get_portal_header():
     """
-    Returns school portal header text for portal-login.html.
-    allow_guest=True  → works for unauthenticated visitors (login page).
+    Returns portal header text from Login Portal Header doctype.
+    Edit via Frappe UI → instantly updates for all visitors.
     """
     try:
         if frappe.db.count("Login Portal Header") > 0:

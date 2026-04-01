@@ -56,6 +56,18 @@ def get_all_sections():
 
 
 @frappe.whitelist(allow_guest=True)
+def get_sections_by_class(student_class):
+    """Get sections filtered by student class (name LIKE class%)"""
+    if not student_class:
+        return []
+    sections = frappe.get_all("Section", 
+        filters={"name": ["like", f"{student_class}%"]}, 
+        fields=["name"], 
+        order_by="name")
+    return sections
+
+
+@frappe.whitelist(allow_guest=True)
 def submit_registration(data):
     settings = frappe.get_single("School Settings")
     

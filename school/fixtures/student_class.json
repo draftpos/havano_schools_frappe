@@ -1,0 +1,23 @@
+[
+  {
+    "doctype": "Student Class",
+    "name": "Grade 1",
+    "class_code": "G1",
+    "class_name": "Grade 1",
+    "is_active": 1
+  },
+  {
+    "doctype": "Student Class",
+    "name": "Grade 2",
+    "class_code": "G2",
+    "class_name": "Grade 2",
+    "is_active": 1
+  },
+  {
+    "doctype": "Student Class",
+    "name": "Grade 3",
+    "class_code": "G3",
+    "class_name": "Grade 3",
+    "is_active": 1
+  }
+]
