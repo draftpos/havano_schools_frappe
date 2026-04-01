@@ -287,9 +287,45 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission - FIXED: Changed from frappe.call to fetch with proper headers
+// CSRF helper – fetches a fresh token from Frappe for guest sessions
 // ---------------------------------------------------------------------------
+async function getFrappeCSRF() {
+    // 1. Try the cookie first (works for logged-in users)
+    const fromCookie = document.cookie
+        .split(';')
+        .map(function(c) { return c.trim(); })
+        .find(function(c) { return c.startsWith('csrf_token='); });
 
+    if (fromCookie) {
+        const token = decodeURIComponent(fromCookie.split('=')[1]);
+        // Frappe sets 'Fetch' as the guest placeholder – means we need a real one
+        if (token && token !== 'Fetch') return token;
+    }
+
+    // 2. For guest sessions, fetch a real token from Frappe
+    try {
+        const r = await fetch('/api/method/frappe.auth.get_logged_user', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+        // After this request Frappe sets the csrf_token cookie properly
+        const fromCookieAfter = document.cookie
+            .split(';')
+            .map(function(c) { return c.trim(); })
+            .find(function(c) { return c.startsWith('csrf_token='); });
+        if (fromCookieAfter) {
+            return decodeURIComponent(fromCookieAfter.split('=')[1]);
+        }
+    } catch (e) {
+        console.warn('Could not refresh CSRF token:', e);
+    }
+
+    return '';
+}
+
+// ---------------------------------------------------------------------------
+// Submission
+// ---------------------------------------------------------------------------
 async function submitRegistration() {
     if (!validateForm()) {
         showError('Please fill in all required fields.');
@@ -349,20 +385,31 @@ async function submitRegistration() {
     };
 
     try {
-        const csrfToken = getCsrfToken();
-        
+        // Always get a fresh CSRF token right before submitting
+        const csrfToken = await getFrappeCSRF();
+
         const response = await fetch(
             '/api/method/school.www.student_registration.submit_registration',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json',
                     'X-Frappe-CSRF-Token': csrfToken
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({ data: JSON.stringify(formData) })
             }
         );
+
+        // Frappe returns 417 when CSRF fails – give a clear message
+        if (response.status === 417) {
+            throw new Error('CSRF validation failed (417). Please refresh the page and try again.');
+        }
+
+        if (!response.ok) {
+            throw new Error('Server error: ' + response.status);
+        }
 
         const result = await response.json();
 
@@ -374,7 +421,7 @@ async function submitRegistration() {
             if (successScreen) {
                 successScreen.classList.add('show');
                 document.getElementById('successMsg').textContent = result.message.message;
-                document.getElementById('refBadge').textContent  = 'Reference: ' + result.message.name;
+                document.getElementById('refBadge').textContent   = 'Reference: ' + result.message.name;
             }
         } else {
             const errorMsg = (result.message && result.message.message) || 'Submission failed. Please try again.';
@@ -384,9 +431,10 @@ async function submitRegistration() {
                 if (btnText) btnText.textContent = 'Submit Application';
             }
         }
+
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Network error. Please check your connection and try again.');
+        showError(error.message || 'Network error. Please check your connection and try again.');
         if (submitBtn) {
             submitBtn.disabled = false;
             if (btnText) btnText.textContent = 'Submit Application';
