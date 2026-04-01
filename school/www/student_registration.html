@@ -241,23 +241,13 @@
 
 <script>
 // ---------------------------------------------------------------------------
-// CSRF helper
-// ---------------------------------------------------------------------------
-function getCsrfToken() {
-    return (
-        document.cookie.split(';')
-            .map(function(c) { return c.trim(); })
-            .find(function(c) { return c.startsWith('csrf_token='); }) || ''
-    ).replace('csrf_token=', '');
-}
-
-// ---------------------------------------------------------------------------
 // Globals
 // ---------------------------------------------------------------------------
 var billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
 
 // ---------------------------------------------------------------------------
 // Class loading
+// FIXED: 'X-Frappe-CSRF-Token': 'guest' — correct header for allow_guest endpoints
 // ---------------------------------------------------------------------------
 async function loadClassesBySchool(school) {
     var classSelect = document.getElementById('student_class');
@@ -280,9 +270,8 @@ async function loadClassesBySchool(school) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': getCsrfToken()
+                    'X-Frappe-CSRF-Token': 'guest'
                 },
-                credentials: 'include',
                 body: JSON.stringify({ school: school })
             }
         );
@@ -320,7 +309,6 @@ function goToStep(step) {
 
     var currentNum = parseInt(currentStep.id.replace('step', ''), 10);
 
-    // Only validate required fields when leaving step 1 going forward
     if (step > currentNum && currentNum === 1 && !validateStep1()) {
         return;
     }
@@ -345,12 +333,11 @@ function goToStep(step) {
 }
 
 // ---------------------------------------------------------------------------
-// Validation – step 1 only (called on forward navigation from step 1)
+// Validation
 // ---------------------------------------------------------------------------
 function validateStep1() {
     var required = ['school', 'first_name', 'last_name', 'student_type'];
 
-    // Only enforce class if the dropdown is enabled (classes have loaded)
     var classSelect = document.getElementById('student_class');
     if (classSelect && !classSelect.disabled) {
         required.push('student_class');
@@ -373,7 +360,6 @@ function validateStep1() {
     return isValid;
 }
 
-// validateForm is used by submitRegistration – full check
 function validateForm() {
     var valid = validateStep1();
 
@@ -422,7 +408,7 @@ function escapeHtml(text) {
 }
 
 // ---------------------------------------------------------------------------
-// Review builder  (no stray characters — proper closing </td> tags)
+// Review builder
 // ---------------------------------------------------------------------------
 function buildReview() {
     var reviewContent = document.getElementById('reviewContent');
@@ -481,6 +467,8 @@ function showError(message) {
 
 // ---------------------------------------------------------------------------
 // Submission
+// FIXED: 'X-Frappe-CSRF-Token': 'guest' — the correct way to call
+// allow_guest=True whitelisted methods without a session token
 // ---------------------------------------------------------------------------
 async function submitRegistration() {
     if (!validateForm()) {
@@ -548,12 +536,19 @@ async function submitRegistration() {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': getCsrfToken()
+                    'X-Frappe-CSRF-Token': 'guest'
                 },
-                credentials: 'include',
                 body: JSON.stringify({ data: JSON.stringify(formData) })
             }
         );
+
+        if (response.status === 417) {
+            throw new Error('Session error. Please refresh the page and try again.');
+        }
+
+        if (!response.ok) {
+            throw new Error('Server error (' + response.status + '). Please try again.');
+        }
 
         var result = await response.json();
 
@@ -576,7 +571,7 @@ async function submitRegistration() {
         }
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Network error. Check your connection and try again.');
+        showError(error.message || 'Network error. Check your connection and try again.');
         if (submitBtn) {
             submitBtn.disabled = false;
             if (btnText) btnText.textContent = 'Submit Application';
@@ -619,7 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Clear error highlight on interaction
     document.querySelectorAll('input, select').forEach(function(field) {
         field.addEventListener('change', function(e) { e.target.classList.remove('error'); });
         field.addEventListener('input',  function(e) { e.target.classList.remove('error'); });
