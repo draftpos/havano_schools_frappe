@@ -998,21 +998,9 @@ def get_login_slides():
             if not s.slide_image:
                 continue
             
-            # Get the file ID from the File doctype
-            file_record = frappe.get_all(
-                "File",
-                filters={"file_url": s.slide_image},
-                fields=["name"],
-                limit=1
-            )
-            
-            if file_record:
-                # Use Frappe's file serving endpoint (bypasses static file serving)
-                url = f"{site_url}/api/method/frappe.core.api.file.get_file?file_id={file_record[0].name}"
-            else:
-                # Fallback to direct file path
-                filename = s.slide_image.split('/')[-1]
-                url = f"{site_url}/files/{filename}"
+            # Use direct file path
+            filename = s.slide_image.split('/')[-1]
+            url = f"{site_url}/files/{filename}"
             
             result.append({
                 "url": url,
@@ -1023,7 +1011,6 @@ def get_login_slides():
     except Exception:
         frappe.log_error(title="get_login_slides error", message=frappe.get_traceback())
         return []
-
 @frappe.whitelist(allow_guest=True)
 def get_portal_header():
     """
