@@ -4,13 +4,14 @@ import json
 
 def get_context(context):
     settings = frappe.get_single("School Settings")
-    
+
     context.no_cache = 1
     context.show_sidebar = False
-    context.no_csrf = 1  # FIXED: bypass CSRF for this public guest page
+    context.no_csrf = 1
+
     context.bill_on_registration = settings.get("bill_on_registration") or 0
     context.require_approval = settings.get("require_approval_before_creating_student") or 0
-    
+
     # Get schools (Cost Centers) with fallback
     schools = frappe.get_all(
         "Cost Center",
@@ -20,13 +21,13 @@ def get_context(context):
     if not schools:
         schools = [{"name": "Main Campus", "cost_center_name": "Main Campus"}]
     context.schools = schools
-    
+
     # Get religions with fallback
     religions = frappe.get_all("Religion", fields=["name"])
     if not religions:
         religions = [{"name": "Christianity"}, {"name": "Islam"}, {"name": "Other"}]
     context.religions = religions
-    
+
     # Get payment accounts with fallback
     payment_accounts = frappe.get_all(
         "Account",
@@ -39,9 +40,9 @@ def get_context(context):
             {"name": "Bank - Main", "account_name": "Bank Account"}
         ]
     context.payment_accounts = payment_accounts
-    
+
     context.student_types = ["Day", "Boarding"]
-    
+
     fees_defaults = []
     for row in settings.get("fees_structure_defaults") or []:
         fees_defaults.append({"status": row.status, "fees_structure": row.fees_structure})
@@ -55,7 +56,7 @@ def get_classes_by_school(school):
         return []
 
     classes = []
-    
+
     # Approach 1: cost_center field
     if frappe.db.has_column("Student Class", "cost_center"):
         classes = frappe.get_all(
@@ -66,7 +67,7 @@ def get_classes_by_school(school):
         )
         if classes:
             return classes
-    
+
     # Approach 2: school field
     if frappe.db.has_column("Student Class", "school"):
         classes = frappe.get_all(
@@ -77,7 +78,7 @@ def get_classes_by_school(school):
         )
         if classes:
             return classes
-    
+
     # Approach 3: name pattern match
     try:
         classes = frappe.get_all(
@@ -90,7 +91,7 @@ def get_classes_by_school(school):
             return classes
     except Exception as e:
         frappe.log_error(f"Error filtering classes by name: {str(e)}", "Student Registration")
-    
+
     # Approach 4: custom Link field to Cost Center
     try:
         custom_fields = frappe.get_all(
@@ -109,77 +110,43 @@ def get_classes_by_school(school):
                 return classes
     except Exception as e:
         frappe.log_error(f"Error checking custom fields: {str(e)}", "Student Registration")
-    
+
     # Fallback: return all classes
     return frappe.get_all("Student Class", fields=["name"], order_by="name")
 
 
 @frappe.whitelist(allow_guest=True)
 def get_sections_by_school(school):
-    """Get sections filtered by school/cost center"""
     if not school:
         return []
-    
     if frappe.db.has_column("Section", "cost_center"):
-        sections = frappe.get_all(
-            "Section",
-            filters={"cost_center": school},
-            fields=["name"],
-            order_by="name"
-        )
+        sections = frappe.get_all("Section", filters={"cost_center": school}, fields=["name"], order_by="name")
         if sections:
             return sections
-    
     if frappe.db.has_column("Section", "school"):
-        sections = frappe.get_all(
-            "Section",
-            filters={"school": school},
-            fields=["name"],
-            order_by="name"
-        )
+        sections = frappe.get_all("Section", filters={"school": school}, fields=["name"], order_by="name")
         if sections:
             return sections
-    
     return frappe.get_all("Section", fields=["name"], order_by="name")
 
 
 @frappe.whitelist(allow_guest=True)
 def get_sections_by_class_and_school(student_class, school):
-    """Get sections filtered by student class and school"""
     if not student_class:
         return []
-    
     if frappe.db.has_column("Section", "cost_center"):
-        sections = frappe.get_all(
-            "Section",
-            filters={"name": ["like", f"{student_class}%"], "cost_center": school},
-            fields=["name"],
-            order_by="name"
-        )
+        sections = frappe.get_all("Section", filters={"name": ["like", f"{student_class}%"], "cost_center": school}, fields=["name"], order_by="name")
         if sections:
             return sections
-    
     if frappe.db.has_column("Section", "school"):
-        sections = frappe.get_all(
-            "Section",
-            filters={"name": ["like", f"{student_class}%"], "school": school},
-            fields=["name"],
-            order_by="name"
-        )
+        sections = frappe.get_all("Section", filters={"name": ["like", f"{student_class}%"], "school": school}, fields=["name"], order_by="name")
         if sections:
             return sections
-    
-    return frappe.get_all(
-        "Section",
-        filters={"name": ["like", f"{student_class}%"]},
-        fields=["name"],
-        order_by="name"
-    )
+    return frappe.get_all("Section", filters={"name": ["like", f"{student_class}%"]}, fields=["name"], order_by="name")
 
 
 @frappe.whitelist(allow_guest=True)
 def get_all_sections():
-    """Legacy method - kept for compatibility"""
     return frappe.get_all("Section", fields=["name"], order_by="name")
 
 
@@ -187,7 +154,7 @@ def get_all_sections():
 def submit_registration(data):
     """Submit a new student registration"""
     settings = frappe.get_single("School Settings")
-    
+
     if not settings.get("allow_online_enrollment"):
         frappe.throw(_("Online enrollment is currently disabled."))
 
@@ -258,7 +225,6 @@ def submit_registration(data):
 
 @frappe.whitelist(allow_guest=True)
 def get_student_classes_with_school_info():
-    """Helper: get all student classes with linked school info for debugging."""
     classes = frappe.get_all("Student Class", fields=["name", "cost_center", "school"])
     custom_fields = frappe.get_all(
         "Custom Field",
