@@ -981,8 +981,6 @@ def get_student_sidebar_data():
 def get_login_slides():
     """
     Reads Login Slide Image records from the database.
-    Add slides via Frappe UI → they automatically show on login page
-    for ALL devices and ALL visitors without any extra steps.
     """
     try:
         slides = frappe.get_all(
@@ -992,15 +990,26 @@ def get_login_slides():
             order_by="sort_order asc, creation asc"
         )
         result = []
+        site_url = frappe.utils.get_url()
+        
         for s in slides:
             if not s.slide_image:
                 continue
             
-            # Simple relative URL format that was working before
-            if s.slide_image.startswith("/"):
-                url = s.slide_image
+            # Get the file ID from the file record
+            file_record = frappe.get_all("File", 
+                filters={"file_url": s.slide_image},
+                fields=["name"],
+                limit=1
+            )
+            
+            if file_record:
+                # Use Frappe's file API endpoint
+                url = f"{site_url}/api/method/frappe.core.api.file.get_file?file_id={file_record[0].name}"
             else:
-                url = f"/files/{s.slide_image}"
+                # Fallback to direct file path
+                filename = s.slide_image.split('/')[-1]
+                url = f"{site_url}/files/{filename}"
             
             result.append({
                 "url": url,
