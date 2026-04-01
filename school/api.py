@@ -995,18 +995,30 @@ def get_login_slides():
         for s in slides:
             if not s.slide_image:
                 continue
-            # Relative URL — works on all devices regardless of domain
-            url = s.slide_image if s.slide_image.startswith("/") else f"/files/{s.slide_image}"
+            
+            # Get the absolute URL for the file
+            # This handles both private and public files correctly
+            file_url = frappe.utils.get_url()
+            
+            # Construct the full URL
+            if s.slide_image.startswith("/files/"):
+                url = f"{file_url}{s.slide_image}"
+            elif s.slide_image.startswith("/"):
+                url = f"{file_url}{s.slide_image}"
+            elif s.slide_image.startswith("http://") or s.slide_image.startswith("https://"):
+                url = s.slide_image
+            else:
+                url = f"{file_url}/files/{s.slide_image}"
+            
             result.append({
-                "url":        url,
+                "url": url,
                 "media_type": s.media_type or "Image",
-                "title":      s.slide_title or "",
+                "title": s.slide_title or "",
             })
         return result
     except Exception:
         frappe.log_error(title="get_login_slides error", message=frappe.get_traceback())
         return []
-
 
 @frappe.whitelist(allow_guest=True)
 def get_portal_header():
