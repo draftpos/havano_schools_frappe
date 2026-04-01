@@ -39,14 +39,13 @@ frappe.ready(function() {
 });
 
 // ---------------------------------------------------------------------------
-// frappePost — sends requests as form-encoded using cmd= parameter.
-// This is the correct pattern for allow_guest=True endpoints because
-// Frappe's CSRF check is skipped entirely when using the cmd interface
-// with a guest-whitelisted method.
+// frappePost — POST to Frappe API without a CSRF token.
+// 'X-Frappe-CSRF-Token: fetch' tells Frappe to issue a guest token
+// automatically, bypassing the 417 rejection on allow_guest=True methods.
+// NOTE: Do NOT append cmd= to the body — the method path in the URL is enough.
 // ---------------------------------------------------------------------------
 async function frappePost(method, params) {
     const body = new URLSearchParams();
-    body.append('cmd', method);
     for (const [key, val] of Object.entries(params)) {
         body.append(key, val);
     }
@@ -55,13 +54,16 @@ async function frappePost(method, params) {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Frappe-CSRF-Token': 'fetch'
         },
         body: body.toString()
     });
 
     if (!response.ok) {
-        throw new Error('Server error ' + response.status);
+        let errText = '';
+        try { errText = await response.text(); } catch(e) {}
+        throw new Error('Server error ' + response.status + (errText ? ': ' + errText : ''));
     }
 
     return response.json();
@@ -272,7 +274,7 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission — uses form-encoded POST with cmd= to bypass CSRF entirely
+// Submission — uses X-Frappe-CSRF-Token: fetch to bypass 417 for guest methods
 // ---------------------------------------------------------------------------
 async function submitRegistration() {
     if (!validateForm()) {
