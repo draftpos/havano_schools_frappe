@@ -10,29 +10,47 @@ def get_context(context):
     context.bill_on_registration = settings.get("bill_on_registration") or 0
     context.require_approval = settings.get("require_approval_before_creating_student") or 0
     
-    # Get schools (Cost Centers)
-    context.schools = frappe.get_all(
+    # Get schools (Cost Centers) with fallback
+    schools = frappe.get_all(
         "Cost Center",
         filters={"is_group": 0, "disabled": 0},
         fields=["name", "cost_center_name"]
     )
+    if not schools:
+        schools = [{"name": "Main Campus", "cost_center_name": "Main Campus"}]
+    context.schools = schools
     
-    context.religions = frappe.get_all("Religion", fields=["name"])
+    # Get religions with fallback
+    religions = frappe.get_all("Religion", fields=["name"])
+    if not religions:
+        religions = [{"name": "Christianity"}, {"name": "Islam"}, {"name": "Other"}]
+    context.religions = religions
     
-    context.payment_accounts = frappe.get_all(
+    # Get payment accounts with fallback
+    payment_accounts = frappe.get_all(
         "Account",
         filters={"account_type": ["in", ["Cash", "Bank"]], "is_group": 0, "disabled": 0},
         fields=["name", "account_name"]
     )
+    if not payment_accounts:
+        payment_accounts = [
+            {"name": "Cash - Main", "account_name": "Cash"},
+            {"name": "Bank - Main", "account_name": "Bank Account"}
+        ]
+    context.payment_accounts = payment_accounts
     
     context.student_types = ["Day", "Boarding"]
     
     # Get all classes - standalone, not dependent on school
     all_classes = frappe.get_all("Student Class", fields=["name"], order_by="name")
+    if not all_classes:
+        all_classes = [{"name": "Grade 1"}, {"name": "Grade 2"}, {"name": "Grade 3"}]
     context.all_classes_json = json.dumps(all_classes)
     
     # Get all sections - standalone, show all sections
     all_sections = frappe.get_all("Section", fields=["name"], order_by="name")
+    if not all_sections:
+        all_sections = [{"name": "G1-A"}, {"name": "G1-B"}, {"name": "G2-A"}, {"name": "G2-B"}, {"name": "G3-A"}]
     context.all_sections_json = json.dumps(all_sections)
     
     fees_defaults = []
@@ -43,15 +61,29 @@ def get_context(context):
 
 @frappe.whitelist(allow_guest=True)
 def get_all_classes():
-    """Get all classes from database - standalone"""
+    """Get all classes from database - standalone, fallback samples if empty"""
     classes = frappe.get_all("Student Class", fields=["name"], order_by="name")
+    if not classes:
+        classes = [
+            {"name": "Grade 1"},
+            {"name": "Grade 2"},
+            {"name": "Grade 3"}
+        ]
     return classes
 
 
 @frappe.whitelist(allow_guest=True)
 def get_all_sections():
-    """Get all sections from database - standalone"""
+    """Get all sections from database - standalone, fallback samples if empty"""
     sections = frappe.get_all("Section", fields=["name"], order_by="name")
+    if not sections:
+        sections = [
+            {"name": "G1-A"},
+            {"name": "G1-B"},
+            {"name": "G2-A"},
+            {"name": "G2-B"},
+            {"name": "G3-A"}
+        ]
     return sections
 
 

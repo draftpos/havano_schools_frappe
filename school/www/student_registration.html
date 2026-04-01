@@ -435,11 +435,64 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAllClasses();
     loadAllSections();
     
+    // Cascade: Class -> Section
+    const classSelect = document.getElementById('student_class');
+    if (classSelect) {
+        classSelect.addEventListener('change', function() {
+            const classVal = this.value;
+            console.log('Class selected:', classVal);
+            loadSectionsByClass(classVal);
+        });
+    }
+    
     document.querySelectorAll('input, select').forEach(function(field) {
         field.addEventListener('change', function(e) { e.target.classList.remove('error'); });
         field.addEventListener('input', function(e) { e.target.classList.remove('error'); });
     });
 });
+
+// Load filtered sections by class
+async function loadSectionsByClass(student_class) {
+    const sectionSelect = document.getElementById('section');
+    if (!sectionSelect) return;
+    
+    if (!student_class) {
+        loadAllSections();
+        return;
+    }
+    
+    sectionSelect.innerHTML = '<option value="">Loading sections for ' + student_class + '...</option>';
+    
+    try {
+        const csrf = (document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith('csrf_token=')).split('=')[1]) || '';
+        const resp = await fetch('/api/method/school.www.student_registration.get_sections_by_class', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Frappe-CSRF-Token': csrf
+            },
+            body: JSON.stringify({
+                student_class: student_class
+            })
+        });
+        const r = await resp.json();
+        console.log('Filtered sections:', r.message);
+        if (r.message && r.message.length > 0) {
+            sectionSelect.innerHTML = '<option value="">Select section</option>';
+            r.message.forEach(function(sec) {
+                const option = document.createElement('option');
+                option.value = sec.name;
+                option.textContent = sec.name;
+                sectionSelect.appendChild(option);
+            });
+        } else {
+            sectionSelect.innerHTML = '<option value="">No sections for ' + student_class + '</option>';
+        }
+    } catch (e) {
+        console.error('Error loading sections:', e);
+        sectionSelect.innerHTML = '<option value="">Error loading sections</option>';
+    }
+}
 </script>
 </body>
 </html>

@@ -25,8 +25,26 @@ function loadAllClasses() {
         return;
     }
     
-    classSelect.innerHTML = '<option value="">Loading classes...</option>';
+    // Use server context first
+    try {
+        const classesJson = window.all_classes_json || JSON.parse(document.querySelector('script[data-classes]').textContent || '[]');
+        console.log('Classes from context:', classesJson);
+        if (classesJson && classesJson.length > 0) {
+            classSelect.innerHTML = '<option value="">Select class</option>';
+            classesJson.forEach(function(cls) {
+                const option = document.createElement('option');
+                option.value = cls.name;
+                option.textContent = cls.name;
+                classSelect.appendChild(option);
+            });
+            return;
+        }
+    } catch (e) {
+        console.log('No context classes, falling back to API');
+    }
     
+    // Fallback API call
+    classSelect.innerHTML = '<option value="">Loading classes...</option>';
     frappe.call({
         method: 'school.www.student_registration.get_all_classes',
         callback: function(r) {
