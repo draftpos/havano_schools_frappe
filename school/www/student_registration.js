@@ -100,15 +100,25 @@ async function loadClassesBySchool(school) {
 
 // ---------------------------------------------------------------------------
 // CSRF helper
+// Frappe injects `frappe.csrf_token` into every page (guests included).
+// This is the most reliable source. Cookie is a fallback only.
 // ---------------------------------------------------------------------------
 
 function getCsrfToken() {
-    return (
-        document.cookie
-            .split(';')
-            .map(function(c) { return c.trim(); })
-            .find(function(c) { return c.startsWith('csrf_token='); }) || ''
-    ).replace('csrf_token=', '');
+    // Primary: Frappe's JS global — always present, always valid
+    if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== 'Fetch') {
+        return frappe.csrf_token;
+    }
+    // Fallback: cookie (works for logged-in users)
+    const cookie = document.cookie
+        .split(';')
+        .map(function(c) { return c.trim(); })
+        .find(function(c) { return c.startsWith('csrf_token='); });
+    if (cookie) {
+        const val = decodeURIComponent(cookie.split('=')[1]);
+        if (val && val !== 'Fetch') return val;
+    }
+    return '';
 }
 
 // ---------------------------------------------------------------------------
@@ -140,10 +150,6 @@ function getFieldValue(fieldId) {
 // ---------------------------------------------------------------------------
 
 function validateForm() {
-    // Only validate step-1 required fields when step 1 is active
-    const step1Active = document.getElementById('step1') &&
-                        document.getElementById('step1').classList.contains('active');
-
     const requiredFields = ['school', 'first_name', 'last_name', 'student_type'];
 
     // Only require student_class if the select is enabled (classes have loaded)
@@ -223,7 +229,7 @@ function goToStep(step) {
 }
 
 // ---------------------------------------------------------------------------
-// Review builder  (fixed — no stray Chinese characters)
+// Review builder
 // ---------------------------------------------------------------------------
 
 function escapeHtml(text) {
@@ -260,13 +266,13 @@ function buildReview() {
         const bg = i % 2 ? '#fff' : '#fdfbf7';
         html += '<tr style="background:' + bg + '">' +
             '<td style="padding:9px 14px;font-size:11px;font-weight:600;text-transform:uppercase;' +
-                'color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '<\/td>' +
-            '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + escapeHtml(value) + '<\/td>' +
-            '<\/tr>';
+                'color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '</td>' +
+            '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + escapeHtml(value) + '</td>' +
+            '</tr>';
         i++;
     }
 
-    html += '<\/table>';
+    html += '</table>';
     reviewContent.innerHTML = html;
 }
 
@@ -287,45 +293,12 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// CSRF helper – fetches a fresh token from Frappe for guest sessions
-// ---------------------------------------------------------------------------
-async function getFrappeCSRF() {
-    // 1. Try the cookie first (works for logged-in users)
-    const fromCookie = document.cookie
-        .split(';')
-        .map(function(c) { return c.trim(); })
-        .find(function(c) { return c.startsWith('csrf_token='); });
-
-    if (fromCookie) {
-        const token = decodeURIComponent(fromCookie.split('=')[1]);
-        // Frappe sets 'Fetch' as the guest placeholder – means we need a real one
-        if (token && token !== 'Fetch') return token;
-    }
-
-    // 2. For guest sessions, fetch a real token from Frappe
-    try {
-        const r = await fetch('/api/method/frappe.auth.get_logged_user', {
-            method: 'GET',
-            credentials: 'same-origin'
-        });
-        // After this request Frappe sets the csrf_token cookie properly
-        const fromCookieAfter = document.cookie
-            .split(';')
-            .map(function(c) { return c.trim(); })
-            .find(function(c) { return c.startsWith('csrf_token='); });
-        if (fromCookieAfter) {
-            return decodeURIComponent(fromCookieAfter.split('=')[1]);
-        }
-    } catch (e) {
-        console.warn('Could not refresh CSRF token:', e);
-    }
-
-    return '';
-}
-
-// ---------------------------------------------------------------------------
 // Submission
+// FIXED: getCsrfToken() now reads frappe.csrf_token (Frappe's page global)
+// as the primary source — this is always valid for both guests and logged-in
+// users, eliminating the 417 Expectation Failed error.
 // ---------------------------------------------------------------------------
+
 async function submitRegistration() {
     if (!validateForm()) {
         showError('Please fill in all required fields.');
@@ -385,8 +358,11 @@ async function submitRegistration() {
     };
 
     try {
-        // Always get a fresh CSRF token right before submitting
-        const csrfToken = await getFrappeCSRF();
+        const csrfToken = getCsrfToken();
+
+        if (!csrfToken) {
+            throw new Error('Could not obtain CSRF token. Please refresh the page and try again.');
+        }
 
         const response = await fetch(
             '/api/method/school.www.student_registration.submit_registration',
@@ -402,13 +378,13 @@ async function submitRegistration() {
             }
         );
 
-        // Frappe returns 417 when CSRF fails – give a clear message
+        // 417 = Frappe CSRF mismatch
         if (response.status === 417) {
-            throw new Error('CSRF validation failed (417). Please refresh the page and try again.');
+            throw new Error('Session expired. Please refresh the page and try again.');
         }
 
         if (!response.ok) {
-            throw new Error('Server error: ' + response.status);
+            throw new Error('Server error (' + response.status + '). Please try again.');
         }
 
         const result = await response.json();
@@ -443,6 +419,7 @@ async function submitRegistration() {
 
     return false;
 }
+
 // ---------------------------------------------------------------------------
 // Global exports
 // ---------------------------------------------------------------------------
