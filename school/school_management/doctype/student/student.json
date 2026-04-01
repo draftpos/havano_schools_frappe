@@ -132,6 +132,14 @@
    "label": "Student Reg No",
    "unique": 1
   },
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer",
+   "read_only": 1
+  }
   {
    "fieldname": "date_of_admission",
    "fieldtype": "Date",

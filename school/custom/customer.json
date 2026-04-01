@@ -1,0 +1,17 @@
+{
+ "custom_fields": [
+  {
+   "fieldname": "custom_student_reg_no",
+   "fieldtype": "Data",
+   "label": "Student Registration Number",
+   "insert_after": "customer_name"
+  },
+  {
+   "fieldname": "custom_student_type",
+   "fieldtype": "Select",
+   "label": "Student Type",
+   "options": "\nDay\nBoarding",
+   "insert_after": "custom_student_reg_no"
+  }
+ ]
+}
