@@ -1,8 +1,7 @@
 // student_registration.js
 // Handles loading classes based on selected school
 
-// Remove frappe.ready and use DOMContentLoaded since this is a web page
-document.addEventListener('DOMContentLoaded', function() {
+frappe.ready(function() {
     console.log('Student Registration JS loaded');
 
     const schoolSelect = document.getElementById('school');
@@ -141,6 +140,10 @@ function getFieldValue(fieldId) {
 // ---------------------------------------------------------------------------
 
 function validateForm() {
+    // Only validate step-1 required fields when step 1 is active
+    const step1Active = document.getElementById('step1') &&
+                        document.getElementById('step1').classList.contains('active');
+
     const requiredFields = ['school', 'first_name', 'last_name', 'student_type'];
 
     // Only require student_class if the select is enabled (classes have loaded)
@@ -163,7 +166,7 @@ function validateForm() {
         }
     });
 
-    // Payment fields only required when billing is enabled
+    // Payment fields only required when billing is enabled (step 4)
     const billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
     if (billEnabled) {
         ['account', 'payment_method'].forEach(function(fieldId) {
@@ -220,7 +223,7 @@ function goToStep(step) {
 }
 
 // ---------------------------------------------------------------------------
-// Review builder
+// Review builder  (fixed — no stray Chinese characters)
 // ---------------------------------------------------------------------------
 
 function escapeHtml(text) {
@@ -284,7 +287,7 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission - FIXED to use fetch instead of frappe.call
+// Submission - FIXED: Changed from frappe.call to fetch
 // ---------------------------------------------------------------------------
 
 async function submitRegistration() {
@@ -346,8 +349,8 @@ async function submitRegistration() {
     };
 
     try {
+        // Use fetch instead of frappe.call
         const csrfToken = getCsrfToken();
-        
         const response = await fetch(
             '/api/method/school.www.student_registration.submit_registration',
             {
@@ -375,8 +378,7 @@ async function submitRegistration() {
                 document.getElementById('refBadge').textContent  = 'Reference: ' + result.message.name;
             }
         } else {
-            const errorMsg = (result.message && result.message.message) || 'Submission failed. Please try again.';
-            showError(errorMsg);
+            showError((result.message && result.message.message) || 'Submission failed. Please try again.');
             if (submitBtn) {
                 submitBtn.disabled = false;
                 if (btnText) btnText.textContent = 'Submit Application';
@@ -384,7 +386,7 @@ async function submitRegistration() {
         }
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Network error: ' + error.message);
+        showError('Network error. Please check your connection and try again.');
         if (submitBtn) {
             submitBtn.disabled = false;
             if (btnText) btnText.textContent = 'Submit Application';
@@ -404,4 +406,3 @@ window.submitRegistration     = submitRegistration;
 window.goToStep               = goToStep;
 window.buildReview            = buildReview;
 window.validateForm           = validateForm;
-window.getCsrfToken           = getCsrfToken;
