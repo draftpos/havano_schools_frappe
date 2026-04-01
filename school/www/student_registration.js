@@ -44,6 +44,7 @@ frappe.ready(function() {
 
 // ---------------------------------------------------------------------------
 // Class loading
+// FIXED: 'X-Frappe-CSRF-Token': 'guest' — correct header for allow_guest endpoints
 // ---------------------------------------------------------------------------
 
 async function loadClassesBySchool(school) {
@@ -61,7 +62,6 @@ async function loadClassesBySchool(school) {
     classSelect.disabled = true;
 
     try {
-        const csrf = getCsrfToken();
         const resp = await fetch(
             '/api/method/school.www.student_registration.get_classes_by_school',
             {
@@ -69,9 +69,8 @@ async function loadClassesBySchool(school) {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': csrf
+                    'X-Frappe-CSRF-Token': 'guest'
                 },
-                credentials: 'include',
                 body: JSON.stringify({ school: school })
             }
         );
@@ -96,29 +95,6 @@ async function loadClassesBySchool(school) {
         classSelect.innerHTML = '<option value="">Error loading classes</option>';
         classSelect.disabled = true;
     }
-}
-
-// ---------------------------------------------------------------------------
-// CSRF helper
-// Frappe injects `frappe.csrf_token` into every page (guests included).
-// This is the most reliable source. Cookie is a fallback only.
-// ---------------------------------------------------------------------------
-
-function getCsrfToken() {
-    // Primary: Frappe's JS global — always present, always valid
-    if (typeof frappe !== 'undefined' && frappe.csrf_token && frappe.csrf_token !== 'Fetch') {
-        return frappe.csrf_token;
-    }
-    // Fallback: cookie (works for logged-in users)
-    const cookie = document.cookie
-        .split(';')
-        .map(function(c) { return c.trim(); })
-        .find(function(c) { return c.startsWith('csrf_token='); });
-    if (cookie) {
-        const val = decodeURIComponent(cookie.split('=')[1]);
-        if (val && val !== 'Fetch') return val;
-    }
-    return '';
 }
 
 // ---------------------------------------------------------------------------
@@ -172,7 +148,7 @@ function validateForm() {
         }
     });
 
-    // Payment fields only required when billing is enabled (step 4)
+    // Payment fields only required when billing is enabled
     const billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
     if (billEnabled) {
         ['account', 'payment_method'].forEach(function(fieldId) {
@@ -294,9 +270,8 @@ function showError(message) {
 
 // ---------------------------------------------------------------------------
 // Submission
-// FIXED: getCsrfToken() now reads frappe.csrf_token (Frappe's page global)
-// as the primary source — this is always valid for both guests and logged-in
-// users, eliminating the 417 Expectation Failed error.
+// FIXED: 'X-Frappe-CSRF-Token': 'guest' — the correct way to call
+// allow_guest=True whitelisted methods without a session token
 // ---------------------------------------------------------------------------
 
 async function submitRegistration() {
@@ -358,12 +333,6 @@ async function submitRegistration() {
     };
 
     try {
-        const csrfToken = getCsrfToken();
-
-        if (!csrfToken) {
-            throw new Error('Could not obtain CSRF token. Please refresh the page and try again.');
-        }
-
         const response = await fetch(
             '/api/method/school.www.student_registration.submit_registration',
             {
@@ -371,16 +340,14 @@ async function submitRegistration() {
                 headers: {
                     'Content-Type': 'application/json',
                     'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': csrfToken
+                    'X-Frappe-CSRF-Token': 'guest'
                 },
-                credentials: 'same-origin',
                 body: JSON.stringify({ data: JSON.stringify(formData) })
             }
         );
 
-        // 417 = Frappe CSRF mismatch
         if (response.status === 417) {
-            throw new Error('Session expired. Please refresh the page and try again.');
+            throw new Error('Session error. Please refresh the page and try again.');
         }
 
         if (!response.ok) {
