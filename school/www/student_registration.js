@@ -1,7 +1,8 @@
 // student_registration.js
 // Handles loading classes based on selected school
 
-frappe.ready(function() {
+// Remove frappe.ready and use DOMContentLoaded since this is a web page
+document.addEventListener('DOMContentLoaded', function() {
     console.log('Student Registration JS loaded');
 
     const schoolSelect = document.getElementById('school');
@@ -140,10 +141,6 @@ function getFieldValue(fieldId) {
 // ---------------------------------------------------------------------------
 
 function validateForm() {
-    // Only validate step-1 required fields when step 1 is active
-    const step1Active = document.getElementById('step1') &&
-                        document.getElementById('step1').classList.contains('active');
-
     const requiredFields = ['school', 'first_name', 'last_name', 'student_type'];
 
     // Only require student_class if the select is enabled (classes have loaded)
@@ -166,7 +163,7 @@ function validateForm() {
         }
     });
 
-    // Payment fields only required when billing is enabled (step 4)
+    // Payment fields only required when billing is enabled
     const billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
     if (billEnabled) {
         ['account', 'payment_method'].forEach(function(fieldId) {
@@ -223,7 +220,7 @@ function goToStep(step) {
 }
 
 // ---------------------------------------------------------------------------
-// Review builder  (fixed — no stray Chinese characters)
+// Review builder
 // ---------------------------------------------------------------------------
 
 function escapeHtml(text) {
@@ -260,13 +257,13 @@ function buildReview() {
         const bg = i % 2 ? '#fff' : '#fdfbf7';
         html += '<tr style="background:' + bg + '">' +
             '<td style="padding:9px 14px;font-size:11px;font-weight:600;text-transform:uppercase;' +
-                'color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '</td>' +
-            '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + escapeHtml(value) + '</td>' +
-            '</tr>';
+                'color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '<\/td>' +
+            '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + escapeHtml(value) + '<\/td>' +
+            '<\/tr>';
         i++;
     }
 
-    html += '</table>';
+    html += '<\/table>';
     reviewContent.innerHTML = html;
 }
 
@@ -287,7 +284,7 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission
+// Submission - FIXED to use fetch instead of frappe.call
 // ---------------------------------------------------------------------------
 
 async function submitRegistration() {
@@ -349,23 +346,37 @@ async function submitRegistration() {
     };
 
     try {
-        const response = await frappe.call({
-            method: 'school.www.student_registration.submit_registration',
-            args: { data: JSON.stringify(formData) }
-        });
+        const csrfToken = getCsrfToken();
+        
+        const response = await fetch(
+            '/api/method/school.www.student_registration.submit_registration',
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Frappe-CSRF-Token': csrfToken
+                },
+                credentials: 'include',
+                body: JSON.stringify({ data: JSON.stringify(formData) })
+            }
+        );
 
-        if (response.message && response.message.success) {
+        const result = await response.json();
+
+        if (result.message && result.message.success) {
             document.querySelectorAll('.form-step').forEach(function(step) {
                 step.style.display = 'none';
             });
             const successScreen = document.getElementById('successScreen');
             if (successScreen) {
                 successScreen.classList.add('show');
-                document.getElementById('successMsg').textContent = response.message.message;
-                document.getElementById('refBadge').textContent  = 'Reference: ' + response.message.name;
+                document.getElementById('successMsg').textContent = result.message.message;
+                document.getElementById('refBadge').textContent  = 'Reference: ' + result.message.name;
             }
         } else {
-            showError((response.message && response.message.message) || 'Submission failed. Please try again.');
+            const errorMsg = (result.message && result.message.message) || 'Submission failed. Please try again.';
+            showError(errorMsg);
             if (submitBtn) {
                 submitBtn.disabled = false;
                 if (btnText) btnText.textContent = 'Submit Application';
@@ -373,7 +384,7 @@ async function submitRegistration() {
         }
     } catch (error) {
         console.error('Submission error:', error);
-        showError('Network error. Please check your connection and try again.');
+        showError('Network error: ' + error.message);
         if (submitBtn) {
             submitBtn.disabled = false;
             if (btnText) btnText.textContent = 'Submit Application';
@@ -393,3 +404,4 @@ window.submitRegistration     = submitRegistration;
 window.goToStep               = goToStep;
 window.buildReview            = buildReview;
 window.validateForm           = validateForm;
+window.getCsrfToken           = getCsrfToken;
