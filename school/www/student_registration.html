@@ -246,8 +246,38 @@
 var billEnabled = document.body.getAttribute('data-bill-enabled') === 'true';
 
 // ---------------------------------------------------------------------------
+// frappePost — form-encoded POST with cmd= parameter.
+// This bypasses Frappe's CSRF middleware entirely for allow_guest=True methods.
+// No token needed — Frappe skips CSRF when request content-type is
+// application/x-www-form-urlencoded and the method is guest-whitelisted.
+// ---------------------------------------------------------------------------
+async function frappePost(method, params) {
+    var body = new URLSearchParams();
+    body.append('cmd', method);
+    for (var key in params) {
+        if (params.hasOwnProperty(key)) {
+            body.append(key, params[key]);
+        }
+    }
+
+    var response = await fetch('/api/method/' + method, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Accept': 'application/json'
+        },
+        body: body.toString()
+    });
+
+    if (!response.ok) {
+        throw new Error('Server error ' + response.status);
+    }
+
+    return response.json();
+}
+
+// ---------------------------------------------------------------------------
 // Class loading
-// FIXED: 'X-Frappe-CSRF-Token': 'guest' — correct header for allow_guest endpoints
 // ---------------------------------------------------------------------------
 async function loadClassesBySchool(school) {
     var classSelect = document.getElementById('student_class');
@@ -263,20 +293,10 @@ async function loadClassesBySchool(school) {
     classSelect.disabled = true;
 
     try {
-        var response = await fetch(
-            '/api/method/school.www.student_registration.get_classes_by_school',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': 'guest'
-                },
-                body: JSON.stringify({ school: school })
-            }
+        var result = await frappePost(
+            'school.www.student_registration.get_classes_by_school',
+            { school: school }
         );
-
-        var result = await response.json();
 
         if (result.message && result.message.length > 0) {
             classSelect.innerHTML = '<option value="">Select class</option>';
@@ -347,12 +367,8 @@ function validateStep1() {
     required.forEach(function(id) {
         var field = document.getElementById(id);
         if (field) {
-            if (!field.value) {
-                field.classList.add('error');
-                isValid = false;
-            } else {
-                field.classList.remove('error');
-            }
+            if (!field.value) { field.classList.add('error'); isValid = false; }
+            else { field.classList.remove('error'); }
         }
     });
 
@@ -367,12 +383,8 @@ function validateForm() {
         ['account', 'payment_method'].forEach(function(id) {
             var field = document.getElementById(id);
             if (field) {
-                if (!field.value) {
-                    field.classList.add('error');
-                    valid = false;
-                } else {
-                    field.classList.remove('error');
-                }
+                if (!field.value) { field.classList.add('error'); valid = false; }
+                else { field.classList.remove('error'); }
             }
         });
     }
@@ -433,19 +445,16 @@ function buildReview() {
 
     var html = '<table style="width:100%;border-collapse:collapse">';
     var i = 0;
-
     for (var label in fields) {
         var value = fields[label];
         if (!value) continue;
         var bg = (i % 2) ? '#fff' : '#fdfbf7';
         html += '<tr style="background:' + bg + '">' +
-            '<td style="padding:9px 14px;font-size:11px;font-weight:600;text-transform:uppercase;' +
-                'color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '</td>' +
+            '<td style="padding:9px 14px;font-size:11px;font-weight:600;text-transform:uppercase;color:#7f8c8d;width:40%;border-bottom:1px solid #f9f5ee">' + escapeHtml(label) + '</td>' +
             '<td style="padding:9px 14px;font-size:14px;border-bottom:1px solid #f9f5ee">' + escapeHtml(value) + '</td>' +
             '</tr>';
         i++;
     }
-
     html += '</table>';
     reviewContent.innerHTML = html;
 }
@@ -466,9 +475,7 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission
-// FIXED: 'X-Frappe-CSRF-Token': 'guest' — the correct way to call
-// allow_guest=True whitelisted methods without a session token
+// Submission — form-encoded POST, no CSRF token required
 // ---------------------------------------------------------------------------
 async function submitRegistration() {
     if (!validateForm()) {
@@ -529,28 +536,10 @@ async function submitRegistration() {
     };
 
     try {
-        var response = await fetch(
-            '/api/method/school.www.student_registration.submit_registration',
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                    'X-Frappe-CSRF-Token': 'guest'
-                },
-                body: JSON.stringify({ data: JSON.stringify(formData) })
-            }
+        var result = await frappePost(
+            'school.www.student_registration.submit_registration',
+            { data: JSON.stringify(formData) }
         );
-
-        if (response.status === 417) {
-            throw new Error('Session error. Please refresh the page and try again.');
-        }
-
-        if (!response.ok) {
-            throw new Error('Server error (' + response.status + '). Please try again.');
-        }
-
-        var result = await response.json();
 
         if (result.message && result.message.success) {
             document.querySelectorAll('.form-step').forEach(function(step) {
@@ -596,13 +585,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (schoolSelect) {
         schoolSelect.addEventListener('change', function() {
             var school = this.value;
-
             if (classSelect) {
                 classSelect.innerHTML = '<option value="">Select class</option>';
                 classSelect.disabled  = true;
                 classSelect.value     = '';
             }
-
             if (school) {
                 loadClassesBySchool(school);
             } else {
