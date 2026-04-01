@@ -400,10 +400,134 @@ body::before {
   text-decoration: none;
   font-weight: 600;
   letter-spacing: 0.02em;
-  display: flex; align-items: center; gap: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
   transition: color 0.2s;
 }
 .see-all:hover { color: var(--blue); }
+
+/* NEW: Registration Cards Container */
+.registration-cards-container {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 28px;
+  animation: fadeUp 0.5s ease both;
+}
+
+.reg-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  transition: transform 0.25s, box-shadow 0.25s;
+}
+.reg-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+}
+
+.reg-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface2);
+}
+.reg-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+.reg-card-title .status-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.reg-card-title .status-icon.approved { background: var(--emerald); box-shadow: 0 0 6px var(--emerald); }
+.reg-card-title .status-icon.pending { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.reg-card-title .status-icon.rejected { background: var(--rose); box-shadow: 0 0 6px var(--rose); }
+
+.reg-count {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--indigo);
+}
+
+.reg-card-body {
+  padding: 0;
+}
+.reg-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.reg-list-item {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+.reg-list-item:hover {
+  background: var(--surface2);
+}
+.reg-list-item:last-child {
+  border-bottom: none;
+}
+.reg-student-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+}
+.reg-student-details {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 2px;
+}
+.reg-student-class {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--indigo);
+  background: rgba(99,102,241,0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+.reg-empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text3);
+  font-size: 13px;
+}
+.reg-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface2);
+  text-align: center;
+}
+.reg-view-all {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--indigo);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: gap 0.2s;
+}
+.reg-view-all:hover {
+  gap: 10px;
+  color: var(--blue);
+}
 
 /* ══════════════════════════════════════════
    STAT CARDS
@@ -840,6 +964,7 @@ body::before {
   .content { padding: 16px; }
   .topbar { padding: 0 16px; }
   .search-bar { display: none; }
+  .registration-cards-container { grid-template-columns: 1fr; gap: 16px; }
 }
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr 1fr; }
@@ -1122,6 +1247,69 @@ body::before {
 
   <div class="content">
 
+    <!-- NEW: Student Online Registration Cards - 100% width with live stats -->
+    <div class="registration-cards-container" id="registration-cards-container">
+      <div class="reg-card">
+        <div class="reg-card-header">
+          <div class="reg-card-title">
+            <span class="status-icon approved"></span>
+            Approved Applications
+          </div>
+          <div class="reg-count" id="approved-count">0</div>
+        </div>
+        <div class="reg-card-body">
+          <div class="reg-list" id="approved-list">
+            <div class="reg-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="reg-card-footer">
+          <a href="/app/student-online-registration?enrollment_status=Approved" class="reg-view-all">
+            View All →
+          </a>
+        </div>
+      </div>
+      
+      <div class="reg-card">
+        <div class="reg-card-header">
+          <div class="reg-card-title">
+            <span class="status-icon pending"></span>
+            Pending Applications
+          </div>
+          <div class="reg-count" id="pending-count">0</div>
+        </div>
+        <div class="reg-card-body">
+          <div class="reg-list" id="pending-list">
+            <div class="reg-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="reg-card-footer">
+          <a href="/app/student-online-registration?enrollment_status=Pending" class="reg-view-all">
+            View All →
+          </a>
+        </div>
+      </div>
+      
+      <div class="reg-card">
+        <div class="reg-card-header">
+          <div class="reg-card-title">
+            <span class="status-icon rejected"></span>
+            Rejected Applications
+          </div>
+          <div class="reg-count" id="rejected-count">0</div>
+        </div>
+        <div class="reg-card-body">
+          <div class="reg-list" id="rejected-list">
+            <div class="reg-empty">Loading...</div>
+          </div>
+        </div>
+        <div class="reg-card-footer">
+          <a href="/app/student-online-registration?enrollment_status=Rejected" class="reg-view-all">
+            View All →
+          </a>
+        </div>
+      </div>
+    </div>
+
     <!-- Quick Actions -->
     <div class="sec-head">
       <div class="sec-title"><span></span>Quick Actions</div>
@@ -1378,9 +1566,6 @@ const fmtMoney = n => {
   return '$'+Number(n).toFixed(0);
 };
 
-const now = new Date();
-const h = now.getHours();
-
 /* ─── SIDEBAR ─── */
 function toggleSidebar() { $('sidebar').classList.toggle('open'); $('overlay').classList.toggle('open'); }
 function closeSidebar() { $('sidebar').classList.remove('open'); $('overlay').classList.remove('open'); }
@@ -1413,6 +1598,97 @@ async function fetchData() {
   } catch(e) {
     console.error('Dashboard fetch error:', e);
     return {};
+  }
+}
+
+/* ─── FETCH REGISTRATIONS DATA WITH COUNTS ─── */
+async function fetchRegistrationsStats() {
+  try {
+    // Fetch all registrations with their statuses
+    const r = await fetch('/api/method/frappe.client.get_list', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-Frappe-CSRF-Token': getCsrfToken()
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        doctype: 'Student Online Registration',
+        fields: ['name', 'first_name', 'last_name', 'student_class', 'enrollment_status'],
+        limit_page_length: 5,
+        order_by: 'creation desc'
+      })
+    });
+    const result = await r.json();
+    const registrations = result.message || [];
+    
+    // Calculate counts
+    const approved = registrations.filter(r => r.enrollment_status === 'Approved');
+    const pending = registrations.filter(r => r.enrollment_status === 'Pending');
+    const rejected = registrations.filter(r => r.enrollment_status === 'Rejected');
+    
+    return { approved, pending, rejected, all: registrations };
+  } catch(e) {
+    console.error('Registrations fetch error:', e);
+    return { approved: [], pending: [], rejected: [], all: [] };
+  }
+}
+
+async function loadRegistrationCards() {
+  const { approved, pending, rejected } = await fetchRegistrationsStats();
+  
+  // Update counts
+  document.getElementById('approved-count').textContent = approved.length;
+  document.getElementById('pending-count').textContent = pending.length;
+  document.getElementById('rejected-count').textContent = rejected.length;
+  
+  // Render approved list
+  const approvedList = document.getElementById('approved-list');
+  if (approved.length === 0) {
+    approvedList.innerHTML = '<div class="reg-empty">No approved applications</div>';
+  } else {
+    approvedList.innerHTML = approved.slice(0, 5).map(reg => `
+      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
+        <div>
+          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
+          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
+        </div>
+        <div class="reg-student-class">${reg.name}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Render pending list
+  const pendingList = document.getElementById('pending-list');
+  if (pending.length === 0) {
+    pendingList.innerHTML = '<div class="reg-empty">No pending applications</div>';
+  } else {
+    pendingList.innerHTML = pending.slice(0, 5).map(reg => `
+      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
+        <div>
+          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
+          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
+        </div>
+        <div class="reg-student-class">${reg.name}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Render rejected list
+  const rejectedList = document.getElementById('rejected-list');
+  if (rejected.length === 0) {
+    rejectedList.innerHTML = '<div class="reg-empty">No rejected applications</div>';
+  } else {
+    rejectedList.innerHTML = rejected.slice(0, 5).map(reg => `
+      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
+        <div>
+          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
+          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
+        </div>
+        <div class="reg-student-class">${reg.name}</div>
+      </div>
+    `).join('');
   }
 }
 
@@ -1468,7 +1744,7 @@ const cardCC = {
   students: '', collected: '', outstanding: '',
   exams: '', tests: '', homework: '', invoices: ''
 };
-const cardDataCache = {};  // keyed by cost_center string
+const cardDataCache = {};
 
 async function fetchCardData(cc) {
   const key = cc || '__all__';
@@ -1597,7 +1873,6 @@ async function loadDashboard() {
     $('user-avatar').textContent = data.user.full_name.charAt(0).toUpperCase();
   }
 
-  // Populate cost center dropdown (only first load when empty)
   const ccSel = document.getElementById('cc-filter');
   if (ccSel && ccSel.options.length === 1 && data.cost_centers && data.cost_centers.length) {
     data.cost_centers.forEach(cc => {
@@ -1609,12 +1884,14 @@ async function loadDashboard() {
     });
   }
 
-  // Populate per-card dropdowns and seed cache with all-data
   if (data.cost_centers && data.cost_centers.length) {
     populateCardDropdowns(data.cost_centers);
     cardDataCache['__all__'] = data;
     loadSchoolOverviews(data.cost_centers);
   }
+  
+  // Load registration cards with live stats
+  await loadRegistrationCards();
 }
 
 function refreshData() {

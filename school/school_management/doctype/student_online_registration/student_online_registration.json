@@ -1,0 +1,417 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:REG-{YYYY}-{#####}",
+ "creation": "2026-04-01 13:15:32.981352",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "student_details_section",
+  "school",
+  "full_name",
+  "student_phone_number",
+  "religion",
+  "previous_school_details",
+  "column_break_vwud",
+  "first_name",
+  "date_of_birth",
+  "requested_section",
+  "date_of_admission",
+  "medical_history",
+  "column_break_hnjr",
+  "second_name",
+  "gender",
+  "approved_section",
+  "national_identification_number",
+  "student_image",
+  "column_break_jjti",
+  "last_name",
+  "student_class",
+  "student_type",
+  "local_identification_number",
+  "portal_email",
+  "parent_details_section",
+  "father_name",
+  "phone_number",
+  "father_email",
+  "father_occupation",
+  "column_break_hwcm",
+  "mother_name",
+  "mother_phone",
+  "mother_email",
+  "mother_occupation",
+  "guardian_details_section",
+  "if_guardian_is",
+  "guardian_phone",
+  "guardian_occupation",
+  "guardian_address",
+  "column_break_hlml",
+  "guardian_name",
+  "guardian_relation",
+  "guardian_email",
+  "address_section",
+  "current_address",
+  "permanent_address",
+  "payment_section",
+  "account",
+  "column_break_ozss",
+  "payment_method",
+  "enrollment_details_section",
+  "enrollment_status",
+  "approval_remarks",
+  "student_created",
+  "created_student"
+ ],
+ "fields": [
+  {
+   "fieldname": "student_details_section",
+   "fieldtype": "Section Break",
+   "label": "Student Details"
+  },
+  {
+   "fieldname": "school",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "School/Cost Center",
+   "options": "Cost Center",
+   "reqd": 1
+  },
+  {
+   "fieldname": "first_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "First Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "second_name",
+   "fieldtype": "Data",
+   "label": "Second Name"
+  },
+  {
+   "fieldname": "last_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Last Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "full_name",
+   "fieldtype": "Data",
+   "label": "Full Name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_of_birth",
+   "fieldtype": "Date",
+   "label": "Date of Birth"
+  },
+  {
+   "fieldname": "gender",
+   "fieldtype": "Select",
+   "label": "Gender",
+   "options": "Male\nFemale\nOther"
+  },
+  {
+   "fieldname": "student_phone_number",
+   "fieldtype": "Data",
+   "label": "Student Phone Number"
+  },
+  {
+   "fieldname": "student_class",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Student Class",
+   "options": "Student Class",
+   "reqd": 1
+  },
+  {
+   "fieldname": "requested_section",
+   "fieldtype": "Link",
+   "label": "Requested Section",
+   "options": "Section"
+  },
+  {
+   "fieldname": "approved_section",
+   "fieldtype": "Link",
+   "label": "Approved Section",
+   "options": "Section"
+  },
+  {
+   "fieldname": "student_type",
+   "fieldtype": "Select",
+   "label": "Student Type",
+   "options": "Day\nBoarding",
+   "reqd": 1
+  },
+  {
+   "fieldname": "religion",
+   "fieldtype": "Link",
+   "label": "Religion",
+   "options": "Religion"
+  },
+  {
+   "fieldname": "date_of_admission",
+   "fieldtype": "Date",
+   "label": "Date of Admission"
+  },
+  {
+   "fieldname": "national_identification_number",
+   "fieldtype": "Data",
+   "label": "National Identification Number"
+  },
+  {
+   "fieldname": "local_identification_number",
+   "fieldtype": "Data",
+   "label": "Local Identification Number"
+  },
+  {
+   "fieldname": "previous_school_details",
+   "fieldtype": "Small Text",
+   "label": "Previous School Details"
+  },
+  {
+   "fieldname": "medical_history",
+   "fieldtype": "Small Text",
+   "label": "Medical History"
+  },
+  {
+   "fieldname": "student_image",
+   "fieldtype": "Attach Image",
+   "label": "Student Image"
+  },
+  {
+   "fieldname": "portal_email",
+   "fieldtype": "Data",
+   "label": "Portal Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "parent_details_section",
+   "fieldtype": "Section Break",
+   "label": "Parent Details"
+  },
+  {
+   "fieldname": "father_name",
+   "fieldtype": "Data",
+   "label": "Father's Name"
+  },
+  {
+   "fieldname": "mother_name",
+   "fieldtype": "Data",
+   "label": "Mother's Name"
+  },
+  {
+   "fieldname": "phone_number",
+   "fieldtype": "Data",
+   "label": "Father's Phone"
+  },
+  {
+   "fieldname": "mother_phone",
+   "fieldtype": "Data",
+   "label": "Mother's Phone"
+  },
+  {
+   "fieldname": "father_email",
+   "fieldtype": "Data",
+   "label": "Father's Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "mother_email",
+   "fieldtype": "Data",
+   "label": "Mother's Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "father_occupation",
+   "fieldtype": "Data",
+   "label": "Father's Occupation"
+  },
+  {
+   "fieldname": "mother_occupation",
+   "fieldtype": "Data",
+   "label": "Mother's Occupation"
+  },
+  {
+   "fieldname": "guardian_details_section",
+   "fieldtype": "Section Break",
+   "label": "Guardian Details"
+  },
+  {
+   "fieldname": "if_guardian_is",
+   "fieldtype": "Select",
+   "label": "Guardian Is",
+   "options": "\nFather\nMother\nOther"
+  },
+  {
+   "fieldname": "guardian_name",
+   "fieldtype": "Data",
+   "label": "Guardian Name"
+  },
+  {
+   "fieldname": "guardian_relation",
+   "fieldtype": "Data",
+   "label": "Guardian Relation"
+  },
+  {
+   "fieldname": "guardian_phone",
+   "fieldtype": "Data",
+   "label": "Guardian Phone"
+  },
+  {
+   "fieldname": "guardian_email",
+   "fieldtype": "Data",
+   "label": "Guardian Email",
+   "options": "Email"
+  },
+  {
+   "fieldname": "guardian_occupation",
+   "fieldtype": "Data",
+   "label": "Guardian Occupation"
+  },
+  {
+   "fieldname": "guardian_address",
+   "fieldtype": "Small Text",
+   "label": "Guardian Address"
+  },
+  {
+   "fieldname": "address_section",
+   "fieldtype": "Section Break",
+   "label": "Address Details"
+  },
+  {
+   "fieldname": "current_address",
+   "fieldtype": "Small Text",
+   "label": "Current Address"
+  },
+  {
+   "fieldname": "permanent_address",
+   "fieldtype": "Small Text",
+   "label": "Permanent Address"
+  },
+  {
+   "fieldname": "payment_section",
+   "fieldtype": "Section Break",
+   "label": "Payment Details"
+  },
+  {
+   "fieldname": "account",
+   "fieldtype": "Link",
+   "label": "Payment Account",
+   "options": "Account"
+  },
+  {
+   "fieldname": "payment_method",
+   "fieldtype": "Select",
+   "label": "Payment Method",
+   "options": "\nCash\nBank Transfer\nCheque\nMobile Money"
+  },
+  {
+   "fieldname": "enrollment_details_section",
+   "fieldtype": "Section Break",
+   "label": "Enrollment Details"
+  },
+  {
+   "default": "Pending",
+   "fieldname": "enrollment_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Enrollment Status",
+   "options": "Pending\nApproved\nRejected"
+  },
+  {
+   "fieldname": "approval_remarks",
+   "fieldtype": "Small Text",
+   "label": "Approval/Rejection Remarks"
+  },
+  {
+   "default": "0",
+   "fieldname": "student_created",
+   "fieldtype": "Check",
+   "label": "Student Created",
+   "read_only": 1
+  },
+  {
+   "fieldname": "created_student",
+   "fieldtype": "Link",
+   "label": "Created Student",
+   "options": "Student",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_vwud",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hnjr",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jjti",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hwcm",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_hlml",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_ozss",
+   "fieldtype": "Column Break"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-01 13:29:59.244937",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Student Online Registration",
+ "naming_rule": "Expression (old style)",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "role": "Guest",
+   "share": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School Administrator",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "first_name",
+ "track_changes": 1
+}

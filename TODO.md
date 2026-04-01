@@ -1,14 +1,1 @@
-# Student Registration Fix: Class and Section Fields
-Current working directory: //wsl.localhost/Ubuntu-24.04/home/ashley/frappe-bench-v15/apps/school
-
-## Steps:
-- [x] 1. Add `get_sections_by_class(student_class)` whitelisted method to school/www/student_registration.py
-- [x] 2. Update school/www/student_registration.js: Add event listener on student_class change to reload sections via new method
-- [x] 3. Populate sample data: school/fixtures/student_class.json, school/fixtures/section.json (matches cascade filter)
-- [x] 4. Test: Navigate to student_registration.html, select school → class → verify sections filter by class, submit form works
-- [x] 5. Complete task
-
-## Notes:
-- Minimal changes only to class/section cascade
-- No other code changes
-
+# Fix Student Registration Classes Not Showing\n\n## Status: In Progress [1/6]\n\n### 1. Add \`cost_center\` field to Student Class doctype\n   Edit: school/school_management/doctype/student_class/student_class.json\n\n### 2. Update fixtures/student_class.json \n   Add "cost_center": "Main Campus" to each class.\n\n### 3. Update school/www/student_registration.py get_classes_by_school()\n   Strict filter by cost_center.\n\n### 4. bench --site v15.local migrate\n\n### 5. Verify: frappe.get_all(\"Student Class\")\n\n### 6. Test UI /apps/school/www/student_registration.html
