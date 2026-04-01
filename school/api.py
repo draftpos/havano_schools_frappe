@@ -996,19 +996,11 @@ def get_login_slides():
             if not s.slide_image:
                 continue
             
-            # Get the absolute URL for the file
-            # This handles both private and public files correctly
-            file_url = frappe.utils.get_url()
-            
-            # Construct the full URL
-            if s.slide_image.startswith("/files/"):
-                url = f"{file_url}{s.slide_image}"
-            elif s.slide_image.startswith("/"):
-                url = f"{file_url}{s.slide_image}"
-            elif s.slide_image.startswith("http://") or s.slide_image.startswith("https://"):
+            # Simple relative URL format that was working before
+            if s.slide_image.startswith("/"):
                 url = s.slide_image
             else:
-                url = f"{file_url}/files/{s.slide_image}"
+                url = f"/files/{s.slide_image}"
             
             result.append({
                 "url": url,
