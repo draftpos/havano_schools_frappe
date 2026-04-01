@@ -287,7 +287,7 @@ function showError(message) {
 }
 
 // ---------------------------------------------------------------------------
-// Submission - FIXED: Changed from frappe.call to fetch
+// Submission - FIXED: Changed from frappe.call to fetch with proper headers
 // ---------------------------------------------------------------------------
 
 async function submitRegistration() {
@@ -349,18 +349,17 @@ async function submitRegistration() {
     };
 
     try {
-        // Use fetch instead of frappe.call
         const csrfToken = getCsrfToken();
+        
         const response = await fetch(
             '/api/method/school.www.student_registration.submit_registration',
             {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Accept': 'application/json',
                     'X-Frappe-CSRF-Token': csrfToken
                 },
-                credentials: 'include',
+                credentials: 'same-origin',
                 body: JSON.stringify({ data: JSON.stringify(formData) })
             }
         );
@@ -378,7 +377,8 @@ async function submitRegistration() {
                 document.getElementById('refBadge').textContent  = 'Reference: ' + result.message.name;
             }
         } else {
-            showError((result.message && result.message.message) || 'Submission failed. Please try again.');
+            const errorMsg = (result.message && result.message.message) || 'Submission failed. Please try again.';
+            showError(errorMsg);
             if (submitBtn) {
                 submitBtn.disabled = false;
                 if (btnText) btnText.textContent = 'Submit Application';
@@ -395,7 +395,6 @@ async function submitRegistration() {
 
     return false;
 }
-
 // ---------------------------------------------------------------------------
 // Global exports
 // ---------------------------------------------------------------------------
