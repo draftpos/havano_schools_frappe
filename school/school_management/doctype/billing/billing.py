@@ -41,7 +41,9 @@ class Billing(Document):
             filters["student_class"] = self.student_class
         if self.section:
             filters["section"] = self.section
-        if self.status:
+        if self.status == "Not Set":
+            filters["student_type"] = ["not in", ["Day", "Boarding"]]
+        elif self.status:
             filters["student_type"] = self.status
         if self.cost_center:
             filters["school"] = self.cost_center
@@ -148,14 +150,21 @@ class Billing(Document):
             title="Billing Process Complete"
         )
 
+
 @frappe.whitelist()
-def get_student_count(student_class=None, section=None, status=None, cost_center=None, category_1=None, category_2=None, category_3=None, area=None, territory=None, fees_category=None):
+def get_student_count(
+    student_class=None, section=None, status=None, cost_center=None,
+    category_1=None, category_2=None, category_3=None,
+    area=None, territory=None, fees_category=None
+):
     filters = {}
     if student_class:
         filters["student_class"] = student_class
     if section:
         filters["section"] = section
-    if status:
+    if status == "Not Set":
+        filters["student_type"] = ["not in", ["Day", "Boarding"]]
+    elif status:
         filters["student_type"] = status
     if cost_center:
         filters["school"] = cost_center
@@ -171,14 +180,6 @@ def get_student_count(student_class=None, section=None, status=None, cost_center
         filters["territory"] = territory
     if fees_category:
         filters["fees_category"] = fees_category
+
     count = frappe.db.count("Student", filters=filters)
     return {"count": count}
-
-# Commented out as per request
-# @frappe.whitelist()
-# def get_fees_structure_by_status(status):
-#     settings = frappe.get_single("School Settings")
-#     for m in (settings.student_status_mappings or []):
-#         if m.status == status:
-#             return m.fees_structure
-#     return None
