@@ -11,6 +11,13 @@ def get_context(context):
 
     context.bill_on_registration = settings.get("bill_on_registration") or 0
     context.require_approval = settings.get("require_approval_before_creating_student") or 0
+    
+    # NEW SECTION: Online enrollment setting
+    # Check for both possible field names and pass to template
+    context.allow_online_enrollment = settings.get("allow_online_enrollment") or 0
+    context.enable_online_enrollment = settings.get("enable_online_enrollment") or 0
+    # If either is enabled, consider online enrollment as active
+    context.online_enrollment_enabled = context.allow_online_enrollment or context.enable_online_enrollment
 
     # Get schools (Cost Centers) with fallback
     schools = frappe.get_all(
@@ -154,9 +161,13 @@ def get_all_sections():
 def submit_registration(data):
     """Submit a new student registration"""
     settings = frappe.get_single("School Settings")
-
-    if not settings.get("allow_online_enrollment"):
-        frappe.throw(_("Online enrollment is currently disabled."))
+    
+    # Check if online enrollment is enabled (check both possible field names)
+    allow_enrollment = settings.get("allow_online_enrollment") or 0
+    enable_enrollment = settings.get("enable_online_enrollment") or 0
+    
+    if not (allow_enrollment or enable_enrollment):
+        frappe.throw(_("Online enrollment is currently disabled. Please contact the administrator."))
 
     if isinstance(data, str):
         data = json.loads(data)
@@ -236,4 +247,53 @@ def get_student_classes_with_school_info():
         "custom_fields": custom_fields,
         "has_cost_center_column": frappe.db.has_column("Student Class", "cost_center"),
         "has_school_column": frappe.db.has_column("Student Class", "school")
+    }
+
+
+@frappe.whitelist(allow_guest=True)
+def check_enrollment_status():
+    """Helper function to check if online enrollment is enabled"""
+    settings = frappe.get_single("School Settings")
+    return {
+        "enabled": settings.get("allow_online_enrollment") or settings.get("enable_online_enrollment") or 0,
+        "allow_online_enrollment": settings.get("allow_online_enrollment") or 0,
+        "enable_online_enrollment": settings.get("enable_online_enrollment") or 0
+    }
+
+
+@frappe.whitelist()
+def enable_online_enrollment():
+    """Enable online enrollment (admin only)"""
+    if frappe.session.user != "Administrator" and not frappe.session.user_role == "System Manager":
+        frappe.throw(_("Only Administrator or System Manager can enable online enrollment"))
+    
+    settings = frappe.get_single("School Settings")
+    # Set both fields to be safe
+    settings.allow_online_enrollment = 1
+    settings.enable_online_enrollment = 1
+    settings.save()
+    frappe.db.commit()
+    
+    return {
+        "success": True, 
+        "message": "Online enrollment has been enabled successfully"
+    }
+
+
+@frappe.whitelist()
+def disable_online_enrollment():
+    """Disable online enrollment (admin only)"""
+    if frappe.session.user != "Administrator" and not frappe.session.user_role == "System Manager":
+        frappe.throw(_("Only Administrator or System Manager can disable online enrollment"))
+    
+    settings = frappe.get_single("School Settings")
+    # Set both fields to be safe
+    settings.allow_online_enrollment = 0
+    settings.enable_online_enrollment = 0
+    settings.save()
+    frappe.db.commit()
+    
+    return {
+        "success": True, 
+        "message": "Online enrollment has been disabled successfully"
     }
