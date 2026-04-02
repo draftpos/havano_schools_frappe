@@ -6,10 +6,24 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "online_enrollment_section",
+  "allow_online_enrollment",
   "fee_structure_defaults_section",
   "fee_structure_defaults"
  ],
  "fields": [
+  {
+   "fieldname": "online_enrollment_section",
+   "fieldtype": "Section Break",
+   "label": "Online Enrollment Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable or disable online student registration",
+   "fieldname": "allow_online_enrollment",
+   "fieldtype": "Check",
+   "label": "Allow Online Enrollment"
+  },
   {
    "fieldname": "fee_structure_defaults_section",
    "fieldtype": "Section Break",
