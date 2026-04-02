@@ -7,7 +7,8 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "section_name"
+  "section_name",
+  "cost_center"
  ],
  "fields": [
   {
@@ -17,12 +18,21 @@
    "label": "Section Name",
    "reqd": 1,
    "unique": 1
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "School/Cost Center",
+   "options": "Cost Center",
+   "reqd": 1,
+   "search_index": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-21 08:12:20.194798",
+ "modified": "2026-04-02 00:00:00.000000",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Section",
