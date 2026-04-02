@@ -8,15 +8,16 @@ def get_context(context):
     context.no_cache = 1
     context.show_sidebar = False
     context.no_csrf = 1
+    
+    # Pass CSRF token to template
+    context.csrf_token = frappe.sessions.get_csrf_token()
 
     context.bill_on_registration = settings.get("bill_on_registration") or 0
     context.require_approval = settings.get("require_approval_before_creating_student") or 0
     
-    # NEW SECTION: Online enrollment setting
-    # Check for both possible field names and pass to template
+    # Online enrollment setting
     context.allow_online_enrollment = settings.get("allow_online_enrollment") or 0
     context.enable_online_enrollment = settings.get("enable_online_enrollment") or 0
-    # If either is enabled, consider online enrollment as active
     context.online_enrollment_enabled = context.allow_online_enrollment or context.enable_online_enrollment
 
     # Get schools (Cost Centers) with fallback
@@ -160,6 +161,10 @@ def get_all_sections():
 @frappe.whitelist(allow_guest=True)
 def submit_registration(data):
     """Submit a new student registration"""
+    
+    # Disable CSRF for guest users
+    frappe.local.no_csrf = True
+    
     settings = frappe.get_single("School Settings")
     
     # Check if online enrollment is enabled (check both possible field names)
@@ -264,7 +269,7 @@ def check_enrollment_status():
 @frappe.whitelist()
 def enable_online_enrollment():
     """Enable online enrollment (admin only)"""
-    if frappe.session.user != "Administrator" and not frappe.session.user_role == "System Manager":
+    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
         frappe.throw(_("Only Administrator or System Manager can enable online enrollment"))
     
     settings = frappe.get_single("School Settings")
@@ -283,7 +288,7 @@ def enable_online_enrollment():
 @frappe.whitelist()
 def disable_online_enrollment():
     """Disable online enrollment (admin only)"""
-    if frappe.session.user != "Administrator" and not frappe.session.user_role == "System Manager":
+    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
         frappe.throw(_("Only Administrator or System Manager can disable online enrollment"))
     
     settings = frappe.get_single("School Settings")
