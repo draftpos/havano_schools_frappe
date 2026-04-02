@@ -17,8 +17,7 @@ def get_context(context):
     
     # Online enrollment setting
     context.allow_online_enrollment = settings.get("allow_online_enrollment") or 0
-    context.enable_online_enrollment = settings.get("enable_online_enrollment") or 0
-    context.online_enrollment_enabled = context.allow_online_enrollment or context.enable_online_enrollment
+    context.online_enrollment_enabled = context.allow_online_enrollment
 
     # Get schools (Cost Centers) with fallback
     schools = frappe.get_all(
@@ -162,32 +161,34 @@ def get_all_sections():
 def submit_registration(data):
     """Submit a new student registration"""
     
-    # Disable CSRF for guest users
+    # CRITICAL: Disable CSRF for guest users
     frappe.local.no_csrf = True
     
+    # Get settings
     settings = frappe.get_single("School Settings")
     
-    # Check if online enrollment is enabled (check both possible field names)
-    allow_enrollment = settings.get("allow_online_enrollment") or 0
-    enable_enrollment = settings.get("enable_online_enrollment") or 0
-    
-    if not (allow_enrollment or enable_enrollment):
+    # Check if online enrollment is enabled
+    # Use the exact field name from your School Settings
+    if not settings.get("allow_online_enrollment"):
         frappe.throw(_("Online enrollment is currently disabled. Please contact the administrator."))
 
     if isinstance(data, str):
         data = json.loads(data)
 
+    # Validate required fields
     required = ["first_name", "last_name", "student_class", "student_type", "school"]
     for f in required:
         if not data.get(f):
             frappe.throw(_("Field '{0}' is required.").format(f))
 
+    # Check billing requirements
     if settings.get("bill_on_registration"):
         if not data.get("account"):
             frappe.throw(_("Please select a Payment Account."))
         if not data.get("payment_method"):
             frappe.throw(_("Please select a Payment Method."))
 
+    # Create registration document
     reg = frappe.get_doc({
         "doctype": "Student Online Registration",
         "school": data.get("school"),
@@ -260,45 +261,6 @@ def check_enrollment_status():
     """Helper function to check if online enrollment is enabled"""
     settings = frappe.get_single("School Settings")
     return {
-        "enabled": settings.get("allow_online_enrollment") or settings.get("enable_online_enrollment") or 0,
-        "allow_online_enrollment": settings.get("allow_online_enrollment") or 0,
-        "enable_online_enrollment": settings.get("enable_online_enrollment") or 0
-    }
-
-
-@frappe.whitelist()
-def enable_online_enrollment():
-    """Enable online enrollment (admin only)"""
-    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
-        frappe.throw(_("Only Administrator or System Manager can enable online enrollment"))
-    
-    settings = frappe.get_single("School Settings")
-    # Set both fields to be safe
-    settings.allow_online_enrollment = 1
-    settings.enable_online_enrollment = 1
-    settings.save()
-    frappe.db.commit()
-    
-    return {
-        "success": True, 
-        "message": "Online enrollment has been enabled successfully"
-    }
-
-
-@frappe.whitelist()
-def disable_online_enrollment():
-    """Disable online enrollment (admin only)"""
-    if frappe.session.user != "Administrator" and "System Manager" not in frappe.get_roles():
-        frappe.throw(_("Only Administrator or System Manager can disable online enrollment"))
-    
-    settings = frappe.get_single("School Settings")
-    # Set both fields to be safe
-    settings.allow_online_enrollment = 0
-    settings.enable_online_enrollment = 0
-    settings.save()
-    frappe.db.commit()
-    
-    return {
-        "success": True, 
-        "message": "Online enrollment has been disabled successfully"
+        "enabled": settings.get("allow_online_enrollment") or 0,
+        "allow_online_enrollment": settings.get("allow_online_enrollment") or 0
     }
