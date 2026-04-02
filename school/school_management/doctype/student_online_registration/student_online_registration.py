@@ -33,7 +33,87 @@ class StudentOnlineRegistration(Document):
         # When status changes to Approved, create student
         if self.enrollment_status == "Approved" and not self.student_created:
             self.create_student_record()
+        
+        # Send email notification when status changes to Approved or Rejected
+        if self.enrollment_status in ("Approved", "Rejected"):
+            self.send_status_email()
     
+    def send_status_email(self):
+        """Send an email to the student notifying them of their enrollment decision."""
+        recipient = self.portal_email
+        if not recipient:
+            frappe.log_error(
+                "No portal email found for registration {0}. Status email not sent.".format(self.name)
+            )
+            return
+
+        student_name = self.full_name or "{} {}".format(self.first_name or "", self.last_name or "").strip()
+
+        if self.enrollment_status == "Approved":
+            subject = _("Your School Registration Has Been Approved")
+            message = _("""
+                <p>Dear {student_name},</p>
+
+                <p>We are pleased to inform you that your online registration (<strong>{reg_no}</strong>)
+                has been <strong>approved</strong>.</p>
+
+                <p><strong>Details:</strong></p>
+                <ul>
+                    <li><strong>Class:</strong> {student_class}</li>
+                    <li><strong>Assigned Section:</strong> {approved_section}</li>
+                    <li><strong>School:</strong> {school}</li>
+                </ul>
+
+                <p>Please report to the school administration office to complete any remaining
+                formalities and collect your admission documents.</p>
+
+                <p>We look forward to welcoming you!</p>
+
+                <p>Regards,<br/>School Administration</p>
+            """).format(
+                student_name=student_name,
+                reg_no=self.name,
+                student_class=self.student_class or "N/A",
+                approved_section=self.approved_section or "To Be Assigned",
+                school=self.school or "N/A"
+            )
+
+        else:  # Rejected
+            subject = _("Update on Your School Registration")
+            message = _("""
+                <p>Dear {student_name},</p>
+
+                <p>Thank you for submitting your registration (<strong>{reg_no}</strong>).
+                After careful review, we regret to inform you that your application has
+                been <strong>rejected</strong>.</p>
+
+                {remarks_section}
+
+                <p>If you believe this decision was made in error or would like further
+                information, please contact the school administration office.</p>
+
+                <p>Regards,<br/>School Administration</p>
+            """).format(
+                student_name=student_name,
+                reg_no=self.name,
+                remarks_section=(
+                    "<p><strong>Reason:</strong> {}</p>".format(self.approval_remarks)
+                    if self.approval_remarks else ""
+                )
+            )
+
+        try:
+            frappe.sendmail(
+                recipients=[recipient],
+                subject=subject,
+                message=message,
+                now=True
+            )
+        except Exception as e:
+            frappe.log_error(
+                "Failed to send status email for registration {0}: {1}".format(self.name, str(e))
+            )
+
     def generate_student_reg_no(self):
         """Generate a unique student registration number"""
         # Get current year
