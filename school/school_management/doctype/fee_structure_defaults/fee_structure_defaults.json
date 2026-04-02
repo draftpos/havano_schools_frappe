@@ -15,7 +15,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "Active\nInactive\nGraduated\nDropped Out",
+   "options": "Day\nBoarding",
    "reqd": 1
   },
   {
