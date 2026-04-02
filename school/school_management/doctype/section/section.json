@@ -25,7 +25,6 @@
    "in_list_view": 1,
    "label": "School/Cost Center",
    "options": "Cost Center",
-   "reqd": 1,
    "search_index": 1
   }
  ],
