@@ -120,6 +120,15 @@ frappe.ui.form.on('Billing', {
     }
 });
 
+frappe.ui.form.on('Billing Except Student', {
+    student: function(frm) {
+        update_student_count(frm);
+    },
+    students_remove: function(frm) {
+        update_student_count(frm);
+    }
+});
+
 function apply_cost_center_filters(frm) {
     var cc = frm.doc.cost_center;
 
@@ -142,6 +151,12 @@ function apply_cost_center_filters(frm) {
     frm.set_query('fees_structure', function() {
         var f = {};
         if (cc) f['cost_center'] = cc;
+        return { filters: f };
+    });
+
+    frm.set_query('student', 'except_students', function() {
+        var f = {};
+        if (cc) f['school'] = cc;
         return { filters: f };
     });
 }
@@ -177,12 +192,17 @@ function update_student_count(frm) {
         return;
     }
 
+    var excluded = (frm.doc.except_students || [])
+        .map(function(r) { return r.student; })
+        .filter(Boolean);
+
     frappe.call({
         method: 'frappe.client.get_count',
         args: { doctype: 'Student', filters: filters },
         callback: function(r) {
             if (r.message !== undefined) {
-                frm.set_value('number_of_students', r.message);
+                var count = r.message - excluded.length;
+                frm.set_value('number_of_students', count < 0 ? 0 : count);
             }
         }
     });
@@ -202,4 +222,6 @@ function toggle_student_filters(frm) {
     frm.set_df_property('territory', 'hidden', single ? 1 : 0);
     frm.set_df_property('fees_category', 'hidden', single ? 1 : 0);
     frm.set_df_property('student', 'hidden', 0);
+    frm.set_df_property('except_section', 'hidden', single ? 1 : 0);
+    frm.set_df_property('except_students', 'hidden', single ? 1 : 0);
 }

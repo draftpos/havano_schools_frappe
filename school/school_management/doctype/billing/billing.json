@@ -33,6 +33,8 @@
   "fees_category",
   "col_break_of_2",
   "student",
+  "except_section",
+  "except_students",
   "items_section",
   "items",
   "amended_from"
@@ -193,6 +195,18 @@
    "options": "Student"
   },
   {
+   "collapsible": 1,
+   "fieldname": "except_section",
+   "fieldtype": "Section Break",
+   "label": "Except"
+  },
+  {
+   "fieldname": "except_students",
+   "fieldtype": "Table",
+   "label": "Except Students",
+   "options": "Billing Except Student"
+  },
+  {
    "fieldname": "items_section",
    "fieldtype": "Section Break",
    "label": "Fee Items"
@@ -286,4 +300,3 @@
  "states": [],
  "track_changes": 1
 }
-

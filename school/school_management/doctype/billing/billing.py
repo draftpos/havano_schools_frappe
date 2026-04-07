@@ -23,7 +23,12 @@ class Billing(Document):
             self.number_of_students = 0
             return
 
-        self.number_of_students = frappe.db.count("Student", filters=filters)
+        count = frappe.db.count("Student", filters=filters)
+
+        excluded = self.get_excluded_students()
+        count = max(0, count - len(excluded))
+
+        self.number_of_students = count
 
     def calculate_amounts(self):
         total = 0
@@ -62,6 +67,11 @@ class Billing(Document):
         
         return filters
 
+    def get_excluded_students(self):
+        return set(
+            row.student for row in (self.except_students or []) if row.student
+        )
+
     def on_submit(self):
         self.create_student_invoices()
 
@@ -92,6 +102,13 @@ class Billing(Document):
 
         if not students:
             frappe.throw("No students found for the selected filters.")
+
+        excluded = self.get_excluded_students()
+        if excluded:
+            students = [s for s in students if s.get("name") not in excluded]
+
+        if not students:
+            frappe.throw("No students remaining after applying exclusions.")
 
         company = frappe.defaults.get_global_default("company")
         created = 0
