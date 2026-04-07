@@ -15,7 +15,6 @@ title: School Portal Login
         *{box-sizing:border-box;margin:0;padding:0;}
         body{background:#0f172a;min-height:100vh;display:flex;font-family:'Segoe UI',Arial,sans-serif;overflow:hidden;}
 
-        /* ── RIGHT PANEL (slideshow) — rendered first in DOM but sits behind on mobile ── */
         .right-panel{
             width:70%;
             min-height:100vh;
@@ -86,7 +85,6 @@ title: School Portal Login
             transition:width 1s linear;
         }
 
-        /* ── LEFT PANEL (login form) ── */
         .left-panel{
             width:30%;
             min-height:100vh;
@@ -135,14 +133,13 @@ title: School Portal Login
         .back-link a{color:#94a3b8;text-decoration:none;font-size:12px;display:inline-flex;align-items:center;gap:5px;transition:color 0.2s;}
         .back-link a:hover{color:#1e3a5f;}
 
-        /* ── MOBILE: slideshow becomes full-screen background, form floats on top ── */
+        /* ── MOBILE ── */
         @media(max-width:900px){
             body{
                 position:relative;
                 overflow:auto;
             }
 
-            /* Slideshow fills entire screen as background */
             .right-panel{
                 display:block;
                 position:fixed;
@@ -152,16 +149,14 @@ title: School Portal Login
                 z-index:0;
             }
 
-            /* Dark overlay so form text is readable over the slideshow */
             .right-panel::after{
                 content:'';
                 position:absolute;
                 inset:0;
-                background:rgba(10,15,30,0.60);
+                background:rgba(10,15,30,0.45);
                 z-index:1;
             }
 
-            /* Dots sit above the overlay */
             .slide-dots{
                 z-index:20;
                 bottom:16px;
@@ -171,7 +166,6 @@ title: School Portal Login
                 z-index:20;
             }
 
-            /* Form panel becomes a centred floating card */
             .left-panel{
                 position:relative;
                 z-index:10;
@@ -184,15 +178,40 @@ title: School Portal Login
                 justify-content:center;
             }
 
-            /* Give the card its own semi-transparent background */
+            /* Glassmorphism card — see-through with blur */
             .login-inner{
-                background:rgba(255,255,255,0.95);
+                background:rgba(255,255,255,0.12) !important;
+                backdrop-filter:blur(18px);
+                -webkit-backdrop-filter:blur(18px);
+                border:1px solid rgba(255,255,255,0.22);
                 border-radius:20px;
                 padding:32px 28px;
-                box-shadow:0 20px 60px rgba(0,0,0,0.4);
+                box-shadow:0 20px 60px rgba(0,0,0,0.35);
                 max-width:400px;
                 width:100%;
             }
+
+            /* Text colors — white on the transparent card */
+            .logo-wrap h2{color:#ffffff !important;}
+            .logo-wrap p{color:rgba(255,255,255,0.75) !important;}
+            .field-label{color:rgba(255,255,255,0.8) !important;}
+            .back-link a{color:rgba(255,255,255,0.6) !important;}
+            .back-link a:hover{color:#ffffff !important;}
+
+            /* Inputs stay readable */
+            .form-control{
+                background:rgba(255,255,255,0.15) !important;
+                border:1.5px solid rgba(255,255,255,0.25) !important;
+                color:#ffffff !important;
+            }
+            .form-control::placeholder{color:rgba(255,255,255,0.5) !important;}
+            .form-control:focus{
+                background:rgba(255,255,255,0.22) !important;
+                border-color:rgba(255,255,255,0.5) !important;
+                box-shadow:0 0 0 3px rgba(255,255,255,0.1) !important;
+            }
+            .input-icon{color:rgba(255,255,255,0.7) !important;}
+            .eye-toggle{color:rgba(255,255,255,0.7) !important;}
         }
 
         @media(max-width:480px){
