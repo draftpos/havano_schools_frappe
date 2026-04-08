@@ -8,11 +8,19 @@ def redirect_to_portal():
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/portal-login"
         return
+    
     roles = frappe.get_roles(user)
-    # Admin/System Manager always go to ERPNext dashboard first
+    
+    # Matching logic from get_user_redirect in api.py
     if "System Manager" in roles or "Administrator" in roles:
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
+    elif frappe.db.exists("Teacher", {"portal_email": user}):
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = "/assets/school/html/teacher-portal.html"
+    elif frappe.db.exists("Parent", {"portal_email": user}):
+        frappe.local.response["type"] = "redirect"
+        frappe.local.response["location"] = "/assets/school/html/parent-portal.html"
     elif frappe.db.exists("Student", {"portal_email": user}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
@@ -20,6 +28,7 @@ def redirect_to_portal():
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
     else:
+        # Final fallback to student portal if no specific match
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
 
