@@ -391,6 +391,7 @@ title: School Portal Login
             $.ajax({
                 url: '/api/method/school.api.get_user_redirect',
                 type: 'GET',
+                data: { user: email },
                 success: function(r) {
                     if (r.message && r.message.redirect) {
                         var role = r.message.role;
@@ -398,17 +399,17 @@ title: School Portal Login
 
                         if (role === 'admin' || role === 'school_user') {
                             showMsg('success', 'Welcome! Loading admin dashboard…');
-                        } else if (role === 'teacher') {
-                            showMsg('success', 'Welcome! Loading your teacher portal…');
-                        } else if (role === 'parent') {
-                            showMsg('success', 'Welcome! Loading your parent portal…');
-                        } else if (role === 'student') {
-                            showMsg('success', 'Welcome! Loading your student portal…');
+                        } else if (role === 'teacher' || (dest && dest.includes('teacher'))) {
+                            showMsg('success', 'Welcome Teacher! Loading your portal…');
+                            dest = '/assets/school/html/teacher-portal.html';
+                        } else if (role === 'parent' || (dest && dest.includes('parent'))) {
+                            showMsg('success', 'Welcome Parent! Loading your portal…');
+                            dest = '/assets/school/html/parent-portal.html';
                         } else {
-                            showMsg('success', 'Login successful! Redirecting…');
+                            showMsg('success', 'Welcome Student! Loading your portal…');
                         }
 
-                        setTimeout(function() { window.location = dest; }, 900);
+                        setTimeout(function() { window.location.href = dest; }, 800);
 
                     } else {
                         showMsg('error', 'Could not load your portal. Please contact your administrator.');

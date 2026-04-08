@@ -733,7 +733,7 @@ body::before {
     <div class="outstanding-section">
       <div class="sec-head">
         <div class="sec-title"><span></span>Outstanding Balances</div>
-        <a class="tb-btn" href="/parent-billing" style="font-size:12px;padding:5px 12px;">Full Statement →</a>
+        <a class="tb-btn" href="/student-billing" style="font-size:12px;padding:5px 12px;">Full Statement →</a>
       </div>
 
       <!-- Total outstanding card -->
@@ -746,7 +746,7 @@ body::before {
           </div>
           <div class="toc-right">
             <span class="toc-badge" id="toc-badge">…</span>
-            <a href="/parent-billing" class="toc-view-btn">💰 View Full Statement →</a>
+            <a href="/student-billing" class="toc-view-btn">💰 View Full Statement →</a>
           </div>
         </div>
       </div>
@@ -764,7 +764,7 @@ body::before {
       <div>
         <div class="sec-head">
           <div class="sec-title"><span></span>My Children</div>
-          <a class="tb-btn" href="/parent-children" style="font-size:12px;padding:5px 12px;">View All</a>
+          <button class="tb-btn" onclick="openModal('modal-children')" style="font-size:12px;padding:5px 12px;border:none;">View All</button>
         </div>
         <div class="children-list" id="children-list">
           <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Loading children…</div>
@@ -828,7 +828,7 @@ function renderNavChildren(){
     var classLine=[child.class_name,child.section].filter(Boolean).join(' · ');
     var a=document.createElement('a');
     a.className='nav-child-item';
-    a.href='/parent-children?child='+encodeURIComponent(child.name);
+    a.href='/assets/school/html/student-portal.html?from=parent&child='+encodeURIComponent(child.name)+'&name='+encodeURIComponent(child.full_name);
     a.innerHTML=
       '<div class="nav-child-mini-avatar">'+(child.image?'<img src="'+child.image+'" alt="">':(child.initials||child.full_name.charAt(0)))+'</div>'+
       '<div class="nav-child-item-info">'+
@@ -874,7 +874,7 @@ function renderStudentBalanceCards(){
     var classLine=[child.class_name,child.section].filter(Boolean).join(' · ');
     var card=document.createElement('a');
     card.className='student-balance-card '+(isOwing?'has-balance':'is-clear');
-    card.href='/parent-billing?child='+encodeURIComponent(child.name);
+    card.href='/student-billing?child='+encodeURIComponent(child.name);
     card.style.animationDelay=(i*0.07+0.1)+'s';
     card.innerHTML=
       '<div class="sbc-top">'+
@@ -923,7 +923,7 @@ function renderChildrenList(){
     var classLine=[child.class_name,child.section].filter(Boolean).join(' · ');
     var row=document.createElement('a');
     row.className='child-row';
-    row.href='/parent-children?child='+encodeURIComponent(child.name);
+    row.href='/assets/school/html/student-portal.html?from=parent&child='+encodeURIComponent(child.name)+'&name='+encodeURIComponent(child.full_name);
     row.style.animationDelay=(i*0.06+0.05)+'s';
     row.innerHTML='<div class="child-row-avatar">'+(child.image?'<img src="'+child.image+'" alt="">':(child.initials||child.full_name.charAt(0)))+'</div>'+
       '<div class="child-row-info"><div class="child-row-name">'+child.full_name+'</div><div class="child-row-meta">'+(classLine||'Student')+(child.reg_no?' · '+child.reg_no:'')+'</div></div>'+

@@ -455,19 +455,23 @@ def get_teacher_portal_dashboard():
     }
 
 
-@frappe.whitelist()
-def get_user_redirect():
+@frappe.whitelist(allow_guest=True)
+def get_user_redirect(user=None):
     """Returns where to redirect the logged in user."""
-    user = frappe.session.user
+    if not user:
+        user = frappe.session.user
+        
     if not user or user == "Guest":
         return {"redirect": "/portal-login"}
 
+    user = user.strip().lower()
     roles = frappe.get_roles(user)
 
     if "System Manager" in roles or "Administrator" in roles:
         return {"redirect": "/app", "role": "admin"}
 
-    if frappe.db.exists("Teacher", {"portal_email": user}):
+    # Check both portal_email and employee_email for Teacher for a robust fallback
+    if frappe.db.exists("Teacher", {"portal_email": user}) or frappe.db.exists("Teacher", {"employee_email": user}):
         return {"redirect": "/assets/school/html/teacher-portal.html", "role": "teacher"}
 
     if frappe.db.exists("Student", {"portal_email": user}):

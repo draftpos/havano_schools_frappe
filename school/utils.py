@@ -12,16 +12,18 @@ def redirect_to_portal():
     roles = frappe.get_roles(user)
     
     # Matching logic from get_user_redirect in api.py
+    user_key = user.strip().lower()
+    
     if "System Manager" in roles or "Administrator" in roles:
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
-    elif frappe.db.exists("Teacher", {"portal_email": user}):
+    elif frappe.db.exists("Teacher", {"portal_email": user_key}) or frappe.db.exists("Teacher", {"employee_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/teacher-portal.html"
-    elif frappe.db.exists("Parent", {"portal_email": user}):
+    elif frappe.db.exists("Parent", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/parent-portal.html"
-    elif frappe.db.exists("Student", {"portal_email": user}):
+    elif frappe.db.exists("Student", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
     elif "School User" in roles:
