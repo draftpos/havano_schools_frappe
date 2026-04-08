@@ -212,8 +212,8 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Student Type",
-   "options": "Day\nBoarding",
-   "reqd": 1
+   "options": "\nDay\nBoarding",
+   "reqd": 0
   },
   {
    "fieldname": "house",

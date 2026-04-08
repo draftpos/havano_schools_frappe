@@ -5,11 +5,7 @@ from frappe.utils import flt
 class Student(Document):
 
     def before_save(self):
-        # Validate student_type is either Day or Boarding
-        if not self.student_type or self.student_type.strip() == "":
-            frappe.throw("Student Type is required. Please select Day or Boarding.")
-        
-        if self.student_type not in ["Day", "Boarding"]:
+        if self.student_type and self.student_type not in ["Day", "Boarding"]:
             frappe.throw(f"Student Type must be either 'Day' or 'Boarding'. Got: {self.student_type}")
         
         parts = [self.first_name, self.second_name, self.last_name]
@@ -69,7 +65,7 @@ class Student(Document):
 
         # ── Student user ──────────────────────────────────────────
         if self.portal_email:
-            self._ensure_user(self.portal_email, self.full_name or self.first_name, "Student")
+            self._ensure_user(self.portal_email, self.full_name or self.first_name, "Student Portal")
 
         # ── Parent users ──────────────────────────────────────────
         parent_entries = []
@@ -141,9 +137,8 @@ class Student(Document):
             if frappe.db.exists("User", email):
                 user = frappe.get_doc("User", email)
                 roles = [r.role for r in user.roles]
-                for r in ["Website User", role]:
-                    if r not in roles:
-                        user.append("roles", {"role": r})
+                if role not in roles:
+                    user.append("roles", {"role": role})
                 user.flags.ignore_permissions = True
                 user.save(ignore_permissions=True)
                 return
@@ -156,7 +151,6 @@ class Student(Document):
                 "user_type": "Website User",
                 "send_welcome_email": 0,
                 "roles": [
-                    {"role": "Website User"},
                     {"role": role}
                 ]
             })

@@ -14,9 +14,9 @@
 :root {
   --bg:        #f4f6f9;
   --bg2:       #eef0f4;
-  --surface:   #ffffff;
-  --surface2:  #f8f9fb;
-  --surface3:  #eef1f5;
+  --surface:   #e2e8f0;
+  --surface2:  #cbd5e1;
+  --surface3:  #94a3b8;
   --border:    rgba(0,0,0,0.07);
   --border2:   rgba(0,0,0,0.12);
   --text:      #0f172a;
@@ -409,7 +409,7 @@ body::before {
 
 /* NEW: Registration Cards Container */
 .registration-cards-container {
-  display: grid;
+  display: none; /* Shown via JS if allow_online_enrollment is enabled */
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
   margin-bottom: 28px;
@@ -977,6 +977,41 @@ body::before {
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+
+
+
+/* Exact Text Highlights */
+.action-label, .tc-title, .see-all, .nav-label, .nav-section-label, .school-sec-title, .chart-title, .chart-sub, .stat-meta, .stat-value, .reg-card-title, .reg-student-name, .logo-text h1, .logo-text span, .page-title, .card-title, .module-title, .data-table td, .user-name, .user-role,
+.sec-title, .pc-title, .pc-desc, .pc-count, .pc-btn, .help-text strong, .help-text p, .child-name, .child-detail {
+    color: var(--blue) !important;
+    transition: color 0.3s ease;
+}
+
+.action-card:hover .action-label,
+.table-card:hover .tc-title,
+.see-all:hover,
+.nav-item:hover .nav-label,
+.school-sec-head:hover .school-sec-title,
+.chart-card:hover .chart-title,
+.chart-card:hover .chart-sub,
+.stat-card:hover .stat-meta,
+.stat-card:hover .stat-value,
+.reg-card:hover .reg-card-title,
+.reg-list-item:hover .reg-student-name,
+.module-card:hover .module-title,
+.data-table tbody tr:hover td,
+.sidebar-footer:hover .user-name,
+.portal-card:hover .pc-title,
+.portal-card:hover .pc-desc,
+.portal-card:hover .pc-count,
+.portal-card:hover .pc-btn,
+.help-card:hover .help-text strong,
+.help-card:hover .help-text p,
+.child-card:hover .child-name,
+.child-card:hover .child-detail {
+    color: var(--violet) !important;
+}
 </style>
 </head>
 <body>
@@ -1255,13 +1290,8 @@ body::before {
             <span class="status-icon approved"></span>
             Approved Applications
           </div>
-          <div class="reg-count" id="approved-count">0</div>
         </div>
-        <div class="reg-card-body">
-          <div class="reg-list" id="approved-list">
-            <div class="reg-empty">Loading...</div>
-          </div>
-        </div>
+
         <div class="reg-card-footer">
           <a href="/app/student-online-registration?enrollment_status=Approved" class="reg-view-all">
             View All →
@@ -1275,13 +1305,8 @@ body::before {
             <span class="status-icon pending"></span>
             Pending Applications
           </div>
-          <div class="reg-count" id="pending-count">0</div>
         </div>
-        <div class="reg-card-body">
-          <div class="reg-list" id="pending-list">
-            <div class="reg-empty">Loading...</div>
-          </div>
-        </div>
+
         <div class="reg-card-footer">
           <a href="/app/student-online-registration?enrollment_status=Pending" class="reg-view-all">
             View All →
@@ -1295,13 +1320,8 @@ body::before {
             <span class="status-icon rejected"></span>
             Rejected Applications
           </div>
-          <div class="reg-count" id="rejected-count">0</div>
         </div>
-        <div class="reg-card-body">
-          <div class="reg-list" id="rejected-list">
-            <div class="reg-empty">Loading...</div>
-          </div>
-        </div>
+
         <div class="reg-card-footer">
           <a href="/app/student-online-registration?enrollment_status=Rejected" class="reg-view-all">
             View All →
@@ -1616,7 +1636,7 @@ async function fetchRegistrationsStats() {
       body: JSON.stringify({
         doctype: 'Student Online Registration',
         fields: ['name', 'first_name', 'last_name', 'student_class', 'enrollment_status'],
-        limit_page_length: 5,
+        limit_page_length: 0,
         order_by: 'creation desc'
       })
     });
@@ -1636,60 +1656,26 @@ async function fetchRegistrationsStats() {
 }
 
 async function loadRegistrationCards() {
-  const { approved, pending, rejected } = await fetchRegistrationsStats();
-  
-  // Update counts
-  document.getElementById('approved-count').textContent = approved.length;
-  document.getElementById('pending-count').textContent = pending.length;
-  document.getElementById('rejected-count').textContent = rejected.length;
-  
-  // Render approved list
-  const approvedList = document.getElementById('approved-list');
-  if (approved.length === 0) {
-    approvedList.innerHTML = '<div class="reg-empty">No approved applications</div>';
-  } else {
-    approvedList.innerHTML = approved.slice(0, 5).map(reg => `
-      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
-        <div>
-          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
-          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
-        </div>
-        <div class="reg-student-class">${reg.name}</div>
-      </div>
-    `).join('');
+  try {
+    const setReq = await fetch('/api/resource/School Settings/School Settings', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Frappe-CSRF-Token': getCsrfToken()
+      },
+      credentials: 'include'
+    });
+    const setRes = await setReq.json();
+    if (setRes.data && setRes.data.allow_online_enrollment == 1) {
+      document.getElementById('registration-cards-container').style.display = 'grid';
+    } else {
+      return; // Stop loading and keep hidden if disabled
+    }
+  } catch(e) {
+    console.error('Failed to fetch school settings:', e);
+    return;
   }
-  
-  // Render pending list
-  const pendingList = document.getElementById('pending-list');
-  if (pending.length === 0) {
-    pendingList.innerHTML = '<div class="reg-empty">No pending applications</div>';
-  } else {
-    pendingList.innerHTML = pending.slice(0, 5).map(reg => `
-      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
-        <div>
-          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
-          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
-        </div>
-        <div class="reg-student-class">${reg.name}</div>
-      </div>
-    `).join('');
-  }
-  
-  // Render rejected list
-  const rejectedList = document.getElementById('rejected-list');
-  if (rejected.length === 0) {
-    rejectedList.innerHTML = '<div class="reg-empty">No rejected applications</div>';
-  } else {
-    rejectedList.innerHTML = rejected.slice(0, 5).map(reg => `
-      <div class="reg-list-item" onclick="location.href='/app/student-online-registration/${reg.name}'">
-        <div>
-          <div class="reg-student-name">${reg.first_name || ''} ${reg.last_name || ''}</div>
-          <div class="reg-student-details">${reg.student_class || 'No class'}</div>
-        </div>
-        <div class="reg-student-class">${reg.name}</div>
-      </div>
-    `).join('');
-  }
+
 }
 
 /* ─── CHARTS ─── */
@@ -1847,7 +1833,7 @@ async function loadDashboard() {
   const classes = data.classes || [];
   if (classes.length) {
     classChart.data.labels = classes.slice(0,8).map(c => c.class_name||c.name);
-    classChart.data.datasets[0].data = new Array(Math.min(classes.length,8)).fill(0);
+    classChart.data.datasets[0].data = classes.slice(0,8).map(c => c.student_count || 0);
     classChart.update('active');
     feesChart.data.labels = classes.slice(0,6).map(c => c.class_name||c.name);
     const totalCol = invoices.reduce((s,i)=>s+((i.grand_total||0)-(i.outstanding_amount||0)),0);

@@ -147,6 +147,7 @@ class Billing(Document):
                         "rate": item.rate or 0,
                         "amount": item.amount or 0,
                         "cost_center": self.cost_center,
+                        "allow_zero_valuation_rate": 1,
                     })
 
                 invoice.flags.ignore_permissions = True

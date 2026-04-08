@@ -82,7 +82,13 @@ def get_dashboard_data(cost_center=None):
     except:
         data['opening_balance_total'] = 0
         data['opening_balance_students'] = []
-    try: data['classes'] = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
+    try:
+        student_classes = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
+        for c in student_classes:
+            f = {'student_class': c['name']}
+            if cost_center: f['cost_center'] = cost_center
+            c['student_count'] = frappe.db.count('Student', filters=f)
+        data['classes'] = student_classes
     except: data['classes'] = []
     try:
         data['cost_centers'] = frappe.get_all('Cost Center',

@@ -281,7 +281,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Billing",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabBilling`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabBilling`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -300,7 +300,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Student",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabStudent`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabStudent`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -319,7 +319,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Receipting",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabReceipting`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabReceipting`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -338,7 +338,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Sales Invoice",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabSales Invoice`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabSales Invoice`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -357,7 +357,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Payment Entry",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabPayment Entry`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabPayment Entry`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -376,7 +376,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Purchase Invoice",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabPurchase Invoice`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabPurchase Invoice`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -395,7 +395,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Sales Order",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabSales Order`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabSales Order`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  },
  {
@@ -414,7 +414,7 @@
   "rate_limit_count": 5,
   "rate_limit_seconds": 86400,
   "reference_doctype": "Journal Entry",
-  "script": "u = frappe.session.user\nif u in ('Administrator', 'Guest'):\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabJournal Entry`.`cost_center` = ' + cc\n",
+  "script": "u = frappe.session.user\nis_sys = frappe.db.get_value(\"Has Role\", {\"parent\": u, \"role\": \"System Manager\"})\nif u in ('Administrator', 'Guest') or is_sys:\n    conditions = ''\nelse:\n    school = frappe.db.get_value(\"User\", u, \"school\")\n    if not school:\n        conditions = ''\n    else:\n        cc = frappe.db.escape(school)\n        conditions = '`tabJournal Entry`.`cost_center` = ' + cc\n",
   "script_type": "Permission Query"
  }
 ]

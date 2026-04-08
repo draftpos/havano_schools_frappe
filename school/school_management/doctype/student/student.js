@@ -1,9 +1,5 @@
 frappe.ui.form.on('Student', {
     refresh: function(frm) {
-        if (!frm.doc.school) {
-            frm.set_value("school", "Main - SS");
-        }
-
         frm.set_query("account", function() {
             return {
                 filters: {
@@ -47,6 +43,18 @@ frappe.ui.form.on('Student', {
         if (frm.doc.admin_fee_paid && !frm.doc.admin_fees_structure) {
             frappe.msgprint(__("Please select an Admin Fees Structure before marking as Paid."));
             frm.set_value("admin_fee_paid", 0);
+        }
+    },
+
+    school: function(frm) {
+        if (frm.doc.has_opening_balance && frm.doc.school) {
+            frm.set_value("cost_center", frm.doc.school);
+        }
+    },
+
+    has_opening_balance: function(frm) {
+        if (frm.doc.has_opening_balance && frm.doc.school) {
+            frm.set_value("cost_center", frm.doc.school);
         }
     },
 
