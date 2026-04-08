@@ -38,7 +38,13 @@ fixtures = [
     },
     {
         "dt": "Custom Field",
-        "filters": [["dt", "in", ["Sales Invoice", "Ha User Mapping", "User"]]]
+        "filters": [
+            ["fieldname", "in", [
+                "student_class", "student_section", "student_category", 
+                "academic_year", "academic_term", "fees_structure", 
+                "billing_reference", "school", "school_cost_center"
+            ]]
+        ]
     },
     {
         "dt": "Role",
