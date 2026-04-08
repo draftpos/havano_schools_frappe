@@ -5,8 +5,11 @@ from frappe.utils import flt
 class Student(Document):
 
     def before_save(self):
-        if self.student_type and self.student_type not in ["Day", "Boarding"]:
-            frappe.throw(f"Student Type must be either 'Day' or 'Boarding'. Got: {self.student_type}")
+        if self.student_type:
+            meta = frappe.get_meta(self.doctype)
+            options = [opt.strip() for opt in (meta.get_field("student_type").options or "").split("\n") if opt.strip()]
+            if self.student_type not in options:
+                frappe.throw(f"Student Type must be one of: {', '.join(options)}. Got: {self.student_type}")
         
         parts = [self.first_name, self.second_name, self.last_name]
         self.full_name = " ".join([p for p in parts if p])

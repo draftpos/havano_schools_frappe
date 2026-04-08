@@ -47,7 +47,7 @@ class Billing(Document):
         if self.section:
             filters["section"] = self.section
         if self.status == "Not Set":
-            filters["student_type"] = ["not in", ["Day", "Boarding"]]
+            filters["student_type"] = ["not in", ["Day", "Boarding", "Home Based", "Scholarship", "Other"]]
         elif self.status:
             filters["student_type"] = self.status
         if self.cost_center:
@@ -181,7 +181,7 @@ def get_student_count(
     if section:
         filters["section"] = section
     if status == "Not Set":
-        filters["student_type"] = ["not in", ["Day", "Boarding"]]
+        filters["student_type"] = ["not in", ["Day", "Boarding", "Home Based", "Scholarship", "Other"]]
     elif status:
         filters["student_type"] = status
     if cost_center:

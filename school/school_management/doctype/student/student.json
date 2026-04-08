@@ -212,7 +212,7 @@
    "fieldtype": "Select",
    "in_standard_filter": 1,
    "label": "Student Type",
-   "options": "\nDay\nBoarding",
+   "options": "\nDay\nBoarding\nHome Based\nScholarship\nOther",
    "reqd": 0
   },
   {
