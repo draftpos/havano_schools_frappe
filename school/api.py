@@ -470,8 +470,8 @@ def get_user_redirect(user=None):
     if "System Manager" in roles or "Administrator" in roles:
         return {"redirect": "/app", "role": "admin"}
 
-    # Check both portal_email and employee_email for Teacher for a robust fallback
-    if frappe.db.exists("Teacher", {"portal_email": user}) or frappe.db.exists("Teacher", {"employee_email": user}):
+    # Check portal_email, employee_email, and just email for Teacher for a robust fallback
+    if frappe.db.exists("Teacher", {"portal_email": user}) or frappe.db.exists("Teacher", {"employee_email": user}) or frappe.db.exists("Teacher", {"email": user}):
         return {"redirect": "/assets/school/html/teacher-portal.html", "role": "teacher"}
 
     if frappe.db.exists("Student", {"portal_email": user}):
