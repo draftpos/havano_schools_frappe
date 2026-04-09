@@ -1507,9 +1507,13 @@
 
     window.addEventListener('load', function () {
       // Call both APIs in parallel
+      var _params = new URLSearchParams(window.location.search);
+      var _child = _params.get('child') || '';
+      var _qs = _child ? '?student=' + encodeURIComponent(_child) : '';
+
       Promise.all([
-        fetch('/api/method/school.api.get_portal_dashboard', { credentials: 'same-origin' }).then(function (r) { return r.json(); }),
-        fetch('/api/method/school.api.get_student_sidebar_data', { credentials: 'same-origin' }).then(function (r) { return r.json(); })
+        fetch('/api/method/school.api.get_student_portal_dashboard' + _qs, { credentials: 'same-origin' }).then(function (r) { return r.json(); }),
+        fetch('/api/method/school.api.get_student_sidebar_data' + _qs, { credentials: 'same-origin' }).then(function (r) { return r.json(); })
       ]).then(function (responses) {
         var dash = responses[0].message;
         var sidebar = responses[1].message;

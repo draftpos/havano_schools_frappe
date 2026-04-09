@@ -859,14 +859,23 @@ def _make_initials(full_name, fallback="?"):
 
 
 @frappe.whitelist()
-def get_student_sidebar_data():
+def get_student_sidebar_data(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
 
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name", "full_name", "student_reg_no", "student_class", "section",
-         "house", "student_image", "first_name"], as_dict=True)
+    if student:
+        parent = frappe.db.get_value("Parent", {"portal_email": user}, "name")
+        if parent:
+            if not frappe.db.exists("Parent Child", {"parent": parent, "student": student}):
+                return {"error": "Access denied"}
+        student = frappe.db.get_value("Student", student,
+            ["name", "full_name", "student_reg_no", "student_class", "section",
+             "house", "student_image", "first_name"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name", "full_name", "student_reg_no", "student_class", "section",
+             "house", "student_image", "first_name"], as_dict=True)
 
     if not student:
         return {"error": "Student not found"}
@@ -1029,3 +1038,5 @@ def get_portal_header():
     except Exception:
         frappe.log_error(title="get_portal_header error", message=frappe.get_traceback())
     return "School Portal"
+
+

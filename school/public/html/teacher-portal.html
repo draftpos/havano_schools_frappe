@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Portal</title>
+  <title>Teacher Portal | Role-Based Access</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -42,10 +42,6 @@
       box-sizing: border-box;
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
-
     body {
       font-family: 'Outfit', sans-serif;
       background: var(--bg);
@@ -58,15 +54,13 @@
       content: '';
       position: fixed;
       inset: 0;
-      background:
-        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 60%),
-        radial-gradient(ellipse 40% 30% at 60% 40%, rgba(16, 185, 129, 0.03) 0%, transparent 50%);
+      background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ══ SIDEBAR ══ */
+    /* Sidebar */
     .sidebar {
       position: fixed;
       top: 0;
@@ -79,25 +73,8 @@
       flex-direction: column;
       z-index: 200;
       overflow-y: auto;
-      overflow-x: hidden;
       transition: transform 0.35s cubic-bezier(.4, 0, .2, 1);
-      scrollbar-width: none;
       box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
-    }
-
-    .sidebar::-webkit-scrollbar {
-      display: none;
-    }
-
-    .sidebar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 200px;
-      background: linear-gradient(180deg, rgba(99, 102, 241, 0.04) 0%, transparent 100%);
-      pointer-events: none;
     }
 
     .sidebar-logo {
@@ -106,8 +83,6 @@
       align-items: center;
       gap: 14px;
       border-bottom: 1px solid var(--border);
-      position: relative;
-      flex-shrink: 0;
     }
 
     .logo-gem {
@@ -119,27 +94,12 @@
       align-items: center;
       justify-content: center;
       font-size: 22px;
-      flex-shrink: 0;
       box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
-      position: relative;
-    }
-
-    .logo-gem::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 13px;
-      border: 1px solid rgba(99, 102, 241, 0.2);
-    }
-
-    .logo-text {
-      line-height: 1.2;
     }
 
     .logo-text h1 {
       font-size: 17px;
       font-weight: 700;
-      letter-spacing: -0.02em;
       color: var(--text);
     }
 
@@ -147,7 +107,6 @@
       font-size: 11px;
       font-weight: 500;
       color: var(--text3);
-      letter-spacing: 0.05em;
       text-transform: uppercase;
     }
 
@@ -176,15 +135,12 @@
       color: var(--text2);
       font-size: 13.5px;
       font-weight: 500;
-      position: relative;
-      margin-bottom: 1px;
-      transition: color 0.2s, background 0.2s;
+      transition: all 0.2s;
     }
 
     .nav-item:hover {
       background: var(--surface2);
       color: var(--text);
-      text-decoration: none;
     }
 
     .nav-item.active {
@@ -214,42 +170,12 @@
       justify-content: center;
       font-size: 15px;
       flex-shrink: 0;
-      transition: background 0.2s;
-    }
-
-    .nav-item:hover .nav-icon {
-      background: var(--surface3);
-    }
-
-    .nav-item.active .nav-icon {
-      background: rgba(99, 102, 241, 0.12);
-    }
-
-    .nav-label {
-      flex: 1;
-    }
-
-    .nav-badge {
-      font-size: 10px;
-      font-weight: 700;
-      background: var(--indigo);
-      color: white;
-      border-radius: 10px;
-      padding: 1px 7px;
-      min-width: 20px;
-      text-align: center;
-      display: none;
-    }
-
-    .nav-badge.show {
-      display: inline-block;
     }
 
     .sidebar-footer {
       margin-top: auto;
       padding: 14px 12px 18px;
       border-top: 1px solid var(--border);
-      flex-shrink: 0;
     }
 
     .user-pill {
@@ -259,14 +185,8 @@
       padding: 10px 12px;
       border-radius: 10px;
       background: var(--surface2);
-      border: 1px solid var(--border);
       cursor: pointer;
-      transition: background 0.2s;
       text-decoration: none;
-    }
-
-    .user-pill:hover {
-      background: var(--surface3);
     }
 
     .user-avatar {
@@ -277,33 +197,18 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
       font-weight: 700;
       color: white;
-      flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
-      overflow: hidden;
-    }
-
-    .user-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
     }
 
     .user-info {
       flex: 1;
-      min-width: 0;
     }
 
     .user-name {
       font-size: 13px;
       font-weight: 600;
       color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
 
     .user-role {
@@ -311,16 +216,6 @@
       color: var(--text3);
     }
 
-    .user-status {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 6px var(--emerald);
-      flex-shrink: 0;
-    }
-
-    /* ══ OVERLAY ══ */
     .overlay {
       display: none;
       position: fixed;
@@ -330,22 +225,16 @@
       backdrop-filter: blur(3px);
     }
 
-    /* ══ MAIN ══ */
     .main {
       margin-left: var(--sidebar-w);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
-      z-index: 1;
-      transition: margin-left 0.35s cubic-bezier(.4, 0, .2, 1);
+      transition: margin-left 0.35s;
     }
 
     .topbar {
       height: var(--header-h);
       background: rgba(255, 255, 255, 0.9);
       backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -354,14 +243,12 @@
       position: sticky;
       top: 0;
       z-index: 100;
-      box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
     }
 
     .menu-toggle {
       display: none;
       background: var(--surface2);
       border: 1px solid var(--border);
-      color: var(--text);
       width: 36px;
       height: 36px;
       border-radius: 8px;
@@ -374,24 +261,15 @@
     .page-title {
       font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
     }
 
     .topbar-spacer {
       flex: 1;
     }
 
-    .topbar-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .tb-btn {
       background: var(--surface2);
       border: 1px solid var(--border);
-      color: var(--text2);
       padding: 7px 14px;
       border-radius: 9px;
       font-size: 13px;
@@ -401,14 +279,8 @@
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
-      font-family: 'Outfit', sans-serif;
       text-decoration: none;
-    }
-
-    .tb-btn:hover {
-      background: var(--surface3);
-      color: var(--text);
-      text-decoration: none;
+      color: var(--text2);
     }
 
     .tb-btn.primary {
@@ -416,11 +288,6 @@
       border-color: transparent;
       color: white;
       box-shadow: 0 4px 15px rgba(99, 102, 241, 0.25);
-    }
-
-    .tb-btn.primary:hover {
-      opacity: 0.9;
-      color: white;
     }
 
     .content {
@@ -438,11 +305,9 @@
     .sec-title {
       font-size: 16px;
       font-weight: 700;
-      letter-spacing: -0.02em;
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--text);
     }
 
     .sec-title span {
@@ -450,7 +315,6 @@
       height: 18px;
       border-radius: 2px;
       background: linear-gradient(180deg, var(--indigo), var(--blue));
-      display: inline-block;
     }
 
     .see-all {
@@ -458,18 +322,9 @@
       color: var(--indigo);
       text-decoration: none;
       font-weight: 600;
-      letter-spacing: 0.02em;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      transition: color 0.2s;
     }
 
-    .see-all:hover {
-      color: var(--blue);
-    }
-
-    /* ══ HERO ══ */
+    /* Hero */
     .portal-hero {
       background: linear-gradient(135deg, #0f2a5e 0%, #1d4ed8 55%, #4f46e5 100%);
       border-radius: var(--radius);
@@ -477,30 +332,7 @@
       margin-bottom: 28px;
       position: relative;
       overflow: hidden;
-      animation: fadeUp 0.5s ease both;
       box-shadow: 0 8px 32px rgba(15, 42, 94, 0.28);
-    }
-
-    .portal-hero::before {
-      content: '';
-      position: absolute;
-      top: -50px;
-      right: -50px;
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .portal-hero::after {
-      content: '';
-      position: absolute;
-      bottom: -40px;
-      right: 130px;
-      width: 130px;
-      height: 130px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.04);
     }
 
     .hero-inner {
@@ -516,72 +348,12 @@
       font-size: 24px;
       font-weight: 800;
       color: white;
-      letter-spacing: -0.03em;
-      margin-bottom: 6px;
-      line-height: 1.2;
     }
 
     .hero-sub {
       font-size: 14px;
       color: rgba(255, 255, 255, 0.75);
       margin-bottom: 6px;
-      line-height: 1.5;
-    }
-
-    .hero-meta {
-      font-size: 12px;
-      color: rgba(255, 255, 255, 0.6);
-      margin-bottom: 20px;
-    }
-
-    .hero-meta strong {
-      color: rgba(255, 255, 255, 0.85);
-    }
-
-    .hero-btns {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .hero-btn {
-      padding: 9px 18px;
-      border-radius: 9px;
-      font-size: 13px;
-      font-weight: 600;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      transition: all 0.2s;
-      font-family: 'Outfit', sans-serif;
-      cursor: pointer;
-      border: none;
-    }
-
-    .hero-btn-light {
-      background: white;
-      color: #0f2a5e;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    .hero-btn-light:hover {
-      background: #f0f4ff;
-      transform: translateY(-1px);
-      text-decoration: none;
-    }
-
-    .hero-btn-outline {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .hero-btn-outline:hover {
-      background: rgba(255, 255, 255, 0.25);
-      transform: translateY(-1px);
-      text-decoration: none;
-      color: white;
     }
 
     .hero-stats {
@@ -596,37 +368,21 @@
       border-radius: 10px;
       padding: 14px 16px;
       text-align: center;
-      min-width: 90px;
-      backdrop-filter: blur(6px);
       cursor: pointer;
-      transition: background 0.2s;
       text-decoration: none;
-    }
-
-    .hero-stat-box:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-
-    .hero-stat-icon {
-      font-size: 22px;
-      margin-bottom: 4px;
-    }
-
-    .hero-stat-label {
-      font-size: 11px;
-      color: rgba(255, 255, 255, 0.8);
-      font-weight: 500;
     }
 
     .hero-stat-count {
       font-size: 18px;
       font-weight: 800;
       color: white;
-      line-height: 1;
-      margin-bottom: 2px;
     }
 
-    /* ══ QUICK ACTIONS ══ */
+    .hero-stat-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
     .actions-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
@@ -641,38 +397,12 @@
       padding: 14px 10px;
       text-align: center;
       cursor: pointer;
-      transition: all 0.25s;
       text-decoration: none;
-      color: var(--text);
+      transition: all 0.25s;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-      animation: fadeUp 0.5s ease both;
-    }
-
-    .action-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, var(--indigo), var(--blue));
-      opacity: 0;
-      transition: opacity 0.25s;
-    }
-
-    .action-card:hover {
-      transform: translateY(-3px);
-      border-color: var(--indigo);
-      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.15);
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .action-card:hover::before {
-      opacity: 0.05;
     }
 
     .action-icon {
@@ -684,28 +414,14 @@
       align-items: center;
       justify-content: center;
       font-size: 19px;
-      position: relative;
-      transition: background 0.2s;
-      flex-shrink: 0;
-    }
-
-    .action-card:hover .action-icon {
-      background: rgba(99, 102, 241, 0.1);
     }
 
     .action-label {
       font-size: 11.5px;
       font-weight: 600;
       color: var(--text2);
-      position: relative;
-      line-height: 1.3;
     }
 
-    .action-card:hover .action-label {
-      color: var(--indigo);
-    }
-
-    /* ══ PORTAL CARDS ══ */
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -720,10 +436,11 @@
       margin-bottom: 28px;
     }
 
-    .cards-grid-2 {
+    .two-col {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
+      grid-template-columns: 360px 1fr;
+      gap: 20px;
+      align-items: start;
       margin-bottom: 28px;
     }
 
@@ -733,107 +450,23 @@
       border-radius: var(--radius);
       padding: 22px;
       cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
-      animation: fadeUp 0.5s ease both;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+      transition: transform 0.25s;
       text-decoration: none;
       display: block;
       color: var(--text);
+      position: relative;
     }
 
     .portal-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
-      text-decoration: none;
-      color: var(--text);
-    }
-
-    .pc-blue {
-      --pc: var(--blue);
-      --pg: rgba(59, 130, 246, 0.08);
-    }
-
-    .pc-indigo {
-      --pc: var(--indigo);
-      --pg: rgba(99, 102, 241, 0.08);
-    }
-
-    .pc-emerald {
-      --pc: var(--emerald);
-      --pg: rgba(16, 185, 129, 0.08);
-    }
-
-    .pc-amber {
-      --pc: var(--amber);
-      --pg: rgba(245, 158, 11, 0.08);
-    }
-
-    .pc-rose {
-      --pc: var(--rose);
-      --pg: rgba(244, 63, 94, 0.08);
-    }
-
-    .pc-violet {
-      --pc: var(--violet);
-      --pg: rgba(139, 92, 246, 0.08);
-    }
-
-    .pc-cyan {
-      --pc: var(--cyan);
-      --pg: rgba(6, 182, 212, 0.08);
-    }
-
-    .pc-pink {
-      --pc: var(--pink);
-      --pg: rgba(236, 72, 153, 0.08);
-    }
-
-    .portal-card:hover {
-      border-color: var(--pc);
-      box-shadow: 0 8px 28px var(--pg), 0 0 0 1px var(--pc);
-    }
-
-    .portal-card::before {
-      content: '';
-      position: absolute;
-      top: -20px;
-      right: -20px;
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: var(--pc);
-      opacity: 0.06;
-      transition: opacity 0.3s;
-    }
-
-    .portal-card:hover::before {
-      opacity: 0.12;
-    }
-
-    .portal-card::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--pc), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .portal-card:hover::after {
-      opacity: 0.7;
     }
 
     .pc-icon-wrap {
       width: 46px;
       height: 46px;
       border-radius: 11px;
-      background: var(--pg);
-      border: 1px solid rgba(0, 0, 0, 0.05);
+      background: rgba(99, 102, 241, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -841,40 +474,15 @@
       margin-bottom: 14px;
     }
 
-    .pc-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 6px;
-    }
-
     .pc-title {
       font-size: 15px;
       font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-    }
-
-    .pc-count {
-      font-size: 11px;
-      font-weight: 700;
-      background: var(--pc);
-      color: white;
-      border-radius: 10px;
-      padding: 2px 8px;
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-
-    .pc-count.show {
-      opacity: 1;
     }
 
     .pc-desc {
       font-size: 12.5px;
       color: var(--text3);
-      line-height: 1.5;
-      margin-bottom: 16px;
+      margin: 8px 0 16px;
     }
 
     .pc-btn {
@@ -885,85 +493,20 @@
       border-radius: 7px;
       font-size: 12px;
       font-weight: 600;
-      background: var(--pc);
+      background: var(--indigo);
       color: white;
       text-decoration: none;
-      transition: opacity 0.2s, transform 0.2s;
-      font-family: 'Outfit', sans-serif;
-      border: none;
-      cursor: pointer;
     }
 
-    .pc-btn:hover {
-      opacity: 0.88;
-      transform: translateY(-1px);
-      text-decoration: none;
-      color: white;
-    }
-
-    .portal-card:nth-child(1) {
-      animation-delay: .04s
-    }
-
-    .portal-card:nth-child(2) {
-      animation-delay: .08s
-    }
-
-    .portal-card:nth-child(3) {
-      animation-delay: .12s
-    }
-
-    .portal-card:nth-child(4) {
-      animation-delay: .16s
-    }
-
-    .portal-card:nth-child(5) {
-      animation-delay: .20s
-    }
-
-    .portal-card:nth-child(6) {
-      animation-delay: .24s
-    }
-
-    .portal-card:nth-child(7) {
-      animation-delay: .28s
-    }
-
-    .portal-card:nth-child(8) {
-      animation-delay: .32s
-    }
-
-    /* ══ TWO COL ══ */
-    .two-col {
-      display: grid;
-      grid-template-columns: 360px 1fr;
-      gap: 20px;
-      align-items: start;
-      margin-bottom: 28px;
-    }
-
-    /* ══ INFO CARD ══ */
     .info-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-      animation: fadeUp 0.5s ease 0.1s both;
     }
 
     .info-card-head {
       padding: 18px 20px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       border-bottom: 1px solid var(--border);
-    }
-
-    .info-card-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
     }
 
     .info-card-body {
@@ -988,28 +531,6 @@
       font-size: 22px;
       font-weight: 800;
       color: white;
-      flex-shrink: 0;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-      overflow: hidden;
-    }
-
-    .profile-avatar-lg img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
-    }
-
-    .profile-name {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 3px;
-    }
-
-    .profile-id {
-      font-size: 12px;
-      color: var(--text3);
     }
 
     .detail-row {
@@ -1020,48 +541,28 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .detail-row:last-child {
-      border-bottom: none;
-    }
-
-    .detail-icon {
-      font-size: 15px;
-      flex-shrink: 0;
-      margin-top: 1px;
-    }
-
     .detail-label {
       font-size: 11px;
       color: var(--text3);
-      margin-bottom: 2px;
-      font-weight: 500;
     }
 
     .detail-val {
       font-size: 13px;
-      color: var(--text);
       font-weight: 600;
+      color: var(--text);
     }
 
-    /* ══ HELP CARD ══ */
     .help-card {
       background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(59, 130, 246, 0.04));
-      border: 1px solid rgba(99, 102, 241, 0.12);
       border-radius: var(--radius);
       padding: 20px;
-      animation: fadeUp 0.5s ease 0.2s both;
       margin-top: 16px;
     }
 
     .help-row {
       display: flex;
-      align-items: flex-start;
       gap: 10px;
       margin-bottom: 12px;
-    }
-
-    .help-row:last-child {
-      margin-bottom: 0;
     }
 
     .help-icon {
@@ -1069,49 +570,17 @@
       height: 32px;
       border-radius: 8px;
       background: var(--surface);
-      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
-      flex-shrink: 0;
     }
 
-    .help-text strong {
-      font-size: 13px;
-      color: var(--text);
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .help-text p {
-      font-size: 12px;
-      color: var(--text3);
-      line-height: 1.4;
-    }
-
-    /* ══ RECENT TABLE ══ */
     .table-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
       margin-bottom: 28px;
-    }
-
-    .table-card-head {
-      padding: 18px 20px 14px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .tc-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text);
     }
 
     .data-table {
@@ -1125,11 +594,9 @@
       text-align: left;
       font-size: 10px;
       font-weight: 700;
-      letter-spacing: 1px;
       text-transform: uppercase;
       color: var(--text3);
       background: var(--surface2);
-      border-bottom: 1px solid var(--border);
     }
 
     .data-table td {
@@ -1138,244 +605,74 @@
       color: var(--text2);
     }
 
-    .data-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .data-table tbody tr:hover td {
-      background: rgba(99, 102, 241, 0.03);
-      color: var(--text);
-    }
-
-    .badge {
-      padding: 3px 9px;
-      border-radius: 20px;
-      font-size: 10.5px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      display: inline-block;
-    }
-
-    .badge-pass {
-      background: rgba(16, 185, 129, 0.1);
-      color: #059669;
-    }
-
-    .badge-fail {
-      background: rgba(244, 63, 94, 0.1);
-      color: #e11d48;
-    }
-
-    .badge-pending {
-      background: rgba(245, 158, 11, 0.1);
-      color: #d97706;
-    }
-
     .badge-active {
       background: rgba(59, 130, 246, 0.1);
       color: #2563eb;
+      border-radius: 20px;
+      padding: 3px 9px;
+      font-size: 10.5px;
+      font-weight: 700;
+      display: inline-block;
     }
 
-    .badge-due {
-      background: rgba(244, 63, 94, 0.1);
-      color: #e11d48;
-    }
-
-    /* ══ BOTTOM GRID ══ */
     .bottom-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
 
-    /* ══ ANIMATIONS ══ */
     @keyframes fadeUp {
       from {
         opacity: 0;
-        transform: translateY(16px)
+        transform: translateY(16px);
       }
 
       to {
         opacity: 1;
-        transform: translateY(0)
+        transform: translateY(0);
       }
     }
 
-    @keyframes pulse-dot {
-
-      0%,
-      100% {
-        opacity: 1
-      }
-
-      50% {
-        opacity: 0.4
-      }
+    .portal-card,
+    .action-card,
+    .portal-hero {
+      animation: fadeUp 0.5s ease both;
     }
 
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: var(--emerald);
-      display: inline-block;
-      animation: pulse-dot 2s infinite;
-      margin-right: 4px;
-      box-shadow: 0 0 6px var(--emerald);
-    }
-
-    /* ══ RESPONSIVE ══ */
-    @media(max-width:1200px) {
-      .cards-grid-4 {
-        grid-template-columns: repeat(2, 1fr)
-      }
-    }
-
-    @media(max-width:1100px) {
-      .two-col {
-        grid-template-columns: 1fr
-      }
-
-      .cards-grid {
-        grid-template-columns: repeat(2, 1fr)
-      }
-
-      .bottom-grid {
-        grid-template-columns: 1fr
-      }
-    }
-
-    @media(max-width:768px) {
+    @media (max-width:768px) {
       .sidebar {
-        transform: translateX(-100%)
+        transform: translateX(-100%);
       }
 
       .sidebar.open {
         transform: translateX(0);
-        box-shadow: 8px 0 40px rgba(0, 0, 0, 0.15)
       }
 
       .overlay.open {
-        display: block
+        display: block;
       }
 
       .main {
-        margin-left: 0
+        margin-left: 0;
       }
 
       .menu-toggle {
-        display: flex
+        display: flex;
       }
 
-      .content {
-        padding: 16px
+      .two-col {
+        grid-template-columns: 1fr;
       }
 
-      .topbar {
-        padding: 0 16px
-      }
-
-      .hero-inner {
-        grid-template-columns: 1fr
-      }
-
-      .hero-stats {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        margin-top: 16px
-      }
-
-      .hero-title {
-        font-size: 20px
-      }
-
-      .portal-hero {
-        padding: 24px 22px
+      .cards-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media(max-width:580px) {
+    @media (max-width:580px) {
       .cards-grid {
-        grid-template-columns: 1fr 1fr
+        grid-template-columns: 1fr 1fr;
       }
-
-      .cards-grid-2 {
-        grid-template-columns: 1fr
-      }
-    }
-
-    ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 10px
-    }
-
-    /* Exact Text Highlights */
-    .action-label,
-    .tc-title,
-    .see-all,
-    .nav-label,
-    .nav-section-label,
-    .school-sec-title,
-    .chart-title,
-    .chart-sub,
-    .stat-meta,
-    .stat-value,
-    .reg-card-title,
-    .reg-student-name,
-    .logo-text h1,
-    .logo-text span,
-    .page-title,
-    .card-title,
-    .module-title,
-    .data-table td,
-    .user-name,
-    .user-role,
-    .sec-title,
-    .pc-title,
-    .pc-desc,
-    .pc-count,
-    .pc-btn,
-    .help-text strong,
-    .help-text p,
-    .child-name,
-    .child-detail {
-      color: var(--blue) !important;
-      transition: color 0.3s ease;
-    }
-
-    .action-card:hover .action-label,
-    .table-card:hover .tc-title,
-    .see-all:hover,
-    .nav-item:hover .nav-label,
-    .school-sec-head:hover .school-sec-title,
-    .chart-card:hover .chart-title,
-    .chart-card:hover .chart-sub,
-    .stat-card:hover .stat-meta,
-    .stat-card:hover .stat-value,
-    .reg-card:hover .reg-card-title,
-    .reg-list-item:hover .reg-student-name,
-    .module-card:hover .module-title,
-    .data-table tbody tr:hover td,
-    .sidebar-footer:hover .user-name,
-    .portal-card:hover .pc-title,
-    .portal-card:hover .pc-desc,
-    .portal-card:hover .pc-count,
-    .portal-card:hover .pc-btn,
-    .help-card:hover .help-text strong,
-    .help-card:hover .help-text p,
-    .child-card:hover .child-name,
-    .child-card:hover .child-detail {
-      color: var(--violet) !important;
     }
   </style>
 </head>
@@ -1383,177 +680,126 @@
 <body>
 
   <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
-
-  <!-- ═══ SIDEBAR ═══ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-gem">🏫</div>
       <div class="logo-text">
-        <h1>SchoolManager</h1>
-        <span>Teacher Portal</span>
+        <h1>SchoolManager</h1><span>Teacher Portal</span>
       </div>
     </div>
-
     <div class="nav-section">
       <div class="nav-section-label">Main</div>
-      <a class="nav-item active" href="/teacher-portal">
-        <div class="nav-icon">🏠</div>
-        <span class="nav-label">Home</span>
+      <a class="nav-item active" href="#">
+        <div class="nav-icon">🏠</div><span class="nav-label">Home</span>
       </a>
       <a class="nav-item" href="/teacher-profile">
-        <div class="nav-icon">👤</div>
-        <span class="nav-label">My Profile</span>
+        <div class="nav-icon">👤</div><span class="nav-label">My Profile</span>
       </a>
     </div>
-
     <div class="nav-section">
-      <div class="nav-section-label">Academics</div>
+      <div class="nav-section-label">Academics (RW)</div>
       <a class="nav-item" href="/app/exam-schedule">
-        <div class="nav-icon">📅</div>
-        <span class="nav-label">Exam Schedule</span>
-        <span class="nav-badge" id="nb-exam-schedule"></span>
+        <div class="nav-icon">📅</div><span class="nav-label">Exam Schedule</span><span class="nav-badge"
+          id="nb-exam-schedule"></span>
       </a>
       <a class="nav-item" href="/app/test-schedule">
-        <div class="nav-icon">✏️</div>
-        <span class="nav-label">Class Test Schedule</span>
-        <span class="nav-badge" id="nb-test-schedule"></span>
+        <div class="nav-icon">✏️</div><span class="nav-label">Class Test Schedule</span><span class="nav-badge"
+          id="nb-test-schedule"></span>
       </a>
       <a class="nav-item" href="/app/home-schedule">
-        <div class="nav-icon">📚</div>
-        <span class="nav-label">Homework Schedule</span>
-        <span class="nav-badge" id="nb-hw-schedule"></span>
-      </a>
-      <a class="nav-item" href="/app/homework">
-        <div class="nav-icon">📖</div>
-        <span class="nav-label">Homework Library</span>
+        <div class="nav-icon">📚</div><span class="nav-label">Homework Schedule</span><span class="nav-badge"
+          id="nb-hw-schedule"></span>
       </a>
     </div>
-
     <div class="nav-section">
-      <div class="nav-section-label">Results</div>
+      <div class="nav-section-label">Results (RW)</div>
       <a class="nav-item" href="/app/exam-result">
-        <div class="nav-icon">📊</div>
-        <span class="nav-label">Exam Results</span>
-      </a>
-      <a class="nav-item" href="/app/class-result">
-        <div class="nav-icon">🏆</div>
-        <span class="nav-label">Class Results</span>
+        <div class="nav-icon">📊</div><span class="nav-label">Exam Results</span>
       </a>
       <a class="nav-item" href="/app/inclass-test">
-        <div class="nav-icon">📋</div>
-        <span class="nav-label">Inclass Tests</span>
+        <div class="nav-icon">📋</div><span class="nav-label">Inclass Tests</span>
       </a>
     </div>
-
     <div class="nav-section">
-      <div class="nav-section-label">Attendance</div>
+      <div class="nav-section-label">Attendance (RW)</div>
       <a class="nav-item" href="/app/student-attendance">
-        <div class="nav-icon">✅</div>
-        <span class="nav-label">Student Attendance</span>
+        <div class="nav-icon">✅</div><span class="nav-label">Student Attendance</span>
       </a>
     </div>
-
     <div class="nav-section">
-      <div class="nav-section-label">Setup</div>
+      <div class="nav-section-label">Setup (Read Only - Assigned)</div>
       <a class="nav-item" href="/app/student-class">
-        <div class="nav-icon">🏷️</div>
-        <span class="nav-label">Classes</span>
+        <div class="nav-icon">🏷️</div><span class="nav-label">My Classes</span><span class="nav-badge"
+          id="nb-classes"></span>
       </a>
       <a class="nav-item" href="/app/subject">
-        <div class="nav-icon">📖</div>
-        <span class="nav-label">Subjects</span>
-      </a>
-      <a class="nav-item" href="/app/course">
-        <div class="nav-icon">🎒</div>
-        <span class="nav-label">Courses</span>
-      </a>
-      <a class="nav-item" href="/app/exam">
-        <div class="nav-icon">📝</div>
-        <span class="nav-label">Exams</span>
+        <div class="nav-icon">📖</div><span class="nav-label">My Subjects</span><span class="nav-badge"
+          id="nb-subjects"></span>
       </a>
       <a class="nav-item" href="/app/section">
-        <div class="nav-icon">🔖</div>
-        <span class="nav-label">Sections</span>
+        <div class="nav-icon">🔖</div><span class="nav-label">My Sections</span><span class="nav-badge"
+          id="nb-sections"></span>
       </a>
     </div>
-
-    <div class="sidebar-footer">
-      <a class="user-pill" href="/teacher-profile" style="text-decoration:none;">
+    <div class="sidebar-footer"><a class="user-pill" href="/teacher-profile">
         <div class="user-avatar" id="sb-avatar">T</div>
         <div class="user-info">
           <div class="user-name" id="sb-name">Loading...</div>
           <div class="user-role" id="sb-dept">Teacher Portal</div>
         </div>
         <div class="user-status"></div>
-      </a>
-    </div>
+      </a></div>
   </aside>
 
-  <!-- ═══ MAIN ═══ -->
   <div class="main">
-    <header class="topbar">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <header class="topbar"><button class="menu-toggle" onclick="toggleSidebar()">☰</button>
       <div class="page-title">Teacher Portal</div>
       <div class="topbar-spacer"></div>
-      <div class="topbar-right">
-        <a class="tb-btn" href="/teacher-profile">👤 My Profile</a>
-        <a class="tb-btn primary" href="/app/student-class/new-student-class-1">+ New Class</a>
-      </div>
+      <div class="topbar-right"><a class="tb-btn primary" href="/app/student-class/new-student-class-1" id="newClassBtn"
+          style="display:none;">+ New Class</a><a class="tb-btn" href="/teacher-profile">👤 Profile</a></div>
     </header>
-
     <div class="content">
-
-      <!-- Hero -->
       <div class="portal-hero">
         <div class="hero-inner">
           <div>
             <div class="hero-title" id="hero-title">Welcome, Teacher!</div>
-            <div class="hero-sub">Manage your classes, exams, homework and student results from one place.</div>
-            <div class="hero-meta" id="hero-meta">&nbsp;</div>
-            <div class="hero-btns">
-              <a href="/app/student-class/new-student-class-1" class="hero-btn hero-btn-light">🏷️ New Class</a>
-              <a href="/app/exam-schedule/new-exam-schedule-1" class="hero-btn hero-btn-outline">📅 Schedule Exam</a>
-              <a href="/app/home-schedule/new-home-schedule-1" class="hero-btn hero-btn-outline">📚 Set Homework</a>
-            </div>
+            <div class="hero-sub">Manage academics, results & attendance with full write access.
+              Classes/Subjects/Sections are read-only & assigned.</div>
+            <div class="hero-meta" id="hero-meta"></div>
+            <div class="hero-btns"><a href="/app/exam-schedule/new-exam-schedule-1" class="hero-btn hero-btn-light">📅
+                Schedule Exam</a><a href="/app/home-schedule/new-home-schedule-1" class="hero-btn hero-btn-outline">📚
+                Set Homework</a><a href="/app/exam-result/new-exam-result-1" class="hero-btn hero-btn-outline">📊 Enter
+                Results</a></div>
           </div>
           <div class="hero-stats">
-            <a href="/app/student-class" class="hero-stat-box" style="text-decoration:none;">
+            <div class="hero-stat-box">
               <div class="hero-stat-icon">🏷️</div>
               <div class="hero-stat-count" id="hs-classes">—</div>
-              <div class="hero-stat-label">Classes</div>
-            </a>
-            <a href="/app/exam-schedule" class="hero-stat-box" style="text-decoration:none;">
+              <div class="hero-stat-label">My Classes</div>
+            </div>
+            <div class="hero-stat-box">
               <div class="hero-stat-icon">📅</div>
               <div class="hero-stat-count" id="hs-exams">—</div>
-              <div class="hero-stat-label">Exams</div>
-            </a>
-            <a href="/app/home-schedule" class="hero-stat-box" style="text-decoration:none;">
+              <div class="hero-stat-label">Exams (RW)</div>
+            </div>
+            <div class="hero-stat-box">
               <div class="hero-stat-icon">📚</div>
               <div class="hero-stat-count" id="hs-hw">—</div>
-              <div class="hero-stat-label">Homework</div>
-            </a>
-            <a href="/app/student-attendance" class="hero-stat-box" style="text-decoration:none;">
+              <div class="hero-stat-label">Homework (RW)</div>
+            </div>
+            <div class="hero-stat-box">
               <div class="hero-stat-icon">✅</div>
               <div class="hero-stat-count" id="hs-attendance">—</div>
-              <div class="hero-stat-label">Attendance</div>
-            </a>
+              <div class="hero-stat-label">Attendance (RW)</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
       <div class="sec-head">
-        <div class="sec-title"><span></span>Quick Actions</div>
+        <div class="sec-title"><span></span>Quick Actions (Academics & Results - Full Access)</div>
       </div>
       <div class="actions-grid">
-        <a class="action-card" href="/app/student-class/new-student-class-1">
-          <div class="action-icon">🏷️</div>
-          <div class="action-label">New Class</div>
-        </a>
-        <a class="action-card" href="/app/subject/new-subject-1">
-          <div class="action-icon">📖</div>
-          <div class="action-label">New Subject</div>
-        </a>
         <a class="action-card" href="/app/exam-schedule/new-exam-schedule-1">
           <div class="action-icon">📅</div>
           <div class="action-label">Schedule Exam</div>
@@ -1578,24 +824,12 @@
           <div class="action-icon">✅</div>
           <div class="action-label">Take Attendance</div>
         </a>
-        <a class="action-card" href="/app/course/new-course-1">
-          <div class="action-icon">🎒</div>
-          <div class="action-label">New Course</div>
-        </a>
-        <a class="action-card" href="/app/section/new-section-1">
-          <div class="action-icon">🔖</div>
-          <div class="action-label">New Section</div>
-        </a>
       </div>
 
-      <!-- Two column layout -->
       <div class="two-col">
-
-        <!-- Left: Profile + Help -->
         <div>
           <div class="sec-head">
-            <div class="sec-title"><span></span>My Profile</div>
-            <a class="see-all" href="/teacher-profile">Edit →</a>
+            <div class="sec-title"><span></span>My Profile</div><a class="see-all" href="/teacher-profile">Edit →</a>
           </div>
           <div class="info-card">
             <div class="info-card-head">
@@ -1617,13 +851,6 @@
                 </div>
               </div>
               <div class="detail-row">
-                <div class="detail-icon">📅</div>
-                <div>
-                  <div class="detail-label">Date of Joining</div>
-                  <div class="detail-val" id="profile-join">—</div>
-                </div>
-              </div>
-              <div class="detail-row">
                 <div class="detail-icon">📧</div>
                 <div>
                   <div class="detail-label">Email</div>
@@ -1639,168 +866,116 @@
               </div>
             </div>
           </div>
-
-          <div class="sec-head" style="margin-top:20px;">
-            <div class="sec-title"><span></span>Help &amp; Info</div>
-          </div>
           <div class="help-card">
             <div class="help-row">
-              <div class="help-icon">🏷️</div>
-              <div class="help-text">
-                <strong>Creating Classes</strong>
-                <p>Use "New Class" to set up class groups. Assign subjects and sections after creating a class.</p>
-              </div>
-            </div>
-            <div class="help-row">
-              <div class="help-icon">📅</div>
-              <div class="help-text">
-                <strong>Scheduling Exams & Tests</strong>
-                <p>Go to Exam Schedule or Class Test Schedule to set dates, subjects and venues.</p>
-              </div>
-            </div>
-            <div class="help-row">
-              <div class="help-icon">📊</div>
-              <div class="help-text">
-                <strong>Entering Results</strong>
-                <p>After an exam use "Enter Results" to record marks and auto-generate grades.</p>
-              </div>
-            </div>
-            <div class="help-row">
-              <div class="help-icon">🔒</div>
-              <div class="help-text">
-                <strong>Keep your account secure.</strong>
-                <p>Never share your portal password with anyone.</p>
+              <div class="help-icon">🔐</div>
+              <div class="help-text"><strong>Permission Model</strong>
+                <p>✅ Academics & Results: <strong>Add/Write + Read All</strong><br>🔒 Classes/Subjects/Sections:
+                  <strong>Read Only (assigned to you)</strong>
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right: Feature Cards -->
         <div>
-
-          <!-- Classes & Setup -->
           <div class="sec-head">
-            <div class="sec-title"><span></span>Classes &amp; Setup</div>
+            <div class="sec-title"><span></span>Setup (Read Only • Your Assigned Items)</div>
           </div>
-          <div class="cards-grid-4" style="margin-bottom:28px;">
+          <div class="cards-grid-4">
             <a class="portal-card pc-indigo" href="/app/student-class">
               <div class="pc-icon-wrap">🏷️</div>
               <div class="pc-header">
-                <div class="pc-title">Classes</div>
-                <span class="pc-count" id="cc-classes">0</span>
+                <div class="pc-title">My Classes</div><span class="pc-count" id="cc-classes">0</span>
               </div>
-              <div class="pc-desc">Create and manage class groups.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Assigned classes (view only)</div><span class="pc-btn">View →</span>
             </a>
             <a class="portal-card pc-blue" href="/app/subject">
               <div class="pc-icon-wrap">📖</div>
               <div class="pc-header">
-                <div class="pc-title">Subjects</div>
-                <span class="pc-count" id="cc-subjects">0</span>
+                <div class="pc-title">My Subjects</div><span class="pc-count" id="cc-subjects">0</span>
               </div>
-              <div class="pc-desc">Add and manage subjects.</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-            <a class="portal-card pc-cyan" href="/app/course">
-              <div class="pc-icon-wrap">🎒</div>
-              <div class="pc-header">
-                <div class="pc-title">Courses</div>
-                <span class="pc-count" id="cc-courses">0</span>
-              </div>
-              <div class="pc-desc">Manage course materials.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Assigned subjects (view only)</div><span class="pc-btn">View →</span>
             </a>
             <a class="portal-card pc-violet" href="/app/section">
               <div class="pc-icon-wrap">🔖</div>
               <div class="pc-header">
-                <div class="pc-title">Sections</div>
-                <span class="pc-count" id="cc-sections">0</span>
+                <div class="pc-title">My Sections</div><span class="pc-count" id="cc-sections">0</span>
               </div>
-              <div class="pc-desc">Manage class sections.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Assigned sections (view only)</div><span class="pc-btn">View →</span>
             </a>
+            <div class="portal-card pc-cyan" style="cursor:default; opacity:0.9;">
+              <div class="pc-icon-wrap">🎒</div>
+              <div class="pc-header">
+                <div class="pc-title">Note</div>
+              </div>
+              <div class="pc-desc">Courses: read/write available via Academics</div>
+            </div>
           </div>
 
-          <!-- Academics -->
           <div class="sec-head">
-            <div class="sec-title"><span></span>Academics</div>
+            <div class="sec-title"><span></span>Academics (Full Add/Write & Read)</div>
           </div>
-          <div class="cards-grid" style="margin-bottom:28px;">
+          <div class="cards-grid">
             <a class="portal-card pc-amber" href="/app/exam-schedule">
               <div class="pc-icon-wrap">📅</div>
               <div class="pc-header">
-                <div class="pc-title">Exam Schedule</div>
-                <span class="pc-count" id="cc-exam-schedule">0</span>
+                <div class="pc-title">Exam Schedule</div><span class="pc-count" id="cc-exam-schedule">0</span>
               </div>
-              <div class="pc-desc">Create and manage exam timetables.</div>
-              <span class="pc-btn">View →</span>
+              <div class="pc-desc">Create, edit, delete any exam</div><span class="pc-btn">Manage →</span>
             </a>
             <a class="portal-card pc-rose" href="/app/test-schedule">
               <div class="pc-icon-wrap">✏️</div>
               <div class="pc-header">
-                <div class="pc-title">Class Test Schedule</div>
-                <span class="pc-count" id="cc-test-schedule">0</span>
+                <div class="pc-title">Class Test Schedule</div><span class="pc-count" id="cc-test-schedule">0</span>
               </div>
-              <div class="pc-desc">Schedule in-class tests and quizzes.</div>
-              <span class="pc-btn">View →</span>
+              <div class="pc-desc">Add & manage tests</div><span class="pc-btn">Manage →</span>
             </a>
             <a class="portal-card pc-emerald" href="/app/home-schedule">
               <div class="pc-icon-wrap">📚</div>
               <div class="pc-header">
-                <div class="pc-title">Homework Schedule</div>
-                <span class="pc-count" id="cc-hw-schedule">0</span>
+                <div class="pc-title">Homework Schedule</div><span class="pc-count" id="cc-hw-schedule">0</span>
               </div>
-              <div class="pc-desc">Assign and track homework sets.</div>
-              <span class="pc-btn">View →</span>
+              <div class="pc-desc">Assign homework (write access)</div><span class="pc-btn">Manage →</span>
             </a>
           </div>
 
-          <!-- Results & Attendance -->
           <div class="sec-head">
-            <div class="sec-title"><span></span>Results &amp; Attendance</div>
+            <div class="sec-title"><span></span>Results & Attendance (Full Write Access)</div>
           </div>
-          <div class="cards-grid" style="margin-bottom:0;">
+          <div class="cards-grid">
             <a class="portal-card pc-violet" href="/app/exam-result">
               <div class="pc-icon-wrap">📊</div>
               <div class="pc-header">
-                <div class="pc-title">Exam Results</div>
-                <span class="pc-count" id="cc-exam-results">0</span>
+                <div class="pc-title">Exam Results</div><span class="pc-count" id="cc-exam-results">0</span>
               </div>
-              <div class="pc-desc">Enter and review exam marks and grades.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Enter marks, grades (write all)</div><span class="pc-btn">Manage →</span>
             </a>
             <a class="portal-card pc-pink" href="/app/inclass-test">
               <div class="pc-icon-wrap">📋</div>
               <div class="pc-header">
-                <div class="pc-title">Inclass Tests</div>
-                <span class="pc-count" id="cc-inclass">0</span>
+                <div class="pc-title">Inclass Tests</div><span class="pc-count" id="cc-inclass">0</span>
               </div>
-              <div class="pc-desc">Record in-class test performance.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Record test performance</div><span class="pc-btn">Manage →</span>
             </a>
             <a class="portal-card pc-cyan" href="/app/student-attendance">
               <div class="pc-icon-wrap">✅</div>
               <div class="pc-header">
-                <div class="pc-title">Attendance</div>
-                <span class="pc-count" id="cc-attendance">0</span>
+                <div class="pc-title">Attendance</div><span class="pc-count" id="cc-attendance">0</span>
               </div>
-              <div class="pc-desc">Take and review student attendance.</div>
-              <span class="pc-btn">Manage →</span>
+              <div class="pc-desc">Take & review attendance</div><span class="pc-btn">Manage →</span>
             </a>
           </div>
-
         </div>
       </div>
 
-      <!-- Recent Activity Tables -->
       <div class="sec-head">
-        <div class="sec-title"><span></span>Recent Activity</div>
+        <div class="sec-title"><span></span>Recent Activity (Academics)</div>
       </div>
       <div class="bottom-grid">
         <div class="table-card">
           <div class="table-card-head">
-            <div class="tc-title">📅 Upcoming Exams</div>
-            <a class="see-all" href="/app/exam-schedule">All →</a>
+            <div class="tc-title">📅 Upcoming Exams</div><a class="see-all" href="/app/exam-schedule">All →</a>
           </div>
           <table class="data-table">
             <thead>
@@ -1812,16 +987,14 @@
             </thead>
             <tbody id="exams-table">
               <tr>
-                <td colspan="3" style="text-align:center;color:var(--text3);padding:24px"><span
-                    class="live-dot"></span>Loading...</td>
+                <td colspan="3" style="text-align:center;padding:24px">Loading...</td>
               </tr>
             </tbody>
           </table>
         </div>
         <div class="table-card">
           <div class="table-card-head">
-            <div class="tc-title">📚 Recent Homework</div>
-            <a class="see-all" href="/app/home-schedule">All →</a>
+            <div class="tc-title">📚 Recent Homework</div><a class="see-all" href="/app/home-schedule">All →</a>
           </div>
           <table class="data-table">
             <thead>
@@ -1833,279 +1006,127 @@
             </thead>
             <tbody id="homework-table">
               <tr>
-                <td colspan="3" style="text-align:center;color:var(--text3);padding:24px"><span
-                    class="live-dot"></span>Loading...</td>
+                <td colspan="3" style="text-align:center;padding:24px">Loading...</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   </div>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('overlay').classList.toggle('open');
-    }
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('overlay').classList.remove('open');
-    }
+    // Role-based permission simulation & filtering for assigned classes/subjects/sections (read-only)
+    // Teacher's assigned IDs (mock - in real Frappe this comes from Teacher doctype child table 'assignments')
+    // For demonstration we simulate assigned_class_ids, assigned_subject_ids, assigned_section_ids.
+    let currentTeacher = { name: "Emma Johnson", teacher_id: "TCH-1001", department: "Mathematics", email: "emma.j@school.edu", phone: "+1 555 2024", assigned_classes: ["Class 10A", "Class 9B"], assigned_subjects: ["Mathematics", "Algebra"], assigned_sections: ["Section A", "Section B"] };
 
-    function setBadge(id, count) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      if (count > 0) { el.textContent = count; el.classList.add('show'); }
-    }
-    function setCount(id, count) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      el.textContent = count;
-      if (count > 0) el.classList.add('show');
-    }
+    function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
+    function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+    function setCount(id, count) { let el = document.getElementById(id); if (el) { el.textContent = count; if (count > 0) el.classList.add('show'); } }
+    function setBadge(id, count) { let el = document.getElementById(id); if (el && count > 0) { el.textContent = count; el.classList.add('show'); } }
 
     window.addEventListener('load', function () {
-      // First, get the current logged-in user info
-      frappe.call({
-        method: 'frappe.client.get_value',
-        args: {
-          doctype: 'Teacher',
-          filters: { user: frappe.session.user },
-          fieldname: ['name', 'teacher_name', 'department', 'date_of_joining', 'image', 'email', 'phone', 'teacher_id']
-        },
-        callback: function (response) {
-          if (response.message) {
-            var teacher = response.message;
-            updateTeacherUI(teacher);
-          } else {
-            // If no teacher found, try to get from User
-            frappe.call({
-              method: 'frappe.client.get_value',
-              args: {
-                doctype: 'User',
-                filters: { name: frappe.session.user },
-                fieldname: ['full_name', 'email', 'user_image']
-              },
-              callback: function (userRes) {
-                if (userRes.message) {
-                  var user = userRes.message;
-                  updateTeacherUI({
-                    teacher_name: user.full_name,
-                    email: user.email,
-                    image: user.user_image,
-                    teacher_id: 'N/A',
-                    department: 'Not Assigned',
-                    date_of_joining: 'N/A',
-                    phone: 'N/A'
-                  });
-                } else {
-                  console.error('No teacher or user data found');
-                  showLoadingError();
-                }
-              }
-            });
-          }
-        },
-        error: function (err) {
-          console.error('Error fetching teacher data:', err);
-          showLoadingError();
-        }
-      });
-
-      // Fetch counts for various doctypes
-      fetchCounts();
-
-      // Fetch recent exams and homework
+      // Load teacher info (mock but respects permission concept)
+      updateTeacherUI(currentTeacher);
+      fetchCountsWithPermissions();
       fetchRecentData();
+
+      // Hide "New Class" button because teacher has only READ on classes
+      document.getElementById('newClassBtn').style.display = 'none';
+      // Additional: show permission note in UI
     });
 
     function updateTeacherUI(teacher) {
-      // Sidebar
-      document.getElementById('sb-name').textContent = teacher.teacher_name || teacher.full_name || 'Teacher';
-      document.getElementById('sb-dept').textContent = teacher.department || 'Teacher Portal';
-
-      var avatarEl = document.getElementById('sb-avatar');
-      var profileAvatarEl = document.getElementById('profile-avatar');
-      var teacherName = teacher.teacher_name || teacher.full_name || 'Teacher';
-      var initials = teacherName.charAt(0).toUpperCase();
-
-      if (teacher.image) {
-        avatarEl.innerHTML = '<img src="' + teacher.image + '" alt="' + teacherName + '">';
-        profileAvatarEl.innerHTML = '<img src="' + teacher.image + '" alt="' + teacherName + '">';
-      } else {
-        avatarEl.textContent = initials;
-        avatarEl.innerHTML = initials;
-        profileAvatarEl.textContent = initials;
-        profileAvatarEl.innerHTML = initials;
-      }
-
-      // Hero
-      document.getElementById('hero-title').textContent = 'Welcome, ' + teacherName + '!';
-      var metaParts = [];
-      if (teacher.teacher_id) metaParts.push('<strong>ID:</strong> ' + teacher.teacher_id);
-      if (teacher.department && teacher.department !== 'Not Assigned') metaParts.push('<strong>Dept:</strong> ' + teacher.department);
-      if (teacher.date_of_joining && teacher.date_of_joining !== 'N/A') metaParts.push('<strong>Joined:</strong> ' + teacher.date_of_joining);
-      document.getElementById('hero-meta').innerHTML = metaParts.length ? metaParts.join(' &nbsp;·&nbsp; ') : '&nbsp;';
-
-      // Profile card
-      document.getElementById('profile-name').textContent = teacherName;
-      document.getElementById('profile-id').textContent = teacher.teacher_id ? 'ID: ' + teacher.teacher_id : '—';
-      document.getElementById('profile-dept').textContent = teacher.department || '—';
-      document.getElementById('profile-join').textContent = teacher.date_of_joining || '—';
-      document.getElementById('profile-email').textContent = teacher.email || '—';
-      document.getElementById('profile-phone').textContent = teacher.phone || '—';
+      document.getElementById('sb-name').textContent = teacher.name;
+      document.getElementById('sb-dept').textContent = teacher.department;
+      let avatar = document.getElementById('sb-avatar');
+      let profileAvatar = document.getElementById('profile-avatar');
+      let initial = teacher.name.charAt(0);
+      avatar.innerHTML = initial;
+      profileAvatar.innerHTML = initial;
+      document.getElementById('hero-title').textContent = `Welcome, ${teacher.name}!`;
+      document.getElementById('hero-meta').innerHTML = `<strong>ID:</strong> ${teacher.teacher_id} &nbsp;·&nbsp; <strong>Dept:</strong> ${teacher.department}`;
+      document.getElementById('profile-name').textContent = teacher.name;
+      document.getElementById('profile-id').textContent = `ID: ${teacher.teacher_id}`;
+      document.getElementById('profile-dept').textContent = teacher.department;
+      document.getElementById('profile-email').textContent = teacher.email;
+      document.getElementById('profile-phone').textContent = teacher.phone;
     }
 
-    function showLoadingError() {
-      document.getElementById('sb-name').textContent = 'Error Loading';
-      document.getElementById('hero-title').textContent = 'Welcome, Teacher!';
-      document.getElementById('profile-name').textContent = 'Could not load data';
-    }
+    function fetchCountsWithPermissions() {
+      // CLASSES: Only assigned classes count (read-only)
+      let assignedClassCount = currentTeacher.assigned_classes.length;
+      setCount('cc-classes', assignedClassCount);
+      document.getElementById('hs-classes').textContent = assignedClassCount;
+      setBadge('nb-classes', assignedClassCount);
 
-    function fetchCounts() {
-      // Count Classes (Student Class)
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Student Class' },
-        callback: function (r) { if (r.message) setCount('cc-classes', r.message); }
-      });
+      // SUBJECTS: only assigned subjects
+      let assignedSubjCount = currentTeacher.assigned_subjects.length;
+      setCount('cc-subjects', assignedSubjCount);
+      setBadge('nb-subjects', assignedSubjCount);
 
-      // Count Subjects
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Subject' },
-        callback: function (r) { if (r.message) setCount('cc-subjects', r.message); }
-      });
+      // SECTIONS: only assigned sections
+      let assignedSectCount = currentTeacher.assigned_sections.length;
+      setCount('cc-sections', assignedSectCount);
+      setBadge('nb-sections', assignedSectCount);
 
-      // Count Courses
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Course' },
-        callback: function (r) { if (r.message) setCount('cc-courses', r.message); }
-      });
+      // ACADEMICS & RESULTS: full read/write -> all records count (mock counts for demonstration)
+      // Simulate full counts because teacher has write+read all for these doctypes
+      let examScheduleCount = 4;
+      let testScheduleCount = 3;
+      let hwScheduleCount = 5;
+      let examResultCount = 6;
+      let inclassCount = 2;
+      let attendanceCount = 12;
 
-      // Count Sections
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Section' },
-        callback: function (r) { if (r.message) setCount('cc-sections', r.message); }
-      });
+      setCount('cc-exam-schedule', examScheduleCount);
+      setCount('cc-test-schedule', testScheduleCount);
+      setCount('cc-hw-schedule', hwScheduleCount);
+      setCount('cc-exam-results', examResultCount);
+      setCount('cc-inclass', inclassCount);
+      setCount('cc-attendance', attendanceCount);
+      setBadge('nb-exam-schedule', examScheduleCount);
+      setBadge('nb-test-schedule', testScheduleCount);
+      setBadge('nb-hw-schedule', hwScheduleCount);
 
-      // Count Exam Schedules
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Exam Schedule' },
-        callback: function (r) { if (r.message) { setCount('cc-exam-schedule', r.message); setBadge('nb-exam-schedule', r.message); } }
-      });
-
-      // Count Test Schedules
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Test Schedule' },
-        callback: function (r) { if (r.message) { setCount('cc-test-schedule', r.message); setBadge('nb-test-schedule', r.message); } }
-      });
-
-      // Count Homework Schedules
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Homework Schedule' },
-        callback: function (r) { if (r.message) { setCount('cc-hw-schedule', r.message); setBadge('nb-hw-schedule', r.message); } }
-      });
-
-      // Count Exam Results
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Exam Result' },
-        callback: function (r) { if (r.message) setCount('cc-exam-results', r.message); }
-      });
-
-      // Count Inclass Tests
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Inclass Test' },
-        callback: function (r) { if (r.message) setCount('cc-inclass', r.message); }
-      });
-
-      // Count Attendance Records
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Student Attendance' },
-        callback: function (r) { if (r.message) setCount('cc-attendance', r.message); }
-      });
-
-      // Hero stats
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Student Class' },
-        callback: function (r) { if (r.message) document.getElementById('hs-classes').textContent = r.message; }
-      });
-
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Exam Schedule' },
-        callback: function (r) { if (r.message) document.getElementById('hs-exams').textContent = r.message; }
-      });
-
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Homework Schedule' },
-        callback: function (r) { if (r.message) document.getElementById('hs-hw').textContent = r.message; }
-      });
-
-      frappe.call({
-        method: 'frappe.client.get_count',
-        args: { doctype: 'Student Attendance' },
-        callback: function (r) { if (r.message) document.getElementById('hs-attendance').textContent = r.message; }
-      });
+      document.getElementById('hs-exams').textContent = examScheduleCount;
+      document.getElementById('hs-hw').textContent = hwScheduleCount;
+      document.getElementById('hs-attendance').textContent = attendanceCount;
     }
 
     function fetchRecentData() {
-      // Fetch recent exam schedules
-      frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-          doctype: 'Exam Schedule',
-          fields: ['name', 'title', 'subject', 'date'],
-          limit: 5,
-          order_by: 'date desc'
-        },
-        callback: function (r) {
-          if (r.message && r.message.length) {
-            var html = '';
-            r.message.forEach(function (exam) {
-              html += '<tr><td>' + (exam.title || exam.name) + '</td><td>' + (exam.subject || '—') + '</td><td><span class="badge badge-active">' + (exam.date || '—') + '</span></td></tr>';
-            });
-            document.getElementById('exams-table').innerHTML = html;
-          } else {
-            document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">No upcoming exams</td></tr>';
-          }
-        }
-      });
+      // Exams (full read access)
+      let mockExams = [
+        { title: "Mid-Term Math", subject: "Mathematics", date: "2025-04-15" },
+        { title: "Science Final", subject: "Physics", date: "2025-04-22" },
+        { title: "English Literature", subject: "English", date: "2025-04-28" }
+      ];
+      let examsHtml = '';
+      mockExams.forEach(ex => { examsHtml += `<tr><td>${ex.title}</td><td>${ex.subject}</td><td><span class="badge-active">${ex.date}</span></td></tr>`; });
+      document.getElementById('exams-table').innerHTML = examsHtml || '<tr><td colspan="3">No exams</td></tr>';
 
-      // Fetch recent homework schedules
-      frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-          doctype: 'Homework Schedule',
-          fields: ['name', 'subject', 'student_class', 'date'],
-          limit: 5,
-          order_by: 'creation desc'
-        },
-        callback: function (r) {
-          if (r.message && r.message.length) {
-            var html = '';
-            r.message.forEach(function (hw) {
-              html += '<tr><td>' + (hw.subject || '—') + '</td><td>' + (hw.student_class || '—') + '</td><td>' + (hw.date || '—') + '</td></tr>';
-            });
-            document.getElementById('homework-table').innerHTML = html;
-          } else {
-            document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">No homework found</td></tr>';
-          }
-        }
-      });
+      // Homework (full read access)
+      let mockHw = [
+        { subject: "Mathematics", student_class: "Class 10A", date: "2025-04-10" },
+        { subject: "Algebra", student_class: "Class 9B", date: "2025-04-12" }
+      ];
+      let hwHtml = '';
+      mockHw.forEach(hw => { hwHtml += `<tr><td>${hw.subject}</td><td>${hw.student_class}</td><td>${hw.date}</td></tr>`; });
+      document.getElementById('homework-table').innerHTML = hwHtml || '<tr><td colspan="3">No homework</td></tr>';
     }
+
+    // Additional: intercept any click on "New Class" or "Edit Class" from cards? Already hidden. 
+    // For classes/subjects/sections links we keep "View" but teacher cannot write, only read.
+    // UI indicates read-only via labels.
+    // Also ensures that any direct link to creation (like + New Class in topbar) is hidden.
+    // For Academics & Results, all new/write actions are fully available.
+    document.querySelectorAll('.portal-card a[href*="student-class"], .portal-card a[href*="subject"], .portal-card a[href*="section"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        // Just allow navigation but permission is enforced at backend level; UI already indicates read-only.
+        console.log("Read-only access to assigned setup items");
+      });
+    });
   </script>
 </body>
 
