@@ -1,0 +1,276 @@
+---
+no_cache: 1
+title: Teacher Profile
+---
+
+<style>
+:root {
+  --primary: #0f2a5e;
+  --primary-light: #163a7a;
+  --accent: #3498db;
+  --bg: #f8fafc;
+  --text: #334155;
+  --text-light: #64748b;
+  --white: #ffffff;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 0;
+}
+
+.profile-container {
+  max-width: 900px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.ah {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(15, 42, 94, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.ah::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 50%;
+}
+
+.ah h2 { margin: 0; font-size: 1.8rem; }
+.ah p { margin: 8px 0 0 0; opacity: 0.9; font-size: 1rem; }
+
+.bb {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  padding: 8px 16px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.bb:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  text-decoration: none;
+  transform: translateX(-4px);
+}
+
+.av-lg {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.pc {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.pc .ph {
+  background: #fdfdfd;
+  padding: 20px 24px;
+  font-weight: 700;
+  color: var(--primary);
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pg {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  padding: 12px;
+}
+
+.pf {
+  padding: 16px 20px;
+  transition: background 0.2s;
+}
+
+.pf:hover {
+  background: #fbfcfe;
+}
+
+.pl {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.pv {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.badge {
+  background: #eff6ff;
+  color: #1e40af;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+#loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  color: var(--text-light);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+@media(max-width: 600px) {
+  .profile-container { margin: 20px auto; }
+  .ah { padding: 24px; }
+  .pg { grid-template-columns: 1fr; }
+}
+</style>
+
+<div class="profile-container">
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Loading your profile...</p>
+  </div>
+
+  <div id="pc-wrapper" style="display:none;">
+    <div id="header-area"></div>
+    
+    <div class="pc">
+      <div class="ph">👤 Personal Details</div>
+      <div class="pg" id="personal-details"></div>
+    </div>
+
+    <div class="pc">
+      <div class="ph">📖 Academic Assignments</div>
+      <div class="pg" id="academic-details"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+function el(id){ return document.getElementById(id); }
+
+window.addEventListener("load", function() {
+  fetch("/api/method/school.api.get_teacher_context", { credentials: "same-origin" })
+    .then(res => res.json())
+    .then(r => {
+      if (!r.message || r.message.error) {
+        el("loading").innerHTML = `
+          <div style="text-align:center;">
+            <p>Error loading profile: ${r.message ? r.message.error : 'Access Denied'}</p>
+            <a href="/portal-login" class="bb" style="color:#0f2a5e; border-color:#0f2a5e;">Back to Login</a>
+          </div>`;
+        return;
+      }
+
+      const data = r.message;
+      const t = data.teacher;
+      const initials = ((t.first_name || "?")[0] + (t.last_name || "?")[0]).toUpperCase();
+
+      // Header
+      el("header-area").innerHTML = `
+        <div class="ah">
+          <a href="/assets/school/html/teacher-portal.html" class="bb">← Back to Dashboard</a>
+          <div class="av-lg">${initials}</div>
+          <h2>${t.full_name}</h2>
+          <p>${t.email || t.portal_email}</p>
+        </div>
+      `;
+
+      // Personal Details
+      el("personal-details").innerHTML = `
+        <div class="pf"><div class="pl">Teacher ID</div><div class="pv">${t.teacher_id || t.name}</div></div>
+        <div class="pf"><div class="pl">First Name</div><div class="pv">${t.first_name || "-"}</div></div>
+        <div class="pf"><div class="pl">Last Name</div><div class="pv">${t.last_name || "-"}</div></div>
+        <div class="pf"><div class="pl">Email</div><div class="pv">${t.email || t.portal_email}</div></div>
+        <div class="pf"><div class="pl">Phone</div><div class="pv">${t.phone || "-"}</div></div>
+        <div class="pf"><div class="pl">Department</div><div class="pv">${t.department || "General"}</div></div>
+      `;
+
+      // Academic Details
+      const classesHtml = data.assigned_classes.length 
+        ? `<div class="badges">${data.assigned_classes.map(c => `<span class="badge">${c}</span>`).join('')}</div>`
+        : '<div class="pv">—</div>';
+      
+      const subjectsHtml = data.assigned_subjects.length 
+        ? `<div class="badges">${data.assigned_subjects.map(s => `<span class="badge">${s}</span>`).join('')}</div>`
+        : '<div class="pv">—</div>';
+
+      el("academic-details").innerHTML = `
+        <div class="pf"><div class="pl">Assigned Classes</div>${classesHtml}</div>
+        <div class="pf"><div class="pl">Assigned Subjects</div>${subjectsHtml}</div>
+        <div class="pf"><div class="pl">Active Sections</div>
+          <div class="badges">${data.assigned_sections.map(s => `<span class="badge">${s}</span>`).join('') || "—"}</div>
+        </div>
+      `;
+
+      el("pc-wrapper").style.display = "block";
+      el("loading").style.display = "none";
+    })
+    .catch(err => {
+      console.error(err);
+      el("loading").innerHTML = `
+        <div style="text-align:center;">
+          <p>Error connecting to server.</p>
+          <a href="/assets/school/html/teacher-portal.html" class="bb" style="color:#0f2a5e; border-color:#0f2a5e;">Back</a>
+        </div>`;
+    });
+});
+</script>
