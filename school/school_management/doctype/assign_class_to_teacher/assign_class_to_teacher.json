@@ -24,12 +24,10 @@
    "unique": 1
   },
   {
-   "fetch_from": "teacher.teacher_name",
    "fieldname": "teacher_name",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Teacher Name",
-   "read_only": 1
+   "label": "Teacher Name"
   },
   {
    "fieldname": "sb1",
@@ -47,7 +45,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-04-09 10:39:00.296356",
+ "modified": "2026-04-09 10:39:22.656715",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Assign Class to Teacher",
