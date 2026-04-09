@@ -52,7 +52,7 @@ fixtures = [
     },
     {
         "dt": "Custom DocPerm",
-        "filters": [["role", "in", ["School User", "Student Portal"]]]
+        "filters": [["role", "in", ["School User", "Student Portal", "Teacher"]]]
     },
     {
         "dt": "DocType",
