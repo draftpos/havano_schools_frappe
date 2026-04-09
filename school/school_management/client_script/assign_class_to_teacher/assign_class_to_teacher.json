@@ -1,0 +1,14 @@
+{
+ "creation": "2026-04-09 11:58:19.083902",
+ "docstatus": 0,
+ "doctype": "Client Script",
+ "dt": "Assign Class to Teacher",
+ "enabled": 1,
+ "idx": 0,
+ "modified": "2026-04-09 11:58:19.083902",
+ "modified_by": "Administrator",
+ "name": "Assign Class to Teacher",
+ "owner": "Administrator",
+ "script": "\nfrappe.ui.form.on('Assign Class to Teacher', {\n    teacher: function(frm) {\n        if (frm.doc.teacher) {\n            frappe.db.get_value('Teacher', frm.doc.teacher, 'full_name', function(r) {\n                if (r && r.full_name) {\n                    frm.set_value('teacher_name', r.full_name);\n                }\n            });\n        } else {\n            frm.set_value('teacher_name', '');\n        }\n    }\n});\n",
+ "view": "Form"
+}
