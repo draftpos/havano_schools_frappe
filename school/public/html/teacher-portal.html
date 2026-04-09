@@ -15,12 +15,10 @@
       --surface2: #cbd5e1;
       --surface3: #94a3b8;
       --border: rgba(0, 0, 0, 0.07);
-      --border2: rgba(0, 0, 0, 0.12);
       --text: #0f172a;
       --text2: #475569;
       --text3: #94a3b8;
       --blue: #3b82f6;
-      --blue-glow: rgba(59, 130, 246, 0.2);
       --indigo: #6366f1;
       --violet: #8b5cf6;
       --cyan: #06b6d4;
@@ -31,12 +29,9 @@
       --sidebar-w: 272px;
       --header-h: 68px;
       --radius: 14px;
-      --radius-sm: 8px;
     }
 
-    *,
-    *::before,
-    *::after {
+    * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -50,17 +45,6 @@
       overflow-x: hidden;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6, 182, 212, 0.04) 0%, transparent 60%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* Sidebar */
     .sidebar {
       position: fixed;
       top: 0;
@@ -136,6 +120,7 @@
       font-size: 13.5px;
       font-weight: 500;
       transition: all 0.2s;
+      position: relative;
     }
 
     .nav-item:hover {
@@ -275,7 +260,7 @@
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
@@ -324,7 +309,6 @@
       font-weight: 600;
     }
 
-    /* Hero */
     .portal-hero {
       background: linear-gradient(135deg, #0f2a5e 0%, #1d4ed8 55%, #4f46e5 100%);
       border-radius: var(--radius);
@@ -416,12 +400,6 @@
       font-size: 19px;
     }
 
-    .action-label {
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--text2);
-    }
-
     .cards-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -449,7 +427,6 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 22px;
-      cursor: pointer;
       transition: transform 0.25s;
       text-decoration: none;
       display: block;
@@ -668,12 +645,6 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
-
-    @media (max-width:580px) {
-      .cards-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
   </style>
 </head>
 
@@ -752,11 +723,13 @@
   </aside>
 
   <div class="main">
-    <header class="topbar"><button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    <header class="topbar">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
       <div class="page-title">Teacher Portal</div>
       <div class="topbar-spacer"></div>
-      <div class="topbar-right"><a class="tb-btn primary" href="/app/student-class/new-student-class-1" id="newClassBtn"
-          style="display:none;">+ New Class</a><a class="tb-btn" href="/teacher-profile">👤 Profile</a></div>
+      <div class="topbar-right">
+        <a class="tb-btn" href="/teacher-profile">👤 Profile</a>
+      </div>
     </header>
     <div class="content">
       <div class="portal-hero">
@@ -766,10 +739,14 @@
             <div class="hero-sub">Manage academics, results & attendance with full write access.
               Classes/Subjects/Sections are read-only & assigned.</div>
             <div class="hero-meta" id="hero-meta"></div>
-            <div class="hero-btns"><a href="/app/exam-schedule/new-exam-schedule-1" class="hero-btn hero-btn-light">📅
-                Schedule Exam</a><a href="/app/home-schedule/new-home-schedule-1" class="hero-btn hero-btn-outline">📚
-                Set Homework</a><a href="/app/exam-result/new-exam-result-1" class="hero-btn hero-btn-outline">📊 Enter
-                Results</a></div>
+            <div class="hero-btns">
+              <a href="/app/exam-schedule/new-exam-schedule-1" class="hero-btn hero-btn-light"
+                style="display:inline-block; background:white; color:#0f2a5e; padding:9px 18px; border-radius:9px; text-decoration:none; margin-right:10px;">📅
+                Schedule Exam</a>
+              <a href="/app/home-schedule/new-home-schedule-1" class="hero-btn hero-btn-outline"
+                style="display:inline-block; background:rgba(255,255,255,0.15); color:white; padding:9px 18px; border-radius:9px; text-decoration:none;">📚
+                Set Homework</a>
+            </div>
           </div>
           <div class="hero-stats">
             <div class="hero-stat-box">
@@ -797,7 +774,7 @@
       </div>
 
       <div class="sec-head">
-        <div class="sec-title"><span></span>Quick Actions (Academics & Results - Full Access)</div>
+        <div class="sec-title"><span></span>Quick Actions (Full Write Access)</div>
       </div>
       <div class="actions-grid">
         <a class="action-card" href="/app/exam-schedule/new-exam-schedule-1">
@@ -909,12 +886,12 @@
               <div class="pc-header">
                 <div class="pc-title">Note</div>
               </div>
-              <div class="pc-desc">Courses: read/write available via Academics</div>
+              <div class="pc-desc">Full access to academics</div>
             </div>
           </div>
 
           <div class="sec-head">
-            <div class="sec-title"><span></span>Academics (Full Add/Write & Read)</div>
+            <div class="sec-title"><span></span>Academics (Full Write & Read All)</div>
           </div>
           <div class="cards-grid">
             <a class="portal-card pc-amber" href="/app/exam-schedule">
@@ -970,7 +947,7 @@
       </div>
 
       <div class="sec-head">
-        <div class="sec-title"><span></span>Recent Activity (Academics)</div>
+        <div class="sec-title"><span></span>Recent Activity</div>
       </div>
       <div class="bottom-grid">
         <div class="table-card">
@@ -1016,117 +993,171 @@
   </div>
 
   <script>
-    // Role-based permission simulation & filtering for assigned classes/subjects/sections (read-only)
-    // Teacher's assigned IDs (mock - in real Frappe this comes from Teacher doctype child table 'assignments')
-    // For demonstration we simulate assigned_class_ids, assigned_subject_ids, assigned_section_ids.
-    let currentTeacher = { name: "Emma Johnson", teacher_id: "TCH-1001", department: "Mathematics", email: "emma.j@school.edu", phone: "+1 555 2024", assigned_classes: ["Class 10A", "Class 9B"], assigned_subjects: ["Mathematics", "Algebra"], assigned_sections: ["Section A", "Section B"] };
-
     function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('overlay').classList.toggle('open'); }
     function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
     function setCount(id, count) { let el = document.getElementById(id); if (el) { el.textContent = count; if (count > 0) el.classList.add('show'); } }
     function setBadge(id, count) { let el = document.getElementById(id); if (el && count > 0) { el.textContent = count; el.classList.add('show'); } }
 
     window.addEventListener('load', function () {
-      // Load teacher info (mock but respects permission concept)
-      updateTeacherUI(currentTeacher);
-      fetchCountsWithPermissions();
-      fetchRecentData();
-
-      // Hide "New Class" button because teacher has only READ on classes
-      document.getElementById('newClassBtn').style.display = 'none';
-      // Additional: show permission note in UI
+      // Fetch current logged-in teacher data dynamically from Frappe
+      frappe.call({
+        method: 'frappe.client.get_value',
+        args: {
+          doctype: 'Teacher',
+          filters: { user: frappe.session.user },
+          fieldname: ['name', 'teacher_name', 'department', 'date_of_joining', 'image', 'email', 'phone', 'teacher_id']
+        },
+        callback: function (response) {
+          if (response.message) {
+            var teacher = response.message;
+            // Now fetch assigned classes, subjects, sections for this teacher
+            fetchAssignedItems(teacher);
+          } else {
+            // If no teacher record, try to get from User
+            frappe.call({
+              method: 'frappe.client.get_value',
+              args: { doctype: 'User', filters: { name: frappe.session.user }, fieldname: ['full_name', 'email', 'user_image'] },
+              callback: function (userRes) {
+                if (userRes.message) {
+                  var user = userRes.message;
+                  fetchAssignedItems({
+                    teacher_name: user.full_name,
+                    email: user.email,
+                    image: user.user_image,
+                    teacher_id: 'N/A',
+                    department: 'Not Assigned',
+                    phone: 'N/A'
+                  });
+                } else {
+                  console.error('No teacher or user data found');
+                  showLoadingError();
+                }
+              }
+            });
+          }
+        },
+        error: function (err) { console.error('Error fetching teacher:', err); showLoadingError(); }
+      });
     });
 
-    function updateTeacherUI(teacher) {
-      document.getElementById('sb-name').textContent = teacher.name;
-      document.getElementById('sb-dept').textContent = teacher.department;
-      let avatar = document.getElementById('sb-avatar');
-      let profileAvatar = document.getElementById('profile-avatar');
-      let initial = teacher.name.charAt(0);
-      avatar.innerHTML = initial;
-      profileAvatar.innerHTML = initial;
-      document.getElementById('hero-title').textContent = `Welcome, ${teacher.name}!`;
-      document.getElementById('hero-meta').innerHTML = `<strong>ID:</strong> ${teacher.teacher_id} &nbsp;·&nbsp; <strong>Dept:</strong> ${teacher.department}`;
-      document.getElementById('profile-name').textContent = teacher.name;
-      document.getElementById('profile-id').textContent = `ID: ${teacher.teacher_id}`;
-      document.getElementById('profile-dept').textContent = teacher.department;
-      document.getElementById('profile-email').textContent = teacher.email;
-      document.getElementById('profile-phone').textContent = teacher.phone;
+    function fetchAssignedItems(teacher) {
+      // Fetch classes assigned to this teacher (assuming a child table 'assigned_classes' in Teacher doctype)
+      // If your schema uses 'class_teacher' field in Student Class, filter by that instead
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Student Class',
+          filters: { class_teacher: teacher.name }, // Adjust field name based on your schema
+          fields: ['name', 'class_name']
+        },
+        callback: function (classRes) {
+          let assignedClasses = classRes.message || [];
+          teacher.assigned_classes = assignedClasses;
+
+          // Fetch subjects assigned via course or teacher mapping
+          frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+              doctype: 'Subject',
+              filters: { teacher: teacher.name }, // Adjust based on your schema
+              fields: ['name', 'subject_name']
+            },
+            callback: function (subjRes) {
+              teacher.assigned_subjects = subjRes.message || [];
+
+              // Fetch sections (if teacher is assigned to sections)
+              frappe.call({
+                method: 'frappe.client.get_list',
+                args: {
+                  doctype: 'Section',
+                  filters: { teacher: teacher.name }, // Adjust field
+                  fields: ['name', 'section_name']
+                },
+                callback: function (sectionRes) {
+                  teacher.assigned_sections = sectionRes.message || [];
+                  updateTeacherUI(teacher);
+                  fetchCountsWithPermissions(teacher);
+                  fetchRecentData();
+                }
+              });
+            }
+          });
+        }
+      });
     }
 
-    function fetchCountsWithPermissions() {
-      // CLASSES: Only assigned classes count (read-only)
-      let assignedClassCount = currentTeacher.assigned_classes.length;
-      setCount('cc-classes', assignedClassCount);
-      document.getElementById('hs-classes').textContent = assignedClassCount;
-      setBadge('nb-classes', assignedClassCount);
+    function updateTeacherUI(teacher) {
+      document.getElementById('sb-name').textContent = teacher.teacher_name || teacher.full_name || 'Teacher';
+      document.getElementById('sb-dept').textContent = teacher.department || 'Teacher Portal';
+      let avatar = document.getElementById('sb-avatar');
+      let profileAvatar = document.getElementById('profile-avatar');
+      let name = teacher.teacher_name || teacher.full_name || 'Teacher';
+      let initial = name.charAt(0);
+      if (teacher.image) {
+        avatar.innerHTML = '<img src="' + teacher.image + '" style="width:100%;height:100%;border-radius:50%;">';
+        profileAvatar.innerHTML = '<img src="' + teacher.image + '" style="width:100%;height:100%;border-radius:50%;">';
+      } else {
+        avatar.innerHTML = initial;
+        profileAvatar.innerHTML = initial;
+      }
+      document.getElementById('hero-title').textContent = `Welcome, ${name}!`;
+      let metaParts = [];
+      if (teacher.teacher_id) metaParts.push(`<strong>ID:</strong> ${teacher.teacher_id}`);
+      if (teacher.department && teacher.department !== 'Not Assigned') metaParts.push(`<strong>Dept:</strong> ${teacher.department}`);
+      document.getElementById('hero-meta').innerHTML = metaParts.length ? metaParts.join(' &nbsp;·&nbsp; ') : '&nbsp;';
+      document.getElementById('profile-name').textContent = name;
+      document.getElementById('profile-id').textContent = teacher.teacher_id ? `ID: ${teacher.teacher_id}` : '—';
+      document.getElementById('profile-dept').textContent = teacher.department || '—';
+      document.getElementById('profile-email').textContent = teacher.email || '—';
+      document.getElementById('profile-phone').textContent = teacher.phone || '—';
+    }
 
-      // SUBJECTS: only assigned subjects
-      let assignedSubjCount = currentTeacher.assigned_subjects.length;
-      setCount('cc-subjects', assignedSubjCount);
-      setBadge('nb-subjects', assignedSubjCount);
+    function fetchCountsWithPermissions(teacher) {
+      // Classes: Only count assigned classes
+      let classCount = teacher.assigned_classes ? teacher.assigned_classes.length : 0;
+      setCount('cc-classes', classCount);
+      document.getElementById('hs-classes').textContent = classCount;
+      setBadge('nb-classes', classCount);
 
-      // SECTIONS: only assigned sections
-      let assignedSectCount = currentTeacher.assigned_sections.length;
-      setCount('cc-sections', assignedSectCount);
-      setBadge('nb-sections', assignedSectCount);
+      // Subjects: Only assigned subjects
+      let subjCount = teacher.assigned_subjects ? teacher.assigned_subjects.length : 0;
+      setCount('cc-subjects', subjCount);
+      setBadge('nb-subjects', subjCount);
 
-      // ACADEMICS & RESULTS: full read/write -> all records count (mock counts for demonstration)
-      // Simulate full counts because teacher has write+read all for these doctypes
-      let examScheduleCount = 4;
-      let testScheduleCount = 3;
-      let hwScheduleCount = 5;
-      let examResultCount = 6;
-      let inclassCount = 2;
-      let attendanceCount = 12;
+      // Sections: Only assigned sections
+      let sectCount = teacher.assigned_sections ? teacher.assigned_sections.length : 0;
+      setCount('cc-sections', sectCount);
+      setBadge('nb-sections', sectCount);
 
-      setCount('cc-exam-schedule', examScheduleCount);
-      setCount('cc-test-schedule', testScheduleCount);
-      setCount('cc-hw-schedule', hwScheduleCount);
-      setCount('cc-exam-results', examResultCount);
-      setCount('cc-inclass', inclassCount);
-      setCount('cc-attendance', attendanceCount);
-      setBadge('nb-exam-schedule', examScheduleCount);
-      setBadge('nb-test-schedule', testScheduleCount);
-      setBadge('nb-hw-schedule', hwScheduleCount);
-
-      document.getElementById('hs-exams').textContent = examScheduleCount;
-      document.getElementById('hs-hw').textContent = hwScheduleCount;
-      document.getElementById('hs-attendance').textContent = attendanceCount;
+      // Academics & Results: Full read/write - fetch all counts
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Exam Schedule' }, callback: (r) => { if (r.message) { setCount('cc-exam-schedule', r.message); setBadge('nb-exam-schedule', r.message); document.getElementById('hs-exams').textContent = r.message; } } });
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Test Schedule' }, callback: (r) => { if (r.message) { setCount('cc-test-schedule', r.message); setBadge('nb-test-schedule', r.message); } } });
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Homework Schedule' }, callback: (r) => { if (r.message) { setCount('cc-hw-schedule', r.message); setBadge('nb-hw-schedule', r.message); document.getElementById('hs-hw').textContent = r.message; } } });
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Exam Result' }, callback: (r) => { if (r.message) setCount('cc-exam-results', r.message); } });
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Inclass Test' }, callback: (r) => { if (r.message) setCount('cc-inclass', r.message); } });
+      frappe.call({ method: 'frappe.client.get_count', args: { doctype: 'Student Attendance' }, callback: (r) => { if (r.message) { setCount('cc-attendance', r.message); document.getElementById('hs-attendance').textContent = r.message; } } });
     }
 
     function fetchRecentData() {
-      // Exams (full read access)
-      let mockExams = [
-        { title: "Mid-Term Math", subject: "Mathematics", date: "2025-04-15" },
-        { title: "Science Final", subject: "Physics", date: "2025-04-22" },
-        { title: "English Literature", subject: "English", date: "2025-04-28" }
-      ];
-      let examsHtml = '';
-      mockExams.forEach(ex => { examsHtml += `<tr><td>${ex.title}</td><td>${ex.subject}</td><td><span class="badge-active">${ex.date}</span></td></tr>`; });
-      document.getElementById('exams-table').innerHTML = examsHtml || '<tr><td colspan="3">No exams</td></tr>';
-
-      // Homework (full read access)
-      let mockHw = [
-        { subject: "Mathematics", student_class: "Class 10A", date: "2025-04-10" },
-        { subject: "Algebra", student_class: "Class 9B", date: "2025-04-12" }
-      ];
-      let hwHtml = '';
-      mockHw.forEach(hw => { hwHtml += `<tr><td>${hw.subject}</td><td>${hw.student_class}</td><td>${hw.date}</td></tr>`; });
-      document.getElementById('homework-table').innerHTML = hwHtml || '<tr><td colspan="3">No homework</td></tr>';
+      frappe.call({
+        method: 'frappe.client.get_list', args: { doctype: 'Exam Schedule', fields: ['name', 'title', 'subject', 'date'], limit: 5, order_by: 'date desc' }, callback: function (r) {
+          if (r.message && r.message.length) { let html = ''; r.message.forEach(ex => { html += `<tr><td>${ex.title || ex.name}</td><td>${ex.subject || '—'}</td><td><span class="badge-active">${ex.date || '—'}</span></td></tr>`; }); document.getElementById('exams-table').innerHTML = html; }
+          else { document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px">No upcoming exams</td></tr>'; }
+        }
+      });
+      frappe.call({
+        method: 'frappe.client.get_list', args: { doctype: 'Homework Schedule', fields: ['name', 'subject', 'student_class', 'date'], limit: 5, order_by: 'creation desc' }, callback: function (r) {
+          if (r.message && r.message.length) { let html = ''; r.message.forEach(hw => { html += `<tr><td>${hw.subject || '—'}</td><td>${hw.student_class || '—'}</td><td>${hw.date || '—'}</td></tr>`; }); document.getElementById('homework-table').innerHTML = html; }
+          else { document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" style="text-align:center;padding:24px">No homework found</td></tr>'; }
+        }
+      });
     }
 
-    // Additional: intercept any click on "New Class" or "Edit Class" from cards? Already hidden. 
-    // For classes/subjects/sections links we keep "View" but teacher cannot write, only read.
-    // UI indicates read-only via labels.
-    // Also ensures that any direct link to creation (like + New Class in topbar) is hidden.
-    // For Academics & Results, all new/write actions are fully available.
-    document.querySelectorAll('.portal-card a[href*="student-class"], .portal-card a[href*="subject"], .portal-card a[href*="section"]').forEach(link => {
-      link.addEventListener('click', (e) => {
-        // Just allow navigation but permission is enforced at backend level; UI already indicates read-only.
-        console.log("Read-only access to assigned setup items");
-      });
-    });
+    function showLoadingError() {
+      document.getElementById('sb-name').textContent = 'Error Loading';
+      document.getElementById('hero-title').textContent = 'Welcome, Teacher!';
+      document.getElementById('profile-name').textContent = 'Could not load data';
+    }
   </script>
 </body>
 

@@ -1610,7 +1610,26 @@
     (function () {
       var p = new URLSearchParams(window.location.search);
       if (p.get('from') !== 'parent') return;
+
+      var childParam = p.get('child') || '';
       var n = p.get('name') || 'Student';
+
+      // Append child param to all internal links
+      function appendChildParam(url) {
+        if (!childParam) return url;
+        var sep = url.indexOf('?') >= 0 ? '&' : '?';
+        return url + sep + 'child=' + encodeURIComponent(childParam) + '&from=parent&name=' + encodeURIComponent(n);
+      }
+
+      // Rewrite all nav and card links after page renders
+      window.addEventListener('load', function () {
+        document.querySelectorAll('a.nav-item, a.action-card, a.portal-card, a.hero-stat-box, a.tb-btn, .hero-btns a').forEach(function (a) {
+          if (a.href && a.href.indexOf('parent-portal') < 0 && a.href.indexOf('student-portal') < 0) {
+            a.href = appendChildParam(a.href);
+          }
+        });
+      });
+
       var s = document.createElement('style');
       s.textContent = '.parent-back-bar{position:sticky;top:68px;z-index:99;background:linear-gradient(90deg,#1e3a5f,#6366f1);padding:9px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 12px rgba(99,102,241,0.25);}' +
         '.parent-back-bar-text{font-size:13px;font-weight:600;color:rgba(255,255,255,0.9);display:flex;align-items:center;gap:8px;}' +
@@ -1619,13 +1638,16 @@
         '.parent-back-btn:hover{background:#f0f4ff;text-decoration:none;color:#1e3a5f;}' +
         '.tb-btn-parent{background:linear-gradient(135deg,#6366f1,#3b82f6)!important;color:white!important;border-color:transparent!important;}';
       document.head.appendChild(s);
+
       var bar = document.createElement('div');
       bar.className = 'parent-back-bar';
-      bar.innerHTML = '<div class="parent-back-bar-text">👁 Viewing as parent &nbsp;—&nbsp; <span>' + n + '</span></div>' + '<a href="/assets/school/html/parent-portal.html" class="parent-back-btn">← Back to Parent Portal</a>';
+      bar.innerHTML = '<div class="parent-back-bar-text">👁 Viewing as parent &nbsp;—&nbsp; <span>' + n + '</span></div>' +
+        '<a href="/assets/school/html/parent-portal.html" class="parent-back-btn">← Back to Parent Portal</a>';
       var main = document.querySelector('.main');
       var topbar = document.querySelector('.topbar');
       if (main && topbar && topbar.nextSibling) { main.insertBefore(bar, topbar.nextSibling); }
       else if (main) { main.prepend(bar); }
+
       var tr = document.querySelector('.topbar-right');
       if (tr) {
         var btn = document.createElement('a');
