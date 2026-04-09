@@ -1221,7 +1221,7 @@ def get_class_permission_query_conditions(user):
     if not classes:
         return "1=0"
     
-    return "`tabStudent Class`.`class_name` IN ({})".format(", ".join(classes))
+    return "`tabStudent Class`.`name` IN ({})".format(", ".join(classes))
 
 def get_subject_permission_query_conditions(user):
     teacher = get_teacher_name_for_user(user)
@@ -1234,7 +1234,7 @@ def get_subject_permission_query_conditions(user):
     if not subjects:
         return "1=0"
     
-    return "`tabSubject`.`subject_name` IN ({})".format(", ".join(subjects))
+    return "`tabSubject`.`name` IN ({})".format(", ".join(subjects))
 
 def get_section_permission_query_conditions(user):
     teacher = get_teacher_name_for_user(user)
@@ -1247,4 +1247,4 @@ def get_section_permission_query_conditions(user):
     if not sections:
         return "1=0"
     
-    return "`tabSection`.`section_name` IN ({})".format(", ".join(sections))
+    return "`tabSection`.`name` IN ({})".format(", ".join(sections))
