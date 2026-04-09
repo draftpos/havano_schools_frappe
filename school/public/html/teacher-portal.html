@@ -15,7 +15,8 @@
       --surface2: #cbd5e1;
       --surface3: #94a3b8;
       --border: rgba(0, 0, 0, 0.07);
-      --text: #1e40af; /* Blue text */
+      --text: #1e40af;
+      /* Blue text */
       --text2: #3b82f6;
       --text3: #64748b;
       --blue: #3b82f6;
@@ -124,8 +125,10 @@
     }
 
     .nav-item:hover {
-      background: rgba(139, 92, 246, 0.1); /* Light purple background */
-      color: var(--violet); /* Purple text on hover */
+      background: rgba(139, 92, 246, 0.1);
+      /* Light purple background */
+      color: var(--violet);
+      /* Purple text on hover */
     }
 
     .nav-item.active {
@@ -443,12 +446,27 @@
       margin-bottom: 28px;
     }
 
+    /* ── Side by Side Layout ── */
+    .side-by-side-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+      margin-bottom: 28px;
+    }
+
+    .vertical-cards {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .portal-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 22px;
-      transition: transform .25s;
+      transition: all .25s;
       text-decoration: none;
       display: block;
       color: var(--text);
@@ -460,6 +478,8 @@
       box-shadow: 0 10px 28px rgba(139, 92, 246, 0.15);
       border-color: var(--violet);
     }
+
+
 
     .pc-icon-wrap {
       width: 46px;
@@ -760,6 +780,10 @@
       .hero-inner {
         grid-template-columns: 1fr;
       }
+
+      .side-by-side-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -776,30 +800,15 @@
       </div>
     </div>
     <div class="nav-section">
-      <div class="nav-section-label">Main</div>
+      <div class="nav-section-label">Main Navigation</div>
       <a class="nav-item" href="javascript:void(0)" onclick="switchView('dashboard')">
-        <div class="nav-icon">🏠</div><span>Home</span>
+        <div class="nav-icon">🏠</div><span>Dashboard</span>
       </a>
-      <a class="nav-item" href="/teacher-profile">
-        <div class="nav-icon">👤</div><span>My Profile</span>
-      </a>
-      <a class="nav-item" href="javascript:void(0)" onclick="switchView('students')">
+      <a class="nav-item" href="/my-students">
         <div class="nav-icon">👨‍🎓</div><span>My Students</span>
       </a>
-      <a class="nav-item" href="javascript:void(0)" onclick="switchView('balances')">
+      <a class="nav-item" href="/student-balances">
         <div class="nav-icon">💰</div><span>Student Balances</span>
-      </a>
-    </div>
-    <div class="nav-section">
-      <div class="nav-section-label">Academics (RW)</div>
-      <a class="nav-item" href="/app/exam-schedule">
-        <div class="nav-icon">📅</div><span>Exam Schedule</span>
-      </a>
-      <a class="nav-item" href="/app/test-schedule">
-        <div class="nav-icon">✏️</div><span>Class Test Schedule</span>
-      </a>
-      <a class="nav-item" href="/app/home-schedule">
-        <div class="nav-icon">📚</div><span>Homework Schedule</span>
       </a>
     </div>
     <div class="nav-section">
@@ -855,599 +864,543 @@
       <!-- Dashboard View -->
       <div id="dashboard-view" class="portal-view">
 
-      <!-- Hero -->
-      <div class="portal-hero">
-        <div class="hero-inner">
-          <div>
-            <div class="hero-title" id="hero-title">Welcome, Teacher!</div>
-            <div class="hero-sub">Manage academics, results &amp; attendance. Classes/Subjects/Sections are read-only.
-            </div>
-            <div class="hero-meta" id="hero-meta">&nbsp;</div>
+        <!-- Hero -->
+        <div class="portal-hero">
+          <div class="hero-inner">
             <div>
-              <a href="/app/exam-schedule/new-exam-schedule-1"
-                style="display:inline-block;background:white;color:#0f2a5e;padding:9px 18px;border-radius:9px;text-decoration:none;margin-right:10px;font-weight:600;font-size:13px;">📅
-                Schedule Exam</a>
-              <a href="/app/home-schedule/new-home-schedule-1"
-                style="display:inline-block;background:rgba(255,255,255,.15);color:white;padding:9px 18px;border-radius:9px;text-decoration:none;font-weight:600;font-size:13px;">📚
-                Set Homework</a>
-            </div>
-          </div>
-          <div class="hero-stats">
-            <div class="hero-stat-box">
-              <div class="hero-stat-count" id="hs-classes">—</div>
-              <div class="hero-stat-label">My Classes</div>
-            </div>
-            <div class="hero-stat-box">
-              <div class="hero-stat-count" id="hs-exams">—</div>
-              <div class="hero-stat-label">Exam Schedules</div>
-            </div>
-            <div class="hero-stat-box">
-              <div class="hero-stat-count" id="hs-hw">—</div>
-              <div class="hero-stat-label">Homework</div>
-            </div>
-            <div class="hero-stat-box">
-              <div class="hero-stat-count" id="hs-attendance">—</div>
-              <div class="hero-stat-label">Attendance</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="sec-head">
-        <div class="sec-title"><span></span>Quick Actions (Full Write Access)</div>
-      </div>
-      <div class="actions-grid">
-        <a class="action-card" href="/app/exam-schedule/new-exam-schedule-1">
-          <div class="action-icon">📅</div>Schedule Exam
-        </a>
-        <a class="action-card" href="/app/test-schedule/new-test-schedule-1">
-          <div class="action-icon">✏️</div>New Class Test
-        </a>
-        <a class="action-card" href="/app/home-schedule/new-home-schedule-1">
-          <div class="action-icon">📚</div>Set Homework
-        </a>
-        <a class="action-card" href="/app/exam-result/new-exam-result-1">
-          <div class="action-icon">📊</div>Enter Results
-        </a>
-        <a class="action-card" href="/app/inclass-test/new-inclass-test-1">
-          <div class="action-icon">📋</div>Inclass Test
-        </a>
-        <a class="action-card" href="/app/student-attendance/new-student-attendance-1">
-          <div class="action-icon">✅</div>Take Attendance
-        </a>
-      </div>
-
-      <div class="two-col">
-        <!-- Left: Profile -->
-        <div>
-          <div class="sec-head">
-            <div class="sec-title"><span></span>My Profile</div>
-            <a class="see-all" href="/teacher-profile">Edit →</a>
-          </div>
-          <div class="info-card">
-            <div class="info-card-head">👤 Teacher Information</div>
-            <div class="info-card-body">
-              <div class="profile-row">
-                <div class="profile-avatar-lg" id="profile-avatar">T</div>
-                <div>
-                  <div class="profile-name" id="profile-name">Loading...</div>
-                  <div class="profile-id" id="profile-id">—</div>
-                </div>
+              <div class="hero-title" id="hero-title">Welcome, Teacher!</div>
+              <div class="hero-sub">Manage academics, results &amp; attendance. Classes/Subjects/Sections are read-only.
               </div>
-              <div class="detail-row">
-                <div class="detail-icon">🏢</div>
-                <div>
-                  <div class="detail-label">Department</div>
-                  <div class="detail-val" id="profile-dept">—</div>
-                </div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-icon">📧</div>
-                <div>
-                  <div class="detail-label">Email</div>
-                  <div class="detail-val" id="profile-email">—</div>
-                </div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-icon">📞</div>
-                <div>
-                  <div class="detail-label">Phone</div>
-                  <div class="detail-val" id="profile-phone">—</div>
-                </div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-icon">🏷️</div>
-                <div>
-                  <div class="detail-label">Assigned Classes</div>
-                  <div class="detail-val" id="profile-classes">—</div>
-                </div>
-              </div>
-              <div class="detail-row">
-                <div class="detail-icon">📖</div>
-                <div>
-                  <div class="detail-label">Assigned Subjects</div>
-                  <div class="detail-val" id="profile-subjects">—</div>
-                </div>
+              <div class="hero-meta" id="hero-meta">&nbsp;</div>
+              <div>
+                <a href="/app/exam-schedule/new-exam-schedule-1"
+                  style="display:inline-block;background:white;color:#0f2a5e;padding:9px 18px;border-radius:9px;text-decoration:none;margin-right:10px;font-weight:600;font-size:13px;">📅
+                  Schedule Exam</a>
+                <a href="/app/home-schedule/new-home-schedule-1"
+                  style="display:inline-block;background:rgba(255,255,255,.15);color:white;padding:9px 18px;border-radius:9px;text-decoration:none;font-weight:600;font-size:13px;">📚
+                  Set Homework</a>
               </div>
             </div>
-          </div>
-          <div class="help-card">
-            <div class="help-row">
-              <div class="help-icon">🔐</div>
-              <div class="help-text">
-                <strong>Permission Model</strong><br>
-                ✅ Academics &amp; Results: <strong>Add/Write + Read All</strong><br>
-                🔒 Classes/Subjects/Sections: <strong>Read Only (assigned to you)</strong>
+            <div class="hero-stats">
+              <div class="hero-stat-box">
+                <div class="hero-stat-count" id="hs-classes">—</div>
+                <div class="hero-stat-label">My Classes</div>
+              </div>
+              <div class="hero-stat-box">
+                <div class="hero-stat-count" id="hs-exams">—</div>
+                <div class="hero-stat-label">Exam Schedules</div>
+              </div>
+              <div class="hero-stat-box">
+                <div class="hero-stat-count" id="hs-hw">—</div>
+                <div class="hero-stat-label">Homework</div>
+              </div>
+              <div class="hero-stat-box">
+                <div class="hero-stat-count" id="hs-attendance">—</div>
+                <div class="hero-stat-label">Attendance</div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right: Cards -->
-        <div>
-          <div class="sec-head">
-            <div class="sec-title"><span></span>Setup (Read Only • Your Assigned Items)</div>
-          </div>
-          <div class="cards-grid-4">
-            <a class="portal-card" href="/app/student-class">
-              <div class="pc-icon-wrap">🏷️</div>
-              <div class="pc-header">
-                <div class="pc-title">My Classes</div><span class="pc-count" id="cc-classes">0</span>
-              </div>
-              <div class="pc-desc">Assigned classes (view only)</div>
-              <span class="pc-btn">View →</span>
-            </a>
-            <a class="portal-card" href="/app/subject">
-              <div class="pc-icon-wrap">📖</div>
-              <div class="pc-header">
-                <div class="pc-title">My Subjects</div><span class="pc-count" id="cc-subjects">0</span>
-              </div>
-              <div class="pc-desc">Assigned subjects (view only)</div>
-              <span class="pc-btn">View →</span>
-            </a>
-            <a class="portal-card" href="/app/section">
-              <div class="pc-icon-wrap">🔖</div>
-              <div class="pc-header">
-                <div class="pc-title">My Sections</div><span class="pc-count" id="cc-sections">0</span>
-              </div>
-              <div class="pc-desc">Assigned sections (view only)</div>
-              <span class="pc-btn">View →</span>
-            </a>
-            <div class="portal-card pc-amber" style="grid-column: span 2;">
-              <div class="pc-icon-wrap">📝</div>
-              <div class="pc-header">
-                <div class="pc-title">My Sticky Note</div>
-              </div>
-              <div class="pc-desc">Quickly save notes for later</div>
-              <textarea id="teacher-note" style="width:100%; height:100px; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:inherit; font-size:13px; margin-top:5px; resize:none; background:rgba(255,255,255,0.5);" placeholder="Type a note here..."></textarea>
-              <div style="margin-top:10px; display:flex; justify-content:flex-end;">
-                <button id="save-note-btn" onclick="saveNote()" class="pc-btn">Save Note</button>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="sec-head">
-            <div class="sec-title"><span></span>Academics (Full Write &amp; Read All)</div>
-          </div>
-          <div class="cards-grid">
-            <a class="portal-card" href="/app/exam-schedule">
-              <div class="pc-icon-wrap">📅</div>
-              <div class="pc-header">
-                <div class="pc-title">Exam Schedule</div><span class="pc-count" id="cc-exam-schedule">0</span>
-              </div>
-              <div class="pc-desc">Create, edit, delete any exam</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-            <a class="portal-card" href="/app/test-schedule">
-              <div class="pc-icon-wrap">✏️</div>
-              <div class="pc-header">
-                <div class="pc-title">Class Test Schedule</div><span class="pc-count" id="cc-test-schedule">0</span>
-              </div>
-              <div class="pc-desc">Add &amp; manage tests</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-            <a class="portal-card" href="/app/home-schedule">
-              <div class="pc-icon-wrap">📚</div>
-              <div class="pc-header">
-                <div class="pc-title">Homework Schedule</div><span class="pc-count" id="cc-hw-schedule">0</span>
-              </div>
-              <div class="pc-desc">Assign homework (write access)</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-          </div>
-
-          <div class="sec-head">
-            <div class="sec-title"><span></span>Results &amp; Attendance (Full Write Access)</div>
-          </div>
-          <div class="cards-grid">
-            <a class="portal-card" href="/app/exam-result">
-              <div class="pc-icon-wrap">📊</div>
-              <div class="pc-header">
-                <div class="pc-title">Exam Results</div><span class="pc-count" id="cc-exam-results">0</span>
-              </div>
-              <div class="pc-desc">Enter marks, grades (write all)</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-            <a class="portal-card" href="/app/inclass-test">
-              <div class="pc-icon-wrap">📋</div>
-              <div class="pc-header">
-                <div class="pc-title">Inclass Tests</div><span class="pc-count" id="cc-inclass">0</span>
-              </div>
-              <div class="pc-desc">Record test performance</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-            <a class="portal-card" href="/app/student-attendance">
-              <div class="pc-icon-wrap">✅</div>
-              <div class="pc-header">
-                <div class="pc-title">Attendance</div><span class="pc-count" id="cc-attendance">0</span>
-              </div>
-              <div class="pc-desc">Take &amp; review attendance</div>
-              <span class="pc-btn">Manage →</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Recent Activity Tables -->
-      <div class="sec-head">
-        <div class="sec-title"><span></span>Recent Activity</div>
-      </div>
-      <div class="bottom-grid">
-        <div class="table-card">
-          <div class="table-card-head">
-            <div class="tc-title">📅 Upcoming Exams</div><a class="see-all" href="/app/exam-schedule">All →</a>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Exam</th>
-                <th>Subject</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="exams-table">
-              <tr>
-                <td colspan="3" class="state-msg">Loading...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="table-card">
-          <div class="table-card-head">
-            <div class="tc-title">📚 Recent Homework</div><a class="see-all" href="/app/home-schedule">All →</a>
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Subject</th>
-                <th>Class</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="homework-table">
-              <tr>
-                <td colspan="3" class="state-msg">Loading...</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div><!-- /dashboard-view -->
-
-      <!-- Students View -->
-      <div id="students-view" class="portal-view" style="display:none;">
+        <!-- Quick Actions -->
         <div class="sec-head">
-          <div class="sec-title"><span></span>My Students (Assigned Classes)</div>
-          <button onclick="switchView('dashboard')" class="tb-btn">← Back to Dashboard</button>
+          <div class="sec-title"><span></span>Quick Actions (Full Write Access)</div>
         </div>
-        <div class="table-card" style="margin-top:10px;">
-           <table class="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Reg No</th>
-                <th>Class</th>
-                <th>Section</th>
-              </tr>
-            </thead>
-            <tbody id="students-list-table">
-              <tr><td colspan="4" class="state-msg">Loading students...</td></tr>
-            </tbody>
-          </table>
+        <div class="actions-grid">
+          <a class="action-card" href="/app/exam-schedule/new-exam-schedule-1">
+            <div class="action-icon">📅</div>Schedule Exam
+          </a>
+          <a class="action-card" href="/app/test-schedule/new-test-schedule-1">
+            <div class="action-icon">✏️</div>New Class Test
+          </a>
+          <a class="action-card" href="/app/home-schedule/new-home-schedule-1">
+            <div class="action-icon">📚</div>Set Homework
+          </a>
+          <a class="action-card" href="/app/exam-result/new-exam-result-1">
+            <div class="action-icon">📊</div>Enter Results
+          </a>
+          <a class="action-card" href="/app/inclass-test/new-inclass-test-1">
+            <div class="action-icon">📋</div>Inclass Test
+          </a>
+          <a class="action-card" href="/app/student-attendance/new-student-attendance-1">
+            <div class="action-icon">✅</div>Take Attendance
+          </a>
         </div>
-      </div>
 
-      <!-- Balances View -->
-      <div id="balances-view" class="portal-view" style="display:none;">
+        <div class="two-col">
+          <!-- Left: Profile -->
+          <div>
+            <div class="sec-head">
+              <div class="sec-title"><span></span>My Profile</div>
+              <a class="see-all" href="/teacher-profile">Edit →</a>
+            </div>
+            <div class="info-card">
+              <div class="info-card-head">👤 Teacher Information</div>
+              <div class="info-card-body">
+                <div class="profile-row">
+                  <div class="profile-avatar-lg" id="profile-avatar">T</div>
+                  <div>
+                    <div class="profile-name" id="profile-name">Loading...</div>
+                    <div class="profile-id" id="profile-id">—</div>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-icon">🏢</div>
+                  <div>
+                    <div class="detail-label">Department</div>
+                    <div class="detail-val" id="profile-dept">—</div>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-icon">📧</div>
+                  <div>
+                    <div class="detail-label">Email</div>
+                    <div class="detail-val" id="profile-email">—</div>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-icon">📞</div>
+                  <div>
+                    <div class="detail-label">Phone</div>
+                    <div class="detail-val" id="profile-phone">—</div>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-icon">🏷️</div>
+                  <div>
+                    <div class="detail-label">Assigned Classes</div>
+                    <div class="detail-val" id="profile-classes">—</div>
+                  </div>
+                </div>
+                <div class="detail-row">
+                  <div class="detail-icon">📖</div>
+                  <div>
+                    <div class="detail-label">Assigned Subjects</div>
+                    <div class="detail-val" id="profile-subjects">—</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="help-card">
+              <div class="help-row">
+                <div class="help-icon">🔐</div>
+                <div class="help-text">
+                  <strong>Permission Model</strong><br>
+                  ✅ Academics &amp; Results: <strong>Add/Write + Read All</strong><br>
+                  🔒 Classes/Subjects/Sections: <strong>Read Only (assigned to you)</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Cards -->
+          <div>
+            <div class="sec-head">
+              <div class="sec-title"><span></span>Setup (Read Only • Your Assigned Items)</div>
+            </div>
+            <div class="cards-grid-4">
+              <a class="portal-card" href="/app/student-class">
+                <div class="pc-icon-wrap">🏷️</div>
+                <div class="pc-header">
+                  <div class="pc-title">My Classes</div><span class="pc-count" id="cc-classes">0</span>
+                </div>
+                <div class="pc-desc">Assigned classes (view only)</div>
+                <span class="pc-btn">View →</span>
+              </a>
+              <a class="portal-card" href="/app/subject">
+                <div class="pc-icon-wrap">📖</div>
+                <div class="pc-header">
+                  <div class="pc-title">My Subjects</div><span class="pc-count" id="cc-subjects">0</span>
+                </div>
+                <div class="pc-desc">Assigned subjects (view only)</div>
+                <span class="pc-btn">View →</span>
+              </a>
+              <a class="portal-card" href="/app/section">
+                <div class="pc-icon-wrap">🔖</div>
+                <div class="pc-header">
+                  <div class="pc-title">My Sections</div><span class="pc-count" id="cc-sections">0</span>
+                </div>
+                <div class="pc-desc">Assigned sections (view only)</div>
+                <span class="pc-btn">View →</span>
+              </a>
+              <div class="portal-card pc-amber" style="grid-column: span 2;">
+                <div class="pc-icon-wrap">📝</div>
+                <div class="pc-header">
+                  <div class="pc-title">My Sticky Note</div>
+                </div>
+                <div class="pc-desc">Quickly save notes for later</div>
+                <textarea id="teacher-note"
+                  style="width:100%; height:100px; border:1px solid var(--border); border-radius:8px; padding:12px; font-family:inherit; font-size:13px; margin-top:5px; resize:none; background:rgba(255,255,255,0.5);"
+                  placeholder="Type a note here..."></textarea>
+                <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                  <button id="save-note-btn" onclick="saveNote()" class="pc-btn">Save Note</button>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="side-by-side-grid">
+              <!-- Academics Section -->
+              <div>
+                <div class="sec-head">
+                  <div class="sec-title"><span></span>Academics</div>
+                </div>
+                <div class="vertical-cards">
+                  <a class="portal-card" href="/app/exam-schedule">
+                    <div class="pc-icon-wrap">📅</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Exam Schedule</div><span class="pc-count" id="cc-exam-schedule">0</span>
+                    </div>
+                    <div class="pc-desc">Create/Manage exams</div>
+                  </a>
+                  <a class="portal-card" href="/app/test-schedule">
+                    <div class="pc-icon-wrap">✏️</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Class Test Schedule</div><span class="pc-count"
+                        id="cc-test-schedule">0</span>
+                    </div>
+                    <div class="pc-desc">Manage class tests</div>
+                  </a>
+                  <a class="portal-card" href="/app/home-schedule">
+                    <div class="pc-icon-wrap">📚</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Homework Schedule</div><span class="pc-count" id="cc-hw-schedule">0</span>
+                    </div>
+                    <div class="pc-desc">Assign homework</div>
+                  </a>
+                </div>
+              </div>
+
+              <!-- Results & Attendance Section -->
+              <div>
+                <div class="sec-head">
+                  <div class="sec-title"><span></span>Results & Attendance</div>
+                </div>
+                <div class="vertical-cards">
+                  <a class="portal-card" href="/app/exam-result">
+                    <div class="pc-icon-wrap">📊</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Exam Results</div><span class="pc-count" id="cc-exam-results">0</span>
+                    </div>
+                    <div class="pc-desc">Enter marks/grades</div>
+                  </a>
+                  <a class="portal-card" href="/app/inclass-test">
+                    <div class="pc-icon-wrap">📋</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Inclass Tests</div><span class="pc-count" id="cc-inclass">0</span>
+                    </div>
+                    <div class="pc-desc">Record performance</div>
+                  </a>
+                  <a class="portal-card" href="/app/student-attendance">
+                    <div class="pc-icon-wrap">✅</div>
+                    <div class="pc-header">
+                      <div class="pc-title">Attendance</div><span class="pc-count" id="cc-attendance">0</span>
+                    </div>
+                    <div class="pc-desc">Review attendance</div>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="sec-head">
-          <div class="sec-title"><span></span>Student Balances (Outstanding)</div>
-          <button onclick="switchView('dashboard')" class="tb-btn">← Back to Dashboard</button>
+          <div class="sec-title"><span></span>Student Management</div>
         </div>
-        <div class="table-card" style="margin-top:10px;">
-           <table class="data-table">
-            <thead>
-              <tr>
-                <th>Student</th>
-                <th>Class</th>
-                <th>Total Billed</th>
-                <th style="color:var(--rose)">Outstanding Balance</th>
-              </tr>
-            </thead>
-            <tbody id="balances-list-table">
-              <tr><td colspan="4" class="state-msg">Loading balances...</td></tr>
-            </tbody>
-          </table>
+        <div class="cards-grid">
+          <a class="portal-card" href="/my-students">
+            <div class="pc-icon-wrap" style="background:rgba(59, 130, 246, 0.1); color:var(--blue)">👨‍🎓</div>
+            <div class="pc-header">
+              <div class="pc-title">My Students</div>
+            </div>
+            <div class="pc-desc">List of all students assigned to your classes</div>
+            <span class="pc-btn" style="background:var(--blue)">Open View →</span>
+          </a>
+          <a class="portal-card" href="/student-balances">
+            <div class="pc-icon-wrap" style="background:rgba(244, 63, 94, 0.1); color:var(--rose)">💰</div>
+            <div class="pc-header">
+              <div class="pc-title">Student Balances</div>
+            </div>
+            <div class="pc-desc">Outstanding fee balances for your students</div>
+            <span class="pc-btn" style="background:var(--rose)">Check Balances →</span>
+          </a>
+          <div class="portal-card pc-amber">
+            <div class="pc-icon-wrap">📝</div>
+            <div class="pc-header">
+              <div class="pc-title">Quick Note</div>
+            </div>
+            <textarea id="teacher-note-shortcut" style="width:100%; height:70px; border:1px solid var(--border); border-radius:8px; padding:8px; font-family:inherit; font-size:12px; margin-top:5px; resize:none; background:rgba(255,255,255,0.5);" placeholder="Type a note..."></textarea>
+            <div style="margin-top:8px; display:flex; justify-content:flex-end;">
+              <button onclick="saveNoteFromShortcut()" class="pc-btn" style="padding:4px 10px; font-size:11px;">Save</button>
+            </div>
+          </div>
         </div>
-      </div>
 
-    </div><!-- /content -->
+        <!-- Recent Activity Tables -->
+        <div class="sec-head">
+          <div class="sec-title"><span></span>Recent Activity</div>
+        </div>
+        <div class="bottom-grid">
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="tc-title">📅 Upcoming Exams</div><a class="see-all" href="/app/exam-schedule">All →</a>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Exam</th>
+                  <th>Subject</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="exams-table">
+                <tr>
+                  <td colspan="3" class="state-msg">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="tc-title">📚 Recent Homework</div><a class="see-all" href="/app/home-schedule">All →</a>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th>Class</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="homework-table">
+                <tr>
+                  <td colspan="3" class="state-msg">Loading...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div><!-- /dashboard-view -->
 
-  </div><!-- /main -->
 
-  <script>
-    /* ─────────────────────────────────────────────
-       Sidebar helpers
-    ───────────────────────────────────────────── */
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('overlay').classList.toggle('open');
-    }
-    function closeSidebar() {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('overlay').classList.remove('open');
-    }
+      </div><!-- /content -->
 
-    /* ─────────────────────────────────────────────
-       UI helpers
-    ───────────────────────────────────────────── */
-    function setText(id, val) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = val || '—';
-    }
-    function setCount(id, n) {
-      var el = document.getElementById(id);
-      if (el) el.textContent = n;
-    }
-    function showError(msg) {
-      var b = document.getElementById('error-banner');
-      b.textContent = '⚠️ ' + msg;
-      b.style.display = 'block';
-    }
-    function setAvatar(elId, name, imageUrl) {
-      var el = document.getElementById(elId);
-      if (!el) return;
-      if (imageUrl) {
-        el.innerHTML = '<img src="' + imageUrl + '" alt="' + name + '">';
-      } else {
-        el.textContent = (name || 'T').charAt(0).toUpperCase();
+    </div><!-- /main -->
+
+    <script>
+      /* ─────────────────────────────────────────────
+         Sidebar helpers
+      ───────────────────────────────────────────── */
+      function toggleSidebar() {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('overlay').classList.toggle('open');
       }
-    }
-
-    /* ─────────────────────────────────────────────
-       Load Teacher Context via custom whitelisted API
-       This safely bypasses strict DocType read permissions
-    ───────────────────────────────────────────── */
-    window.addEventListener('load', function () {
-      fetch('/api/method/school.api.get_teacher_context')
-        .then(function (response) {
-          if (!response.ok) throw new Error('Network response was not ok');
-          return response.json();
-        })
-        .then(function (r) {
-          if (r.message && !r.message.error) {
-            var data = r.message;
-            var teacher = data.teacher;
-            
-            // 1. Teacher Information
-            if (!teacher.full_name || teacher.full_name.trim() === '') {
-              teacher.full_name = ((teacher.first_name || '') + ' ' + (teacher.last_name || '')).trim();
-            }
-            updateTeacherUI(teacher, data);
-            
-            // 2. Load Counts
-            var c = data.counts || {};
-            setCount('cc-classes', c.classes || 0);
-            setCount('hs-classes', c.classes || 0);
-            setCount('cc-sections', c.sections || 0);
-            setCount('cc-subjects', c.subjects || 0);
-            setCount('cc-exam-schedule', c.exam_schedule || 0);
-            setCount('hs-exams', c.exam_schedule || 0);
-            setCount('cc-test-schedule', c.test_schedule || 0);
-            setCount('cc-hw-schedule', c.hw_schedule || 0);
-            setCount('hs-hw', c.hw_schedule || 0);
-            setCount('cc-exam-results', c.exam_results || 0);
-            setCount('cc-inclass', c.inclass || 0);
-            setCount('cc-attendance', c.attendance || 0);
-            setCount('hs-attendance', c.attendance || 0);
-
-            // 3. Load Recent Data
-            var exams = data.recent_exams || [];
-            if (exams.length > 0) {
-              var eHtml = '';
-              exams.forEach(function (ex) {
-                eHtml += '<tr>'
-                  + '<td>' + (ex.exam || ex.title || ex.name) + '</td>'
-                  + '<td>' + (ex.subject || '—') + '</td>'
-                  + '<td><span class="badge-active">' + (ex.date || '—') + '</span></td>'
-                  + '</tr>';
-              });
-              document.getElementById('exams-table').innerHTML = eHtml;
-            } else {
-              document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" class="state-msg">No upcoming exams</td></tr>';
-            }
-
-            var hw = data.recent_hw || [];
-            if (hw.length > 0) {
-              var hHtml = '';
-              hw.forEach(function (h) {
-                hHtml += '<tr>'
-                  + '<td>' + (h.subject || '—') + '</td>'
-                  + '<td>' + (h.class_name || '—') + (h.section ? ' / ' + h.section : '') + '</td>'
-                  + '<td>' + (h.date || '—') + '</td>'
-                  + '</tr>';
-              });
-              document.getElementById('homework-table').innerHTML = hHtml;
-            } else {
-              document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">No homework found</td></tr>';
-            }
-          } else {
-            showError('No Teacher record found for your account. Ask Admin to link your email.');
-            setText('sb-name', 'Teacher');
-            setText('hero-title', 'Welcome, Teacher!');
-            setText('profile-name', 'Teacher Account');
-          }
-        })
-        .catch(function (err) {
-          showError('Could not load teacher data. Check console for details.');
-          console.error('Teacher load error:', err);
-        });
-    });
-
-    /* ─────────────────────────────────────────────
-       Populate teacher UI fields
-    ───────────────────────────────────────────── */
-    function updateTeacherUI(teacher, data) {
-      var name = teacher.full_name || teacher.teacher_id || 'Teacher';
-
-      // Sidebar
-      setText('sb-name', name);
-      setText('sb-dept', 'Teacher Portal');
-      setAvatar('sb-avatar', name, teacher.teacher_image);
-
-      // Hero
-      setText('hero-title', 'Welcome, ' + name + '!');
-      var metaParts = [];
-      if (teacher.teacher_id) metaParts.push('<strong>ID:</strong> ' + teacher.teacher_id);
-      if (teacher.email) metaParts.push('<strong>Email:</strong> ' + teacher.email);
-      document.getElementById('hero-meta').innerHTML = metaParts.join(' &nbsp;·&nbsp; ') || '&nbsp;';
-
-      // Profile card
-      setAvatar('profile-avatar', name, teacher.teacher_image);
-      setText('profile-name', name);
-      setText('profile-id', teacher.teacher_id ? 'ID: ' + teacher.teacher_id : teacher.name);
-      setText('profile-email', teacher.email || 'Teacher Account');
-      setText('profile-phone', teacher.phone);
-      
-      // Assigned Elements
-      setText('profile-classes', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : 'None assigned');
-      setText('profile-dept', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : '—');
-      setText('profile-subjects', data.assigned_subjects && data.assigned_subjects.length ? data.assigned_subjects.join(', ') : 'None assigned');
-
-      // Load Note
-      loadNote();
-    }
-
-    /* ─────────────────────────────────────────────
-       View Switching
-    ───────────────────────────────────────────── */
-    function switchView(view) {
-      document.querySelectorAll('.portal-view').forEach(v => v.style.display = 'none');
-      document.getElementById(view + '-view').style.display = 'block';
-      
-      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-      // Find the nav item and set active (roughly)
-      if(view === 'dashboard') {
-         document.querySelector('a[onclick*="dashboard"]').classList.add('active');
-      } else if (view === 'students') {
-         document.querySelector('a[onclick*="students"]').classList.add('active');
-         loadStudents();
-      } else if (view === 'balances') {
-         document.querySelector('a[onclick*="balances"]').classList.add('active');
-         loadBalances();
+      function closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('open');
       }
-      closeSidebar();
-      window.scrollTo(0,0);
-    }
 
-    /* ─────────────────────────────────────────────
-       Note Operations
-    ───────────────────────────────────────────── */
-    function loadNote() {
-      fetch('/api/method/school.api.get_teacher_notes')
-        .then(r => r.json())
-        .then(r => {
-          if (r.message) {
-            document.getElementById('teacher-note').value = r.message;
-          }
-        });
-    }
+      /* ─────────────────────────────────────────────
+         UI helpers
+      ───────────────────────────────────────────── */
+      function setText(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val || '—';
+      }
+      function setCount(id, n) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = n;
+      }
+      function showError(msg) {
+        var b = document.getElementById('error-banner');
+        b.textContent = '⚠️ ' + msg;
+        b.style.display = 'block';
+      }
+      function setAvatar(elId, name, imageUrl) {
+        var el = document.getElementById(elId);
+        if (!el) return;
+        if (imageUrl) {
+          el.innerHTML = '<img src="' + imageUrl + '" alt="' + name + '">';
+        } else {
+          el.textContent = (name || 'T').charAt(0).toUpperCase();
+        }
+      }
 
-    function saveNote() {
-      var btn = document.getElementById('save-note-btn');
-      var content = document.getElementById('teacher-note').value;
-      btn.textContent = 'Saving...';
-      btn.disabled = true;
-      
-      fetch('/api/method/school.api.save_teacher_note', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: content })
-      })
-      .then(r => r.json())
-      .then(r => {
-        btn.textContent = 'Saved!';
-        setTimeout(() => {
-           btn.textContent = 'Save Note';
-           btn.disabled = false;
-        }, 2000);
-      })
-      .catch(err => {
-         btn.textContent = 'Error';
-         btn.disabled = false;
+      /* ─────────────────────────────────────────────
+         Load Teacher Context via custom whitelisted API
+         This safely bypasses strict DocType read permissions
+      ───────────────────────────────────────────── */
+      window.addEventListener('load', function () {
+        fetch('/api/method/school.api.get_teacher_context')
+          .then(function (response) {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+          })
+          .then(function (r) {
+            if (r.message && !r.message.error) {
+              var data = r.message;
+              var teacher = data.teacher;
+
+              // 1. Teacher Information
+              if (!teacher.full_name || teacher.full_name.trim() === '') {
+                teacher.full_name = ((teacher.first_name || '') + ' ' + (teacher.last_name || '')).trim();
+              }
+              updateTeacherUI(teacher, data);
+
+              // 2. Load Counts
+              var c = data.counts || {};
+              setCount('cc-classes', c.classes || 0);
+              setCount('hs-classes', c.classes || 0);
+              setCount('cc-sections', c.sections || 0);
+              setCount('cc-subjects', c.subjects || 0);
+              setCount('cc-exam-schedule', c.exam_schedule || 0);
+              setCount('hs-exams', c.exam_schedule || 0);
+              setCount('cc-test-schedule', c.test_schedule || 0);
+              setCount('cc-hw-schedule', c.hw_schedule || 0);
+              setCount('hs-hw', c.hw_schedule || 0);
+              setCount('cc-exam-results', c.exam_results || 0);
+              setCount('cc-inclass', c.inclass || 0);
+              setCount('cc-attendance', c.attendance || 0);
+              setCount('hs-attendance', c.attendance || 0);
+
+              // 3. Load Recent Data
+              var exams = data.recent_exams || [];
+              if (exams.length > 0) {
+                var eHtml = '';
+                exams.forEach(function (ex) {
+                  eHtml += '<tr>'
+                    + '<td>' + (ex.exam || ex.title || ex.name) + '</td>'
+                    + '<td>' + (ex.subject || '—') + '</td>'
+                    + '<td><span class="badge-active">' + (ex.date || '—') + '</span></td>'
+                    + '</tr>';
+                });
+                document.getElementById('exams-table').innerHTML = eHtml;
+              } else {
+                document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" class="state-msg">No upcoming exams</td></tr>';
+              }
+
+              var hw = data.recent_hw || [];
+              if (hw.length > 0) {
+                var hHtml = '';
+                hw.forEach(function (h) {
+                  hHtml += '<tr>'
+                    + '<td>' + (h.subject || '—') + '</td>'
+                    + '<td>' + (h.class_name || '—') + (h.section ? ' / ' + h.section : '') + '</td>'
+                    + '<td>' + (h.date || '—') + '</td>'
+                    + '</tr>';
+                });
+                document.getElementById('homework-table').innerHTML = hHtml;
+              } else {
+                document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">No homework found</td></tr>';
+              }
+            } else {
+              showError('No Teacher record found for your account. Ask Admin to link your email.');
+              setText('sb-name', 'Teacher');
+              setText('hero-title', 'Welcome, Teacher!');
+              setText('profile-name', 'Teacher Account');
+            }
+          })
+          .catch(function (err) {
+            showError('Could not load teacher data. Check console for details.');
+            console.error('Teacher load error:', err);
+          });
       });
-    }
 
-    /* ─────────────────────────────────────────────
-       Student & Balance Loading
-    ───────────────────────────────────────────── */
-    function loadStudents() {
-      var table = document.getElementById('students-list-table');
-      fetch('/api/method/school.api.get_teacher_students_list')
-        .then(r => r.json())
-        .then(r => {
-           if (r.message && r.message.length) {
-              var html = '';
-              r.message.forEach(s => {
-                 html += '<tr>'
-                    + '<td style="display:flex; align-items:center; gap:10px;">' 
-                    + '<div class="user-avatar" style="width:28px; height:28px; font-size:12px;">' + (s.student_image ? '<img src="'+s.student_image+'">' : s.full_name[0]) + '</div>'
-                    + '<span>' + s.full_name + '</span></td>'
-                    + '<td>' + (s.student_reg_no || '—') + '</td>'
-                    + '<td>' + (s.class_label || s.student_class) + '</td>'
-                    + '<td>' + (s.section || '—') + '</td>'
-                    + '</tr>';
-              });
-              table.innerHTML = html;
-           } else {
-              table.innerHTML = '<tr><td colspan="4" class="state-msg">No students found in your assigned classes.</td></tr>';
-           }
-        });
-    }
+      /* ─────────────────────────────────────────────
+         Populate teacher UI fields
+      ───────────────────────────────────────────── */
+      function updateTeacherUI(teacher, data) {
+        var name = teacher.full_name || teacher.teacher_id || 'Teacher';
 
-    function loadBalances() {
-      var table = document.getElementById('balances-list-table');
-      fetch('/api/method/school.api.get_teacher_balances_list')
-        .then(r => r.json())
-        .then(r => {
-           if (r.message && r.message.length) {
-              var html = '';
-              r.message.forEach(s => {
-                 var color = s.balance > 0 ? 'var(--rose)' : 'var(--emerald)';
-                 html += '<tr>'
-                    + '<td>' + s.full_name + '</td>'
-                    + '<td>' + (s.class_label || s.student_class) + '</td>'
-                    + '<td>—</td>'
-                    + '<td style="font-weight:700; color:' + color + '">$' + (s.balance || 0).toLocaleString() + '</td>'
-                    + '</tr>';
-              });
-              table.innerHTML = html;
-           } else {
-              table.innerHTML = '<tr><td colspan="4" class="state-msg">No data found.</td></tr>';
-           }
-        });
-    }
-  </script>
+        // Sidebar
+        setText('sb-name', name);
+        setText('sb-dept', 'Teacher Portal');
+        setAvatar('sb-avatar', name, teacher.teacher_image);
+
+        // Hero
+        setText('hero-title', 'Welcome, ' + name + '!');
+        var metaParts = [];
+        if (teacher.teacher_id) metaParts.push('<strong>ID:</strong> ' + teacher.teacher_id);
+        if (teacher.email) metaParts.push('<strong>Email:</strong> ' + teacher.email);
+        document.getElementById('hero-meta').innerHTML = metaParts.join(' &nbsp;·&nbsp; ') || '&nbsp;';
+
+        // Profile card
+        setAvatar('profile-avatar', name, teacher.teacher_image);
+        setText('profile-name', name);
+        setText('profile-id', teacher.teacher_id ? 'ID: ' + teacher.teacher_id : teacher.name);
+        setText('profile-email', teacher.email || 'Teacher Account');
+        setText('profile-phone', teacher.phone);
+
+        // Assigned Elements
+        setText('profile-classes', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : 'None assigned');
+        setText('profile-dept', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : '—');
+        setText('profile-subjects', data.assigned_subjects && data.assigned_subjects.length ? data.assigned_subjects.join(', ') : 'None assigned');
+
+        // Load Note
+        loadNote();
+      }
+
+      /* ─────────────────────────────────────────────
+         View Switching
+      ───────────────────────────────────────────── */
+      function switchView(view) {
+        document.querySelectorAll('.portal-view').forEach(v => v.style.display = 'none');
+        document.getElementById(view + '-view').style.display = 'block';
+
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        if (view === 'dashboard') {
+          document.querySelector('a[onclick*="dashboard"]').classList.add('active');
+        }
+        closeSidebar();
+        window.scrollTo(0, 0);
+      }
+
+      /* ─────────────────────────────────────────────
+         Note Operations
+      ───────────────────────────────────────────── */
+      function loadNote() {
+        fetch('/api/method/school.api.get_teacher_notes')
+          .then(r => r.json())
+          .then(r => {
+            if (r.message) {
+              document.getElementById('teacher-note').value = r.message;
+            }
+          });
+      }
+
+      function saveNote() {
+        var btn = document.getElementById('save-note-btn');
+        var content = document.getElementById('teacher-note').value;
+        btn.textContent = 'Saving...';
+        btn.disabled = true;
+
+        fetch('/api/method/school.api.save_teacher_note', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content })
+        })
+          .then(r => r.json())
+          .then(r => {
+            btn.textContent = 'Saved!';
+            setTimeout(() => {
+              btn.textContent = 'Save Note';
+              btn.disabled = false;
+            }, 2000);
+          })
+          .catch(err => {
+            btn.textContent = 'Error';
+            btn.disabled = false;
+          });
+      }
+
+      function saveNoteFromShortcut() {
+        var content = document.getElementById('teacher-note-shortcut').value;
+        fetch('/api/method/school.api.save_teacher_note', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: content })
+        }).then(r => alert('Note saved!'));
+      }
+    </script>
 </body>
 
 </html>
