@@ -1089,16 +1089,12 @@ def get_teacher_context():
     if not teacher:
         return {'error': 'Teacher not found'}
 
-    classes_data = frappe.db.sql('SELECT class_name, section FROM `tabAssign Class` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Class') else []
-    if not classes_data:
-        classes_data = frappe.db.sql('SELECT class_name, section FROM `tabTeacher Classes` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Classes') else []
+    classes_data = frappe.db.sql('SELECT class_name, section FROM `tabTeacher Class Assignment Item` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Class Assignment Item') else []
 
     class_names = list(set([c.class_name for c in classes_data if c.class_name]))
     sections = list(set([c.section for c in classes_data if c.section]))
 
-    subjects_data = frappe.db.sql('SELECT subject FROM `tabAssign Subject` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Subject') else []
-    if not subjects_data:
-        subjects_data = frappe.db.sql('SELECT subject FROM `tabTeacher Subjects` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Subjects') else []
+    subjects_data = frappe.db.sql('SELECT subject FROM `tabTeacher Subject Assignment Item` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Subject Assignment Item') else []
     subject_names = list(set([s.subject for s in subjects_data if s.subject]))
 
     counts = {
