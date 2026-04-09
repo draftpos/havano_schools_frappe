@@ -1104,63 +1104,97 @@ def sync_teacher_portal_emails():
 
 @frappe.whitelist()
 def get_teacher_context():
-    user = frappe.session.user
-    if user in ('Administrator', 'Guest'):
-        return {'error': 'Not authorized'}
+    try:
+        user = frappe.session.user
+        if user in ('Administrator', 'Guest'):
+            return {'error': 'Not authorized'}
 
-    teacher = None
-    for field in ['portal_email', 'email']:
-        teacher = frappe.db.get_value('Teacher', {field: user},
-            ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
-             'department', 'date_of_joining', 'email', 'phone', 'teacher_image'], as_dict=True)
-        if teacher:
-            break
+        teacher = None
+        for field in ['portal_email', 'email']:
+            try:
+                teacher = frappe.db.get_value('Teacher', {field: user},
+                    ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
+                     'department', 'date_of_joining', 'email', 'phone', 'teacher_image'], as_dict=True)
+            except Exception:
+                pass
+            if teacher:
+                break
 
-    if not teacher:
-        return {'error': 'Teacher not found'}
+        if not teacher:
+            return {'error': 'Teacher not found', 'user': user}
 
-    classes_data = frappe.db.sql('SELECT class_name, section FROM `tabTeacher Class Assignment Item` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Class Assignment Item') else []
+        classes_data = []
+        try:
+            if frappe.db.exists('DocType', 'Teacher Class Assignment Item'):
+                classes_data = frappe.db.sql(
+                    'SELECT class_name, section FROM `tabTeacher Class Assignment Item` WHERE parent = %s',
+                    teacher.name, as_dict=True)
+        except Exception as e:
+            frappe.log_error(title='Teacher classes fetch error', message=str(e))
 
-    class_names = list(set([c.class_name for c in classes_data if c.class_name]))
-    sections = list(set([c.section for c in classes_data if c.section]))
+        class_names = list(set([c.class_name for c in classes_data if c.get('class_name')]))
+        sections = list(set([c.section for c in classes_data if c.get('section')]))
 
-    subjects_data = frappe.db.sql('SELECT subject FROM `tabTeacher Subject Assignment Item` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Subject Assignment Item') else []
-    subject_names = list(set([s.subject for s in subjects_data if s.subject]))
+        subjects_data = []
+        try:
+            if frappe.db.exists('DocType', 'Teacher Subject Assignment Item'):
+                subjects_data = frappe.db.sql(
+                    'SELECT subject FROM `tabTeacher Subject Assignment Item` WHERE parent = %s',
+                    teacher.name, as_dict=True)
+        except Exception as e:
+            frappe.log_error(title='Teacher subjects fetch error', message=str(e))
 
-    counts = {
-        'classes': len(class_names),
-        'sections': len(sections),
-        'subjects': len(subject_names),
-        'exam_schedule': frappe.db.count('Exam Schedule') if frappe.db.exists('DocType', 'Exam Schedule') else 0,
-        'test_schedule': frappe.db.count('Test Schedule') if frappe.db.exists('DocType', 'Test Schedule') else 0,
-        'hw_schedule': frappe.db.count('Home Schedule') if frappe.db.exists('DocType', 'Home Schedule') else 0,
-        'exam_results': frappe.db.count('Exam Result') if frappe.db.exists('DocType', 'Exam Result') else 0,
-        'inclass': frappe.db.count('Inclass Test') if frappe.db.exists('DocType', 'Inclass Test') else 0,
-        'attendance': frappe.db.count('Student Attendance') if frappe.db.exists('DocType', 'Student Attendance') else 0
-    }
+        subject_names = list(set([s.subject for s in subjects_data if s.get('subject')]))
 
-    recent_exams = frappe.db.sql('''
-        SELECT name, exam, student_class, subject, date 
-        FROM `tabExam Schedule`
-        ORDER BY date ASC LIMIT 5
-    ''', as_dict=True) if frappe.db.exists('DocType', 'Exam Schedule') else []
-    for ex in recent_exams:
-        ex['date'] = str(ex['date']) if ex.get('date') else ''
+        def safe_count(doctype):
+            try:
+                return frappe.db.count(doctype) if frappe.db.exists('DocType', doctype) else 0
+            except Exception:
+                return 0
 
-    recent_hw = frappe.db.sql('''
-        SELECT name, subject, student_class, section, date 
-        FROM `tabHome Schedule`
-        ORDER BY creation DESC LIMIT 5
-    ''', as_dict=True) if frappe.db.exists('DocType', 'Home Schedule') else []
-    for hw in recent_hw:
-        hw['date'] = str(hw['date']) if hw.get('date') else ''
+        counts = {
+            'classes': len(class_names),
+            'sections': len(sections),
+            'subjects': len(subject_names),
+            'exam_schedule': safe_count('Exam Schedule'),
+            'test_schedule': safe_count('Test Schedule'),
+            'hw_schedule': safe_count('Home Schedule'),
+            'exam_results': safe_count('Exam Result'),
+            'inclass': safe_count('Inclass Test'),
+            'attendance': safe_count('Student Attendance')
+        }
 
-    return {
-        'teacher': teacher,
-        'assigned_classes': class_names,
-        'assigned_sections': sections,
-        'assigned_subjects': subject_names,
-        'counts': counts,
-        'recent_exams': recent_exams,
-        'recent_hw': recent_hw
-    }
+        recent_exams = []
+        try:
+            if frappe.db.exists('DocType', 'Exam Schedule'):
+                recent_exams = frappe.db.sql(
+                    'SELECT name, exam, student_class, subject, date FROM `tabExam Schedule` ORDER BY date ASC LIMIT 5',
+                    as_dict=True)
+                for ex in recent_exams:
+                    ex['date'] = str(ex['date']) if ex.get('date') else ''
+        except Exception as e:
+            frappe.log_error(title='Teacher recent exams error', message=str(e))
+
+        recent_hw = []
+        try:
+            if frappe.db.exists('DocType', 'Home Schedule'):
+                recent_hw = frappe.db.sql(
+                    'SELECT name, subject, student_class, section, date FROM `tabHome Schedule` ORDER BY creation DESC LIMIT 5',
+                    as_dict=True)
+                for hw in recent_hw:
+                    hw['date'] = str(hw['date']) if hw.get('date') else ''
+        except Exception as e:
+            frappe.log_error(title='Teacher recent hw error', message=str(e))
+
+        return {
+            'teacher': teacher,
+            'assigned_classes': class_names,
+            'assigned_sections': sections,
+            'assigned_subjects': subject_names,
+            'counts': counts,
+            'recent_exams': recent_exams,
+            'recent_hw': recent_hw
+        }
+    except Exception:
+        frappe.log_error(title='get_teacher_context error', message=frappe.get_traceback())
+        return {'error': 'Server error', 'details': frappe.get_traceback()}
