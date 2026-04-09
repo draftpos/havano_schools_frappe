@@ -1273,58 +1273,78 @@ def save_teacher_note(content):
 
 @frappe.whitelist()
 def get_teacher_students_list():
-    teacher = get_teacher_name_for_user(frappe.session.user)
-    if not teacher: return []
+    user = frappe.session.user
+    teacher = get_teacher_name_for_user(user)
+    if not teacher:
+        return {"error": "Teacher not found for user {}".format(user)}
     
-    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name", "section"])
-    if not assigned: return []
+    # Get all assignment Item records where parent is the teacher (since Assign Class to Teacher is named by teacher ID)
+    items = frappe.db.get_all("Teacher Class Assignment Item", 
+        filters={"parent": teacher}, 
+        fields=["class_name", "section"])
     
-    conditions = []
-    for d in assigned:
-        cond = {"student_class": d.class_name}
-        if d.section:
-            cond["section"] = d.section
-        conditions.append(cond)
+    if not items:
+        # Check if they are in Assign Class to Teacher but the parent name is different
+        parent_names = frappe.get_all("Assign Class to Teacher", filters={"teacher": teacher}, pluck="name")
+        if parent_names:
+            items = frappe.db.get_all("Teacher Class Assignment Item", 
+                filters={"parent": ["in", parent_names]}, 
+                fields=["class_name", "section"])
+
+    if not items:
+        return []
     
     students = []
-    student_names_seen = set()
+    seen = set()
     
-    for cond in conditions:
-        found = frappe.get_all("Student", filters=cond, fields=["name", "full_name", "student_class", "section", "student_image", "student_reg_no"])
+    for row in items:
+        f = {"student_class": row.class_name}
+        if row.section:
+            f["section"] = row.section
+        
+        found = frappe.get_all("Student", 
+            filters=f, 
+            fields=["name", "full_name", "student_class", "section", "student_image", "student_reg_no"],
+            ignore_permissions=True)
+            
         for s in found:
-            if s.name not in student_names_seen:
-                # Add class name for UI
+            if s.name not in seen:
                 s["class_label"] = frappe.db.get_value("Student Class", s.student_class, "class_name") or s.student_class
                 students.append(s)
-                student_names_seen.add(s.name)
+                seen.add(s.name)
                 
     return students
 
 @frappe.whitelist()
 def get_teacher_balances_list():
     students = get_teacher_students_list()
-    if not students: return []
+    if isinstance(students, dict) and "error" in students:
+        return students
+    if not students:
+        return []
     
-    student_full_names = [s.full_name for s in students if s.full_name]
-    if not student_full_names: return []
-    
-    balances = frappe.get_all("Sales Invoice",
+    # Extract student full names for matching in Sales Invoice
+    names = [s.full_name for s in students if s.full_name]
+    if not names:
+        return students
+        
+    # Query outstanding amounts from Sales Invoice
+    # We use customer_name as it is a common pattern in this school app
+    invoices = frappe.get_all("Sales Invoice",
         filters={
-            "customer_name": ["in", student_full_names],
-            "docstatus": 1
+            "customer_name": ["in", names],
+            "docstatus": 1,
+            "outstanding_amount": [">", 0]
         },
-        fields=["customer_name", "outstanding_amount"])
+        fields=["customer_name", "outstanding_amount"],
+        ignore_permissions=True)
     
-    balance_map = {}
-    for b in balances:
-        name = b.customer_name
-        balance_map[name] = balance_map.get(name, 0) + float(b.outstanding_amount or 0)
-    
-    # Also check opening balances
-    # The get_fees_balance logic covers this, but for speed let's just stick to Invoice for now
-    # as students are mostly billed via invoices here.
+    totals = {}
+    for inv in invoices:
+        n = inv.customer_name
+        totals[n] = totals.get(n, 0) + float(inv.outstanding_amount or 0)
     
     for s in students:
-        s["balance"] = float(balance_map.get(s.full_name, 0))
+        s["balance"] = float(totals.get(s.full_name, 0))
         
     return students
