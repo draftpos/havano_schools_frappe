@@ -1089,16 +1089,16 @@ def get_teacher_context():
     if not teacher:
         return {'error': 'Teacher not found'}
 
-    classes_data = frappe.db.sql('SELECT class_name, section FROM 	abAssign Class WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Class') else []
+    classes_data = frappe.db.sql('SELECT class_name, section FROM `tabAssign Class` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Class') else []
     if not classes_data:
-        classes_data = frappe.db.sql('SELECT class_name, section FROM 	abTeacher Classes WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Classes') else []
+        classes_data = frappe.db.sql('SELECT class_name, section FROM `tabTeacher Classes` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Classes') else []
 
     class_names = list(set([c.class_name for c in classes_data if c.class_name]))
     sections = list(set([c.section for c in classes_data if c.section]))
 
-    subjects_data = frappe.db.sql('SELECT subject FROM 	abAssign Subject WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Subject') else []
+    subjects_data = frappe.db.sql('SELECT subject FROM `tabAssign Subject` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Assign Subject') else []
     if not subjects_data:
-        subjects_data = frappe.db.sql('SELECT subject FROM 	abTeacher Subjects WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Subjects') else []
+        subjects_data = frappe.db.sql('SELECT subject FROM `tabTeacher Subjects` WHERE parent = %s', teacher.name, as_dict=True) if frappe.db.exists('DocType', 'Teacher Subjects') else []
     subject_names = list(set([s.subject for s in subjects_data if s.subject]))
 
     counts = {
@@ -1115,7 +1115,7 @@ def get_teacher_context():
 
     recent_exams = frappe.db.sql('''
         SELECT name, exam, student_class, subject, date 
-        FROM 	abExam Schedule
+        FROM `tabExam Schedule`
         ORDER BY date ASC LIMIT 5
     ''', as_dict=True) if frappe.db.exists('DocType', 'Exam Schedule') else []
     for ex in recent_exams:
@@ -1123,7 +1123,7 @@ def get_teacher_context():
 
     recent_hw = frappe.db.sql('''
         SELECT name, subject, student_class, section, date 
-        FROM 	abHome Schedule
+        FROM `tabHome Schedule`
         ORDER BY creation DESC LIMIT 5
     ''', as_dict=True) if frappe.db.exists('DocType', 'Home Schedule') else []
     for hw in recent_hw:
