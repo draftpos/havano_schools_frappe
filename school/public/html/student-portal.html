@@ -1621,14 +1621,18 @@
         return url + sep + 'child=' + encodeURIComponent(childParam) + '&from=parent&name=' + encodeURIComponent(n);
       }
 
-      // Rewrite all nav and card links after page renders
-      window.addEventListener('load', function () {
-        document.querySelectorAll('a.nav-item, a.action-card, a.portal-card, a.hero-stat-box, a.tb-btn, .hero-btns a').forEach(function (a) {
-          if (a.href && a.href.indexOf('parent-portal') < 0 && a.href.indexOf('student-portal') < 0) {
-            a.href = appendChildParam(a.href);
-          }
+      // Rewrite all internal links
+      function rewriteLinks() {
+        document.querySelectorAll('a').forEach(function (a) {
+          var href = a.getAttribute('href');
+          if (!href || href.indexOf('parent-portal') >= 0) return;
+          if (href.indexOf('student-portal') >= 0) return;
+          if (href.indexOf('child=') >= 0) return;
+          a.href = appendChildParam(a.href);
         });
-      });
+      }
+      document.addEventListener('DOMContentLoaded', rewriteLinks);
+      window.addEventListener('load', rewriteLinks);
 
       var s = document.createElement('style');
       s.textContent = '.parent-back-bar{position:sticky;top:68px;z-index:99;background:linear-gradient(90deg,#1e3a5f,#6366f1);padding:9px 28px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 2px 12px rgba(99,102,241,0.25);}' +
