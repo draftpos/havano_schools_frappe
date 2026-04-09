@@ -505,6 +505,60 @@ class Student(Document):
             )
 
 
+
+def get_permission_query_conditions(user):
+	"""
+	Teachers only see students in their assigned classes/sections.
+	System Manager and other roles see everything.
+	"""
+	if not user:
+		user = frappe.session.user
+
+	if "System Manager" in frappe.get_roles(user):
+		return ""
+
+	if "Teacher" not in frappe.get_roles(user):
+		return ""
+
+	# Find Teacher record by portal_email then email
+	teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+	if not teacher_name:
+		teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
+
+	if not teacher_name:
+		return "1=0"
+
+	# Get assigned class+section rows
+	assigned = frappe.db.get_all(
+		"Teacher Class Assignment Item",
+		filters={"parent": teacher_name},
+		fields=["class_name", "section"]
+	)
+
+	if not assigned:
+		return "1=0"
+
+	conditions = []
+	for row in assigned:
+		if row.class_name and row.section:
+			conditions.append(
+				"(`tabStudent`.`student_class` = {cls} AND `tabStudent`.`section` = {sec})".format(
+					cls=frappe.db.escape(row.class_name),
+					sec=frappe.db.escape(row.section)
+				)
+			)
+		elif row.class_name:
+			conditions.append(
+				"`tabStudent`.`student_class` = {cls}".format(
+					cls=frappe.db.escape(row.class_name)
+				)
+			)
+
+	if not conditions:
+		return "1=0"
+
+	return "(" + " OR ".join(conditions) + ")"
+
 @frappe.whitelist()
 def generate_reg_no_for_school(school, current_student=None):
     """Generate next student reg no for a given school (cost center)."""

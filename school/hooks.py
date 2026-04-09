@@ -75,3 +75,7 @@ app_include_js = [
     '/assets/school/js/school_redirect.js'
 ]
 # Fixtures for synchronization
+
+permission_query_conditions = {
+    "Student": "school.school_management.doctype.student.student.get_permission_query_conditions"
+}
