@@ -1159,9 +1159,12 @@
        This safely bypasses strict DocType read permissions
     ───────────────────────────────────────────── */
     window.addEventListener('load', function () {
-      frappe.call({
-        method: 'school.api.get_teacher_context',
-        callback: function (r) {
+      fetch('/api/method/school.api.get_teacher_context')
+        .then(function (response) {
+          if (!response.ok) throw new Error('Network response was not ok');
+          return response.json();
+        })
+        .then(function (r) {
           if (r.message && !r.message.error) {
             var data = r.message;
             var teacher = data.teacher;
@@ -1219,17 +1222,16 @@
               document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">No homework found</td></tr>';
             }
           } else {
-            showError('No Teacher record found for ' + frappe.session.user + '. Ask Admin to link your email.');
-            setText('sb-name', frappe.session.user);
+            showError('No Teacher record found for your account. Ask Admin to link your email.');
+            setText('sb-name', 'Teacher');
             setText('hero-title', 'Welcome, Teacher!');
-            setText('profile-name', frappe.session.user);
+            setText('profile-name', 'Teacher Account');
           }
-        },
-        error: function (err) {
+        })
+        .catch(function (err) {
           showError('Could not load teacher data. Check console for details.');
           console.error('Teacher load error:', err);
-        }
-      });
+        });
     });
 
     /* ─────────────────────────────────────────────
@@ -1254,7 +1256,7 @@
       setAvatar('profile-avatar', name, teacher.teacher_image);
       setText('profile-name', name);
       setText('profile-id', teacher.teacher_id ? 'ID: ' + teacher.teacher_id : teacher.name);
-      setText('profile-email', teacher.email || frappe.session.user);
+      setText('profile-email', teacher.email || 'Teacher Account');
       setText('profile-phone', teacher.phone);
       
       // Assigned Elements
