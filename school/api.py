@@ -443,9 +443,13 @@ def get_teacher_portal_dashboard():
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
 
-    teacher = frappe.db.get_value("Teacher", {"portal_email": user},
-        ["name", "teacher_id", "first_name", "last_name", "full_name",
-         "department", "date_of_joining", "email", "phone", "teacher_image"], as_dict=True)
+    teacher = None
+    for field in ["portal_email", "employee_email", "email"]:
+        teacher = frappe.db.get_value("Teacher", {field: user},
+            ["name", "teacher_id", "first_name", "last_name", "full_name",
+             "department", "date_of_joining", "email", "phone", "teacher_image"], as_dict=True)
+        if teacher:
+            break
 
     if not teacher:
         return {"error": "Teacher not found"}

@@ -1164,7 +1164,11 @@
         method: 'frappe.client.get_list',
         args: {
           doctype: 'Teacher',
-          filters: { portal_email: frappe.session.user },
+          or_filters: [
+            ['portal_email', '=', frappe.session.user],
+            ['employee_email', '=', frappe.session.user],
+            ['email', '=', frappe.session.user]
+          ],
           fields: ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
             'email', 'phone', 'teacher_image'],
           limit: 1
@@ -1182,38 +1186,13 @@
             loadCounts();
             loadRecentData();
           } else {
-            // Fallback: try matching by email field instead of portal_email
-            frappe.call({
-              method: 'frappe.client.get_list',
-              args: {
-                doctype: 'Teacher',
-                filters: { email: frappe.session.user },
-                fields: ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
-                  'email', 'phone', 'teacher_image'],
-                limit: 1
-              },
-              callback: function (r2) {
-                if (r2.message && r2.message.length > 0) {
-                  var teacher = r2.message[0];
-                  if (!teacher.full_name || teacher.full_name.trim() === '') {
-                    teacher.full_name = ((teacher.first_name || '') + ' ' + (teacher.last_name || '')).trim();
-                  }
-                  updateTeacherUI(teacher);
-                  loadAssignedClasses(teacher);
-                  loadAssignedSubjects(teacher);
-                  loadCounts();
-                  loadRecentData();
-                } else {
-                  // No Teacher record at all — show user info from session
-                  showError('No Teacher record found for ' + frappe.session.user + '. Ask Admin to create your Teacher profile and set Portal Email.');
-                  setText('sb-name', frappe.session.user);
-                  setText('hero-title', 'Welcome, Teacher!');
-                  setText('profile-name', frappe.session.user);
-                  loadCounts();
-                  loadRecentData();
-                }
-              }
-            });
+            // No Teacher record at all — show user info from session
+            showError('No Teacher record found for ' + frappe.session.user + '. Ask Admin to create your Teacher profile and set Portal Email/Employee Email.');
+            setText('sb-name', frappe.session.user);
+            setText('hero-title', 'Welcome, Teacher!');
+            setText('profile-name', frappe.session.user);
+            loadCounts();
+            loadRecentData();
           }
         },
         error: function (err) {
