@@ -1155,44 +1155,74 @@
     }
 
     /* ─────────────────────────────────────────────
-       STEP 1 — Find Teacher doc by portal_email
-       Teacher doctype uses portal_email field for the linked user email.
-       frappe.session.user holds the logged-in user's email.
+       Load Teacher Context via custom whitelisted API
+       This safely bypasses strict DocType read permissions
     ───────────────────────────────────────────── */
     window.addEventListener('load', function () {
       frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-          doctype: 'Teacher',
-          or_filters: [
-            ['portal_email', '=', frappe.session.user],
-            ['employee_email', '=', frappe.session.user],
-            ['email', '=', frappe.session.user]
-          ],
-          fields: ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
-            'email', 'phone', 'teacher_image'],
-          limit: 1
-        },
+        method: 'school.api.get_teacher_context',
         callback: function (r) {
-          if (r.message && r.message.length > 0) {
-            var teacher = r.message[0];
-            // Compose full_name from parts if full_name field is empty
+          if (r.message && !r.message.error) {
+            var data = r.message;
+            var teacher = data.teacher;
+            
+            // 1. Teacher Information
             if (!teacher.full_name || teacher.full_name.trim() === '') {
               teacher.full_name = ((teacher.first_name || '') + ' ' + (teacher.last_name || '')).trim();
             }
-            updateTeacherUI(teacher);
-            loadAssignedClasses(teacher);
-            loadAssignedSubjects(teacher);
-            loadCounts();
-            loadRecentData();
+            updateTeacherUI(teacher, data);
+            
+            // 2. Load Counts
+            var c = data.counts || {};
+            setCount('cc-classes', c.classes || 0);
+            setCount('hs-classes', c.classes || 0);
+            setCount('cc-sections', c.sections || 0);
+            setCount('cc-subjects', c.subjects || 0);
+            setCount('cc-exam-schedule', c.exam_schedule || 0);
+            setCount('hs-exams', c.exam_schedule || 0);
+            setCount('cc-test-schedule', c.test_schedule || 0);
+            setCount('cc-hw-schedule', c.hw_schedule || 0);
+            setCount('hs-hw', c.hw_schedule || 0);
+            setCount('cc-exam-results', c.exam_results || 0);
+            setCount('cc-inclass', c.inclass || 0);
+            setCount('cc-attendance', c.attendance || 0);
+            setCount('hs-attendance', c.attendance || 0);
+
+            // 3. Load Recent Data
+            var exams = data.recent_exams || [];
+            if (exams.length > 0) {
+              var eHtml = '';
+              exams.forEach(function (ex) {
+                eHtml += '<tr>'
+                  + '<td>' + (ex.exam || ex.title || ex.name) + '</td>'
+                  + '<td>' + (ex.subject || '—') + '</td>'
+                  + '<td><span class="badge-active">' + (ex.date || '—') + '</span></td>'
+                  + '</tr>';
+              });
+              document.getElementById('exams-table').innerHTML = eHtml;
+            } else {
+              document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" class="state-msg">No upcoming exams</td></tr>';
+            }
+
+            var hw = data.recent_hw || [];
+            if (hw.length > 0) {
+              var hHtml = '';
+              hw.forEach(function (h) {
+                hHtml += '<tr>'
+                  + '<td>' + (h.subject || '—') + '</td>'
+                  + '<td>' + (h.class_name || '—') + (h.section ? ' / ' + h.section : '') + '</td>'
+                  + '<td>' + (h.date || '—') + '</td>'
+                  + '</tr>';
+              });
+              document.getElementById('homework-table').innerHTML = hHtml;
+            } else {
+              document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">No homework found</td></tr>';
+            }
           } else {
-            // No Teacher record at all — show user info from session
-            showError('No Teacher record found for ' + frappe.session.user + '. Ask Admin to create your Teacher profile and set Portal Email/Employee Email.');
+            showError('No Teacher record found for ' + frappe.session.user + '. Ask Admin to link your email.');
             setText('sb-name', frappe.session.user);
             setText('hero-title', 'Welcome, Teacher!');
             setText('profile-name', frappe.session.user);
-            loadCounts();
-            loadRecentData();
           }
         },
         error: function (err) {
@@ -1203,9 +1233,9 @@
     });
 
     /* ─────────────────────────────────────────────
-       STEP 2 — Populate teacher UI fields
+       Populate teacher UI fields
     ───────────────────────────────────────────── */
-    function updateTeacherUI(teacher) {
+    function updateTeacherUI(teacher, data) {
       var name = teacher.full_name || teacher.teacher_id || 'Teacher';
 
       // Sidebar
@@ -1226,186 +1256,11 @@
       setText('profile-id', teacher.teacher_id ? 'ID: ' + teacher.teacher_id : teacher.name);
       setText('profile-email', teacher.email || frappe.session.user);
       setText('profile-phone', teacher.phone);
-    }
-
-    /* ─────────────────────────────────────────────
-       STEP 3 — Load assigned classes from
-       Assign Class to Teacher (child table: classes)
-       Schema: parent doc has teacher = Teacher.name
-               child rows: class_name (Link→Student Class), section (Link→Section)
-    ───────────────────────────────────────────── */
-    function loadAssignedClasses(teacher) {
-      // teacher.name is the docname of the Teacher record (e.g. "TCH-00001")
-      // Assign Class to Teacher doc is named after the teacher (autoname: field:teacher)
-      // So the parent doc name = teacher.name
-      frappe.call({
-        method: 'frappe.client.get',
-        args: {
-          doctype: 'Assign Class to Teacher',
-          name: teacher.name   // autoname = field:teacher, so docname = teacher.name value
-        },
-        callback: function (r) {
-          if (r.message && r.message.classes) {
-            var classes = r.message.classes;
-            var classCount = classes.length;
-
-            // Unique class names
-            var classNames = [...new Set(classes.map(function (c) { return c.class_name; }).filter(Boolean))];
-            // Unique sections
-            var sections = [...new Set(classes.map(function (c) { return c.section; }).filter(Boolean))];
-
-            setCount('cc-classes', classCount);
-            setCount('hs-classes', classCount);
-            setCount('cc-sections', sections.length);
-
-            // Show in profile
-            setText('profile-classes', classNames.join(', ') || '—');
-
-            // Build section summary for sidebar sections count
-            setText('profile-dept', classNames.length ? classNames.join(', ') : '—');
-          } else {
-            setCount('cc-classes', 0);
-            setCount('hs-classes', 0);
-            setCount('cc-sections', 0);
-            setText('profile-classes', 'None assigned');
-          }
-        },
-        error: function () {
-          // No assignment doc exists yet for this teacher
-          setCount('cc-classes', 0);
-          setCount('hs-classes', 0);
-          setCount('cc-sections', 0);
-          setText('profile-classes', 'None assigned');
-        }
-      });
-    }
-
-    /* ─────────────────────────────────────────────
-       STEP 4 — Load assigned subjects from
-       Assign Subjects to Teacher (child table: subjects)
-       Schema: parent doc has teacher = Teacher.name
-               child rows: subject, class_name, section
-    ───────────────────────────────────────────── */
-    function loadAssignedSubjects(teacher) {
-      frappe.call({
-        method: 'frappe.client.get',
-        args: {
-          doctype: 'Assign Subjects to Teacher',
-          name: teacher.name   // autoname = field:teacher
-        },
-        callback: function (r) {
-          if (r.message && r.message.subjects) {
-            var subjects = r.message.subjects;
-            var subjectNames = [...new Set(subjects.map(function (s) { return s.subject; }).filter(Boolean))];
-
-            setCount('cc-subjects', subjectNames.length);
-            setText('profile-subjects', subjectNames.join(', ') || '—');
-          } else {
-            setCount('cc-subjects', 0);
-            setText('profile-subjects', 'None assigned');
-          }
-        },
-        error: function () {
-          setCount('cc-subjects', 0);
-          setText('profile-subjects', 'None assigned');
-        }
-      });
-    }
-
-    /* ─────────────────────────────────────────────
-       STEP 5 — Load all academic counts (full read)
-       Teacher role has read access to all these doctypes
-    ───────────────────────────────────────────── */
-    function loadCounts() {
-      var countMap = [
-        { id: 'cc-exam-schedule', hero: 'hs-exams', doctype: 'Exam Schedule' },
-        { id: 'cc-test-schedule', hero: null, doctype: 'Test Schedule' },
-        { id: 'cc-hw-schedule', hero: 'hs-hw', doctype: 'Home Schedule' },
-        { id: 'cc-exam-results', hero: null, doctype: 'Exam Result' },
-        { id: 'cc-inclass', hero: null, doctype: 'Inclass Test' },
-        { id: 'cc-attendance', hero: 'hs-attendance', doctype: 'Student Attendance' }
-      ];
-
-      countMap.forEach(function (item) {
-        frappe.call({
-          method: 'frappe.client.get_count',
-          args: { doctype: item.doctype },
-          callback: function (r) {
-            if (r.message !== undefined) {
-              setCount(item.id, r.message);
-              if (item.hero) setCount(item.hero, r.message);
-            }
-          },
-          error: function (err) {
-            // Silently fail — Teacher may not have perm on this doctype yet
-            console.warn('No read access to ' + item.doctype + ':', err);
-            setCount(item.id, '?');
-          }
-        });
-      });
-    }
-
-    /* ─────────────────────────────────────────────
-       STEP 6 — Recent data for tables
-    ───────────────────────────────────────────── */
-    function loadRecentData() {
-      // Upcoming exams — uses exam (Link→Exam), student_class, section, subject, date
-      frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-          doctype: 'Exam Schedule',
-          fields: ['name', 'exam', 'student_class', 'subject', 'date'],
-          limit: 5,
-          order_by: 'date asc'
-        },
-        callback: function (r) {
-          if (r.message && r.message.length) {
-            var html = '';
-            r.message.forEach(function (ex) {
-              html += '<tr>'
-                + '<td>' + (ex.exam || ex.name) + '</td>'
-                + '<td>' + (ex.subject || '—') + '</td>'
-                + '<td><span class="badge-active">' + (ex.date || '—') + '</span></td>'
-                + '</tr>';
-            });
-            document.getElementById('exams-table').innerHTML = html;
-          } else {
-            document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" class="state-msg">No upcoming exams</td></tr>';
-          }
-        },
-        error: function () {
-          document.getElementById('exams-table').innerHTML = '<tr><td colspan="3" class="state-msg">⚠️ No permission for Exam Schedule</td></tr>';
-        }
-      });
-
-      // Recent homework — uses subject, student_class, section, date
-      frappe.call({
-        method: 'frappe.client.get_list',
-        args: {
-          doctype: 'Home Schedule',
-          fields: ['name', 'subject', 'student_class', 'section', 'date'],
-          limit: 5,
-          order_by: 'creation desc'
-        },
-        callback: function (r) {
-          if (r.message && r.message.length) {
-            var html = '';
-            r.message.forEach(function (hw) {
-              html += '<tr>'
-                + '<td>' + (hw.subject || '—') + '</td>'
-                + '<td>' + (hw.student_class || '—') + (hw.section ? ' / ' + hw.section : '') + '</td>'
-                + '<td>' + (hw.date || '—') + '</td>'
-                + '</tr>';
-            });
-            document.getElementById('homework-table').innerHTML = html;
-          } else {
-            document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">No homework found</td></tr>';
-          }
-        },
-        error: function () {
-          document.getElementById('homework-table').innerHTML = '<tr><td colspan="3" class="state-msg">⚠️ No permission for Home Schedule</td></tr>';
-        }
-      });
+      
+      // Assigned Elements
+      setText('profile-classes', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : 'None assigned');
+      setText('profile-dept', data.assigned_classes && data.assigned_classes.length ? data.assigned_classes.join(', ') : '—');
+      setText('profile-subjects', data.assigned_subjects && data.assigned_subjects.length ? data.assigned_subjects.join(', ') : 'None assigned');
     }
   </script>
 </body>
