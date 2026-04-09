@@ -15,9 +15,9 @@
       --surface2: #cbd5e1;
       --surface3: #94a3b8;
       --border: rgba(0, 0, 0, 0.07);
-      --text: #0f172a;
-      --text2: #475569;
-      --text3: #94a3b8;
+      --text: #1e40af; /* Blue text */
+      --text2: #3b82f6;
+      --text3: #64748b;
       --blue: #3b82f6;
       --indigo: #6366f1;
       --violet: #8b5cf6;
@@ -124,8 +124,8 @@
     }
 
     .nav-item:hover {
-      background: var(--surface2);
-      color: var(--text);
+      background: rgba(139, 92, 246, 0.1); /* Light purple background */
+      color: var(--violet); /* Purple text on hover */
     }
 
     .nav-item.active {
@@ -172,6 +172,14 @@
       background: var(--surface2);
       cursor: pointer;
       text-decoration: none;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    .user-pill:hover {
+      background: rgba(139, 92, 246, 0.1);
+      color: var(--violet);
+      border-color: rgba(139, 92, 246, 0.2);
     }
 
     .user-avatar {
@@ -391,25 +399,25 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      color: var(--text);
-      font-size: 12.5px;
-      font-weight: 600;
+      justify-content: center;
+      gap: 12px;
     }
 
     .action-card:hover {
-      background: var(--surface2);
-      transform: translateY(-2px);
+      background: rgba(139, 92, 246, 0.1);
+      border-color: var(--violet);
+      color: var(--violet);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
     }
 
     .action-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 10px;
-      background: var(--surface2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 19px;
+      font-size: 28px;
+    }
+
+    .action-label {
+      font-size: 14px;
+      font-weight: 700;
     }
 
     /* ── Cards ── */
@@ -449,7 +457,8 @@
 
     .portal-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 10px 28px rgba(0, 0, 0, .1);
+      box-shadow: 0 10px 28px rgba(139, 92, 246, 0.15);
+      border-color: var(--violet);
     }
 
     .pc-icon-wrap {
