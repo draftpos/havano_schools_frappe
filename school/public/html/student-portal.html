@@ -1503,91 +1503,227 @@
     }
 
     window.addEventListener('load', function () {
-      // Use the existing API method from api.py
+      // First get the current logged-in student
       frappe.call({
-        method: 'school.api.get_portal_dashboard',
+        method: 'frappe.client.get_value',
+        args: {
+          doctype: 'Student',
+          filters: { user: frappe.session.user },
+          fieldname: ['name', 'student_name', 'image', 'student_id', 'class', 'section', 'date_of_birth', 'email', 'mobile', 'address', 'blood_group']
+        },
         callback: function (response) {
-          if (response.message && !response.message.error) {
-            var data = response.message;
-            var student = data.student;
-            var counts = data.counts;
+          if (response.message) {
+            var student = response.message;
+            updateStudentUI(student);
 
-            // Update sidebar
-            document.getElementById('sb-name').textContent = student.full_name || 'Student';
-            var classLine = [];
-            if (student.class_name) classLine.push(student.class_name);
-            if (student.section) classLine.push(student.section);
-            document.getElementById('sb-class').textContent = classLine.length ? classLine.join(' · ') : 'Student Portal';
-
-            var avatarEl = document.getElementById('sb-avatar');
-            if (student.image) {
-              avatarEl.innerHTML = '<img src="' + student.image + '" alt="' + student.full_name + '">';
-            } else {
-              avatarEl.textContent = student.initials || 'S';
-            }
-
-            // Update Hero
-            document.getElementById('hero-title').textContent = 'Welcome, ' + (student.full_name || 'Student') + '!';
-            var metaParts = [];
-            if (student.reg_no) metaParts.push('<strong>Reg No:</strong> ' + student.reg_no);
-            if (student.class_name) metaParts.push('<strong>Class:</strong> ' + student.class_name);
-            if (student.section) metaParts.push('<strong>Section:</strong> ' + student.section);
-            if (student.house) metaParts.push('<strong>House:</strong> ' + student.house);
-            document.getElementById('hero-meta').innerHTML = metaParts.length ? metaParts.join(' &nbsp;·&nbsp; ') : '&nbsp;';
-
-            // Update Hero Stats
-            document.getElementById('hs-exams').textContent = counts.exam_schedules || 0;
-            document.getElementById('hs-hw').textContent = counts.home_schedules || 0;
-            document.getElementById('hs-results').textContent = counts.exam_results || 0;
-            var balance = counts.balance || 0;
-            document.getElementById('hs-balance').textContent = balance > 0 ? 'KSh ' + balance.toFixed(0) : '✓';
-
-            // Update Card Counts
-            setCount('cc-exam-schedule', counts.exam_schedules || 0);
-            setCount('cc-home-schedule', counts.home_schedules || 0);
-            setCount('cc-test-schedule', counts.test_schedules || 0);
-            setCount('cc-exam-results', counts.exam_results || 0);
-            setCount('cc-inclass', counts.inclass_tests || 0);
-            setCount('cc-homework', counts.homework || 0);
-
-            // Update Sidebar Badges
-            setBadge('nb-exam-schedule', counts.exam_schedules || 0);
-            setBadge('nb-home-schedule', counts.home_schedules || 0);
-            setBadge('nb-test-schedule', counts.test_schedules || 0);
-            setBadge('nb-exam-results', counts.exam_results || 0);
-            setBadge('nb-inclass', counts.inclass_tests || 0);
-
-            // Update Balance Pill
-            var bpWrap = document.getElementById('balance-pill-wrap');
-            if (bpWrap) {
-              bpWrap.innerHTML = balance > 0
-                ? '<div class="balance-pill owing">⚠ KSh ' + balance.toFixed(2) + ' outstanding</div>'
-                : '<div class="balance-pill clear">✓ Account clear</div>';
-            }
-
-            // Update Profile Meta
-            if (student.reg_no) {
-              document.getElementById('profile-meta').textContent = 'Reg: ' + student.reg_no + (classLine.length ? ' · ' + classLine.join(' ') : '');
+            // After getting student, fetch their class and section details
+            if (student.class) {
+              fetchStudentClassData(student.class, student.section);
             }
           } else {
-            console.error('Dashboard error:', response.message);
-            showLoadingError();
+            // Try to get from User if no Student record
+            frappe.call({
+              method: 'frappe.client.get_value',
+              args: {
+                doctype: 'User',
+                filters: { name: frappe.session.user },
+                fieldname: ['full_name', 'email', 'user_image']
+              },
+              callback: function (userRes) {
+                if (userRes.message) {
+                  var user = userRes.message;
+                  updateStudentUI({
+                    student_name: user.full_name,
+                    email: user.email,
+                    image: user.user_image,
+                    student_id: 'N/A',
+                    class: null,
+                    section: null
+                  });
+                } else {
+                  console.error('No student or user data found');
+                  showLoadingError();
+                }
+              }
+            });
           }
         },
         error: function (err) {
-          console.error('Error fetching dashboard:', err);
+          console.error('Error fetching student data:', err);
           showLoadingError();
         }
       });
     });
 
+    function updateStudentUI(student) {
+      // Sidebar
+      document.getElementById('sb-name').textContent = student.student_name || 'Student';
+      var classLine = [];
+      if (student.class) classLine.push(student.class);
+      if (student.section) classLine.push(student.section);
+      document.getElementById('sb-class').textContent = classLine.length ? classLine.join(' · ') : 'Student Portal';
+
+      var avatarEl = document.getElementById('sb-avatar');
+      var studentName = student.student_name || 'Student';
+      var initials = studentName.charAt(0).toUpperCase();
+
+      if (student.image) {
+        avatarEl.innerHTML = '<img src="' + student.image + '" alt="' + studentName + '">';
+      } else {
+        avatarEl.textContent = initials;
+        avatarEl.innerHTML = initials;
+      }
+
+      // Hero
+      document.getElementById('hero-title').textContent = 'Welcome, ' + studentName + '!';
+      var metaParts = [];
+      if (student.student_id) metaParts.push('<strong>ID:</strong> ' + student.student_id);
+      if (student.class) metaParts.push('<strong>Class:</strong> ' + student.class);
+      if (student.section) metaParts.push('<strong>Section:</strong> ' + student.section);
+      document.getElementById('hero-meta').innerHTML = metaParts.length ? metaParts.join(' &nbsp;·&nbsp; ') : '&nbsp;';
+
+      // Profile meta
+      if (student.student_id) {
+        document.getElementById('profile-meta').textContent = 'ID: ' + student.student_id + (classLine.length ? ' · ' + classLine.join(' ') : '');
+      }
+    }
+
     function showLoadingError() {
       document.getElementById('sb-name').textContent = 'Error Loading';
       document.getElementById('hero-title').textContent = 'Welcome, Student!';
-      document.getElementById('hs-exams').textContent = '—';
-      document.getElementById('hs-hw').textContent = '—';
-      document.getElementById('hs-results').textContent = '—';
-      document.getElementById('hs-balance').textContent = '—';
+    }
+
+    function fetchStudentClassData(className, sectionName) {
+      // Fetch Exam Schedules for this class
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Exam Schedule',
+          filters: { student_class: className },
+          fields: ['name', 'title', 'subject', 'date', 'time'],
+          limit: 10
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-exam-schedule', count);
+            setBadge('nb-exam-schedule', count);
+            document.getElementById('hs-exams').textContent = count;
+          } else {
+            document.getElementById('hs-exams').textContent = '0';
+          }
+        }
+      });
+
+      // Fetch Homework Schedules for this class
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Homework Schedule',
+          filters: { student_class: className },
+          fields: ['name', 'subject', 'title', 'date', 'description'],
+          limit: 10
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-home-schedule', count);
+            setBadge('nb-home-schedule', count);
+            document.getElementById('hs-hw').textContent = count;
+          } else {
+            document.getElementById('hs-hw').textContent = '0';
+          }
+        }
+      });
+
+      // Fetch Test Schedules for this class
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Test Schedule',
+          filters: { student_class: className },
+          fields: ['name', 'title', 'subject', 'date', 'time'],
+          limit: 10
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-test-schedule', count);
+            setBadge('nb-test-schedule', count);
+          }
+        }
+      });
+
+      // Fetch Exam Results for this student
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Exam Result',
+          filters: { student: frappe.session.user },
+          fields: ['name', 'exam_schedule', 'subject', 'marks', 'grade', 'status'],
+          limit: 20
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-exam-results', count);
+            setBadge('nb-exam-results', count);
+            document.getElementById('hs-results').textContent = count;
+          } else {
+            document.getElementById('hs-results').textContent = '0';
+          }
+        }
+      });
+
+      // Fetch Inclass Tests for this student
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Inclass Test',
+          filters: { student: frappe.session.user },
+          fields: ['name', 'test_schedule', 'subject', 'marks', 'grade', 'status'],
+          limit: 20
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-inclass', count);
+            setBadge('nb-inclass', count);
+          }
+        }
+      });
+
+      // Fetch Homework results for this student
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Homework',
+          filters: { student: frappe.session.user },
+          fields: ['name', 'subject', 'title', 'marks', 'grade', 'status', 'submitted_on'],
+          limit: 20
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            var count = r.message.length;
+            setCount('cc-homework', count);
+          }
+        }
+      });
+
+      // Fetch subjects for this class
+      frappe.call({
+        method: 'frappe.client.get_list',
+        args: {
+          doctype: 'Subject',
+          filters: { class_name: className },
+          fields: ['name', 'subject_name', 'subject_code', 'teacher']
+        },
+        callback: function (r) {
+          if (r.message && r.message.length) {
+            console.log('Subjects found:', r.message.length);
+          }
+        }
+      });
     }
   </script>
   <script>
