@@ -77,5 +77,8 @@ app_include_js = [
 # Fixtures for synchronization
 
 permission_query_conditions = {
-    "Student": "school.school_management.doctype.student.student.get_permission_query_conditions"
+    "Student": "school.school_management.doctype.student.student.get_permission_query_conditions",
+    "Student Class": "school.api.get_class_permission_query_conditions",
+    "Subject": "school.api.get_subject_permission_query_conditions",
+    "Section": "school.api.get_section_permission_query_conditions"
 }

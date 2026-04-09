@@ -1198,3 +1198,53 @@ def get_teacher_context():
     except Exception:
         frappe.log_error(title='get_teacher_context error', message=frappe.get_traceback())
         return {'error': 'Server error', 'details': frappe.get_traceback()}
+
+def get_teacher_name_for_user(user):
+    if not user:
+        user = frappe.session.user
+    if user in ('Administrator', 'Guest'):
+        return None
+        
+    teacher = frappe.db.get_value('Teacher', {'portal_email': user}, 'name')
+    if not teacher:
+        teacher = frappe.db.get_value('Teacher', {'email': user}, 'name')
+    return teacher
+
+def get_class_permission_query_conditions(user):
+    teacher = get_teacher_name_for_user(user)
+    if not teacher or "System Manager" in frappe.get_roles(user):
+        return ""
+    
+    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name"])
+    classes = [frappe.db.escape(d.class_name) for d in assigned if d.class_name]
+    
+    if not classes:
+        return "1=0"
+    
+    return "`tabStudent Class`.`class_name` IN ({})".format(", ".join(classes))
+
+def get_subject_permission_query_conditions(user):
+    teacher = get_teacher_name_for_user(user)
+    if not teacher or "System Manager" in frappe.get_roles(user):
+        return ""
+    
+    assigned = frappe.db.get_all("Teacher Subject Assignment Item", filters={"parent": teacher}, fields=["subject"])
+    subjects = [frappe.db.escape(d.subject) for d in assigned if d.subject]
+    
+    if not subjects:
+        return "1=0"
+    
+    return "`tabSubject`.`subject_name` IN ({})".format(", ".join(subjects))
+
+def get_section_permission_query_conditions(user):
+    teacher = get_teacher_name_for_user(user)
+    if not teacher or "System Manager" in frappe.get_roles(user):
+        return ""
+    
+    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["section"])
+    sections = [frappe.db.escape(d.section) for d in assigned if d.section]
+    
+    if not sections:
+        return "1=0"
+    
+    return "`tabSection`.`section_name` IN ({})".format(", ".join(sections))
