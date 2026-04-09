@@ -16,7 +16,7 @@
    "fieldtype": "Link",
    "in_list_view": 1,
    "label": "Class",
-   "options": "Course",
+   "options": "Student Class",
    "reqd": 1
   },
   {
@@ -32,7 +32,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-04-09 10:38:59.599906",
+ "modified": "2026-04-09 10:39:22.397030",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Teacher Class Assignment Item",
