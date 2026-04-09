@@ -45,7 +45,7 @@ function el(id){return document.getElementById(id);}
 function fmtT(t){if(!t||t==="-")return"-";var p=t.split(":");if(p.length<2)return t;var h=parseInt(p[0]),m=p[1];return(h%12||12)+":"+m+(h>=12?" PM":" AM");}
 function tog(id){var b=el("b"+id);b.style.display=b.style.display==="block"?"none":"block";}
 window.addEventListener("load", function(){
-  fetch("/api/method/school.api.get_test_schedules",{credentials:"same-origin"})
+  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_test_schedules"+_qs,{credentials:"same-origin"});})()
   .then(function(res){return res.json();})
   .then(function(r){
     if(!r.message||!r.message.length){

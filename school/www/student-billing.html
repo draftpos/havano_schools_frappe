@@ -51,7 +51,7 @@ function sb(s){var m={"Overdue":"b-ov","Paid":"b-pd","Unpaid":"b-up","Partly Pai
 function td(id){var e=document.getElementById("dr-"+id);if(e)e.style.display=e.style.display==="table-row"?"none":"table-row";}
 
 window.addEventListener("load",function(){
-  fetch("/api/method/school.api.get_billing_summary",{credentials:"same-origin"})
+  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_billing_summary"+_qs,{credentials:"same-origin"});})()
   .then(function(r){return r.json();})
   .then(function(r){
     var d=r.message;

@@ -2,16 +2,19 @@ import frappe
 from frappe import _
 
 @frappe.whitelist()
-def get_billing_summary():
+def get_billing_summary(student=None):
     """
     Returns a unified view of Invoices and Receipting for the student portal.
     """
     user = frappe.session.user
-    if user in ("Administrator", "Guest"): 
+    if user in ("Administrator", "Guest"):
         return {"error": "Invalid User"}
 
-    student = frappe.db.get_value("Student", {"portal_email": user}, ["name", "full_name"], as_dict=True)
-    if not student: 
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user}, ["name", "full_name"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student, ["name", "full_name"], as_dict=True)
+    if not student:
         return {"error": "Student record not found"}
 
     invoices = frappe.db.sql("""
@@ -150,11 +153,15 @@ def get_portal_dashboard():
 
 
 @frappe.whitelist()
-def get_exam_schedules():
+def get_exam_schedules(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name", "student_reg_no", "student_class", "section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name", "student_reg_no", "student_class", "section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name", "student_reg_no", "student_class", "section"], as_dict=True)
     if not student: return []
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
@@ -196,11 +203,15 @@ def get_exam_schedules():
 
 
 @frappe.whitelist()
-def get_home_schedules():
+def get_home_schedules(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name","student_reg_no","student_class","section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name","student_reg_no","student_class","section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
@@ -238,11 +249,15 @@ def get_home_schedules():
 
 
 @frappe.whitelist()
-def get_test_schedules():
+def get_test_schedules(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name","student_reg_no","student_class","section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name","student_reg_no","student_class","section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
@@ -280,11 +295,15 @@ def get_test_schedules():
 
 
 @frappe.whitelist()
-def get_exam_results():
+def get_exam_results(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
     s_reg_no   = student.student_reg_no or student.name
     s_class    = student.student_class or ""
@@ -325,11 +344,15 @@ def get_inclass_tests():
     return get_class_test_results()
 
 @frappe.whitelist()
-def get_class_test_results():
+def get_class_test_results(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
@@ -367,11 +390,15 @@ def get_class_test_results():
 
 
 @frappe.whitelist()
-def get_homework_results():
+def get_homework_results(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
-    student = frappe.db.get_value("Student", {"portal_email": user},
-        ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name","full_name","student_reg_no","student_class","section"], as_dict=True)
     if not student: return []
     s_reg_no  = student.student_reg_no or student.name
     s_class   = student.student_class or ""
