@@ -1114,7 +1114,7 @@ def get_teacher_context():
             try:
                 teacher = frappe.db.get_value('Teacher', {field: user},
                     ['name', 'teacher_id', 'first_name', 'last_name', 'full_name',
-                     'department', 'date_of_joining', 'email', 'phone', 'teacher_image'], as_dict=True)
+                     'email', 'phone', 'teacher_image'], as_dict=True)
             except Exception:
                 pass
             if teacher:
