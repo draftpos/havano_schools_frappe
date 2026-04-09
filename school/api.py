@@ -1072,6 +1072,36 @@ def get_portal_header():
 
 
 
+def list_teacher_users():
+    """Diagnostic: list all Frappe users with the Teacher role."""
+    return frappe.db.sql(
+        "SELECT u.name, u.email, u.full_name FROM `tabUser` u JOIN `tabHas Role` r ON r.parent = u.name WHERE r.role = 'Teacher' AND u.enabled = 1",
+        as_dict=True
+    )
+
+
+def inspect_teachers():
+    """Diagnostic: show all Teacher names, emails and portal_emails."""
+    return frappe.db.sql(
+        "SELECT name, email, portal_email FROM `tabTeacher`",
+        as_dict=True
+    )
+
+
+def sync_teacher_portal_emails():
+    """One-time utility: copies email -> portal_email for teachers where portal_email is blank."""
+    teachers = frappe.db.sql(
+        "SELECT name, email FROM `tabTeacher` WHERE (portal_email IS NULL OR portal_email = '') AND email != '' AND email IS NOT NULL",
+        as_dict=True
+    )
+    updated = 0
+    for t in teachers:
+        frappe.db.set_value('Teacher', t.name, 'portal_email', t.email)
+        updated += 1
+    frappe.db.commit()
+    return {'updated': updated, 'teachers': [t.name for t in teachers]}
+
+
 @frappe.whitelist()
 def get_teacher_context():
     user = frappe.session.user
