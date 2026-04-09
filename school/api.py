@@ -1275,76 +1275,70 @@ def save_teacher_note(content):
 def get_teacher_students_list():
     user = frappe.session.user
     teacher = get_teacher_name_for_user(user)
+    
     if not teacher:
-        return {"error": "Teacher not found for user {}".format(user)}
-    
-    # Get all assignment Item records where parent is the teacher (since Assign Class to Teacher is named by teacher ID)
-    items = frappe.db.get_all("Teacher Class Assignment Item", 
-        filters={"parent": teacher}, 
-        fields=["class_name", "section"])
-    
-    if not items:
-        # Check if they are in Assign Class to Teacher but the parent name is different
-        parent_names = frappe.get_all("Assign Class to Teacher", filters={"teacher": teacher}, pluck="name")
-        if parent_names:
-            items = frappe.db.get_all("Teacher Class Assignment Item", 
-                filters={"parent": ["in", parent_names]}, 
-                fields=["class_name", "section"])
+        tname = frappe.db.get_value("Teacher", {"email": user}, "name") or \
+                frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+        teacher = tname
 
-    if not items:
+    if not teacher:
         return []
-    
+
+    # Get unique (class, section) assignments from both Class and Subject assignment DocTypes
+    assignments = frappe.db.sql("""
+        SELECT class_name, section FROM `tabTeacher Class Assignment Item`
+        WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Class to Teacher` WHERE teacher = %s)
+        UNION
+        SELECT class_name, section FROM `tabTeacher Subject Assignment Item`
+        WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Subjects to Teacher` WHERE teacher = %s)
+    """, (teacher, teacher, teacher, teacher), as_dict=True)
+
+    if not assignments:
+        return []
+
+    # Build SQL filter for students matching these assignments
+    # We use a set of tuples for filtering
     students = []
-    seen = set()
+    seen_students = set()
     
-    for row in items:
-        f = {"student_class": row.class_name}
+    for row in assignments:
+        cond = {"student_class": row.class_name}
         if row.section:
-            f["section"] = row.section
+            cond["section"] = row.section
         
-        found = frappe.get_all("Student", 
-            filters=f, 
+        found = frappe.get_all("Student", filters=cond, 
             fields=["name", "full_name", "student_class", "section", "student_image", "student_reg_no"],
             ignore_permissions=True)
             
         for s in found:
-            if s.name not in seen:
+            if s.name not in seen_students:
                 s["class_label"] = frappe.db.get_value("Student Class", s.student_class, "class_name") or s.student_class
                 students.append(s)
-                seen.add(s.name)
-                
-    return students
+                seen_students.add(s.name)
+
+    return sorted(students, key=lambda x: x.get('full_name', ''))
 
 @frappe.whitelist()
 def get_teacher_balances_list():
     students = get_teacher_students_list()
-    if isinstance(students, dict) and "error" in students:
-        return students
     if not students:
         return []
-    
-    # Extract student full names for matching in Sales Invoice
-    names = [s.full_name for s in students if s.full_name]
-    if not names:
+
+    full_names = [s.full_name for s in students if s.full_name]
+    if not full_names:
         return students
-        
-    # Query outstanding amounts from Sales Invoice
-    # We use customer_name as it is a common pattern in this school app
-    invoices = frappe.get_all("Sales Invoice",
-        filters={
-            "customer_name": ["in", names],
-            "docstatus": 1,
-            "outstanding_amount": [">", 0]
-        },
-        fields=["customer_name", "outstanding_amount"],
-        ignore_permissions=True)
-    
-    totals = {}
-    for inv in invoices:
-        n = inv.customer_name
-        totals[n] = totals.get(n, 0) + float(inv.outstanding_amount or 0)
-    
+
+    # Get outstanding totals in one query
+    si_totals = frappe.db.sql("""
+        SELECT customer_name, SUM(outstanding_amount) as total
+        FROM `tabSales Invoice`
+        WHERE customer_name IN %(names)s AND docstatus = 1 AND outstanding_amount > 0
+        GROUP BY customer_name
+    """, {"names": full_names}, as_dict=True)
+
+    balance_map = {row.customer_name: float(row.total) for row in si_totals}
+
     for s in students:
-        s["balance"] = float(totals.get(s.full_name, 0))
-        
-    return students
+        s["balance"] = balance_map.get(s.full_name, 0.0)
+
+    return sorted(students, key=lambda x: x.get('balance', 0), reverse=True)
