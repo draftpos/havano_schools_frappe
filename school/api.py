@@ -1248,3 +1248,83 @@ def get_section_permission_query_conditions(user):
         return "1=0"
     
     return "`tabSection`.`name` IN ({})".format(", ".join(sections))
+
+@frappe.whitelist()
+def get_teacher_notes():
+    user = frappe.session.user
+    note = frappe.get_all("Note", filters={"owner": user}, fields=["content"], order_by="modified desc", limit=1)
+    return note[0].content if note else ""
+
+@frappe.whitelist()
+def save_teacher_note(content):
+    user = frappe.session.user
+    existing = frappe.get_all("Note", filters={"owner": user}, fields=["name"], limit=1)
+    if existing:
+        frappe.db.set_value("Note", existing[0].name, "content", content)
+    else:
+        new_note = frappe.get_doc({
+            "doctype": "Note",
+            "title": "Teacher Portal Note",
+            "content": content,
+            "public": 0
+        })
+        new_note.insert(ignore_permissions=True)
+    return "Saved"
+
+@frappe.whitelist()
+def get_teacher_students_list():
+    teacher = get_teacher_name_for_user(frappe.session.user)
+    if not teacher: return []
+    
+    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name", "section"])
+    if not assigned: return []
+    
+    conditions = []
+    for d in assigned:
+        cond = {"student_class": d.class_name}
+        if d.section:
+            cond["section"] = d.section
+        conditions.append(cond)
+    
+    students = []
+    student_names_seen = set()
+    
+    for cond in conditions:
+        found = frappe.get_all("Student", filters=cond, fields=["name", "full_name", "student_class", "section", "student_image", "student_reg_no"])
+        for s in found:
+            if s.name not in student_names_seen:
+                # Add class name for UI
+                s["class_label"] = frappe.db.get_value("Student Class", s.student_class, "class_name") or s.student_class
+                students.append(s)
+                student_names_seen.add(s.name)
+                
+    return students
+
+@frappe.whitelist()
+def get_teacher_balances_list():
+    students = get_teacher_students_list()
+    if not students: return []
+    
+    student_full_names = [s.full_name for s in students if s.full_name]
+    if not student_full_names: return []
+    
+    balances = frappe.get_all("Sales Invoice",
+        filters={
+            "customer_name": ["in", student_full_names],
+            "docstatus": 1
+        },
+        fields=["customer_name", "outstanding_amount"])
+    
+    balance_map = {}
+    for b in balances:
+        name = b.customer_name
+        balance_map[name] = balance_map.get(name, 0) + float(b.outstanding_amount or 0)
+    
+    # Also check opening balances
+    # The get_fees_balance logic covers this, but for speed let's just stick to Invoice for now
+    # as students are mostly billed via invoices here.
+    
+    for s in students:
+        s["balance"] = float(balance_map.get(s.full_name, 0))
+        
+    return students
