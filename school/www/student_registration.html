@@ -305,7 +305,7 @@ async function loadClassesBySchool(school) {
             result.message.forEach(function(cls) {
                 var option = document.createElement('option');
                 option.value = cls.name;
-                option.textContent = cls.name;
+                option.textContent = cls.class_name || cls.name;
                 classSelect.appendChild(option);
             });
             classSelect.disabled = false;

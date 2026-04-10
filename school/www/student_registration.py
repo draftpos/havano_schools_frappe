@@ -69,7 +69,7 @@ def get_classes_by_school(school):
         classes = frappe.get_all(
             "Student Class",
             filters={"cost_center": school},
-            fields=["name"],
+            fields=["name", "class_name"],
             order_by="name"
         )
         if classes:
@@ -80,7 +80,7 @@ def get_classes_by_school(school):
         classes = frappe.get_all(
             "Student Class",
             filters={"school": school},
-            fields=["name"],
+            fields=["name", "class_name"],
             order_by="name"
         )
         if classes:
@@ -91,7 +91,7 @@ def get_classes_by_school(school):
         classes = frappe.get_all(
             "Student Class",
             filters={"name": ["like", f"%{school}%"]},
-            fields=["name"],
+            fields=["name", "class_name"],
             order_by="name"
         )
         if classes:
@@ -110,7 +110,7 @@ def get_classes_by_school(school):
             classes = frappe.get_all(
                 "Student Class",
                 filters={custom_field.fieldname: school},
-                fields=["name"],
+                fields=["name", "class_name"],
                 order_by="name"
             )
             if classes:
@@ -119,7 +119,13 @@ def get_classes_by_school(school):
         frappe.log_error(f"Error checking custom fields: {str(e)}", "Student Registration")
 
     # Fallback: return all classes
-    return frappe.get_all("Student Class", fields=["name"], order_by="name")
+    return frappe.get_all("Student Class", fields=["name", "class_name"], order_by="name")
+
+
+@frappe.whitelist(allow_guest=True)
+def get_all_student_classes():
+    """Get all student classes regardless of school"""
+    return frappe.get_all("Student Class", fields=["name", "class_name"], order_by="name")
 
 
 @frappe.whitelist(allow_guest=True)
