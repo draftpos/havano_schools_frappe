@@ -514,11 +514,10 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	roles = frappe.get_roles(user)
-	if "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
+	if "System Manager" in frappe.get_roles(user):
 		return ""
 
-	if "Teacher" not in roles:
+	if "Teacher" not in frappe.get_roles(user):
 		return ""
 
 	# Find Teacher record by portal_email then email
