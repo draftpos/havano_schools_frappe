@@ -1212,7 +1212,8 @@ def get_teacher_name_for_user(user):
 
 def get_class_permission_query_conditions(user):
     teacher = get_teacher_name_for_user(user)
-    if not teacher or "System Manager" in frappe.get_roles(user):
+    roles = frappe.get_roles(user)
+    if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
         return ""
     
     assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name"])
@@ -1225,7 +1226,8 @@ def get_class_permission_query_conditions(user):
 
 def get_subject_permission_query_conditions(user):
     teacher = get_teacher_name_for_user(user)
-    if not teacher or "System Manager" in frappe.get_roles(user):
+    roles = frappe.get_roles(user)
+    if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
         return ""
     
     assigned = frappe.db.get_all("Teacher Subject Assignment Item", filters={"parent": teacher}, fields=["subject"])
@@ -1238,7 +1240,8 @@ def get_subject_permission_query_conditions(user):
 
 def get_section_permission_query_conditions(user):
     teacher = get_teacher_name_for_user(user)
-    if not teacher or "System Manager" in frappe.get_roles(user):
+    roles = frappe.get_roles(user)
+    if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
         return ""
     
     assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["section"])
