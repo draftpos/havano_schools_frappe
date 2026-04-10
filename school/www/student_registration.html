@@ -114,8 +114,8 @@
           <div class="field-group">
             <label>Class <span class="req">*</span></label>
             <div class="select-wrap">
-              <select id="student_class" disabled>
-                <option value="">Select school first</option>
+              <select id="student_class">
+                <option value="">Select class</option>
               </select>
             </div>
           </div>
@@ -281,23 +281,17 @@ async function frappePost(method, params) {
 // ---------------------------------------------------------------------------
 // Class loading
 // ---------------------------------------------------------------------------
-async function loadClassesBySchool(school) {
+async function loadAllClasses() {
     var classSelect = document.getElementById('student_class');
-    if (!classSelect || !school) {
-        if (classSelect) {
-            classSelect.innerHTML = '<option value="">Select school first</option>';
-            classSelect.disabled = true;
-        }
-        return;
-    }
+    if (!classSelect) return;
 
     classSelect.innerHTML = '<option value="">Loading classes\u2026</option>';
     classSelect.disabled = true;
 
     try {
         var result = await frappePost(
-            'school.www.student_registration.get_classes_by_school',
-            { school: school }
+            'school.www.student_registration.get_all_student_classes',
+            {}
         );
 
         if (result.message && result.message.length > 0) {
@@ -579,29 +573,17 @@ document.addEventListener('DOMContentLoaded', function() {
     var schoolSelect = document.getElementById('school');
     var classSelect  = document.getElementById('student_class');
 
-    if (classSelect) {
-        classSelect.innerHTML = '<option value="">Select school first</option>';
-        classSelect.disabled  = true;
-    }
+    // Wait for DOM to finish then proceed
 
     if (schoolSelect) {
         schoolSelect.addEventListener('change', function() {
             var school = this.value;
-            if (classSelect) {
-                classSelect.innerHTML = '<option value="">Select class</option>';
-                classSelect.disabled  = true;
-                classSelect.value     = '';
-            }
-            if (school) {
-                loadClassesBySchool(school);
-            } else {
-                if (classSelect) {
-                    classSelect.innerHTML = '<option value="">Select school first</option>';
-                    classSelect.disabled  = true;
-                }
-            }
+            // No class clear logic, completely independent
         });
     }
+
+    // Load classes independently initially
+    loadAllClasses();
 
     document.querySelectorAll('input, select').forEach(function(field) {
         field.addEventListener('change', function(e) { e.target.classList.remove('error'); });
@@ -610,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Global exports
-window.loadClassesBySchool  = loadClassesBySchool;
+window.loadAllClasses       = loadAllClasses;
 window.toggleGuardianFields = toggleGuardianFields;
 window.submitRegistration   = submitRegistration;
 window.goToStep             = goToStep;
