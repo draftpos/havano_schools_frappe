@@ -41,13 +41,15 @@
    "fetch_from": "source_doc.student_class",
    "fieldname": "student_class",
    "fieldtype": "Read Only",
-   "label": "Class"
+   "label": "Class",
+   "in_list_view": 1
   },
   {
    "fetch_from": "source_doc.subject",
    "fieldname": "subject",
    "fieldtype": "Read Only",
-   "label": "Subject"
+   "label": "Subject",
+   "in_list_view": 1
   },
   {
    "fieldname": "column_break_lxeo",
@@ -57,13 +59,15 @@
    "fetch_from": "source_doc.date",
    "fieldname": "date",
    "fieldtype": "Read Only",
-   "label": "Date"
+   "label": "Date",
+   "in_list_view": 1
   },
   {
    "fieldname": "total_students",
    "fieldtype": "Int",
    "label": "Total Students",
-   "read_only": 1
+   "read_only": 1,
+   "in_list_view": 1
   },
   {
    "fieldname": "results_table_section",
