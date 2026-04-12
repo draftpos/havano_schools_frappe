@@ -31,8 +31,11 @@ class ExamSchedule(Document):
 
 
 @frappe.whitelist()
-def get_teacher_subjects(teacher, student_class=None, section=None):
+def get_teacher_subjects(teacher=None, student_class=None, section=None):
 	"""Get subjects assigned to a teacher, optionally filtered by class/section."""
+	if not teacher:
+		return []
+
 	filters = {"teacher": teacher}
 	if student_class:
 		filters["student_class"] = student_class
