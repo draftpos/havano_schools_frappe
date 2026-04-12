@@ -28,3 +28,22 @@ class ExamSchedule(Document):
 					item.grade = ""
 					item.status = ""
 
+
+
+@frappe.whitelist()
+def get_teacher_subjects(teacher, student_class=None, section=None):
+	"""Get subjects assigned to a teacher, optionally filtered by class/section."""
+	filters = {"teacher": teacher}
+	if student_class:
+		filters["student_class"] = student_class
+	if section:
+		filters["section"] = section
+
+	assignments = frappe.get_all(
+		"Assign Subjects to Teacher",
+		filters=filters,
+		fields=["subject", "student_class", "section"]
+	)
+
+	subjects = list(set([a.subject for a in assignments if a.subject]))
+	return subjects
