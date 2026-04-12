@@ -1,302 +1,306 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "naming_series:",
- "creation": "2026-03-14 10:23:37.138902",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "naming_series",
-  "date",
-  "cost_center",
-  "col_break_1",
-  "project",
-  "term",
-  "col_break_2",
-  "year",
-  "fees_structure",
-  "col_break_3",
-  "student_class",
-  "section",
-  "col_break_4",
-  "status",
-  "number_of_students",
-  "total_amount",
-  "other_filtering_section",
-  "category_1",
-  "category_2",
-  "category_3",
-  "col_break_of_1",
-  "area",
-  "territory",
-  "fees_category",
-  "col_break_of_2",
-  "student",
-  "except_section",
-  "except_students",
-  "items_section",
-  "items",
-  "amended_from"
- ],
- "fields": [
-  {
-   "default": "BILL-.YYYY.-",
-   "fieldname": "naming_series",
-   "fieldtype": "Select",
-   "hidden": 1,
-   "label": "Series",
-   "options": "BILL-.YYYY.-"
-  },
-  {
-   "default": "Today",
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "cost_center",
-   "fieldtype": "Link",
-   "label": "Cost Center",
-   "options": "Cost Center",
-   "reqd": 1
-  },
-  {
-   "fieldname": "col_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "project",
-   "fieldtype": "Link",
-   "label": "Project",
-   "options": "Project"
-  },
-  {
-   "fieldname": "term",
-   "fieldtype": "Link",
-   "label": "Term",
-   "options": "Term"
-  },
-  {
-   "fieldname": "col_break_2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "year",
-   "fieldtype": "Link",
-   "label": "Year",
-   "options": "Academic Year"
-  },
-  {
-   "fieldname": "fees_structure",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Fees Structure",
-   "options": "Fees Structure",
-   "reqd": 1
-  },
-  {
-   "fieldname": "col_break_3",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "student_class",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Class",
-   "options": "Student Class"
-  },
-  {
-   "fieldname": "section",
-   "fieldtype": "Link",
-   "label": "Section",
-   "options": "Section"
-  },
-  {
-   "fieldname": "col_break_4",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Student Status",
-   "options": "\nDay\nBoarding\nNot Set"
-  },
-  {
-   "fieldname": "number_of_students",
-   "fieldtype": "Int",
-   "in_list_view": 1,
-   "label": "Number of Students",
-   "read_only": 1
-  },
-  {
-   "fieldname": "total_amount",
-   "fieldtype": "Currency",
-   "in_list_view": 1,
-   "label": "Total Amount",
-   "read_only": 1
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "other_filtering_section",
-   "fieldtype": "Section Break",
-   "label": "Other Filtering"
-  },
-  {
-   "fieldname": "category_1",
-   "fieldtype": "Link",
-   "label": "Category 1",
-   "options": "Category 1"
-  },
-  {
-   "fieldname": "category_2",
-   "fieldtype": "Link",
-   "label": "Category 2",
-   "options": "Category 2"
-  },
-  {
-   "fieldname": "category_3",
-   "fieldtype": "Link",
-   "label": "Category 3",
-   "options": "Category 3"
-  },
-  {
-   "fieldname": "col_break_of_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "area",
-   "fieldtype": "Link",
-   "label": "Area",
-   "options": "Area"
-  },
-  {
-   "fieldname": "territory",
-   "fieldtype": "Link",
-   "label": "Territory",
-   "options": "Territory"
-  },
-  {
-   "fieldname": "fees_category",
-   "fieldtype": "Link",
-   "label": "Fees Category",
-   "options": "Fees Category"
-  },
-  {
-   "fieldname": "col_break_of_2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "student",
-   "fieldtype": "Link",
-   "label": "Student",
-   "options": "Student"
-  },
-  {
-   "collapsible": 1,
-   "fieldname": "except_section",
-   "fieldtype": "Section Break",
-   "label": "Except"
-  },
-  {
-   "fieldname": "except_students",
-   "fieldtype": "Table",
-   "label": "Except Students",
-   "options": "Billing Except Student"
-  },
-  {
-   "fieldname": "items_section",
-   "fieldtype": "Section Break",
-   "label": "Fee Items"
-  },
-  {
-   "fieldname": "items",
-   "fieldtype": "Table",
-   "label": "Items",
-   "options": "Billing Item"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Billing",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2026-03-24 17:09:19.074862",
- "modified_by": "Administrator",
- "module": "School Management",
- "name": "Billing",
- "naming_rule": "By \"Naming Series\" field",
- "owner": "Administrator",
- "permissions": [
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "School User",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Accounts User",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Accounts Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "track_changes": 1
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "naming_series:",
+    "creation": "2026-03-14 10:23:37.138902",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "naming_series",
+        "date",
+        "cost_center",
+        "col_break_1",
+        "project",
+        "term",
+        "col_break_2",
+        "year",
+        "fees_structure",
+        "col_break_3",
+        "student_class",
+        "section",
+        "col_break_4",
+        "status",
+        "number_of_students",
+        "total_amount",
+        "other_filtering_section",
+        "category_1",
+        "category_2",
+        "category_3",
+        "col_break_of_1",
+        "area",
+        "territory",
+        "fees_category",
+        "col_break_of_2",
+        "student",
+        "except_section",
+        "except_students",
+        "items_section",
+        "items",
+        "amended_from"
+    ],
+    "fields": [
+        {
+            "default": "BILL-.YYYY.-",
+            "fieldname": "naming_series",
+            "fieldtype": "Select",
+            "hidden": 1,
+            "label": "Series",
+            "options": "BILL-.YYYY.-"
+        },
+        {
+            "default": "Today",
+            "fieldname": "date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "cost_center",
+            "fieldtype": "Link",
+            "label": "Cost Center",
+            "options": "Cost Center",
+            "reqd": 1
+        },
+        {
+            "fieldname": "col_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "project",
+            "fieldtype": "Link",
+            "label": "Project",
+            "options": "Project"
+        },
+        {
+            "fieldname": "term",
+            "fieldtype": "Link",
+            "label": "Term",
+            "options": "Term"
+        },
+        {
+            "fieldname": "col_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "year",
+            "fieldtype": "Link",
+            "label": "Year",
+            "options": "Academic Year"
+        },
+        {
+            "fieldname": "fees_structure",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Fees Structure",
+            "options": "Fees Structure",
+            "reqd": 1
+        },
+        {
+            "fieldname": "col_break_3",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "student_class",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Class",
+            "options": "Student Class"
+        },
+        {
+            "fieldname": "section",
+            "fieldtype": "Link",
+            "label": "Section",
+            "options": "Section"
+        },
+        {
+            "fieldname": "col_break_4",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Student Status",
+            "options": "\nDay\nBoarding\nNot Set"
+        },
+        {
+            "fieldname": "number_of_students",
+            "fieldtype": "Int",
+            "in_list_view": 1,
+            "label": "Number of Students",
+            "read_only": 1
+        },
+        {
+            "fieldname": "total_amount",
+            "fieldtype": "Currency",
+            "in_list_view": 1,
+            "label": "Total Amount",
+            "read_only": 1
+        },
+        {
+            "collapsible": 1,
+            "fieldname": "other_filtering_section",
+            "fieldtype": "Section Break",
+            "label": "Other Filtering"
+        },
+        {
+            "fieldname": "category_1",
+            "fieldtype": "Link",
+            "label": "Category 1",
+            "options": "Category 1"
+        },
+        {
+            "fieldname": "category_2",
+            "fieldtype": "Link",
+            "label": "Category 2",
+            "options": "Category 2"
+        },
+        {
+            "fieldname": "category_3",
+            "fieldtype": "Link",
+            "label": "Category 3",
+            "options": "Category 3"
+        },
+        {
+            "fieldname": "col_break_of_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "area",
+            "fieldtype": "Link",
+            "label": "Area",
+            "options": "Area"
+        },
+        {
+            "fieldname": "territory",
+            "fieldtype": "Link",
+            "label": "Territory",
+            "options": "Territory"
+        },
+        {
+            "fieldname": "fees_category",
+            "fieldtype": "Link",
+            "label": "Fees Category",
+            "options": "Fees Category"
+        },
+        {
+            "fieldname": "col_break_of_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "student",
+            "fieldtype": "Link",
+            "label": "Student",
+            "options": "Student"
+        },
+        {
+            "collapsible": 1,
+            "fieldname": "except_section",
+            "fieldtype": "Section Break",
+            "label": "Except"
+        },
+        {
+            "fieldname": "except_students",
+            "fieldtype": "Table",
+            "label": "Except Students",
+            "options": "Billing Except Student"
+        },
+        {
+            "fieldname": "items_section",
+            "fieldtype": "Section Break",
+            "label": "Fee Items"
+        },
+        {
+            "fieldname": "items",
+            "fieldtype": "Table",
+            "label": "Items",
+            "options": "Billing Item"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Billing",
+            "print_hide": 1,
+            "read_only": 1,
+            "search_index": 1
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [],
+    "modified": "2026-03-24 17:09:19.074862",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Billing",
+    "naming_rule": "By \"Naming Series\" field",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Accounts User",
+            "share": 1,
+            "submit": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Accounts Manager",
+            "share": 1,
+            "submit": 1,
+            "write": 1
+        },
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        },
+        {
+            "role": "School User",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        }
+    ],
+    "row_format": "Dynamic",
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "track_changes": 1
 }

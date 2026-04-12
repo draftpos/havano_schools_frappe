@@ -1,0 +1,92 @@
+{
+    "actions": [],
+    "creation": "2024-01-01",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "student",
+        "student_name",
+        "subject",
+        "marks_obtained",
+        "max_marks",
+        "percentage",
+        "grade",
+        "position",
+        "remarks"
+    ],
+    "fields": [
+        {
+            "fieldname": "student",
+            "fieldtype": "Link",
+            "label": "Student",
+            "options": "Student",
+            "in_list_view": 1,
+            "reqd": 1
+        },
+        {
+            "fieldname": "student_name",
+            "fieldtype": "Data",
+            "label": "Student Name",
+            "fetch_from": "student.student_name",
+            "fetch_if_empty": 1,
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "subject",
+            "fieldtype": "Link",
+            "label": "Subject",
+            "options": "Subject",
+            "in_list_view": 1,
+            "reqd": 1
+        },
+        {
+            "fieldname": "marks_obtained",
+            "fieldtype": "Float",
+            "label": "Marks Obtained",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "max_marks",
+            "fieldtype": "Float",
+            "label": "Max Marks",
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "percentage",
+            "fieldtype": "Percent",
+            "label": "Percentage",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "grade",
+            "fieldtype": "Data",
+            "label": "Grade",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "position",
+            "fieldtype": "Int",
+            "label": "Position",
+            "read_only": 1,
+            "in_list_view": 1
+        },
+        {
+            "fieldname": "remarks",
+            "fieldtype": "Small Text",
+            "label": "Remarks"
+        }
+    ],
+    "index_web_pages_for_search": 0,
+    "istable": 1,
+    "links": [],
+    "modified": "2026-04-12",
+    "module": "School Management",
+    "name": "Term Exam Result Item",
+    "owner": "Administrator",
+    "sort_field": "modified",
+    "sort_order": "DESC"
+}

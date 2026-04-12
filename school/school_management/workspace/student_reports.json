@@ -1,0 +1,31 @@
+{
+ "content": [
+  {
+   "label": "Term Exam Reports",
+   "type": "Card",
+   "icon": "icon-chart",
+   "link": "query-report/Term-Exam-Report",
+   "is_query_report": true,
+   "dependencies": []
+  },
+  {
+   "label": "Term Exam Report",
+   "type": "Link",
+   "link": "List/Term Exam Report/List",
+   "dependencies": []
+  }
+ ],
+ "creation": "2024-01-01",
+ "doctype": "Workspace",
+ "for_user_permission": 0,
+ "is_default": 1,
+ "is_primary": 0,
+ "label": "Student Reports",
+ "module": "School Management",
+ "name": "Student Reports",
+ "owner": "Administrator",
+ "public": 1,
+ "sequence": 10,
+ "show_app_link": 0,
+ "show_user_menu": 1
+}

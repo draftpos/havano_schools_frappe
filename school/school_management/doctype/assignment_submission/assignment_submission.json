@@ -1,0 +1,172 @@
+{
+    "actions": [],
+    "allow_import": 1,
+    "allow_rename": 1,
+    "autoname": "field:submission_name",
+    "creation": "2024-10-01 00:00:00",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "submission_section",
+        "submission_name",
+        "assignment",
+        "assignment_type",
+        "column_break_asgn",
+        "student",
+        "student_class",
+        "status",
+        "submission_details",
+        "submitted_on",
+        "student_files",
+        "marks_section",
+        "marks",
+        "teacher_feedback"
+    ],
+    "fields": [
+        {
+            "fieldname": "submission_section",
+            "fieldtype": "Section Break",
+            "label": "Submission"
+        },
+        {
+            "fieldname": "submission_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Submission Name",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "assignment",
+            "fieldtype": "Dynamic Link",
+            "in_list_view": 1,
+            "label": "Assignment",
+            "options": "assignment_type",
+            "reqd": 1
+        },
+        {
+            "fieldname": "assignment_type",
+            "fieldtype": "Select",
+            "label": "Assignment Type",
+            "options": "Home Schedule\nTest Schedule",
+            "reqd": 1
+        },
+        {
+            "fieldname": "column_break_asgn",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "student",
+            "fieldtype": "Link",
+            "label": "Student",
+            "options": "Student",
+            "reqd": 1
+        },
+        {
+            "fetch_from": "student.student_class",
+            "fieldname": "student_class",
+            "fieldtype": "Link",
+            "label": "Class",
+            "options": "Student Class",
+            "read_only": 1
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "Draft\nSubmitted\nReviewed\nLate",
+            "default": "Draft"
+        },
+        {
+            "fieldname": "submission_details",
+            "fieldtype": "Section Break",
+            "label": "Submission Details"
+        },
+        {
+            "fieldname": "submitted_on",
+            "fieldtype": "Datetime",
+            "label": "Submitted On",
+            "read_only": 1
+        },
+        {
+            "fieldname": "student_files",
+            "fieldtype": "Table",
+            "label": "Student Uploads (PDF, Word, Pictures, etc)",
+            "options": "Submission File"
+        },
+        {
+            "fieldname": "marks_section",
+            "fieldtype": "Section Break",
+            "label": "Grading"
+        },
+        {
+            "fieldname": "marks",
+            "fieldtype": "Float",
+            "label": "Marks Obtained"
+        },
+        {
+            "fieldname": "teacher_feedback",
+            "fieldtype": "Small Text",
+            "label": "Teacher Feedback"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [],
+    "modified": "2024-10-01 00:00:00",
+    "module": "School Management",
+    "name": "Assignment Submission",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Student",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        },
+        {
+            "role": "School User",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "submission_name"
+}

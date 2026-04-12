@@ -1,0 +1,46 @@
+[
+  {
+    "doctype": "Grading Score",
+    "grade_code": "STD",
+    "grade_name": "Standard Grading",
+    "grading_items": [
+      {
+        "from_percent": 90,
+        "to_percent": 100,
+        "grade": "A",
+        "status": "Pass"
+      },
+      {
+        "from_percent": 80,
+        "to_percent": 89,
+        "grade": "B",
+        "status": "Pass"
+      },
+      {
+        "from_percent": 70,
+        "to_percent": 79,
+        "grade": "C",
+        "status": "Pass"
+      },
+      {
+        "from_percent": 60,
+        "to_percent": 69,
+        "grade": "D",
+        "status": "Moderate"
+      },
+      {
+        "from_percent": 50,
+        "to_percent": 59,
+        "grade": "E",
+        "status": "Moderate"
+      },
+      {
+        "from_percent": 0,
+        "to_percent": 49,
+        "grade": "F",
+        "status": "Failed"
+      }
+    ],
+    "name": "STD"
+  }
+]

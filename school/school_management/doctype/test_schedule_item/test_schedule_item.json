@@ -9,7 +9,10 @@
   "student_admission_no",
   "student_full_name",
   "marks_obtained",
-  "status"
+  "status",
+  "grade",
+  "student_upload",
+  "submitted_on"
  ],
  "fields": [
   {
@@ -19,6 +22,14 @@
    "label": "Admission No",
    "options": "Student",
    "show_preview_popup": 1
+  },
+  {
+   "fetch_from": "student_admission_no.full_name",
+   "fieldname": "student_full_name",
+   "fieldtype": "Read Only",
+   "in_list_view": 1,
+   "label": "Student Name",
+   "read_only": 1
   },
   {
    "fieldname": "marks_obtained",
@@ -31,14 +42,26 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Status",
-   "options": "\nPass\nFailed"
+   "options": "\nPass\nModerate\nFailed",
+   "read_only": 1
   },
   {
-   "fetch_from": "student_admission_no.full_name",
-   "fieldname": "student_full_name",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Student Name",
+   "fieldname": "grade",
+   "fieldtype": "Data",
+   "label": "Grade",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "student_upload",
+   "fieldtype": "Attach",
+   "label": "Student File (PDF, Word, Image)",
+   "description": "Student submission file"
+  },
+  {
+   "fieldname": "submitted_on",
+   "fieldtype": "Datetime",
+   "label": "Submitted On",
    "read_only": 1
   }
  ],

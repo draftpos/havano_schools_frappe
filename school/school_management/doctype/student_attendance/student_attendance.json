@@ -1,178 +1,183 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2026-03-03 11:14:33.188810",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "attendance_section",
-  "admission_no",
-  "student_name",
-  "student_class",
-  "section",
-  "column_break_1",
-  "date",
-  "check_in_time",
-  "check_out_time",
-  "status_section",
-  "status",
-  "attendance",
-  "remarks",
-  "amended_from"
- ],
- "fields": [
-  {
-   "fieldname": "attendance_section",
-   "fieldtype": "Section Break",
-   "label": "Attendance Details"
-  },
-  {
-   "fieldname": "admission_no",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Admission No",
-   "options": "Student",
-   "reqd": 1,
-   "search_index": 1
-  },
-  {
-   "fetch_from": "admission_no.full_name",
-   "fieldname": "student_name",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Student Name"
-  },
-  {
-   "fetch_from": "admission_no.student_class",
-   "fieldname": "student_class",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Class"
-  },
-  {
-   "fetch_from": "admission_no.section",
-   "fieldname": "section",
-   "fieldtype": "Read Only",
-   "in_list_view": 1,
-   "label": "Section"
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "default": "Today",
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "check_in_time",
-   "fieldtype": "Time",
-   "in_list_view": 1,
-   "label": "Check In Time"
-  },
-  {
-   "fieldname": "check_out_time",
-   "fieldtype": "Time",
-   "in_list_view": 1,
-   "label": "Check Out Time"
-  },
-  {
-   "fieldname": "status_section",
-   "fieldtype": "Section Break",
-   "label": "Status"
-  },
-  {
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Status",
-   "options": "\nLate\nEarly Check Out"
-  },
-  {
-   "fieldname": "attendance",
-   "fieldtype": "Select",
-   "in_list_view": 1,
-   "label": "Attendance",
-   "options": "\nPresent\nAbsent\nSick\nOn Leave",
-   "reqd": 1
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Student Attendance",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2026-03-21 08:12:22.036569",
- "modified_by": "Administrator",
- "module": "School Management",
- "name": "Student Attendance",
- "owner": "Administrator",
- "permissions": [
-  {
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "All",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "School User",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "title_field": "student_name"
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-03-03 11:14:33.188810",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "attendance_section",
+        "admission_no",
+        "student_name",
+        "student_class",
+        "section",
+        "column_break_1",
+        "date",
+        "check_in_time",
+        "check_out_time",
+        "status_section",
+        "status",
+        "attendance",
+        "remarks",
+        "amended_from"
+    ],
+    "fields": [
+        {
+            "fieldname": "attendance_section",
+            "fieldtype": "Section Break",
+            "label": "Attendance Details"
+        },
+        {
+            "fieldname": "admission_no",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Admission No",
+            "options": "Student",
+            "reqd": 1,
+            "search_index": 1
+        },
+        {
+            "fetch_from": "admission_no.full_name",
+            "fieldname": "student_name",
+            "fieldtype": "Read Only",
+            "in_list_view": 1,
+            "label": "Student Name"
+        },
+        {
+            "fetch_from": "admission_no.student_class",
+            "fieldname": "student_class",
+            "fieldtype": "Read Only",
+            "in_list_view": 1,
+            "label": "Class"
+        },
+        {
+            "fetch_from": "admission_no.section",
+            "fieldname": "section",
+            "fieldtype": "Read Only",
+            "in_list_view": 1,
+            "label": "Section"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "default": "Today",
+            "fieldname": "date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "check_in_time",
+            "fieldtype": "Time",
+            "in_list_view": 1,
+            "label": "Check In Time"
+        },
+        {
+            "fieldname": "check_out_time",
+            "fieldtype": "Time",
+            "in_list_view": 1,
+            "label": "Check Out Time"
+        },
+        {
+            "fieldname": "status_section",
+            "fieldtype": "Section Break",
+            "label": "Status"
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "\nLate\nEarly Check Out"
+        },
+        {
+            "fieldname": "attendance",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Attendance",
+            "options": "\nPresent\nAbsent\nSick\nOn Leave",
+            "reqd": 1
+        },
+        {
+            "fieldname": "remarks",
+            "fieldtype": "Small Text",
+            "label": "Remarks"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Student Attendance",
+            "print_hide": 1,
+            "read_only": 1,
+            "search_index": 1
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [],
+    "modified": "2026-03-21 08:12:22.036569",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Student Attendance",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "All",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        },
+        {
+            "role": "School User",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        }
+    ],
+    "row_format": "Dynamic",
+    "rows_threshold_for_grid_search": 20,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "student_name"
 }

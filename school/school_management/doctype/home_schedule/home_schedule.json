@@ -1,224 +1,229 @@
 {
- "actions": [],
- "allow_rename": 1,
- "creation": "2026-03-03 11:07:18.394602",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "basic_info_section",
-  "test_name",
-  "test_type",
-  "column_break_1",
-  "student_class",
-  "section",
-  "number_of_students",
-  "schedule_details_section",
-  "subject",
-  "date",
-  "start_time",
-  "duration",
-  "column_break_2",
-  "room_number",
-  "max_marks",
-  "min_marks",
-  "total_questions",
-  "student_marks_entry_section",
-  "home_items",
-  "remarks",
-  "amended_from",
-  "fetch_students"
- ],
- "fields": [
-  {
-   "fieldname": "basic_info_section",
-   "fieldtype": "Section Break",
-   "label": "Basic Info"
-  },
-  {
-   "fieldname": "test_name",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Test Name",
-   "options": "Homework",
-   "reqd": 1
-  },
-  {
-   "fetch_from": "test_name.homework_type",
-   "fieldname": "test_type",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Test Type",
-   "options": "Homework Type"
-  },
-  {
-   "fieldname": "column_break_1",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "student_class",
-   "fieldtype": "Link",
-   "label": "Class",
-   "options": "Student Class",
-   "reqd": 1
-  },
-  {
-   "fieldname": "section",
-   "fieldtype": "Link",
-   "label": "Section",
-   "options": "Section"
-  },
-  {
-   "fieldname": "number_of_students",
-   "fieldtype": "Int",
-   "label": "Number of Students",
-   "read_only": 1
-  },
-  {
-   "fieldname": "schedule_details_section",
-   "fieldtype": "Section Break",
-   "label": "Schedule Details"
-  },
-  {
-   "fieldname": "subject",
-   "fieldtype": "Link",
-   "label": "Subject",
-   "options": "Subject",
-   "reqd": 1
-  },
-  {
-   "fieldname": "date",
-   "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Date",
-   "reqd": 1
-  },
-  {
-   "fieldname": "start_time",
-   "fieldtype": "Time",
-   "label": "Time to Start"
-  },
-  {
-   "fieldname": "duration",
-   "fieldtype": "Duration",
-   "label": "Duration Period"
-  },
-  {
-   "fieldname": "column_break_2",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "room_number",
-   "fieldtype": "Link",
-   "label": "Room Number",
-   "options": "Room Number"
-  },
-  {
-   "fetch_from": "test_name.max_marks",
-   "fieldname": "max_marks",
-   "fieldtype": "Float",
-   "label": "Max Marks"
-  },
-  {
-   "fetch_from": "test_name.min_marks",
-   "fieldname": "min_marks",
-   "fieldtype": "Float",
-   "label": "Min Marks"
-  },
-  {
-   "fieldname": "total_questions",
-   "fieldtype": "Int",
-   "label": "Total Questions"
-  },
-  {
-   "fieldname": "student_marks_entry_section",
-   "fieldtype": "Section Break",
-   "label": "Student Marks Entry"
-  },
-  {
-   "fieldname": "home_items",
-   "fieldtype": "Table",
-   "label": "Student Marks",
-   "options": "Home Schedule Item"
-  },
-  {
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "fieldname": "amended_from",
-   "fieldtype": "Link",
-   "label": "Amended From",
-   "no_copy": 1,
-   "options": "Home Schedule",
-   "print_hide": 1,
-   "read_only": 1,
-   "search_index": 1
-  },
-  {
-   "fieldname": "fetch_students",
-   "fieldtype": "Button",
-   "label": "Fetch Students from Class/Section"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "is_submittable": 1,
- "links": [],
- "modified": "2026-03-21 08:12:23.571194",
- "modified_by": "Administrator",
- "module": "School Management",
- "name": "Home Schedule",
- "owner": "Administrator",
- "permissions": [
-  {
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "All",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "amend": 1,
-   "cancel": 1,
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "School User",
-   "share": 1,
-   "submit": 1,
-   "write": 1
-  }
- ],
- "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
- "show_title_field_in_link": 1,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": [],
- "title_field": "test_name"
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-03-03 11:07:18.394602",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "basic_info_section",
+        "test_name",
+        "test_type",
+        "column_break_1",
+        "student_class",
+        "section",
+        "number_of_students",
+        "schedule_details_section",
+        "subject",
+        "date",
+        "start_time",
+        "duration",
+        "column_break_2",
+        "room_number",
+        "max_marks",
+        "min_marks",
+        "total_questions",
+        "student_marks_entry_section",
+        "home_items",
+        "remarks",
+        "amended_from",
+        "fetch_students"
+    ],
+    "fields": [
+        {
+            "fieldname": "basic_info_section",
+            "fieldtype": "Section Break",
+            "label": "Basic Info"
+        },
+        {
+            "fieldname": "test_name",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Test Name",
+            "options": "Homework",
+            "reqd": 1
+        },
+        {
+            "fetch_from": "test_name.homework_type",
+            "fieldname": "test_type",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Test Type",
+            "options": "Homework Type"
+        },
+        {
+            "fieldname": "column_break_1",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "student_class",
+            "fieldtype": "Link",
+            "label": "Class",
+            "options": "Student Class",
+            "reqd": 1
+        },
+        {
+            "fieldname": "section",
+            "fieldtype": "Link",
+            "label": "Section",
+            "options": "Section"
+        },
+        {
+            "fieldname": "number_of_students",
+            "fieldtype": "Int",
+            "label": "Number of Students",
+            "read_only": 1
+        },
+        {
+            "fieldname": "schedule_details_section",
+            "fieldtype": "Section Break",
+            "label": "Schedule Details"
+        },
+        {
+            "fieldname": "subject",
+            "fieldtype": "Link",
+            "label": "Subject",
+            "options": "Subject",
+            "reqd": 1
+        },
+        {
+            "fieldname": "date",
+            "fieldtype": "Date",
+            "in_list_view": 1,
+            "label": "Date",
+            "reqd": 1
+        },
+        {
+            "fieldname": "start_time",
+            "fieldtype": "Time",
+            "label": "Time to Start"
+        },
+        {
+            "fieldname": "duration",
+            "fieldtype": "Duration",
+            "label": "Duration Period"
+        },
+        {
+            "fieldname": "column_break_2",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "room_number",
+            "fieldtype": "Link",
+            "label": "Room Number",
+            "options": "Room Number"
+        },
+        {
+            "fetch_from": "test_name.max_marks",
+            "fieldname": "max_marks",
+            "fieldtype": "Float",
+            "label": "Max Marks"
+        },
+        {
+            "fetch_from": "test_name.min_marks",
+            "fieldname": "min_marks",
+            "fieldtype": "Float",
+            "label": "Min Marks"
+        },
+        {
+            "fieldname": "total_questions",
+            "fieldtype": "Int",
+            "label": "Total Questions"
+        },
+        {
+            "fieldname": "student_marks_entry_section",
+            "fieldtype": "Section Break",
+            "label": "Student Marks Entry"
+        },
+        {
+            "fieldname": "home_items",
+            "fieldtype": "Table",
+            "label": "Student Marks",
+            "options": "Home Schedule Item"
+        },
+        {
+            "fieldname": "remarks",
+            "fieldtype": "Small Text",
+            "label": "Remarks"
+        },
+        {
+            "fieldname": "amended_from",
+            "fieldtype": "Link",
+            "label": "Amended From",
+            "no_copy": 1,
+            "options": "Home Schedule",
+            "print_hide": 1,
+            "read_only": 1,
+            "search_index": 1
+        },
+        {
+            "fieldname": "fetch_students",
+            "fieldtype": "Button",
+            "label": "Fetch Students from Class/Section"
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "is_submittable": 1,
+    "links": [],
+    "modified": "2026-03-21 08:12:23.571194",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Home Schedule",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "All",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        },
+        {
+            "role": "School User",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 1,
+            "cancel": 1,
+            "amend": 1,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        }
+    ],
+    "row_format": "Dynamic",
+    "rows_threshold_for_grid_search": 20,
+    "show_title_field_in_link": 1,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": [],
+    "title_field": "test_name"
 }

@@ -1,98 +1,108 @@
 {
- "actions": [],
- "allow_rename": 1,
- "autoname": "field:portal_email",
- "creation": "2026-03-23 09:06:03.839056",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "full_name",
-  "portal_email",
-  "mobile_no",
-  "parent_image",
-  "children"
- ],
- "fields": [
-  {
-   "fieldname": "full_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Full Name",
-   "reqd": 1
-  },
-  {
-   "fieldname": "portal_email",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Portal Email",
-   "reqd": 1,
-   "unique": 1
-  },
-  {
-   "fieldname": "mobile_no",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Mobile No"
-  },
-  {
-   "fieldname": "parent_image",
-   "fieldtype": "Attach Image",
-   "label": "Photo"
-  },
-  {
-   "fieldname": "children",
-   "fieldtype": "Table",
-   "label": "Children",
-   "options": "Parent Child"
-  }
- ],
- "grid_page_length": 50,
- "index_web_pages_for_search": 1,
- "links": [],
- "modified": "2026-03-23 09:06:03.839056",
- "modified_by": "Administrator",
- "module": "School Management",
- "name": "Parent",
- "owner": "Administrator",
- "permissions": [
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "System Manager",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "create": 1,
-   "delete": 1,
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "School User",
-   "share": 1,
-   "write": 1
-  },
-  {
-   "email": 1,
-   "export": 1,
-   "print": 1,
-   "read": 1,
-   "report": 1,
-   "role": "Parent",
-   "share": 1
-  }
- ],
- "row_format": "Dynamic",
- "rows_threshold_for_grid_search": 20,
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "allow_rename": 1,
+    "autoname": "field:portal_email",
+    "creation": "2026-03-23 09:06:03.839056",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "full_name",
+        "portal_email",
+        "mobile_no",
+        "parent_image",
+        "children"
+    ],
+    "fields": [
+        {
+            "fieldname": "full_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Full Name",
+            "reqd": 1
+        },
+        {
+            "fieldname": "portal_email",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Portal Email",
+            "reqd": 1,
+            "unique": 1
+        },
+        {
+            "fieldname": "mobile_no",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Mobile No"
+        },
+        {
+            "fieldname": "parent_image",
+            "fieldtype": "Attach Image",
+            "label": "Photo"
+        },
+        {
+            "fieldname": "children",
+            "fieldtype": "Table",
+            "label": "Children",
+            "options": "Parent Child"
+        }
+    ],
+    "grid_page_length": 50,
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-03-23 09:06:03.839056",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Parent",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "Parent",
+            "share": 1
+        },
+        {
+            "role": "System Manager",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 0,
+            "cancel": 0,
+            "amend": 0,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        },
+        {
+            "role": "School User",
+            "read": 1,
+            "write": 1,
+            "create": 1,
+            "delete": 1,
+            "submit": 0,
+            "cancel": 0,
+            "amend": 0,
+            "report": 1,
+            "export": 1,
+            "import": 0,
+            "share": 1,
+            "print": 1,
+            "email": 1,
+            "permlevel": 0
+        }
+    ],
+    "row_format": "Dynamic",
+    "rows_threshold_for_grid_search": 20,
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
 }

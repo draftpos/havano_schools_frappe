@@ -1,0 +1,38 @@
+ {
+ "actions": [],
+ "autoname": "naming_series:",
+ "creation": "2024-10-01 00:00:00",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "file_name",
+  "file"
+ ],
+ "fields": [
+  {
+   "fieldname": "file_name",
+   "fieldtype": "Data",
+   "label": "File Name"
+  },
+  {
+   "fieldname": "file",
+   "fieldtype": "Attach",
+   "label": "File (PDF, Word, Image, etc)",
+   "reqd": 1,
+   "description": "Upload Word, PDF, images, documents etc."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2024-10-01 00:00:00",
+ "module": "School Management",
+ "name": "Submission File",
+ "naming_rule": "By \"naming_series\"",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
