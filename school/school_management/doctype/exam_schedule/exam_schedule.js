@@ -50,8 +50,8 @@ function fetch_students(frm) {
             if (r.message && r.message.length > 0) {
                 r.message.forEach(function(student) {
                     let row = frm.add_child("exam_items");
-                    row.student_admission_no = student.student_reg_no;
-                    row.student_name = student.full_name;
+                    row.student_admission_no = student.name;
+                    row.student_name = student.full_name || student.name;
                 });
                 frm.refresh_field("exam_items");
                 frappe.msgprint(__("Fetched " + r.message.length + " students"));
