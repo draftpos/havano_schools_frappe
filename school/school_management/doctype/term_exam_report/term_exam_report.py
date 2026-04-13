@@ -552,3 +552,66 @@ def get_student_pdf(report_name, student_id):
 	frappe.response.filename = fname
 	frappe.response.filecontent = pdf_bytes
 	frappe.response.type = "pdf"
+
+@frappe.whitelist(allow_guest=True)
+def verify_report_text(report, student=None):
+	"""
+	QR code endpoint — returns a plain-text browser-readable verification message.
+	URL pattern: /api/method/school...verify_report_text?report=REPORT-001&student=STU-0001
+	"""
+	try:
+		doc = frappe.get_doc("Term Exam Report", report)
+		if doc.docstatus != 1:
+			frappe.response["type"] = "redirect"
+			frappe.local.response["location"] = (
+				frappe.utils.get_url()
+				+ "/term-exam-results?verify_error=not_submitted"
+			)
+			return
+
+		school_name = (
+			frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
+			or doc.cost_center
+			or "School"
+		) if doc.cost_center else "School"
+
+		student_name = ""
+		if student:
+			sdata = frappe.db.get_value(
+				"Student", student,
+				["first_name", "second_name", "last_name", "full_name"],
+				as_dict=True
+			)
+			if sdata:
+				student_name = (
+					" ".join(filter(None, [
+						sdata.first_name, sdata.second_name, sdata.last_name
+					])) or sdata.full_name or student
+				)
+
+		section_part = f" under {doc.section}" if doc.section else ""
+
+		if student_name:
+			msg = (
+				f"This is {student_name}, from {school_name}, "
+				f"in {doc.student_class}{section_part}. "
+				f"This is an official report.\n\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
+		else:
+			msg = (
+				f"Official Term Exam Report — {school_name}\n"
+				f"Class: {doc.student_class}{section_part}\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
+
+		frappe.response["type"]     = "txt"
+		frappe.response["filecontent"] = msg
+		frappe.response["filename"] = "verification.txt"
+
+	except frappe.DoesNotExistError:
+		frappe.response["type"]        = "txt"
+		frappe.response["filecontent"] = "Report not found. This document may be invalid or has been removed."
+		frappe.response["filename"]    = "verification.txt"
