@@ -71,23 +71,15 @@ class TermExamReport(Document):
 					])) or student_doc.get("full_name") or student_id
 				)
 
-				# Get email — try student, then guardian
+				# Get email directly from Student doctype fields
 				email = (
+					student_doc.get("father_email") or
+					student_doc.get("mother_email") or
+					student_doc.get("guardian_email") or
+					student_doc.get("portal_email") or
 					student_doc.get("student_email_id") or
-					student_doc.get("email") or
-					student_doc.get("email_id")
+					student_doc.get("email")
 				)
-				if not email:
-					guardians = frappe.get_all(
-						"Student Guardian",
-						filters={"parent": student_id},
-						fields=["guardian"]
-					)
-					for g in guardians:
-						gd = frappe.get_doc("Guardian", g.guardian)
-						if gd.get("email_address"):
-							email = gd.email_address
-							break
 
 				if not email:
 					frappe.log_error(f"No email for student {student_id}", "Term Exam Report")
@@ -379,7 +371,7 @@ def fetch_results(report_name):
 					"parent": sched.name,
 					"student_admission_no": student.name
 				},
-				["marks_obtained", "grade", "status", "teacher_comment"],
+				["marks_obtained", "grade", "status"],
 				as_dict=1
 			)
 
@@ -388,7 +380,6 @@ def fetch_results(report_name):
 			pct = round((marks / max_m * 100), 1) if (marks is not None and max_m) else None
 			grade = score.grade if score else ""
 			status = score.status if score else ""
-			teacher_comment = score.teacher_comment if score else ""
 
 			rows.append({
 				"student": student.name,
@@ -400,9 +391,7 @@ def fetch_results(report_name):
 				"percentage": pct,
 				"grade": grade,
 				"status": status,
-				"remarks": "",
-				"teacher_comment": teacher_comment,
-				"admin_comment": ""
+				"remarks": ""
 			})
 
 	return {
