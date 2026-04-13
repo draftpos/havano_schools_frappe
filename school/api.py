@@ -439,6 +439,59 @@ def get_homework_results(student=None):
 
 
 @frappe.whitelist()
+def get_term_exam_results(student=None):
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return []
+    if not student:
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name", "full_name", "student_reg_no", "student_class", "section"], as_dict=True)
+    else:
+        student = frappe.db.get_value("Student", student,
+            ["name", "full_name", "student_reg_no", "student_class", "section"], as_dict=True)
+    if not student: return []
+
+    s_name  = student.name
+    s_class = student.student_class or ""
+
+    # Get term reports
+    reports = frappe.db.sql("""
+        SELECT name, report_name, term, academic_year, report_date, student_class
+        FROM `tabTerm Exam Report`
+        WHERE student_class = %s AND docstatus = 1
+        ORDER BY report_date DESC
+    """, s_class, as_dict=True) if s_class else []
+
+    result = []
+    for report in reports:
+        # Get items for this student
+        items = frappe.db.sql("""
+            SELECT subject, marks_obtained, max_marks, percentage, grade, status,
+                   remarks, teacher_comment, admin_comment
+            FROM `tabTerm Exam Result Item`
+            WHERE parent = %s AND student = %s
+        """, (report.name, s_name), as_dict=True)
+
+        if not items:
+            continue
+
+        for item in items:
+            sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
+            item["subject_name"] = sub_name
+
+        result.append({
+            "exam_name": report.term or report.report_name or "Term Report",
+            "report_name": report.report_name or report.name,
+            "term": report.term or "",
+            "academic_year": report.academic_year or "",
+            "date": str(report.report_date) if report.report_date else "",
+            "class_name": report.student_class or "",
+            "items": items
+        })
+
+    return result
+
+
+@frappe.whitelist()
 def get_teacher_portal_dashboard():
     """API endpoint for teacher portal dashboard data"""
     user = frappe.session.user

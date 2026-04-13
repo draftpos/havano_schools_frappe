@@ -1,364 +1,142 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Term Exam Results | Student Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #3730a3;
-            --bg: #f1f5f9;
-            --card: #ffffff;
-            --text: #1e293b;
-            --muted: #64748b;
-            --border: #e2e8f0;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; min-height: 100vh; }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; padding: 1.75rem 1.25rem;
-            box-shadow: 0 4px 12px rgba(79,70,229,0.3);
-        }
-        .header-inner {
-            max-width: 860px; margin: 0 auto;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .header h1 { font-size: 1.6rem; font-weight: 700; }
-        .btn-back {
-            background: rgba(255,255,255,0.2); color: #fff;
-            padding: 0.45rem 1rem; border-radius: 8px;
-            text-decoration: none; font-size: 0.875rem; font-weight: 500;
-            transition: background 0.2s;
-        }
-        .btn-back:hover { background: rgba(255,255,255,0.3); color: #fff; text-decoration: none; }
-
-        /* Main */
-        .main { max-width: 860px; margin: 0 auto; padding: 2rem 1.25rem; }
-
-        /* Student banner */
-        .student-banner {
-            background: var(--card); border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 1.25rem 1.5rem; margin-bottom: 2rem;
-            display: flex; align-items: center; gap: 1rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-        }
-        .avatar {
-            width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; display: flex; align-items: center; justify-content: center;
-            font-size: 1.4rem; font-weight: 700;
-        }
-        .student-info h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
-        .student-info p  { font-size: 0.85rem; color: var(--muted); }
-
-        /* State boxes */
-        .state {
-            background: var(--card); border-radius: 12px;
-            border: 1px solid var(--border);
-            padding: 3rem 2rem; text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-            color: var(--muted);
-        }
-        .state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
-        .state p { font-size: 1rem; }
-        .spinner {
-            width: 32px; height: 32px; border-radius: 50%;
-            border: 3px solid #e2e8f0; border-top-color: var(--primary);
-            animation: spin 0.7s linear infinite; margin: 0 auto 1rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* Result cards */
-        .result-card {
-            background: var(--card); border-radius: 14px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            margin-bottom: 1.75rem; overflow: hidden;
-        }
-        .card-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff; padding: 1.1rem 1.5rem;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .card-header h3 { font-size: 1rem; font-weight: 600; margin: 0; }
-        .card-header span { font-size: 0.82rem; opacity: 0.85; }
-
-        .card-summary {
-            display: flex; gap: 0.75rem; flex-wrap: wrap;
-            padding: 1rem 1.5rem; background: #fafbff;
-            border-bottom: 1px solid var(--border);
-        }
-        .badge {
-            background: #f1f5f9; border: 1px solid var(--border);
-            border-radius: 8px; padding: 0.45rem 0.9rem;
-        }
-        .badge strong { display: block; font-size: 1rem; font-weight: 700; color: var(--primary); }
-        .badge small  { font-size: 0.72rem; color: var(--muted); }
-
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 0.8rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
-        th { background: #f8fafc; font-weight: 600; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
-        tr:last-child td { border-bottom: none; }
-        tr:hover td { background: #f8fafc; }
-
-        .bar-wrap { display: flex; align-items: center; gap: 0.5rem; }
-        .bar-num  { min-width: 42px; font-size: 0.82rem; color: var(--muted); }
-        .bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
-        .bar-fill  { height: 100%; border-radius: 3px; }
-
-        .pill { display: inline-block; border-radius: 999px; padding: 0.15rem 0.6rem; font-size: 0.75rem; font-weight: 700; }
-        .g-a { background: #dcfce7; color: #166534; }
-        .g-b { background: #dbeafe; color: #1e40af; }
-        .g-c { background: #fef9c3; color: #854d0e; }
-        .g-d { background: #ffedd5; color: #9a3412; }
-        .g-f { background: #fee2e2; color: #991b1b; }
-
-        .spill { display: inline-block; border-radius: 6px; padding: 0.15rem 0.55rem; font-size: 0.75rem; font-weight: 600; }
-        .s-pass     { background: #dcfce7; color: #166534; }
-        .s-moderate { background: #fef9c3; color: #854d0e; }
-        .s-failed   { background: #fee2e2; color: #991b1b; }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <div class="header-inner">
-        <h1>📋 Term Exam Results</h1>
-        <a href="/assets/school/html/student-portal.html" class="btn-back">← Back to Portal</a>
-    </div>
-</div>
-
-<div class="main">
-    <div class="student-banner" id="student-banner" style="display:none;">
-        <div class="avatar" id="student-avatar">S</div>
-        <div class="student-info">
-            <h3 id="student-name">—</h3>
-            <p id="student-meta">—</p>
-        </div>
-    </div>
-
-    <div class="state" id="state-loading">
-        <div class="spinner"></div>
-        <p>Loading your exam results…</p>
-    </div>
-
-    <div class="state" id="state-empty" style="display:none;">
-        <div class="icon">🔍</div>
-        <p>No submitted exam results found for your account.</p>
-    </div>
-
-    <div class="state" id="state-error" style="display:none;">
-        <div class="icon">⚠️</div>
-        <p id="error-msg">Something went wrong.</p>
-    </div>
-
-    <div id="cards-container"></div>
-</div>
+---
+no_cache: 1
+title: Term Exam Results
+---
 
 <script>
-function getCsrf() {
-    var m = document.cookie.match(/csrf_token=([^;]+)/);
-    return m ? decodeURIComponent(m[1]) : '';
-}
-function apiFetch(path) {
-    return fetch(path, {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json', 'X-Frappe-CSRF-Token': getCsrf() }
-    }).then(function(r) { return r.json(); });
-}
-function el(id) { return document.getElementById(id); }
-function hide(id) { el(id).style.display = 'none'; }
-function show(id) { el(id).style.display = ''; }
-function showError(msg) {
-    hide('state-loading'); hide('state-empty');
-    el('error-msg').textContent = msg;
-    show('state-error');
-}
-
-var student = null;
-
-window.addEventListener('load', function() {
-    // Verify session
-    apiFetch('/api/method/frappe.auth.get_logged_user')
-        .then(function(d) {
-            if (!d.message || d.message === 'Guest') {
-                window.location.href = '/portal-login'; return;
-            }
-            loadStudent(d.message);
-        })
-        .catch(function() { showError('Session error. Please login again.'); });
-});
-
-function loadStudent(email) {
-    var url = '/api/resource/Student?fields=["name","first_name","last_name","student_class","admission_number"]' +
-              '&filters=[["portal_email","=","' + encodeURIComponent(email) + '"]]&limit=1';
-    apiFetch(url).then(function(d) {
-        if (!d.data || !d.data.length) {
-            showError('No student record linked to your login. Please contact your administrator.');
-            return;
-        }
-        student = d.data[0];
-        renderBanner(student);
-        loadReports(student);
-    }).catch(function() { showError('Could not load student data.'); });
-}
-
-function renderBanner(s) {
-    var name = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || s.name;
-    el('student-avatar').textContent = name.charAt(0).toUpperCase();
-    el('student-name').textContent  = name;
-    var meta = [];
-    if (s.admission_number) meta.push('Adm: ' + s.admission_number);
-    if (s.student_class)    meta.push('Class: ' + s.student_class);
-    el('student-meta').textContent = meta.join('  •  ') || s.name;
-    el('student-banner').style.display = 'flex';
-}
-
-function loadReports(s) {
-    // Fetch all submitted Term Exam Reports for this student's class
-    var filters = '[["docstatus","=","1"]';
-    if (s.student_class) filters += ',["student_class","=","' + s.student_class + '"]]';
-    else filters += ']';
-
-    var url = '/api/resource/Term Exam Report?fields=["name","report_name","term","academic_year","report_date","student_class"]' +
-              '&filters=' + encodeURIComponent(filters) + '&order_by=report_date desc&limit=20';
-
-    apiFetch(url).then(function(d) {
-        if (!d.data || !d.data.length) {
-            hide('state-loading'); show('state-empty'); return;
-        }
-        // Now load each full report doc to get child table
-        var reports = d.data;
-        var loaded  = [];
-        var count   = 0;
-        reports.forEach(function(meta) {
-            apiFetch('/api/resource/Term Exam Report/' + encodeURIComponent(meta.name))
-                .then(function(r) {
-                    count++;
-                    if (r.data) {
-                        var doc  = r.data;
-                        var rows = (doc.term_exam_results || []).filter(function(row) {
-                            return row.student === student.name;
-                        });
-                        if (rows.length) loaded.push({ doc: doc, rows: rows });
-                    }
-                    if (count === reports.length) {
-                        hide('state-loading');
-                        if (!loaded.length) { show('state-empty'); return; }
-                        loaded.forEach(function(item) { renderCard(item.doc, item.rows); });
-                    }
-                })
-                .catch(function() { count++; });
-        });
-    }).catch(function() { showError('Could not load exam reports.'); });
-}
-
-function renderCard(doc, rows) {
-    // Summary
-    var totalObt = 0, totalMax = 0, passed = 0, failed = 0;
-    rows.forEach(function(r) {
-        totalObt += parseFloat(r.marks_obtained || 0);
-        totalMax += parseFloat(r.max_marks || 0);
-        var s = (r.status || '').toLowerCase();
-        if (s === 'pass' || s === 'moderate') passed++;
-        else if (s === 'failed') failed++;
+// Smart back button — goes to parent portal if viewing as parent
+(function(){
+  var params = new URLSearchParams(window.location.search);
+  var backUrl = params.get('from') === 'parent'
+    ? '/assets/school/html/parent-portal.html'
+    : '/assets/school/html/student-portal.html';
+  document.addEventListener('DOMContentLoaded', function(){
+    document.querySelectorAll('a.bb').forEach(function(a){
+      if(a.textContent.includes('Dashboard')) {
+         a.href = backUrl;
+      }
     });
-    var pct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : null;
-
-    var card = document.createElement('div');
-    card.className = 'result-card';
-
-    // Header
-    var headerMeta = [];
-    if (doc.academic_year) headerMeta.push(doc.academic_year);
-    if (doc.report_date)   headerMeta.push(doc.report_date);
-    card.innerHTML =
-        '<div class="card-header">' +
-            '<h3>📄 ' + (doc.term || doc.report_name || 'Term Report') + '</h3>' +
-            '<span>' + headerMeta.join('  |  ') + '</span>' +
-        '</div>';
-
-    // Summary badges
-    var summaryDiv = document.createElement('div');
-    summaryDiv.className = 'card-summary';
-    summaryDiv.innerHTML =
-        badge(rows.length, 'Subjects') +
-        badge(totalObt, 'Total Obtained') +
-        (totalMax ? badge(totalMax, 'Total Max') : '') +
-        (pct      ? badge(pct + '%', 'Overall %') : '') +
-        (passed   ? badge(passed, 'Passed')  : '') +
-        (failed   ? badge(failed, 'Failed')  : '');
-    card.appendChild(summaryDiv);
-
-    // Table
-    var tableWrap = document.createElement('div');
-    var tbodyRows = '';
-    rows.forEach(function(row) {
-        var obt   = parseFloat(row.marks_obtained || 0);
-        var max   = parseFloat(row.max_marks || 0);
-        var rowPct = row.percentage != null
-                     ? parseFloat(row.percentage).toFixed(1)
-                     : (max > 0 ? ((obt / max) * 100).toFixed(1) : '—');
-        var grade  = (row.grade || autoGrade(parseFloat(rowPct))).toUpperCase();
-        var color  = barColor(parseFloat(rowPct));
-        var comments = [];
-        if (row.remarks)         comments.push(row.remarks);
-        if (row.teacher_comment) comments.push('Teacher: ' + row.teacher_comment);
-        if (row.admin_comment)   comments.push('Admin: '   + row.admin_comment);
-
-        tbodyRows +=
-            '<tr>' +
-            '<td><strong>' + (row.subject || '—') + '</strong></td>' +
-            '<td>' + obt + '</td>' +
-            '<td>' + (max || '—') + '</td>' +
-            '<td><div class="bar-wrap"><span class="bar-num">' + rowPct + '%</span>' +
-                '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(parseFloat(rowPct)||0,100) + '%;background:' + color + ';"></div></div>' +
-            '</div></td>' +
-            '<td><span class="pill ' + gradeClass(grade) + '">' + grade + '</span></td>' +
-            '<td>' + statusPill(row.status) + '</td>' +
-            '<td style="color:var(--muted);font-size:0.8rem;font-style:italic">' + (comments.join(' — ') || '—') + '</td>' +
-            '</tr>';
-    });
-
-    tableWrap.innerHTML =
-        '<table>' +
-        '<thead><tr><th>Subject</th><th>Marks</th><th>Max</th><th>Percentage</th><th>Grade</th><th>Status</th><th>Remarks</th></tr></thead>' +
-        '<tbody>' + tbodyRows + '</tbody>' +
-        '</table>';
-    card.appendChild(tableWrap);
-
-    el('cards-container').appendChild(card);
-}
-
-/* Helpers */
-function badge(v, l) {
-    return '<div class="badge"><strong>' + v + '</strong><small>' + l + '</small></div>';
-}
-function barColor(p) {
-    return p >= 80 ? '#4f46e5' : p >= 65 ? '#0891b2' : p >= 50 ? '#d97706' : '#dc2626';
-}
-function gradeClass(g) {
-    if (g[0]==='A') return 'g-a'; if (g[0]==='B') return 'g-b';
-    if (g[0]==='C') return 'g-c'; if (g[0]==='D') return 'g-d';
-    return 'g-f';
-}
-function statusPill(s) {
-    var l = (s || '').toLowerCase();
-    if (l === 'pass')     return '<span class="spill s-pass">Pass ✓</span>';
-    if (l === 'moderate') return '<span class="spill s-moderate">Moderate</span>';
-    if (l === 'failed')   return '<span class="spill s-failed">Failed ✗</span>';
-    return '<span style="color:var(--muted)">—</span>';
-}
-function autoGrade(p) {
-    if (p>=80) return 'A'; if (p>=70) return 'B';
-    if (p>=60) return 'C'; if (p>=50) return 'D'; return 'F';
-}
+  });
+  window.BACK_URL = backUrl;
+})();
 </script>
-</body>
-</html>
+
+<style>
+.rh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
+.rh h2{margin:0;}.rh p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
+.ic{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px;}
+.ic-box{background:white;border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.07);border-top:4px solid #2e86de;}
+.ic-box.g{border-top-color:#34a853;}.ic-box.o{border-top-color:#fbbc04;}.ic-box.p{border-top-color:#7c4dff;}.ic-box.r{border-top-color:#ea4335;}
+.ic-icon{font-size:1.6rem;margin-bottom:6px;}.ic-val{font-size:1rem;font-weight:700;color:#1e3a5f;margin-bottom:3px;word-break:break-word;}.ic-lbl{font-size:0.75rem;color:#888;text-transform:uppercase;}
+.tc{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:20px;}
+.tc .th{background:#f8f9fa;padding:14px 18px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;}
+.tc table{width:100%;border-collapse:collapse;}.tc table th{background:#f0f4ff;padding:10px 14px;text-align:left;font-size:0.8rem;font-weight:600;color:#555;text-transform:uppercase;}
+.tc table td{padding:10px 14px;border-bottom:1px solid #f5f5f5;font-size:0.9rem;}.tc table tr:last-child td{border-bottom:none;}
+.gb{display:inline-block;padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.82rem;}
+.gA{background:#e6f4ea;color:#2e7d32;}.gB{background:#e8f0fe;color:#1565c0;}.gC{background:#fff3e0;color:#e65100;}.gD{background:#fce4ec;color:#c62828;}.gE{background:#fce8e6;color:#b71c1c;}
+.sp{color:#2e7d32;font-weight:600;}.sf{color:#c62828;font-weight:600;}
+.ri{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;cursor:pointer;transition:transform 0.15s;}
+.ri:hover{transform:translateY(-2px);}.ri-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.ri-h h5{margin:0;font-size:1.1rem;}.ri-h .m{font-size:0.85rem;opacity:0.85;margin-top:4px;}
+.bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
+.bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
+.msc{display:none;background:#f8f9fa;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e86de;}
+.msc .sn{font-weight:600;color:#1e3a5f;margin-bottom:5px;}.msc .sr{display:flex;justify-content:space-between;font-size:0.86rem;margin-bottom:3px;}
+.msc .sl{color:#888;}.msc .sv{font-weight:600;color:#333;}
+@media(max-width:768px){.ic{grid-template-columns:repeat(2,1fr);}.dt{display:none;}.msc{display:block !important;}}
+</style>
+<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading results...</div>
+<div id="lv" style="display:none;">
+  <div class="rh"><a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a><h2>&#127979; Term Exam Results</h2><p>Click a term summary to view full results</p></div>
+  <div id="ll"></div>
+</div>
+<div id="dv" style="display:none;">
+  <div class="rh"><a href="#" onclick="showList();return false;" class="bb">&#8592; Back</a><h2 id="dt"></h2><p id="ds"></p></div>
+  <div class="ic" id="dc"></div>
+  <div class="tc"><div class="th">&#128203; Subject Scores</div>
+    <div class="dt"><table><thead><tr><th>Subject</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th><th>Comments</th></tr></thead><tbody id="stb"></tbody></table></div>
+    <div id="msd" style="padding:14px;"></div>
+  </div>
+</div>
+<script>
+var AR=[];
+function G(p){if(p>=75)return"A";if(p>=60)return"B";if(p>=50)return"C";if(p>=40)return"D";return"E";}
+function showList(){document.getElementById("dv").style.display="none";document.getElementById("lv").style.display="block";}
+function el(id){return document.getElementById(id);}
+function showDetail(i){
+  var r=AR[i];el("lv").style.display="none";
+  el("dt").textContent=r.exam_name;
+  el("ds").textContent=r.academic_year+" | "+r.class_name+" | "+r.date;
+  
+  var totalMax=0, totalObt=0, subjCount=0;
+  r.items.forEach(function(s){
+     totalMax += parseFloat(s.max_marks||0);
+     totalObt += parseFloat(s.marks_obtained||0);
+     subjCount++;
+  });
+  var overallPct = totalMax>0 ? ((totalObt/totalMax)*100).toFixed(1) : 0;
+  var overallGrade = G(parseFloat(overallPct));
+
+  el("dc").innerHTML=
+    '<div class="ic-box"><div class="ic-icon">&#127979;</div><div class="ic-val">'+r.class_name+'</div><div class="ic-lbl">Class</div></div>'+
+    '<div class="ic-box o"><div class="ic-icon">&#128197;</div><div class="ic-val">'+r.academic_year+'</div><div class="ic-lbl">Year</div></div>'+
+    '<div class="ic-box p"><div class="ic-icon">&#128218;</div><div class="ic-val">'+subjCount+'</div><div class="ic-lbl">Subjects</div></div>'+
+    '<div class="ic-box r"><div class="ic-icon">&#127919;</div><div class="ic-val">'+totalObt+' / '+totalMax+'</div><div class="ic-lbl">Total Marks</div></div>'+
+    '<div class="ic-box g"><div class="ic-icon">&#127942;</div><div class="ic-val">'+overallPct+'%</div><div class="ic-lbl">Overall</div></div>';
+
+  var tb="", mb="";
+  r.items.forEach(function(s){
+    var max = parseFloat(s.max_marks||0);
+    var obt = parseFloat(s.marks_obtained||0);
+    var pct = s.percentage != null ? parseFloat(s.percentage).toFixed(1) : (max>0?((obt/max)*100).toFixed(1):0);
+    var g = s.grade || G(parseFloat(pct));
+    var stat = (s.status||"-").toLowerCase();
+    var sc = (stat==="pass"||stat==="moderate")?"sp":"sf";
+    var comments = [];
+    if(s.remarks) comments.push(s.remarks);
+    if(s.teacher_comment) comments.push("T: "+s.teacher_comment);
+    if(s.admin_comment) comments.push("A: "+s.admin_comment);
+    var cstr = comments.join(" | ")||"-";
+
+    tb+="<tr><td><strong>"+(s.subject_name||"-")+"</strong></td><td>"+obt+"/"+max+"</td><td>"+pct+"%</td><td><span class='gb g"+g[0]+"'>"+g+"</span></td><td class='"+sc+"'>"+(s.status||"-")+"</td><td><small style='color:#777'>"+cstr+"</small></td></tr>";
+    
+    mb+="<div class='msc' style='display:block;'><div class='sn'>"+(s.subject_name||"-")+"</div><div class='sr'><span class='sl'>Marks</span><span class='sv'>"+obt+"/"+max+"</span></div><div class='sr'><span class='sl'>%</span><span class='sv'>"+pct+"%</span></div><div class='sr'><span class='sl'>Grade</span><span class='sv'><span class='gb g"+g[0]+"'>"+g+"</span></span></div><div class='sr'><span class='sl'>Status</span><span class='sv "+sc+"'>"+(s.status||"-")+"</span></div><div class='sr' style='display:block;margin-top:5px;font-size:0.8rem;color:#777;'><span class='sl'>Comm: </span><span class='sv'>"+cstr+"</span></div></div>";
+  });
+
+  el("stb").innerHTML=tb;
+  el("msd").innerHTML=mb;
+  el("dv").style.display="block";
+}
+window.addEventListener("load", function(){
+  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_term_exam_results"+_qs,{credentials:"same-origin"});})()
+  .then(function(res){return res.json();})
+  .then(function(r){
+    if(!r.message||!r.message.length){
+      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No term exam results found.</p><a href="#" onclick="if(window.BACK_URL) window.location.href=window.BACK_URL; else window.history.back(); return false;" class="bb" style="background:#1e3a5f;padding:10px 20px;margin-top:20px;">Return to Dashboard</a></div>';
+      return;
+    }
+    AR=r.message;
+    var h="";
+    AR.forEach(function(result,idx){
+      var totalMax=0, totalObt=0, subjCount=0;
+      result.items.forEach(function(s){
+         totalMax += parseFloat(s.max_marks||0);
+         totalObt += parseFloat(s.marks_obtained||0);
+         subjCount++;
+      });
+      var pct = totalMax>0 ? ((totalObt/totalMax)*100).toFixed(1) : 0;
+      var g = G(parseFloat(pct));
+      var sc = pct >= 50 ? "sp" : "sf";
+      var statStr = pct >= 50 ? "Pass" : "Fail";
+
+      h+='<div class="ri" onclick="showDetail('+idx+')"><div class="ri-h"><div><h5>'+result.exam_name+'</h5><div class="m">'+result.academic_year+' &bull; '+result.class_name+' &bull; '+subjCount+' Subjects</div></div><div style="text-align:right;min-width:70px;"><div style="font-size:1.2rem;font-weight:700;">'+pct+'%</div><div style="font-size:0.95rem;font-weight:700;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;">'+g+'</div><div style="font-size:0.78rem;" class="'+sc+'">'+statStr+'</div></div></div></div>';
+    });
+    el("ll").innerHTML=h;
+    el("loading").style.display="none";
+    el("lv").style.display="block";
+  })
+  .catch(function(){
+    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading results.</p><a href="#" onclick="if(window.BACK_URL) window.location.href=window.BACK_URL; else window.history.back(); return false;" class="bb" style="background:#1e3a5f;padding:10px 20px;margin-top:20px;">Return to Dashboard</a></div>';
+  });
+});
+</script>
