@@ -17,226 +17,127 @@
             --text: #1e293b;
             --muted: #64748b;
             --border: #e2e8f0;
-            --pass: #166534;
-            --pass-bg: #dcfce7;
-            --fail: #991b1b;
-            --fail-bg: #fee2e2;
         }
-
         * { box-sizing: border-box; }
-
         body {
             background: var(--bg);
             color: var(--text);
             font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             min-height: 100vh;
         }
 
-        /* ── Header ── */
+        /* Header */
         .portal-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: #fff;
             padding: 1.75rem 0;
             box-shadow: 0 4px 12px rgba(79,70,229,0.3);
         }
-        .container {
-            max-width: 960px;
-            margin: 0 auto;
-            padding: 0 1.25rem;
-        }
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header-row h1 {
-            margin: 0;
-            font-size: 1.75rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+        .container { max-width: 960px; margin: 0 auto; padding: 0 1.25rem; }
+        .header-row { display: flex; justify-content: space-between; align-items: center; }
+        .header-row h1 { margin: 0; font-size: 1.75rem; font-weight: 700; }
         .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            background: rgba(255,255,255,0.18);
-            color: #fff;
-            padding: 0.45rem 1rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
+            display: inline-flex; align-items: center; gap: 0.4rem;
+            background: rgba(255,255,255,0.18); color: #fff;
+            padding: 0.45rem 1rem; border-radius: 8px;
+            text-decoration: none; font-size: 0.9rem; font-weight: 500;
             transition: background 0.2s;
         }
-        .btn-back:hover {
-            background: rgba(255,255,255,0.28);
-            color: #fff;
-            text-decoration: none;
-        }
+        .btn-back:hover { background: rgba(255,255,255,0.28); color: #fff; text-decoration: none; }
 
-        /* ── Content ── */
         .content { padding: 2rem 0; }
 
-        /* ── Student info banner ── */
+        /* Student banner */
         .student-banner {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.25rem 1.5rem;
-            margin-bottom: 1.5rem;
+            background: var(--card-bg); border-radius: 12px;
+            padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
             border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+            display: flex; align-items: center; gap: 1rem;
             box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         .student-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
+            width: 52px; height: 52px; border-radius: 50%;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.4rem;
-            font-weight: 700;
-            flex-shrink: 0;
+            color: #fff; display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: 700; flex-shrink: 0;
         }
-        .student-info h3 { margin: 0 0 0.15rem; font-size: 1rem; font-weight: 600; }
+        .student-info h3 { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 600; }
         .student-info p  { margin: 0; font-size: 0.85rem; color: var(--muted); }
 
-        /* ── Filter card ── */
+        /* Filter */
         .filter-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            background: var(--card-bg); border-radius: 12px;
+            padding: 1.5rem; margin-bottom: 1.5rem;
+            border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
         .filter-card label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.5rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
+            display: block; font-weight: 600; font-size: 0.8rem;
+            margin-bottom: 0.5rem; color: var(--muted);
+            text-transform: uppercase; letter-spacing: 0.05em;
         }
         .filter-card select {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            border: 1.5px solid var(--border);
-            font-size: 1rem;
-            font-family: 'Inter', sans-serif;
-            background: #f8fafc;
-            color: var(--text);
-            cursor: pointer;
-            transition: border-color 0.2s;
+            width: 100%; padding: 0.75rem 1rem;
+            border-radius: 8px; border: 1.5px solid var(--border);
+            font-size: 1rem; font-family: 'Inter', sans-serif;
+            background: #f8fafc; color: var(--text);
+            cursor: pointer; transition: border-color 0.2s;
         }
-        .filter-card select:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: #fff;
-        }
+        .filter-card select:focus { outline: none; border-color: var(--primary); background: #fff; }
 
-        /* ── States ── */
+        /* States */
         .state-box {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 3rem 2rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            background: var(--card-bg); border-radius: 12px;
+            padding: 3rem 2rem; text-align: center;
+            border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             color: var(--muted);
         }
         .state-box .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
         .state-box p { margin: 0; font-size: 1rem; }
 
-        /* ── Results card ── */
+        /* Results card */
         .results-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+            background: var(--card-bg); border-radius: 12px;
+            border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
             overflow: hidden;
         }
         .results-header {
-            padding: 1.25rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
             background: #f8fafc;
         }
         .results-header h3 { margin: 0; font-size: 1rem; font-weight: 600; }
         .results-meta { font-size: 0.85rem; color: var(--muted); }
 
-        .summary-badges {
-            display: flex;
-            gap: 0.75rem;
-            padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
+        .summary-row {
+            display: flex; gap: 0.75rem; padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border); flex-wrap: wrap;
+            background: #fafbff;
         }
-        .summary-badge {
-            background: #f1f5f9;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
+        .sum-badge {
+            background: #f1f5f9; border: 1px solid var(--border);
+            border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem;
         }
-        .summary-badge span { font-weight: 700; font-size: 1rem; color: var(--primary); }
+        .sum-badge strong { font-weight: 700; font-size: 1rem; color: var(--primary); display: block; }
+        .sum-badge span { color: var(--muted); font-size: 0.75rem; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 0.9rem 1.25rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.9rem;
-        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.85rem 1.25rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         th {
-            background: #f8fafc;
-            font-weight: 600;
-            color: var(--muted);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
+            background: #f8fafc; font-weight: 600; color: var(--muted);
+            font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em;
         }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: #f8fafc; }
 
-        .pct-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .bar-track {
-            flex: 1;
-            height: 6px;
-            background: #e2e8f0;
-            border-radius: 3px;
-            overflow: hidden;
-        }
-        .bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.6s ease;
-        }
+        .pct-wrap { display: flex; align-items: center; gap: 0.5rem; }
+        .pct-num { min-width: 44px; font-size: 0.85rem; color: var(--muted); }
+        .bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s ease; }
 
         .grade-pill {
-            display: inline-block;
-            padding: 0.2rem 0.65rem;
-            border-radius: 999px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
+            display: inline-block; padding: 0.18rem 0.65rem;
+            border-radius: 999px; font-size: 0.78rem; font-weight: 700;
         }
         .g-a { background: #dcfce7; color: #166534; }
         .g-b { background: #dbeafe; color: #1e40af; }
@@ -244,17 +145,21 @@
         .g-d { background: #ffedd5; color: #9a3412; }
         .g-f { background: #fee2e2; color: #991b1b; }
 
-        .pass-tag   { background: var(--pass-bg); color: var(--pass); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
-        .fail-tag   { background: var(--fail-bg); color: var(--fail); padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600; }
+        .status-pill {
+            display: inline-block; padding: 0.18rem 0.6rem;
+            border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+        }
+        .s-pass     { background: #dcfce7; color: #166534; }
+        .s-moderate { background: #fef9c3; color: #854d0e; }
+        .s-failed   { background: #fee2e2; color: #991b1b; }
 
-        /* spinner */
+        .comment-cell { color: var(--muted); font-size: 0.82rem; font-style: italic; }
+
+        /* Spinner */
         .spinner {
-            border: 3px solid #e2e8f0;
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            width: 32px; height: 32px;
-            animation: spin 0.7s linear infinite;
-            margin: 0 auto 1rem;
+            border: 3px solid #e2e8f0; border-top-color: var(--primary);
+            border-radius: 50%; width: 32px; height: 32px;
+            animation: spin 0.7s linear infinite; margin: 0 auto 1rem;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
@@ -271,20 +176,20 @@
 <div class="content">
     <div class="container">
 
-        <!-- Student banner -->
+        <!-- Student Banner -->
         <div class="student-banner" id="student-banner" style="display:none;">
             <div class="student-avatar" id="student-avatar">S</div>
             <div class="student-info">
-                <h3 id="student-name">Loading...</h3>
+                <h3 id="student-name">—</h3>
                 <p id="student-meta">—</p>
             </div>
         </div>
 
-        <!-- Filter -->
+        <!-- Term Filter -->
         <div class="filter-card">
             <label for="select-term">Select Academic Term</label>
             <select id="select-term">
-                <option value="">— Choose a term —</option>
+                <option value="">Loading terms…</option>
             </select>
         </div>
 
@@ -297,7 +202,7 @@
         <!-- Prompt -->
         <div class="state-box" id="state-prompt">
             <div class="icon">📚</div>
-            <p>Please select a term to view your exam results.</p>
+            <p>Please select a term above to view your exam results.</p>
         </div>
 
         <!-- No results -->
@@ -312,22 +217,23 @@
             <p id="error-msg">Something went wrong.</p>
         </div>
 
-        <!-- Results -->
+        <!-- Results Table -->
         <div class="results-card" id="results-card" style="display:none;">
             <div class="results-header">
                 <h3 id="results-title">Results</h3>
                 <span class="results-meta" id="results-meta"></span>
             </div>
-            <div class="summary-badges" id="summary-badges"></div>
+            <div class="summary-row" id="summary-row"></div>
             <table>
                 <thead>
                     <tr>
                         <th>Subject</th>
-                        <th>Max Marks</th>
-                        <th>Obtained</th>
-                        <th>%</th>
+                        <th>Marks</th>
+                        <th>Max</th>
+                        <th>Percentage</th>
                         <th>Grade</th>
                         <th>Status</th>
+                        <th>Remarks / Comments</th>
                     </tr>
                 </thead>
                 <tbody id="results-body"></tbody>
@@ -346,9 +252,9 @@ frappe.ready(function () {
         return;
     }
 
-    let studentDoc = null;
+    let currentStudent = null; // full Student doc values
 
-    /* ── 1. Resolve student ── */
+    /* ── Step 1: Resolve Student linked to logged-in user ── */
     frappe.call({
         method: 'frappe.client.get_value',
         args: {
@@ -358,44 +264,44 @@ frappe.ready(function () {
         },
         callback: function (r) {
             if (!r.message || !r.message.name) {
-                showError('No student record is linked to your account.');
+                showError('No student record is linked to your account. Please contact your school administrator.');
                 return;
             }
-            studentDoc = r.message;
-            renderStudentBanner(studentDoc);
-            loadTerms(studentDoc.name);
+            currentStudent = r.message;
+            renderStudentBanner(currentStudent);
+            loadTerms();
         }
     });
 
     /* ── Render student banner ── */
     function renderStudentBanner(s) {
-        let fullName = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || s.name;
-        $('#student-avatar').text(fullName.charAt(0).toUpperCase());
-        $('#student-name').text(fullName);
+        let name = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || s.name;
+        $('#student-avatar').text(name.charAt(0).toUpperCase());
+        $('#student-name').text(name);
         let meta = [];
-        if (s.admission_number) meta.push('Adm: ' + s.admission_number);
-        if (s.student_class)    meta.push('Class: ' + s.student_class);
+        if (s.admission_number) meta.push('Adm No: ' + s.admission_number);
+        if (s.student_class)    meta.push('Class: '  + s.student_class);
         $('#student-meta').text(meta.join('  •  ') || s.name);
         $('#student-banner').show();
     }
 
-    /* ── 2. Load terms from Term DocType ── */
-    function loadTerms(studentName) {
+    /* ── Step 2: Load all Terms from the Term DocType ── */
+    function loadTerms() {
         frappe.call({
             method: 'frappe.client.get_list',
             args: {
                 doctype: 'Term',
                 fields: ['name', 'term_name'],
-                order_by: 'name desc',
+                order_by: 'creation desc',
                 limit: 50
             },
             callback: function (r) {
                 let sel = $('#select-term');
                 sel.empty().append('<option value="">— Choose a term —</option>');
                 if (r.message && r.message.length) {
-                    r.message.forEach(t => {
+                    r.message.forEach(function (t) {
                         let label = t.term_name || t.name;
-                        sel.append(`<option value="${t.name}">${label}</option>`);
+                        sel.append('<option value="' + t.name + '">' + label + '</option>');
                     });
                 } else {
                     sel.append('<option value="" disabled>No terms found</option>');
@@ -404,108 +310,153 @@ frappe.ready(function () {
         });
     }
 
-    /* ── 3. Load results when term changes ── */
+    /* ── Step 3: On term change → fetch results ── */
     $('#select-term').on('change', function () {
         let term = $(this).val();
-        if (!term || !studentDoc) return;
+        if (!term || !currentStudent) return;
         resetStates();
         $('#state-loading').show();
-        fetchResults(studentDoc.name, term);
+        fetchReport(term);
     });
 
-    function fetchResults(studentName, term) {
+    /* ── Fetch Term Exam Report for this student's class + selected term ── */
+    function fetchReport(term) {
+        let filters = { term: term, docstatus: 1 };
+        // narrow by class if available
+        if (currentStudent.student_class) {
+            filters['student_class'] = currentStudent.student_class;
+        }
+
         frappe.call({
             method: 'frappe.client.get_list',
             args: {
                 doctype: 'Term Exam Report',
-                filters: {
-                    student: studentName,
-                    academic_term: term,
-                    docstatus: 1
-                },
-                fields: ['name', 'academic_term', 'total_marks', 'marks_obtained', 'percentage', 'result'],
-                limit: 1,
-                order_by: 'modified desc'
+                filters: filters,
+                fields: ['name', 'report_name', 'term', 'academic_year', 'student_class', 'report_date'],
+                order_by: 'modified desc',
+                limit: 10
             },
             callback: function (r) {
-                $('#state-loading').hide();
                 if (!r.message || !r.message.length) {
+                    $('#state-loading').hide();
                     $('#state-empty').show();
                     return;
                 }
-                // Get full doc with child table
-                frappe.call({
-                    method: 'frappe.client.get',
-                    args: {
-                        doctype: 'Term Exam Report',
-                        name: r.message[0].name
-                    },
-                    callback: function (res) {
-                        if (!res.message) { showError('Could not load result details.'); return; }
-                        renderResults(res.message);
-                    }
-                });
+                // Get the full doc (with child table) for the first matching report
+                loadFullReport(r.message[0]);
             }
         });
     }
 
-    /* ── 4. Render results table ── */
-    function renderResults(doc) {
-        /* Summary badges */
-        let badges = '';
-        if (doc.total_marks)    badges += badge('Total Marks', doc.total_marks);
-        if (doc.marks_obtained) badges += badge('Obtained', doc.marks_obtained);
-        if (doc.percentage)     badges += badge('Percentage', doc.percentage + '%');
-        if (doc.result)         badges += `<div class="summary-badge">${doc.result === 'Pass' ? '<span class="pass-tag">PASS ✓</span>' : '<span class="fail-tag">FAIL ✗</span>'}</div>`;
-        $('#summary-badges').html(badges || '');
+    /* ── Load full report doc to access child table ── */
+    function loadFullReport(reportMeta) {
+        frappe.call({
+            method: 'frappe.client.get',
+            args: {
+                doctype: 'Term Exam Report',
+                name: reportMeta.name
+            },
+            callback: function (r) {
+                $('#state-loading').hide();
+                if (!r.message) {
+                    showError('Could not load the exam report. Please try again.');
+                    return;
+                }
+                let doc = r.message;
+                let allRows = doc.term_exam_results || [];
 
-        let fullName = ((studentDoc.first_name || '') + ' ' + (studentDoc.last_name || '')).trim() || studentDoc.name;
-        $('#results-title').text(doc.academic_term + ' — Results');
-        $('#results-meta').text(fullName);
+                // Filter rows that belong to this student
+                let myRows = allRows.filter(function (row) {
+                    return row.student === currentStudent.name;
+                });
 
-        /* Subject rows — try common child table field names */
-        let rows = doc.results || doc.subject_results || doc.exam_results || doc.details || [];
-        let tbody = $('#results-body');
-        tbody.empty();
+                if (!myRows.length) {
+                    $('#state-empty').show();
+                    return;
+                }
 
-        if (!rows.length) {
-            tbody.append('<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem;">No subject details found in this record.</td></tr>');
-        } else {
-            rows.forEach(row => {
-                let max     = parseFloat(row.maximum_marks || row.max_marks || 100);
-                let obt     = parseFloat(row.marks_obtained || row.marks || row.obtained || 0);
-                let pct     = max > 0 ? ((obt / max) * 100).toFixed(1) : '0.0';
-                let grade   = (row.grade || autoGrade(parseFloat(pct))).toUpperCase();
-                let gClass  = gradeClass(grade);
-                let pass    = parseFloat(pct) >= 50;
-                let color   = pct >= 80 ? '#4f46e5' : pct >= 60 ? '#0891b2' : pct >= 50 ? '#d97706' : '#dc2626';
+                renderResults(doc, myRows);
+            }
+        });
+    }
 
-                tbody.append(`
-                    <tr>
-                        <td><strong>${row.subject || row.subject_name || '-'}</strong></td>
-                        <td>${max}</td>
-                        <td><strong>${obt}</strong></td>
-                        <td>
-                            <div class="pct-bar">
-                                <span style="min-width:42px;">${pct}%</span>
-                                <div class="bar-track">
-                                    <div class="bar-fill" style="width:${Math.min(pct,100)}%;background:${color};"></div>
-                                </div>
-                            </div>
-                        </td>
-                        <td><span class="grade-pill ${gClass}">${grade}</span></td>
-                        <td>${pass ? '<span class="pass-tag">Pass</span>' : '<span class="fail-tag">Fail</span>'}</td>
-                    </tr>
-                `);
-            });
-        }
+    /* ── Render results table ── */
+    function renderResults(doc, rows) {
+        // Header
+        $('#results-title').text((doc.term || '') + ' — Exam Results');
+        let metaParts = [];
+        if (doc.report_date)   metaParts.push(doc.report_date);
+        if (doc.academic_year) metaParts.push(doc.academic_year);
+        $('#results-meta').text(metaParts.join('  |  '));
+
+        // Summary: aggregate across subjects
+        let totalObtained = 0, totalMax = 0, passCount = 0, failCount = 0;
+        rows.forEach(function (row) {
+            totalObtained += parseFloat(row.marks_obtained || 0);
+            totalMax      += parseFloat(row.max_marks || 0);
+            let status = (row.status || '').toLowerCase();
+            if (status === 'pass' || status === 'moderate') passCount++;
+            else if (status === 'failed') failCount++;
+        });
+        let overallPct = totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(1) : '—';
+
+        let summaryHTML = '';
+        summaryHTML += sumBadge(rows.length, 'Subjects');
+        summaryHTML += sumBadge(totalObtained, 'Total Obtained');
+        if (totalMax > 0) summaryHTML += sumBadge(totalMax, 'Total Max');
+        if (totalMax > 0) summaryHTML += sumBadge(overallPct + '%', 'Overall %');
+        if (passCount > 0) summaryHTML += sumBadge(passCount, 'Passed');
+        if (failCount > 0) summaryHTML += sumBadge(failCount, 'Failed');
+        $('#summary-row').html(summaryHTML);
+
+        // Subject rows
+        let tbody = $('#results-body').empty();
+        rows.forEach(function (row) {
+            let obt   = parseFloat(row.marks_obtained || 0);
+            let max   = parseFloat(row.max_marks || 0);
+            let pct   = row.percentage != null ? parseFloat(row.percentage).toFixed(1)
+                        : (max > 0 ? ((obt / max) * 100).toFixed(1) : '—');
+            let grade  = (row.grade || autoGrade(parseFloat(pct))).toString().toUpperCase();
+            let status = row.status || '';
+            let color  = barColor(parseFloat(pct));
+
+            // Comments
+            let comments = [];
+            if (row.remarks)         comments.push(row.remarks);
+            if (row.teacher_comment) comments.push('Teacher: ' + row.teacher_comment);
+            if (row.admin_comment)   comments.push('Admin: '   + row.admin_comment);
+
+            tbody.append(
+                '<tr>' +
+                '<td><strong>' + (row.subject || '—') + '</strong></td>' +
+                '<td>' + obt + '</td>' +
+                '<td>' + (max || '—') + '</td>' +
+                '<td>' +
+                    '<div class="pct-wrap">' +
+                        '<span class="pct-num">' + pct + '%</span>' +
+                        '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(parseFloat(pct)||0, 100) + '%;background:' + color + ';"></div></div>' +
+                    '</div>' +
+                '</td>' +
+                '<td><span class="grade-pill ' + gradeClass(grade) + '">' + grade + '</span></td>' +
+                '<td>' + statusPill(status) + '</td>' +
+                '<td class="comment-cell">' + (comments.join(' — ') || '—') + '</td>' +
+                '</tr>'
+            );
+        });
 
         $('#results-card').show();
     }
 
     /* ── Helpers ── */
-    function badge(label, val) {
-        return `<div class="summary-badge">${label}: <span>${val}</span></div>`;
+    function sumBadge(val, label) {
+        return '<div class="sum-badge"><strong>' + val + '</strong><span>' + label + '</span></div>';
+    }
+
+    function barColor(pct) {
+        if (pct >= 80) return '#4f46e5';
+        if (pct >= 65) return '#0891b2';
+        if (pct >= 50) return '#d97706';
+        return '#dc2626';
     }
 
     function gradeClass(g) {
@@ -514,6 +465,14 @@ frappe.ready(function () {
         if (g.startsWith('C')) return 'g-c';
         if (g.startsWith('D')) return 'g-d';
         return 'g-f';
+    }
+
+    function statusPill(s) {
+        let lower = (s || '').toLowerCase();
+        if (lower === 'pass')     return '<span class="status-pill s-pass">Pass ✓</span>';
+        if (lower === 'moderate') return '<span class="status-pill s-moderate">Moderate</span>';
+        if (lower === 'failed')   return '<span class="status-pill s-failed">Failed ✗</span>';
+        return '<span style="color:var(--muted)">—</span>';
     }
 
     function autoGrade(pct) {
