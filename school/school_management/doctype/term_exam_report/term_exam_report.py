@@ -237,7 +237,7 @@ def get_student_reports():
 
 	student = frappe.db.get_value(
 		"Student",
-		{"user": user},
+		{"portal_email": user},
 		["name", "student_name", "student_class", "section"],
 		as_dict=1
 	)
