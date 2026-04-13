@@ -19,7 +19,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ── Sidebar ── */
     .sidebar {
       position: fixed; top: 0; left: 0; width: var(--sidebar-w);
       height: 100vh; background: #fff; border-right: 1px solid var(--border2);
@@ -38,7 +37,6 @@
     .nav-item.active { background: rgba(99,102,241,0.1); color: var(--indigo); font-weight: 600; }
     .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
 
-    /* ── Main ── */
     .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
     .topbar {
       height: var(--header-h); background: #fff; border-bottom: 1px solid var(--border2);
@@ -49,7 +47,6 @@
     .menu-toggle { display: none; background: none; border: none; font-size: 22px; cursor: pointer; }
     .content { padding: 28px; flex: 1; }
 
-    /* ── Term filter ── */
     .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
     .filter-label { font-size: 13px; font-weight: 600; color: var(--text2); margin-right: 4px; }
     .term-btn {
@@ -60,19 +57,12 @@
     .term-btn:hover { border-color: var(--indigo); color: var(--indigo); }
     .term-btn.active { background: var(--indigo); color: white; border-color: var(--indigo); }
 
-    /* ── Report Card ── */
     .report-card {
-      background: var(--surface);
-      border: 2px solid var(--navy);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 32px;
+      background: var(--surface); border: 2px solid var(--navy);
+      border-radius: var(--radius); overflow: hidden; margin-bottom: 32px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
-    .rc-header {
-      background: var(--navy); color: white;
-      padding: 16px 24px; text-align: center;
-    }
+    .rc-header { background: var(--navy); color: white; padding: 16px 24px; text-align: center; }
     .rc-header h2 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
     .rc-header h3 { margin: 4px 0 0; font-size: 12px; font-weight: 400; opacity: 0.85; }
     .rc-meta {
@@ -83,15 +73,14 @@
     .rc-meta p { margin: 3px 0; font-size: 13px; }
     .rc-actions {
       padding: 12px 24px; display: flex; gap: 8px; align-items: center;
-      flex-wrap: wrap; border-bottom: 1px solid var(--border);
-      background: #fafbfc;
+      flex-wrap: wrap; border-bottom: 1px solid var(--border); background: #fafbfc;
     }
+
     .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .badge-emerald { background: rgba(16,185,129,0.12); color: var(--emerald); }
     .badge-rose    { background: rgba(244,63,94,0.12);  color: var(--rose); }
     .badge-violet  { background: rgba(139,92,246,0.12); color: var(--violet); }
 
-    /* ── Table ── */
     .table-wrap { overflow-x: auto; padding: 0 24px 20px; }
     .subjects-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
     .subjects-table th {
@@ -115,7 +104,6 @@
     .status-moderate { color: var(--amber);   font-weight: 600; }
     .status-failed   { color: var(--rose);    font-weight: 600; }
 
-    /* ── Signatures ── */
     .rc-signatures {
       padding: 14px 24px; display: flex; justify-content: space-between;
       border-top: 1px solid var(--border);
@@ -123,15 +111,10 @@
     .sig-box { text-align: center; width: 30%; }
     .sig-line { border-top: 1px solid #334155; margin-top: 32px; padding-top: 5px; font-size: 12px; color: var(--text2); }
 
-    /* ── Footer ── */
-    .rc-footer {
-      background: var(--navy); color: #cbd5e1;
-      padding: 10px 24px; font-size: 11px;
-    }
+    .rc-footer { background: var(--navy); color: #cbd5e1; padding: 10px 24px; font-size: 11px; }
     .rc-footer p { margin: 2px 0; }
     .rc-footer a { color: #93c5fd; }
 
-    /* ── Buttons ── */
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: var(--radius-sm);
@@ -143,7 +126,6 @@
     .btn-indigo  { background: var(--indigo); color: white; }
     .btn-outline { background: transparent; color: var(--indigo); border: 1.5px solid var(--indigo); }
 
-    /* ── Verify Modal ── */
     .modal-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
       z-index: 200; display: flex; align-items: center; justify-content: center;
@@ -162,7 +144,7 @@
     .modal-header.loading { background: linear-gradient(135deg,#6366f1,#4f46e5); color: white; }
     .modal-icon { font-size: 42px; margin-bottom: 6px; }
     .modal-header h2 { margin: 0; font-size: 19px; font-weight: 700; }
-    .modal-header p { margin: 5px 0 0; opacity: 0.88; font-size: 13px; }
+    .modal-header p  { margin: 5px 0 0; opacity: 0.88; font-size: 13px; }
     .modal-body { padding: 18px 28px; }
     .detail-row {
       display: flex; justify-content: space-between; align-items: center;
@@ -180,7 +162,6 @@
     }
     .modal-close:hover { background: #e2e8f0; }
 
-    /* ── Skeleton / Empty ── */
     .skeleton {
       background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);
       background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: var(--radius);
@@ -200,7 +181,6 @@
 </head>
 <body>
 
-  <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="logo-text">📚 School Portal</div>
@@ -228,23 +208,17 @@
       <div class="page-title">🏆 Term Exam Reports</div>
     </header>
     <div class="content">
-
-      <!-- Term filter -->
       <div class="filter-bar" id="filterBar">
         <span class="filter-label">Term:</span>
         <div class="skeleton" style="height:32px;width:220px;border-radius:20px"></div>
       </div>
-
-      <!-- Report cards -->
       <div id="resultsContainer">
         <div class="skeleton" style="height:400px;margin-bottom:20px"></div>
         <div class="skeleton" style="height:400px"></div>
       </div>
-
     </div>
   </div>
 
-  <!-- Verify Modal -->
   <div class="modal-overlay" id="verifyOverlay" onclick="closeModal(event)">
     <div class="modal">
       <div class="modal-header loading" id="modalHeader">
@@ -281,7 +255,6 @@
       return '';
     }
 
-    // ── Term filter ──────────────────────────────────────────────────
     function buildFilterBar(reports) {
       const bar = document.getElementById('filterBar');
       const terms = [...new Set(reports.map(r => r.term).filter(Boolean))];
@@ -309,7 +282,6 @@
       renderReports(allData);
     }
 
-    // ── Render all report cards ──────────────────────────────────────
     function renderReports(data) {
       const container = document.getElementById('resultsContainer');
       const reports = (data.reports || []).filter(r =>
@@ -363,7 +335,6 @@
             <h2>${report.school_name || 'School'}</h2>
             <h3>TERM EXAMINATION REPORT CARD</h3>
           </div>
-
           <div class="rc-meta">
             <div>
               <p><strong>Student:</strong> ${data.student_name || ''}</p>
@@ -376,7 +347,6 @@
               <p><strong>Report Date:</strong> ${report.report_date || ''}</p>
             </div>
           </div>
-
           <div class="rc-actions">
             <span class="badge ${badgeClass}">Overall: ${pctDisplay}</span>
             <button class="btn btn-indigo" onclick="downloadPDF(this, '${report.name}', '${data.student_id}')">
@@ -386,7 +356,6 @@
               🔍 Verify
             </button>
           </div>
-
           <div class="table-wrap">
             <table class="subjects-table">
               <thead>
@@ -414,19 +383,16 @@
               </tfoot>
             </table>
           </div>
-
           <div style="padding:8px 24px;font-size:11px;color:#64748b;border-top:1px solid var(--border)">
             <strong>Note:</strong> Grades and status are entered by subject teachers.
             Pass = meets passing mark &nbsp;|&nbsp; Moderate = borderline &nbsp;|&nbsp; Failed = below passing mark
             ${report.opening_date ? '&nbsp;|&nbsp; <strong>School Opens:</strong> ' + report.opening_date : ''}
           </div>
-
           <div class="rc-signatures">
             <div class="sig-box"><div class="sig-line">Class Teacher</div></div>
             <div class="sig-box"><div class="sig-line">Head Teacher</div></div>
             <div class="sig-box"><div class="sig-line">Parent / Guardian</div></div>
           </div>
-
           <div class="rc-footer">
             <p>Verify at: <a href="${verifyUrl}">${verifyUrl}</a></p>
             <p>Report ID: ${report.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
@@ -436,7 +402,6 @@
       });
     }
 
-    // ── Verify Report ────────────────────────────────────────────────
     function verifyReport(reportName) {
       openModal();
       fetch(`/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_report?report=${encodeURIComponent(reportName)}`)
@@ -492,7 +457,6 @@
       document.getElementById('verifyOverlay').classList.remove('open');
     }
 
-    // ── Download PDF ─────────────────────────────────────────────────
     function downloadPDF(btn, reportName, studentId) {
       btn.disabled = true;
       btn.textContent = '⏳ Generating…';
@@ -520,17 +484,16 @@
       });
     }
 
-    // ── Check QR param ───────────────────────────────────────────────
     function checkQRParam() {
       const report = new URLSearchParams(window.location.search).get('report');
       if (report) setTimeout(() => { openModal(); verifyReport(report); }, 600);
     }
 
-    // ── Load data ─────────────────────────────────────────────────────
-    // FIX: fetch from this page's own ?format=json endpoint instead of
-    // a non-existent @frappe.whitelist() API method.
-    fetch(window.location.pathname + '?format=json', {
-      headers: { 'Accept': 'application/json' }
+    // ── THE FIX: call the proper @frappe.whitelist() method in term_exam_report.py ──
+    fetch('/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_student_reports', {
+      headers: {
+        'X-Frappe-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || ''
+      }
     })
       .then(r => {
         if (!r.ok) throw new Error('HTTP ' + r.status);

@@ -51,7 +51,6 @@ class TermExamReport(Document):
 			return
 
 		school_name = ""
-		school_logo = ""
 		if self.cost_center:
 			cc = frappe.db.get_value("Cost Center", self.cost_center, "cost_center_name")
 			school_name = cc or self.cost_center
@@ -71,7 +70,6 @@ class TermExamReport(Document):
 					])) or student_doc.get("full_name") or student_id
 				)
 
-				# Get email directly from Student doctype fields
 				email = (
 					student_doc.get("father_email") or
 					student_doc.get("mother_email") or
@@ -118,16 +116,13 @@ class TermExamReport(Document):
 def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b64=None):
 	"""Build full HTML report card for one student — all subjects."""
 
-	# Sort rows by subject name
 	rows_sorted = sorted(rows, key=lambda r: r.subject or "")
 
-	# Totals from only rows with marks entered
 	marked = [r for r in rows_sorted if r.marks_obtained is not None and r.marks_obtained != ""]
 	total_obtained = sum(r.marks_obtained or 0 for r in marked)
 	total_max = sum(r.max_marks or 0 for r in marked)
 	overall_pct = round((total_obtained / total_max * 100), 1) if total_max else 0
 
-	# Subject rows HTML
 	subject_rows_html = ""
 	for r in rows_sorted:
 		marks = r.marks_obtained if r.marks_obtained is not None else "—"
@@ -165,14 +160,10 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 
 	return f"""
 <div style="font-family:Arial,sans-serif;max-width:750px;margin:auto;border:2px solid #1e3a5f;border-radius:8px;overflow:hidden">
-
-	<!-- Header -->
 	<div style="background:#1e3a5f;color:white;padding:18px 28px;text-align:center">
 		<h2 style="margin:0;font-size:22px;letter-spacing:1px">{school_name or 'School'}</h2>
 		<h3 style="margin:6px 0 0;font-size:13px;font-weight:400;opacity:0.85">TERM EXAMINATION REPORT CARD</h3>
 	</div>
-
-	<!-- Student Info Bar -->
 	<div style="background:#eef2f7;padding:14px 28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid #cbd5e1">
 		<div>
 			<p style="margin:3px 0;font-size:14px"><strong>Student:</strong> {student_name}</p>
@@ -185,8 +176,6 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			<p style="margin:3px 0;font-size:13px"><strong>Report Date:</strong> {doc.report_date}</p>
 		</div>
 	</div>
-
-	<!-- Results Table -->
 	<div style="padding:0 20px">
 		<table style="width:100%;border-collapse:collapse;font-size:13px;margin:14px 0">
 			<thead>
@@ -215,8 +204,6 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			</tfoot>
 		</table>
 	</div>
-
-	<!-- Grade Key + QR -->
 	<div style="padding:8px 20px 12px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
 		<div style="font-size:11px;color:#64748b">
 			<strong>Grade Key (as set by school):</strong> Grades and status are entered by subject teachers.<br>
@@ -224,8 +211,6 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 		</div>
 		{qr_html}
 	</div>
-
-	<!-- Signatures -->
 	<div style="padding:16px 28px;display:flex;justify-content:space-between">
 		<div style="text-align:center;width:28%">
 			<div style="border-top:1px solid #334155;margin-top:36px;padding-top:5px;font-size:12px;color:#475569">Class Teacher</div>
@@ -237,8 +222,6 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			<div style="border-top:1px solid #334155;margin-top:36px;padding-top:5px;font-size:12px;color:#475569">Parent / Guardian</div>
 		</div>
 	</div>
-
-	<!-- Footer -->
 	<div style="background:#1e3a5f;color:#cbd5e1;padding:10px 28px;font-size:11px">
 		{opening_row}
 		<p style="margin:2px 0">Verify at: <a href="{verification_url}" style="color:#93c5fd">{verification_url}</a></p>
@@ -248,26 +231,96 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 
 
 @frappe.whitelist()
+def get_student_reports():
+	"""Fetch all submitted term reports for the logged-in student."""
+	user = frappe.session.user
+
+	student = frappe.db.get_value(
+		"Student",
+		{"user": user},
+		["name", "student_name", "student_class", "section"],
+		as_dict=1
+	)
+
+	if not student:
+		return {"reports": [], "student_id": None, "error": "Student record not found"}
+
+	report_filters = {
+		"student_class": student.student_class,
+		"docstatus": 1
+	}
+
+	reports = frappe.get_all(
+		"Term Exam Report",
+		filters=report_filters,
+		fields=["name", "report_name", "term", "academic_year", "report_date",
+				"opening_date", "cost_center", "total_subjects", "total_students",
+				"student_class", "section"],
+		order_by="report_date desc"
+	)
+
+	if student.section:
+		reports = [r for r in reports if not r.section or r.section == student.section]
+
+	result_reports = []
+
+	for report in reports:
+		rows = frappe.get_all(
+			"Term Exam Result Item",
+			filters={"parent": report.name, "student": student.name},
+			fields=["subject", "exam", "marks_obtained", "max_marks",
+					"percentage", "grade", "status", "remarks"],
+			order_by="subject asc"
+		)
+
+		if not rows:
+			continue
+
+		marked = [r for r in rows if r.marks_obtained is not None]
+		total_obtained = sum(r.marks_obtained or 0 for r in marked)
+		total_max = sum(r.max_marks or 0 for r in marked)
+		overall_pct = round((total_obtained / total_max * 100), 1) if total_max else None
+
+		school_name = ""
+		if report.cost_center:
+			school_name = frappe.db.get_value("Cost Center", report.cost_center, "cost_center_name") or report.cost_center
+
+		result_reports.append({
+			"name": report.name,
+			"report_name": report.report_name,
+			"term": report.term,
+			"academic_year": report.academic_year,
+			"report_date": str(report.report_date) if report.report_date else "",
+			"opening_date": str(report.opening_date) if report.opening_date else "",
+			"school_name": school_name,
+			"student_class": report.student_class,
+			"section": report.section or "",
+			"subjects": [dict(r) for r in rows],
+			"total_obtained": total_obtained,
+			"total_max": total_max,
+			"overall_percentage": overall_pct,
+		})
+
+	return {
+		"reports": result_reports,
+		"student_id": student.name,
+		"student_name": student.student_name,
+		"student_class": student.student_class,
+		"section": student.section or ""
+	}
+
+
+@frappe.whitelist()
 def fetch_results(report_name):
-	"""
-	Called by the Fetch Results button.
-	Fetches all subjects for the class/section, finds each student,
-	maps their marks from Exam Schedule Item for the given term.
-	Returns rows to populate the child table.
-	"""
 	doc = frappe.get_doc("Term Exam Report", report_name)
 
 	if not doc.term or not doc.student_class:
 		frappe.throw(_("Please set Term and Class before fetching results."))
 
-	# 1. Get all subjects assigned to this class via Subject Class and Section child table
-	# Subject doctype has a child table "class_and_section" (Subject Class and Section)
-	# that links subject -> class -> section
 	class_section_filters = {"class": doc.student_class}
 	if doc.section:
 		class_section_filters["section"] = doc.section
 
-	# Query the child table directly
 	subject_links = frappe.get_all(
 		"Subject Class and Section",
 		filters=class_section_filters,
@@ -275,18 +328,16 @@ def fetch_results(report_name):
 	)
 
 	if not subject_links:
-		# Fallback: try without section filter to see if subjects exist for the class
 		subject_links = frappe.get_all(
 			"Subject Class and Section",
 			filters={"class": doc.student_class},
 			fields=["parent", "class", "section"],
 		)
 		if not subject_links:
-			frappe.throw(_("No subjects found for class {0}. Please assign subjects to this class first.").format(doc.student_class))
+			frappe.throw(_("No subjects found for class {0}.").format(doc.student_class))
 
 	subject_names = list(set([s.parent for s in subject_links]))
 
-	# Get full subject details
 	subjects = frappe.get_all(
 		"Subject",
 		filters={"name": ["in", subject_names]},
@@ -297,7 +348,6 @@ def fetch_results(report_name):
 	if not subjects:
 		frappe.throw(_("No subjects found for this class/section."))
 
-	# 2. Get all students in this class/section
 	student_filters = {"student_class": doc.student_class}
 	if doc.section:
 		student_filters["section"] = doc.section
@@ -312,7 +362,6 @@ def fetch_results(report_name):
 	if not students:
 		frappe.throw(_("No students found for this class/section."))
 
-	# 3. Get all Exam Schedules for this term + class + section
 	sched_filters = {
 		"term": doc.term,
 		"student_class": doc.student_class,
@@ -327,12 +376,10 @@ def fetch_results(report_name):
 		fields=["name", "subject", "exam", "max_marks", "min_marks"]
 	)
 
-	# Build map: subject -> list of schedules
 	subject_schedule_map = defaultdict(list)
 	for s in schedules:
 		subject_schedule_map[s.subject].append(s)
 
-	# 4. Build result rows — one per student per subject
 	rows = []
 	for student in students:
 		student_name = " ".join(filter(None, [
@@ -345,7 +392,6 @@ def fetch_results(report_name):
 			subj_schedules = subject_schedule_map.get(subject.name, [])
 
 			if not subj_schedules:
-				# Subject has no exam scheduled this term — add blank row
 				rows.append({
 					"student": student.name,
 					"student_name": student_name,
@@ -360,17 +406,11 @@ def fetch_results(report_name):
 				})
 				continue
 
-			# If multiple exams for same subject in term, use the latest/last one
-			# (admin can adjust manually)
 			sched = subj_schedules[-1]
 
-			# Find student's score row
 			score = frappe.db.get_value(
 				"Exam Schedule Item",
-				{
-					"parent": sched.name,
-					"student_admission_no": student.name
-				},
+				{"parent": sched.name, "student_admission_no": student.name},
 				["marks_obtained", "grade", "status"],
 				as_dict=1
 			)
@@ -427,14 +467,12 @@ def verify_report(report):
 
 @frappe.whitelist()
 def get_student_count(student_class, section=None):
-	"""Called when class/section changes to show counts instantly."""
 	student_filters = {"student_class": student_class}
 	if section:
 		student_filters["section"] = section
 
 	students = frappe.get_all("Student", filters=student_filters, fields=["name"])
 
-	# Get subject count
 	subject_filters = {"class": student_class}
 	if section:
 		subject_filters["section"] = section
@@ -445,7 +483,6 @@ def get_student_count(student_class, section=None):
 		fields=["parent"]
 	)
 	if not subject_links:
-		# Try without section
 		subject_links = frappe.get_all(
 			"Subject Class and Section",
 			filters={"class": student_class},
@@ -468,7 +505,6 @@ def get_student_pdf(report_name, student_id):
 	user = frappe.session.user
 	is_student = frappe.db.get_value("Student", {"user": user, "name": student_id}, "name")
 	if not is_student:
-		# Check if parent portal user linked to this student
 		parent = frappe.db.get_value("Parent", {"portal_email": frappe.db.get_value("User", user, "email")}, "name")
 		if not parent:
 			frappe.throw(_("Not authorized"), frappe.PermissionError)
