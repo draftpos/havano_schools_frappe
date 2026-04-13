@@ -34,10 +34,7 @@ class Receipting(Document):
         company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
         company_currency = frappe.db.get_value("Company", company, "default_currency")
 
-        paid_from = frappe.db.get_value("Account", {
-            "account_type": "Receivable",
-            "company": company
-        }, "name")
+        paid_from = frappe.db.get_value("Company", company, "default_receivable_account")
 
         paid_to_currency = frappe.db.get_value("Account", self.account, "account_currency") or company_currency
         paid_from_currency = frappe.db.get_value("Account", paid_from, "account_currency") or company_currency

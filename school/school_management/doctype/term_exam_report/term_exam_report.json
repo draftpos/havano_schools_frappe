@@ -13,7 +13,6 @@
         "report_name",
         "academic_year",
         "term",
-        "exam",
         "student_class",
         "section",
         "cost_center",
@@ -22,6 +21,7 @@
         "column_break_term",
         "total_subjects",
         "total_students",
+        "fetch_results",
         "results_section",
         "term_exam_results"
     ],
@@ -55,14 +55,6 @@
             "in_list_view": 1
         },
         {
-            "fieldname": "exam",
-            "fieldtype": "Link",
-            "label": "Exam",
-            "options": "Exam",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
             "fieldname": "student_class",
             "fieldtype": "Link",
             "label": "Class",
@@ -79,7 +71,7 @@
         {
             "fieldname": "cost_center",
             "fieldtype": "Link",
-            "label": "School/Cost Center",
+            "label": "School",
             "options": "Cost Center"
         },
         {
@@ -92,7 +84,7 @@
         {
             "fieldname": "opening_date",
             "fieldtype": "Date",
-            "label": "Opening Date (Optional)"
+            "label": "School Opening Date (Optional)"
         },
         {
             "fieldname": "column_break_term",
@@ -111,59 +103,75 @@
             "read_only": 1
         },
         {
+            "fieldname": "fetch_results",
+            "fieldtype": "Button",
+            "label": "Fetch Results"
+        },
+        {
             "fieldname": "results_section",
             "fieldtype": "Section Break",
-            "label": "Exam Results (Auto Populated)"
+            "label": "Exam Results"
         },
         {
             "fieldname": "term_exam_results",
             "fieldtype": "Table",
             "label": "Term Exam Results",
             "options": "Term Exam Result Item",
-            "read_only": 1
+            "read_only": 0
         }
     ],
     "index_web_pages_for_search": 1,
     "links": [],
-    "modified": "2026-04-12",
+    "modified": "2026-04-13",
     "module": "School Management",
     "name": "Term Exam Report",
     "naming_rule": "By \"field:report_name\"",
     "owner": "Administrator",
     "permissions": [
         {
-            "role": "System Manager",
-            "read": 1,
-            "write": 1,
             "create": 1,
             "delete": 1,
-            "submit": 1,
-            "cancel": 1,
-            "amend": 1,
-            "report": 1,
-            "export": 1,
-            "import": 0,
-            "share": 1,
-            "print": 1,
             "email": 1,
-            "permlevel": 0
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "submit": 1,
+            "amend": 1,
+            "cancel": 1,
+            "write": 1
         },
         {
-            "role": "School User",
-            "read": 1,
-            "write": 1,
             "create": 1,
-            "delete": 1,
-            "submit": 1,
-            "cancel": 1,
-            "amend": 1,
-            "report": 1,
-            "export": 1,
-            "import": 0,
-            "share": 1,
-            "print": 1,
+            "delete": 0,
             "email": 1,
-            "permlevel": 0
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "School User",
+            "share": 1,
+            "submit": 1,
+            "amend": 0,
+            "cancel": 0,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "delete": 0,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "School Administrator",
+            "share": 1,
+            "submit": 1,
+            "amend": 0,
+            "cancel": 0,
+            "write": 1
         }
     ],
     "sort_field": "modified",

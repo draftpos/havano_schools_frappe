@@ -8,12 +8,15 @@
         "student",
         "student_name",
         "subject",
+        "exam",
         "marks_obtained",
         "max_marks",
         "percentage",
         "grade",
-        "position",
-        "remarks"
+        "status",
+        "remarks",
+        "teacher_comment",
+        "admin_comment"
     ],
     "fields": [
         {
@@ -28,8 +31,6 @@
             "fieldname": "student_name",
             "fieldtype": "Data",
             "label": "Student Name",
-            "fetch_from": "student.student_name",
-            "fetch_if_empty": 1,
             "read_only": 1,
             "in_list_view": 1
         },
@@ -42,6 +43,12 @@
             "reqd": 1
         },
         {
+            "fieldname": "exam",
+            "fieldtype": "Data",
+            "label": "Exam",
+            "in_list_view": 0
+        },
+        {
             "fieldname": "marks_obtained",
             "fieldtype": "Float",
             "label": "Marks Obtained",
@@ -51,42 +58,59 @@
             "fieldname": "max_marks",
             "fieldtype": "Float",
             "label": "Max Marks",
-            "in_list_view": 1
+            "in_list_view": 0
         },
         {
             "fieldname": "percentage",
             "fieldtype": "Percent",
             "label": "Percentage",
             "read_only": 1,
-            "in_list_view": 1
+            "in_list_view": 0
         },
         {
             "fieldname": "grade",
             "fieldtype": "Data",
             "label": "Grade",
-            "read_only": 1,
             "in_list_view": 1
         },
         {
-            "fieldname": "position",
-            "fieldtype": "Int",
-            "label": "Position",
-            "read_only": 1,
-            "in_list_view": 1
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "\nPass\nModerate\nFailed",
+            "in_list_view": 0
         },
         {
             "fieldname": "remarks",
             "fieldtype": "Small Text",
-            "label": "Remarks"
+            "label": "Remarks",
+            "in_list_view": 0
+        },
+        {
+            "fieldname": "teacher_comment",
+            "fieldtype": "Data",
+            "label": "Teacher Comment",
+            "in_list_view": 1,
+            "reqd": 0,
+            "bold": 0
+        },
+        {
+            "fieldname": "admin_comment",
+            "fieldtype": "Data",
+            "label": "Admin Comment",
+            "in_list_view": 1,
+            "reqd": 0,
+            "bold": 0
         }
     ],
     "index_web_pages_for_search": 0,
     "istable": 1,
     "links": [],
-    "modified": "2026-04-12",
+    "modified": "2026-04-13",
     "module": "School Management",
     "name": "Term Exam Result Item",
     "owner": "Administrator",
     "sort_field": "modified",
-    "sort_order": "DESC"
+    "sort_order": "DESC",
+    "columns": 8
 }
