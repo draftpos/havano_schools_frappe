@@ -62,11 +62,16 @@ def get_students(student_class=None, section=None):
 	if section:
 		filters["section"] = section
 
+	# Use only fields that exist on Student doctype
 	students = frappe.get_all(
 		"Student",
 		filters=filters,
-		fields=["name", "student_name", "student_id"],
-		order_by="student_name asc"
+		fields=["name", "full_name"],
+		order_by="full_name asc"
 	)
+
+	# Normalize to consistent keys
+	for s in students:
+		s["student_name"] = s.get("full_name") or s.get("name")
 
 	return students
