@@ -13,6 +13,7 @@
       --text: #0f172a; --text2: #475569; --text3: #94a3b8;
       --blue: #3b82f6; --indigo: #6366f1; --emerald: #10b981;
       --amber: #f59e0b; --rose: #f43f5e; --violet: #8b5cf6;
+      --navy: #1e3a5f;
       --sidebar-w: 272px; --header-h: 68px; --radius: 14px; --radius-sm: 8px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,10 +49,8 @@
     .menu-toggle { display: none; background: none; border: none; font-size: 22px; cursor: pointer; }
     .content { padding: 28px; flex: 1; }
 
-    /* ── Term Filter Bar ── */
-    .filter-bar {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center;
-    }
+    /* ── Term filter ── */
+    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
     .filter-label { font-size: 13px; font-weight: 600; color: var(--text2); margin-right: 4px; }
     .term-btn {
       padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--border2);
@@ -61,74 +60,84 @@
     .term-btn:hover { border-color: var(--indigo); color: var(--indigo); }
     .term-btn.active { background: var(--indigo); color: white; border-color: var(--indigo); }
 
-    /* ── Term Section ── */
-    .term-section { margin-bottom: 36px; }
-    .term-heading {
-      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
-    }
-    .term-heading h2 { font-size: 18px; font-weight: 700; }
-    .term-pill {
-      padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-      background: rgba(99,102,241,0.1); color: var(--indigo);
+    /* ── Report Card (matches print format style) ── */
+    .report-card {
+      background: var(--surface);
+      border: 2px solid var(--navy);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 32px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
 
-    /* ── Exam Block ── */
-    .exam-block {
-      background: var(--surface); border: 1px solid var(--border2);
-      border-radius: var(--radius); overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04); margin-bottom: 16px;
+    .rc-header {
+      background: var(--navy); color: white;
+      padding: 16px 24px; text-align: center;
     }
-    .exam-block-header {
-      padding: 14px 20px; border-bottom: 1px solid var(--border);
-      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;
-      cursor: pointer; user-select: none;
-    }
-    .exam-block-header:hover { background: #fafbfc; }
-    .exam-name { font-size: 15px; font-weight: 700; }
-    .exam-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
-    .exam-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .chevron { font-size: 14px; color: var(--text3); transition: transform .2s; }
-    .exam-block.collapsed .chevron { transform: rotate(-90deg); }
-    .exam-block-body { overflow: hidden; transition: max-height .3s ease; }
-    .exam-block.collapsed .exam-block-body { max-height: 0 !important; }
+    .rc-header h2 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
+    .rc-header h3 { margin: 4px 0 0; font-size: 12px; font-weight: 400; opacity: 0.85; }
 
-    /* ── Badges ── */
+    .rc-meta {
+      background: #eef2f7; padding: 14px 24px;
+      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+      border-bottom: 1px solid #cbd5e1;
+    }
+    .rc-meta p { margin: 3px 0; font-size: 13px; }
+
+    .rc-actions {
+      padding: 12px 24px; display: flex; gap: 8px; align-items: center;
+      flex-wrap: wrap; border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+    }
+
     .badge {
       padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
     }
-    .badge-violet { background: rgba(139,92,246,0.12); color: var(--violet); }
     .badge-emerald { background: rgba(16,185,129,0.12); color: var(--emerald); }
-    .badge-rose { background: rgba(244,63,94,0.12); color: var(--rose); }
+    .badge-rose    { background: rgba(244,63,94,0.12);  color: var(--rose); }
+    .badge-violet  { background: rgba(139,92,246,0.12); color: var(--violet); }
 
-    .grade-badge {
-      display: inline-block; padding: 3px 10px; border-radius: 20px;
-      font-size: 12px; font-weight: 700;
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; padding: 0 24px 20px; }
+    .subjects-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
+    .subjects-table th {
+      background: var(--navy); color: white;
+      padding: 9px 10px; text-align: left; white-space: nowrap;
     }
+    .subjects-table th.center, .subjects-table td.center { text-align: center; }
+    .subjects-table td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; }
+    .subjects-table tr:nth-child(even) td { background: #f8fafc; }
+    .subjects-table tr:last-child td { border-bottom: none; }
+    .overall-row td { background: #eef2f7; font-weight: 700; border-top: 2px solid #cbd5e1; }
+
+    .grade-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
     .grade-Ap { background: rgba(16,185,129,0.15); color: #059669; }
     .grade-A  { background: rgba(16,185,129,0.12); color: var(--emerald); }
     .grade-B  { background: rgba(245,158,11,0.12); color: var(--amber); }
     .grade-C  { background: rgba(59,130,246,0.12); color: var(--blue); }
     .grade-D  { background: rgba(139,92,246,0.12); color: var(--violet); }
-    .grade-F  { background: rgba(244,63,94,0.12); color: var(--rose); }
+    .grade-F  { background: rgba(244,63,94,0.12);  color: var(--rose); }
+    .status-pass     { color: var(--emerald); font-weight: 600; }
+    .status-moderate { color: var(--amber);   font-weight: 600; }
+    .status-failed   { color: var(--rose);    font-weight: 600; }
 
-    .status-pass     { color: var(--emerald); font-weight: 600; font-size: 12px; }
-    .status-moderate { color: var(--amber);   font-weight: 600; font-size: 12px; }
-    .status-failed   { color: var(--rose);    font-weight: 600; font-size: 12px; }
-
-    /* ── Table ── */
-    .table-wrap { overflow-x: auto; padding: 0 20px 16px; }
-    .subjects-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
-    .subjects-table th {
-      background: #f8fafc; padding: 9px 12px; text-align: left;
-      font-weight: 600; font-size: 12px; color: var(--text2);
-      border-bottom: 2px solid var(--border2); white-space: nowrap;
+    /* ── Signatures ── */
+    .rc-signatures {
+      padding: 14px 24px; display: flex; justify-content: space-between;
+      border-top: 1px solid var(--border);
     }
-    .subjects-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-    .subjects-table tr:last-child td { border-bottom: none; }
-    .subjects-table tr:hover td { background: #fafbfc; }
-    .overall-row td { background: #f8fafc; font-weight: 700; border-top: 2px solid var(--border2); }
+    .sig-box { text-align: center; width: 30%; }
+    .sig-line { border-top: 1px solid #334155; margin-top: 32px; padding-top: 5px; font-size: 12px; color: var(--text2); }
 
-    /* ── Action Buttons ── */
+    /* ── Footer ── */
+    .rc-footer {
+      background: var(--navy); color: #cbd5e1;
+      padding: 10px 24px; font-size: 11px;
+    }
+    .rc-footer p { margin: 2px 0; }
+    .rc-footer a { color: #93c5fd; }
+
+    /* ── Buttons ── */
     .btn {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 7px 14px; border-radius: var(--radius-sm);
@@ -185,6 +194,7 @@
     @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
     .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
     .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 15px; }
 
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); }
@@ -221,20 +231,20 @@
   <div class="main">
     <header class="topbar">
       <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-      <div class="page-title">🏆 Term Exam Results</div>
+      <div class="page-title">🏆 Term Exam Reports</div>
     </header>
     <div class="content">
 
-      <!-- Term filter tabs -->
+      <!-- Term filter -->
       <div class="filter-bar" id="filterBar">
         <span class="filter-label">Term:</span>
-        <div class="skeleton" style="height:32px;width:200px;border-radius:20px"></div>
+        <div class="skeleton" style="height:32px;width:220px;border-radius:20px"></div>
       </div>
 
-      <!-- Results -->
+      <!-- Report cards -->
       <div id="resultsContainer">
-        <div class="skeleton" style="height:260px;margin-bottom:16px"></div>
-        <div class="skeleton" style="height:260px"></div>
+        <div class="skeleton" style="height:400px;margin-bottom:20px"></div>
+        <div class="skeleton" style="height:400px"></div>
       </div>
 
     </div>
@@ -257,7 +267,7 @@
 
   <script>
     let allData = null;
-    let activeTermFilter = 'all';
+    let activeFilter = 'all';
 
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -278,19 +288,18 @@
     }
 
     // ── Term filter ──────────────────────────────────────────────────
-    function buildFilterBar(terms) {
+    function buildFilterBar(reports) {
       const bar = document.getElementById('filterBar');
-      const allTermNames = terms.map(t => t.term);
-      bar.innerHTML = `<span class="filter-label">Term:</span>`;
+      const terms = [...new Set(reports.map(r => r.term).filter(Boolean))];
+      bar.innerHTML = '<span class="filter-label">Term:</span>';
 
-      // "All" button
       const allBtn = document.createElement('button');
       allBtn.className = 'term-btn active';
       allBtn.textContent = 'All Terms';
       allBtn.onclick = () => setFilter('all', allBtn);
       bar.appendChild(allBtn);
 
-      allTermNames.forEach(term => {
+      terms.forEach(term => {
         const btn = document.createElement('button');
         btn.className = 'term-btn';
         btn.textContent = term;
@@ -300,146 +309,151 @@
     }
 
     function setFilter(term, btn) {
-      activeTermFilter = term;
+      activeFilter = term;
       document.querySelectorAll('.term-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderResults(allData);
+      renderReports(allData);
     }
 
-    // ── Render ───────────────────────────────────────────────────────
-    function renderResults(data) {
+    // ── Render all report cards ──────────────────────────────────────
+    function renderReports(data) {
       const container = document.getElementById('resultsContainer');
-      const terms = data.terms || [];
-      const studentId = data.student_id;
+      const reports = (data.reports || []).filter(r =>
+        activeFilter === 'all' || r.term === activeFilter
+      );
 
-      const filtered = activeTermFilter === 'all'
-        ? terms
-        : terms.filter(t => t.term === activeTermFilter);
-
-      if (!filtered.length) {
+      if (!reports.length) {
         container.innerHTML = `
           <div class="empty-state">
             <div class="emoji">📭</div>
-            <p>No exam results found${activeTermFilter !== 'all' ? ' for ' + activeTermFilter : ''}.</p>
+            <p>No term exam reports found${activeFilter !== 'all' ? ' for ' + activeFilter : ''}.</p>
           </div>`;
         return;
       }
 
       container.innerHTML = '';
 
-      filtered.forEach(termData => {
-        const termSection = document.createElement('div');
-        termSection.className = 'term-section';
-        termSection.dataset.term = termData.term;
+      reports.forEach(report => {
+        const subjects = report.subjects || [];
+        const overallPct = report.overall_percentage;
+        const badgeClass = overallPct !== null
+          ? (overallPct >= 50 ? 'badge-emerald' : 'badge-rose')
+          : 'badge-violet';
+        const pctDisplay = overallPct !== null ? overallPct.toFixed(1) + '%' : '—';
+        const verifyUrl = window.location.origin + '/term-exam-results?report=' + report.name;
 
-        const totalExams = termData.exams.length;
-        termSection.innerHTML = `
-          <div class="term-heading">
-            <h2>${termData.term}</h2>
-            <span class="term-pill">${totalExams} Exam${totalExams !== 1 ? 's' : ''}</span>
+        // Build subject rows
+        const subjectRows = subjects.map(s => {
+          const marks = (s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained !== '') ? s.marks_obtained : '—';
+          const pct = (s.percentage !== null && s.percentage !== undefined) ? s.percentage.toFixed(1) + '%' : '—';
+          const grade = s.grade ? `<span class="grade-badge ${gradeClass(s.grade)}">${s.grade}</span>` : '—';
+          const status = s.status ? `<span class="${statusClass(s.status)}">${s.status}</span>` : '—';
+          return `
+          <tr>
+            <td>${s.subject || ''}</td>
+            <td class="center" style="color:#64748b;font-size:12px">${s.exam || ''}</td>
+            <td class="center">${marks}</td>
+            <td class="center">${s.max_marks || '—'}</td>
+            <td class="center">${pct}</td>
+            <td class="center">${grade}</td>
+            <td class="center">${status}</td>
+            <td style="font-size:12px;color:#64748b">${s.remarks || ''}</td>
+          </tr>`;
+        }).join('');
+
+        const card = document.createElement('div');
+        card.className = 'report-card';
+        card.dataset.term = report.term;
+
+        card.innerHTML = `
+          <!-- Header -->
+          <div class="rc-header">
+            <h2>${report.school_name || 'School'}</h2>
+            <h3>TERM EXAMINATION REPORT CARD</h3>
+          </div>
+
+          <!-- Student Meta -->
+          <div class="rc-meta">
+            <div>
+              <p><strong>Student:</strong> ${data.student_name || ''}</p>
+              <p><strong>Admission No:</strong> ${data.student_id || ''}</p>
+              <p><strong>Class:</strong> ${report.student_class || ''}${report.section ? ' &nbsp;|&nbsp; Section: ' + report.section : ''}</p>
+            </div>
+            <div style="text-align:right">
+              <p><strong>Academic Year:</strong> ${report.academic_year || ''}</p>
+              <p><strong>Term:</strong> ${report.term || ''}</p>
+              <p><strong>Report Date:</strong> ${report.report_date || ''}</p>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="rc-actions">
+            <span class="badge ${badgeClass}">Overall: ${pctDisplay}</span>
+            <button class="btn btn-indigo" onclick="downloadPDF(this, '${report.name}', '${data.student_id}')">
+              ⬇️ Download PDF
+            </button>
+            <button class="btn btn-outline" onclick="verifyReport('${report.name}')">
+              🔍 Verify
+            </button>
+          </div>
+
+          <!-- Results Table -->
+          <div class="table-wrap">
+            <table class="subjects-table">
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th class="center">Exam</th>
+                  <th class="center">Marks</th>
+                  <th class="center">Max</th>
+                  <th class="center">%</th>
+                  <th class="center">Grade</th>
+                  <th class="center">Status</th>
+                  <th>Remarks</th>
+                </tr>
+              </thead>
+              <tbody>${subjectRows}</tbody>
+              <tfoot>
+                <tr class="overall-row">
+                  <td colspan="2">OVERALL TOTAL</td>
+                  <td class="center">${report.total_obtained}</td>
+                  <td class="center">${report.total_max}</td>
+                  <td class="center" style="color:${overallPct !== null && overallPct >= 50 ? '#16a34a' : '#dc2626'}">${pctDisplay}</td>
+                  <td class="center">—</td>
+                  <td></td><td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Grade key -->
+          <div style="padding:8px 24px;font-size:11px;color:#64748b;border-top:1px solid var(--border)">
+            <strong>Note:</strong> Grades and status are entered by subject teachers.
+            Pass = meets passing mark &nbsp;|&nbsp; Moderate = borderline &nbsp;|&nbsp; Failed = below passing mark
+            ${report.opening_date ? '&nbsp;|&nbsp; <strong>School Opens:</strong> ' + report.opening_date : ''}
+          </div>
+
+          <!-- Signatures -->
+          <div class="rc-signatures">
+            <div class="sig-box"><div class="sig-line">Class Teacher</div></div>
+            <div class="sig-box"><div class="sig-line">Head Teacher</div></div>
+            <div class="sig-box"><div class="sig-line">Parent / Guardian</div></div>
+          </div>
+
+          <!-- Footer -->
+          <div class="rc-footer">
+            <p>Verify at: <a href="${verifyUrl}">${verifyUrl}</a></p>
+            <p>Report ID: ${report.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
           </div>`;
 
-        termData.exams.forEach(examData => {
-          const overallPct = examData.overall_percentage;
-          const overallBadgeClass = (overallPct !== null && overallPct >= 50) ? 'badge-emerald' : (overallPct !== null ? 'badge-rose' : 'badge-violet');
-          const overallPctDisplay = overallPct !== null ? overallPct.toFixed(1) + '%' : (examData.subjects_marked + '/' + examData.subjects_total + ' marked');
-          const block = document.createElement('div');
-          block.className = 'exam-block';
-
-          const subjectRows = examData.subjects.map(s => {
-            const marksDisplay = (s.marks_obtained !== '' && s.marks_obtained !== null) ? s.marks_obtained : '—';
-            const pctDisplay   = (s.percentage !== null && s.percentage !== undefined) ? s.percentage.toFixed(1) + '%' : '—';
-            const gradeDisplay = s.grade ? `<span class="grade-badge ${gradeClass(s.grade)}">${s.grade}</span>` : '—';
-            const statusDisplay= s.status ? `<span class="${statusClass(s.status)}">${s.status}</span>` : '—';
-            return `
-            <tr>
-              <td>${s.subject || ''}</td>
-              <td style="text-align:center">${s.date || ''}</td>
-              <td style="text-align:center">${marksDisplay}</td>
-              <td style="text-align:center">${s.max_marks || '—'}</td>
-              <td style="text-align:center">${pctDisplay}</td>
-              <td style="text-align:center">${gradeDisplay}</td>
-              <td style="text-align:center">${statusDisplay}</td>
-              <td style="text-align:center">
-                <button class="btn btn-outline" style="padding:4px 10px;font-size:11px"
-                  onclick="verifySchedule('${s.schedule}')">🔍 Verify</button>
-              </td>
-            </tr>`;
-          }).join('');
-
-          block.innerHTML = `
-            <div class="exam-block-header" onclick="toggleExam(this)">
-              <div>
-                <div class="exam-name">${examData.exam}</div>
-                <div class="exam-meta">${examData.subjects.length} subject${examData.subjects.length !== 1 ? 's' : ''}</div>
-              </div>
-              <div class="exam-right">
-                <span class="badge ${overallBadgeClass}">
-                  Overall: ${overallPctDisplay}
-                </span>
-                <button class="btn btn-indigo" style="font-size:12px"
-                  onclick="event.stopPropagation();downloadExamPDF(this,'${examData.exam}','${termData.term}','${studentId}',${JSON.stringify(examData).replace(/'/g,"&#39;")})">
-                  ⬇️ PDF
-                </button>
-                <span class="chevron">▾</span>
-              </div>
-            </div>
-            <div class="exam-block-body">
-              <div class="table-wrap">
-                <table class="subjects-table">
-                  <thead>
-                    <tr>
-                      <th>Subject</th>
-                      <th style="text-align:center">Date</th>
-                      <th style="text-align:center">Marks</th>
-                      <th style="text-align:center">Max</th>
-                      <th style="text-align:center">%</th>
-                      <th style="text-align:center">Grade</th>
-                      <th style="text-align:center">Status</th>
-                      <th style="text-align:center">Verify</th>
-                    </tr>
-                  </thead>
-                  <tbody>${subjectRows}</tbody>
-                  <tfoot>
-                    <tr class="overall-row">
-                      <td colspan="2">OVERALL TOTAL</td>
-                      <td style="text-align:center">${examData.total_obtained}</td>
-                      <td style="text-align:center">${examData.total_max}</td>
-                      <td style="text-align:center">${overallPct !== null ? overallPct.toFixed(1) + '%' : '—'}</td>
-                      <td style="text-align:center">—</td>
-                      <td></td><td></td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>`;
-
-          // Set initial max-height for animation
-          block.querySelector('.exam-block-body').style.maxHeight = '2000px';
-          termSection.appendChild(block);
-        });
-
-        container.appendChild(termSection);
+        container.appendChild(card);
       });
     }
 
-    // ── Collapse/expand exam block ───────────────────────────────────
-    function toggleExam(header) {
-      const block = header.closest('.exam-block');
-      const body = block.querySelector('.exam-block-body');
-      if (block.classList.contains('collapsed')) {
-        block.classList.remove('collapsed');
-        body.style.maxHeight = '2000px';
-      } else {
-        block.classList.add('collapsed');
-        body.style.maxHeight = '0';
-      }
-    }
-
-    // ── Verify exam schedule (by schedule name) ──────────────────────
-    function verifySchedule(scheduleName) {
+    // ── Verify Report ────────────────────────────────────────────────
+    function verifyReport(reportName) {
       openModal();
-      fetch(`/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_exam_schedule?schedule=${encodeURIComponent(scheduleName)}`)
+      fetch(`/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_report?report=${encodeURIComponent(reportName)}`)
         .then(r => r.json())
         .then(res => showVerifyResult(res.message || res))
         .catch(() => showVerifyError());
@@ -459,16 +473,18 @@
       if (d.valid) {
         header.className = 'modal-header valid';
         document.getElementById('modalIcon').textContent = '✅';
-        document.getElementById('modalTitle').textContent = 'Verified';
-        document.getElementById('modalSubtitle').textContent = 'This is an official exam record.';
+        document.getElementById('modalTitle').textContent = 'Report Verified';
+        document.getElementById('modalSubtitle').textContent = d.message || 'This is a genuine official report card.';
         document.getElementById('modalBody').innerHTML = `
-          <div class="detail-row"><span class="detail-label">Exam</span><span class="detail-value">${d.exam}</span></div>
-          <div class="detail-row"><span class="detail-label">Subject</span><span class="detail-value">${d.subject}</span></div>
+          <div class="detail-row"><span class="detail-label">Report</span><span class="detail-value">${d.report_name}</span></div>
+          <div class="detail-row"><span class="detail-label">Issued By</span><span class="detail-value">${d.issued_by}</span></div>
           <div class="detail-row"><span class="detail-label">Term</span><span class="detail-value">${d.term}</span></div>
+          <div class="detail-row"><span class="detail-label">Academic Year</span><span class="detail-value">${d.academic_year}</span></div>
           <div class="detail-row"><span class="detail-label">Class</span><span class="detail-value">${d.student_class}${d.section ? ' — ' + d.section : ''}</span></div>
-          <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${d.date}</span></div>
-          <div class="detail-row"><span class="detail-label">Max Marks</span><span class="detail-value">${d.max_marks}</span></div>
-          <div class="detail-row"><span class="detail-label">Schedule ID</span><span class="detail-value"><span class="id-chip">${d.schedule}</span></span></div>`;
+          <div class="detail-row"><span class="detail-label">Report Date</span><span class="detail-value">${d.report_date}</span></div>
+          <div class="detail-row"><span class="detail-label">Students</span><span class="detail-value">${d.total_students}</span></div>
+          <div class="detail-row"><span class="detail-label">Subjects</span><span class="detail-value">${d.total_subjects}</span></div>
+          <div class="detail-row"><span class="detail-label">Report ID</span><span class="detail-value"><span class="id-chip">${d.report_name}</span></span></div>`;
       } else {
         header.className = 'modal-header invalid';
         document.getElementById('modalIcon').textContent = '❌';
@@ -490,38 +506,38 @@
       document.getElementById('verifyOverlay').classList.remove('open');
     }
 
-    // ── Check for ?report= in URL (QR scan) ─────────────────────────
-    function checkQRParam() {
-      const report = new URLSearchParams(window.location.search).get('report');
-      if (report) setTimeout(() => { openModal(); verifySchedule(report); }, 500);
-    }
-
-    // ── Download PDF for one exam ────────────────────────────────────
-    function downloadExamPDF(btn, examName, term, studentId, examData) {
+    // ── Download PDF ─────────────────────────────────────────────────
+    function downloadPDF(btn, reportName, studentId) {
       btn.disabled = true;
-      btn.textContent = '⏳';
-      fetch('/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_exam_pdf', {
+      btn.textContent = '⏳ Generating…';
+      fetch('/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_student_pdf', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-Frappe-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || ''
         },
-        body: JSON.stringify({ exam: examName, term: term, student_id: studentId, exam_data: examData })
+        body: JSON.stringify({ report_name: reportName, student_id: studentId })
       })
       .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
       .then(blob => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `${examName}_${term}_Results.pdf`.replace(/\s+/g,'_');
+        a.download = `ReportCard_${reportName}.pdf`.replace(/\s+/g, '_');
         a.click();
         btn.disabled = false;
-        btn.innerHTML = '⬇️ PDF';
+        btn.innerHTML = '⬇️ Download PDF';
       })
       .catch(() => {
         alert('Could not generate PDF. Please try again.');
         btn.disabled = false;
-        btn.innerHTML = '⬇️ PDF';
+        btn.innerHTML = '⬇️ Download PDF';
       });
+    }
+
+    // ── Check QR param ───────────────────────────────────────────────
+    function checkQRParam() {
+      const report = new URLSearchParams(window.location.search).get('report');
+      if (report) setTimeout(() => { openModal(); verifyReport(report); }, 600);
     }
 
     // ── Load data ────────────────────────────────────────────────────
@@ -529,17 +545,27 @@
       .then(r => r.json())
       .then(data => {
         allData = data;
-        if (!data.terms || !data.terms.length) {
+        if (data.error) {
           document.getElementById('filterBar').innerHTML = '';
           document.getElementById('resultsContainer').innerHTML = `
-            <div class="empty-state"><div class="emoji">📭</div><p>No exam results found yet.</p></div>`;
+            <div class="empty-state"><div class="emoji">⚠️</div><p>${data.error}</p></div>`;
           return;
         }
-        buildFilterBar(data.terms);
-        renderResults(data);
+        if (!data.reports || !data.reports.length) {
+          document.getElementById('filterBar').innerHTML = '';
+          document.getElementById('resultsContainer').innerHTML = `
+            <div class="empty-state">
+              <div class="emoji">📭</div>
+              <p>No term exam reports have been published yet.</p>
+            </div>`;
+          return;
+        }
+        buildFilterBar(data.reports);
+        renderReports(data);
         checkQRParam();
       })
-      .catch(() => {
+      .catch(err => {
+        console.error(err);
         document.getElementById('resultsContainer').innerHTML = `
           <div class="empty-state"><div class="emoji">⚠️</div><p>Could not load results. Please refresh.</p></div>`;
       });

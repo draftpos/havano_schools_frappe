@@ -13,11 +13,11 @@ def get_context(context):
 	context.show_sidebar = False
 
 	if frappe.form_dict.get("format") == "json":
-		frappe.response.update(get_exam_results_json())
+		frappe.response.update(get_reports_json())
 		return
 
 
-def get_exam_results_json():
+def get_reports_json():
 	user = frappe.session.user
 
 	student = frappe.db.get_value(
@@ -28,112 +28,71 @@ def get_exam_results_json():
 	)
 
 	if not student:
-		return {"terms": [], "student_id": None, "error": "Student record not found"}
+		return {"reports": [], "student_id": None, "error": "Student record not found"}
 
-	# Get all exam schedules for this student's class/section
-	schedule_filters = {"student_class": student.student_class}
-	if student.section:
-		schedule_filters["section"] = student.section
+	# Get all submitted Term Exam Reports for this student's class/section
+	report_filters = {
+		"student_class": student.student_class,
+		"docstatus": 1
+	}
 
-	schedules = frappe.get_all(
-		"Exam Schedule",
-		filters=schedule_filters,
-		fields=["name", "term", "exam", "subject", "date", "max_marks", "min_marks", "student_class", "section"],
-		order_by="date asc"
+	reports = frappe.get_all(
+		"Term Exam Report",
+		filters=report_filters,
+		fields=["name", "report_name", "term", "academic_year", "report_date",
+				"opening_date", "cost_center", "total_subjects", "total_students",
+				"student_class", "section"],
+		order_by="report_date desc"
 	)
 
-	if not schedules:
-		return {
-			"terms": [],
-			"student_id": student.name,
-			"student_name": student.student_name
-		}
+	# Filter by section — include reports with no section or matching section
+	if student.section:
+		reports = [r for r in reports if not r.section or r.section == student.section]
 
-	# Group results by term -> exam
-	terms_map = defaultdict(lambda: {"term": "", "exams": defaultdict(list)})
+	result_reports = []
 
-	for sched in schedules:
-		# Get ONLY what the teacher entered for this student — no fallback calculations
-		score_row = frappe.db.get_value(
-			"Exam Schedule Item",
-			{
-				"parent": sched.name,
-				"student_admission_no": student.name
-			},
-			["marks_obtained", "grade", "status"],
-			as_dict=1
+	for report in reports:
+		# Get this student's rows from the child table
+		rows = frappe.get_all(
+			"Term Exam Result Item",
+			filters={"parent": report.name, "student": student.name},
+			fields=["subject", "exam", "marks_obtained", "max_marks",
+					"percentage", "grade", "status", "remarks"],
+			order_by="subject asc"
 		)
 
-		# Skip if teacher hasn't entered this student's marks yet
-		if not score_row:
+		if not rows:
 			continue
 
-		# Use exactly what was saved — marks, grade, status as entered by teacher
-		marks_obtained = score_row.marks_obtained  # could be 0, None
-		grade = score_row.grade or ""              # exactly as set by teacher
-		status = score_row.status or ""            # Pass / Moderate / Failed as set
+		# Calculate overall totals from actual data
+		marked = [r for r in rows if r.marks_obtained is not None]
+		total_obtained = sum(r.marks_obtained or 0 for r in marked)
+		total_max = sum(r.max_marks or 0 for r in marked)
+		overall_pct = round((total_obtained / total_max * 100), 1) if total_max else None
 
-		max_marks = sched.max_marks or 0
-		min_marks = sched.min_marks or 0
+		# Get school name from cost center
+		school_name = ""
+		if report.cost_center:
+			school_name = frappe.db.get_value("Cost Center", report.cost_center, "cost_center_name") or report.cost_center
 
-		# Only calculate percentage from actual marks — no grade inference
-		if marks_obtained is not None and max_marks:
-			percentage = round((marks_obtained / max_marks) * 100, 1)
-		else:
-			percentage = None  # Not yet marked
-
-		term = sched.term or "No Term"
-		exam = sched.exam or "Exam"
-
-		terms_map[term]["term"] = term
-		terms_map[term]["exams"][exam].append({
-			"subject": sched.subject or "",
-			"date": str(sched.date) if sched.date else "",
-			"marks_obtained": marks_obtained if marks_obtained is not None else "",
-			"max_marks": max_marks,
-			"min_marks": min_marks,
-			"percentage": percentage,
-			"grade": grade,       # teacher-set grade, not calculated
-			"status": status,     # teacher-set status, not calculated
-			"schedule": sched.name
+		result_reports.append({
+			"name": report.name,
+			"report_name": report.report_name,
+			"term": report.term,
+			"academic_year": report.academic_year,
+			"report_date": str(report.report_date) if report.report_date else "",
+			"opening_date": str(report.opening_date) if report.opening_date else "",
+			"school_name": school_name,
+			"student_class": report.student_class,
+			"section": report.section or "",
+			"subjects": [dict(r) for r in rows],
+			"total_obtained": total_obtained,
+			"total_max": total_max,
+			"overall_percentage": overall_pct,
 		})
-
-	# Build final list grouped by term -> exam
-	terms_list = []
-	for term_name, term_data in terms_map.items():
-		exams_list = []
-
-		for exam_name, subjects in term_data["exams"].items():
-			# Sort subjects alphabetically
-			subjects_sorted = sorted(subjects, key=lambda s: s["subject"])
-
-			# Totals — only sum rows that have actual marks entered
-			marked = [s for s in subjects_sorted if s["marks_obtained"] != ""]
-			total_obtained = sum(s["marks_obtained"] for s in marked)
-			total_max = sum(s["max_marks"] for s in marked)
-			overall_pct = round((total_obtained / total_max) * 100, 1) if total_max else None
-
-			exams_list.append({
-				"exam": exam_name,
-				"subjects": subjects_sorted,
-				"total_obtained": total_obtained,
-				"total_max": total_max,
-				"overall_percentage": overall_pct,  # None if no marks entered yet
-				"subjects_marked": len(marked),
-				"subjects_total": len(subjects_sorted)
-			})
-
-		exams_list.sort(key=lambda e: e["exam"])
-		terms_list.append({
-			"term": term_name,
-			"exams": exams_list
-		})
-
-	# Sort terms alphabetically (term names like "Term 1", "Term 2" sort correctly)
-	terms_list.sort(key=lambda t: t["term"])
 
 	return {
-		"terms": terms_list,
+		"reports": result_reports,
 		"student_id": student.name,
 		"student_name": student.student_name,
 		"student_class": student.student_class,

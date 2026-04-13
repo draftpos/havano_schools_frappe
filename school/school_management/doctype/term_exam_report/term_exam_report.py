@@ -458,3 +458,61 @@ def get_student_count(student_class, section=None):
 		"students": len(students),
 		"subjects": len(subject_names)
 	}
+
+
+@frappe.whitelist()
+def get_student_pdf(report_name, student_id):
+	"""Generate a PDF report card for one student from a Term Exam Report."""
+	import weasyprint
+
+	user = frappe.session.user
+	is_student = frappe.db.get_value("Student", {"user": user, "name": student_id}, "name")
+	if not is_student:
+		# Check if parent portal user linked to this student
+		parent = frappe.db.get_value("Parent", {"portal_email": frappe.db.get_value("User", user, "email")}, "name")
+		if not parent:
+			frappe.throw(_("Not authorized"), frappe.PermissionError)
+
+	doc = frappe.get_doc("Term Exam Report", report_name)
+	if doc.docstatus != 1:
+		frappe.throw(_("Report has not been submitted yet."))
+
+	rows = [r for r in doc.term_exam_results if r.student == student_id]
+	if not rows:
+		frappe.throw(_("No results found for this student in this report."))
+
+	student_name = frappe.db.get_value(
+		"Student", student_id,
+		["first_name", "second_name", "last_name"],
+		as_dict=1
+	)
+	if student_name:
+		full_name = " ".join(filter(None, [
+			student_name.first_name,
+			student_name.second_name,
+			student_name.last_name
+		])) or student_id
+	else:
+		full_name = student_id
+
+	school_name = ""
+	if doc.cost_center:
+		school_name = frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name") or doc.cost_center
+
+	qr_b64 = doc.get_qr_base64()
+
+	html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  @page {{size:A4;margin:15mm}}
+  body {{font-family:Arial,sans-serif;margin:0;padding:0}}
+</style>
+</head><body>
+{build_report_html(full_name, student_id, rows, doc, school_name, qr_b64)}
+</body></html>"""
+
+	pdf_bytes = weasyprint.HTML(string=html).write_pdf()
+	fname = f"ReportCard_{full_name}_{doc.term}_{doc.academic_year}.pdf".replace(" ", "_")
+	frappe.response.filename = fname
+	frappe.response.filecontent = pdf_bytes
+	frappe.response.type = "pdf"
