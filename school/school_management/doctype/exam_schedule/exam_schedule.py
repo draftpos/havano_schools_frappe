@@ -50,3 +50,23 @@ def get_teacher_subjects(teacher=None, student_class=None, section=None):
 
 	subjects = list(set([a.subject for a in assignments if a.subject]))
 	return subjects
+
+
+@frappe.whitelist()
+def get_students(student_class=None, section=None):
+	"""Get students for a given class and section."""
+	if not student_class:
+		return []
+
+	filters = {"student_class": student_class}
+	if section:
+		filters["section"] = section
+
+	students = frappe.get_all(
+		"Student",
+		filters=filters,
+		fields=["name", "student_name", "student_id"],
+		order_by="student_name asc"
+	)
+
+	return students
