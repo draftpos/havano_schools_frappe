@@ -304,7 +304,7 @@ def get_student_reports():
 	return {
 		"reports": result_reports,
 		"student_id": student.name,
-		"student_name": student.student_name,
+"student_name": getattr(student, "student_name", getattr(student, "full_name", student.name)),
 		"student_class": student.student_class,
 		"section": student.section or ""
 	}
