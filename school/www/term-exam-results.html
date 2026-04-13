@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Term Exam Results | Student Portal</title>
-    <link href="/assets/frappe/css/frappe-web.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
-    <script src="/assets/frappe/js/frappe-web.min.js"></script>
     <style>
         :root {
             --primary: #4f46e5;
@@ -27,7 +24,6 @@
             min-height: 100vh;
         }
 
-        /* Header */
         .portal-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: #fff;
@@ -48,7 +44,6 @@
 
         .content { padding: 2rem 0; }
 
-        /* Student banner */
         .student-banner {
             background: var(--card-bg); border-radius: 12px;
             padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;
@@ -65,7 +60,6 @@
         .student-info h3 { margin: 0 0 0.2rem; font-size: 1rem; font-weight: 600; }
         .student-info p  { margin: 0; font-size: 0.85rem; color: var(--muted); }
 
-        /* Filter */
         .filter-card {
             background: var(--card-bg); border-radius: 12px;
             padding: 1.5rem; margin-bottom: 1.5rem;
@@ -85,7 +79,6 @@
         }
         .filter-card select:focus { outline: none; border-color: var(--primary); background: #fff; }
 
-        /* States */
         .state-box {
             background: var(--card-bg); border-radius: 12px;
             padding: 3rem 2rem; text-align: center;
@@ -95,7 +88,6 @@
         .state-box .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
         .state-box p { margin: 0; font-size: 1rem; }
 
-        /* Results card */
         .results-card {
             background: var(--card-bg); border-radius: 12px;
             border: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -116,7 +108,7 @@
         }
         .sum-badge {
             background: #f1f5f9; border: 1px solid var(--border);
-            border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem;
+            border-radius: 8px; padding: 0.5rem 1rem;
         }
         .sum-badge strong { font-weight: 700; font-size: 1rem; color: var(--primary); display: block; }
         .sum-badge span { color: var(--muted); font-size: 0.75rem; }
@@ -133,29 +125,21 @@
         .pct-wrap { display: flex; align-items: center; gap: 0.5rem; }
         .pct-num { min-width: 44px; font-size: 0.85rem; color: var(--muted); }
         .bar-track { flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s ease; }
+        .bar-fill { height: 100%; border-radius: 3px; }
 
-        .grade-pill {
-            display: inline-block; padding: 0.18rem 0.65rem;
-            border-radius: 999px; font-size: 0.78rem; font-weight: 700;
-        }
+        .grade-pill { display: inline-block; padding: 0.18rem 0.65rem; border-radius: 999px; font-size: 0.78rem; font-weight: 700; }
         .g-a { background: #dcfce7; color: #166534; }
         .g-b { background: #dbeafe; color: #1e40af; }
         .g-c { background: #fef9c3; color: #854d0e; }
         .g-d { background: #ffedd5; color: #9a3412; }
         .g-f { background: #fee2e2; color: #991b1b; }
 
-        .status-pill {
-            display: inline-block; padding: 0.18rem 0.6rem;
-            border-radius: 6px; font-size: 0.78rem; font-weight: 600;
-        }
+        .status-pill { display: inline-block; padding: 0.18rem 0.6rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; }
         .s-pass     { background: #dcfce7; color: #166534; }
         .s-moderate { background: #fef9c3; color: #854d0e; }
         .s-failed   { background: #fee2e2; color: #991b1b; }
-
         .comment-cell { color: var(--muted); font-size: 0.82rem; font-style: italic; }
 
-        /* Spinner */
         .spinner {
             border: 3px solid #e2e8f0; border-top-color: var(--primary);
             border-radius: 50%; width: 32px; height: 32px;
@@ -176,7 +160,6 @@
 <div class="content">
     <div class="container">
 
-        <!-- Student Banner -->
         <div class="student-banner" id="student-banner" style="display:none;">
             <div class="student-avatar" id="student-avatar">S</div>
             <div class="student-info">
@@ -185,39 +168,33 @@
             </div>
         </div>
 
-        <!-- Term Filter -->
         <div class="filter-card">
             <label for="select-term">Select Academic Term</label>
             <select id="select-term">
-                <option value="">Loading terms…</option>
+                <option value="">— Choose a term —</option>
             </select>
         </div>
 
-        <!-- Loading -->
         <div class="state-box" id="state-loading" style="display:none;">
             <div class="spinner"></div>
             <p>Fetching your results…</p>
         </div>
 
-        <!-- Prompt -->
         <div class="state-box" id="state-prompt">
             <div class="icon">📚</div>
             <p>Please select a term above to view your exam results.</p>
         </div>
 
-        <!-- No results -->
         <div class="state-box" id="state-empty" style="display:none;">
             <div class="icon">🔍</div>
             <p>No submitted results found for this term.</p>
         </div>
 
-        <!-- Error -->
         <div class="state-box" id="state-error" style="display:none;">
             <div class="icon">⚠️</div>
             <p id="error-msg">Something went wrong.</p>
         </div>
 
-        <!-- Results Table -->
         <div class="results-card" id="results-card" style="display:none;">
             <div class="results-header">
                 <h3 id="results-title">Results</h3>
@@ -244,256 +221,230 @@
 </div>
 
 <script>
-frappe.ready(function () {
+// ── Frappe REST API helper using fetch (no frappe global needed) ──
+function getCsrf() {
+    var match = document.cookie.match(/csrf_token=([^;]+)/);
+    return match ? decodeURIComponent(match[1]) : '';
+}
 
-    /* ── Auth guard ── */
-    if (!frappe.session.user || frappe.session.user === 'Guest') {
-        window.location.href = '/portal-login';
-        return;
-    }
+function apiGet(doctype, params) {
+    var url = '/api/resource/' + encodeURIComponent(doctype) + '?' + params;
+    return fetch(url, {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json', 'X-Frappe-CSRF-Token': getCsrf() }
+    }).then(function(r) { return r.json(); });
+}
 
-    let currentStudent = null; // full Student doc values
+function apiGetDoc(doctype, name) {
+    var url = '/api/resource/' + encodeURIComponent(doctype) + '/' + encodeURIComponent(name);
+    return fetch(url, {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json', 'X-Frappe-CSRF-Token': getCsrf() }
+    }).then(function(r) { return r.json(); });
+}
 
-    /* ── Step 1: Resolve Student linked to logged-in user ── */
-    frappe.call({
-        method: 'frappe.client.get_value',
-        args: {
-            doctype: 'Student',
-            filters: { portal_email: frappe.session.user },
-            fieldname: ['name', 'first_name', 'last_name', 'student_class', 'admission_number']
-        },
-        callback: function (r) {
-            if (!r.message || !r.message.name) {
-                showError('No student record is linked to your account. Please contact your school administrator.');
+// ── UI Helpers ──
+function hide() {
+    var ids = ['state-loading','state-empty','state-error','state-prompt','results-card'];
+    ids.forEach(function(id) { document.getElementById(id).style.display = 'none'; });
+}
+function show(id) { document.getElementById(id).style.display = ''; }
+function showError(msg) { hide(); document.getElementById('error-msg').textContent = msg; show('state-error'); }
+function el(id) { return document.getElementById(id); }
+
+// ── State ──
+var currentStudent = null;
+
+// ── On page load ──
+window.addEventListener('load', function() {
+
+    // Check session via /api/method/frappe.auth.get_logged_user
+    fetch('/api/method/frappe.auth.get_logged_user', { credentials: 'include' })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            var user = data.message;
+            if (!user || user === 'Guest') {
+                window.location.href = '/portal-login';
                 return;
             }
-            currentStudent = r.message;
-            renderStudentBanner(currentStudent);
-            loadTerms();
-        }
-    });
-
-    /* ── Render student banner ── */
-    function renderStudentBanner(s) {
-        let name = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || s.name;
-        $('#student-avatar').text(name.charAt(0).toUpperCase());
-        $('#student-name').text(name);
-        let meta = [];
-        if (s.admission_number) meta.push('Adm No: ' + s.admission_number);
-        if (s.student_class)    meta.push('Class: '  + s.student_class);
-        $('#student-meta').text(meta.join('  •  ') || s.name);
-        $('#student-banner').show();
-    }
-
-    /* ── Step 2: Load all Terms from the Term DocType ── */
-    function loadTerms() {
-        frappe.call({
-            method: 'frappe.client.get_list',
-            args: {
-                doctype: 'Term',
-                fields: ['name', 'term_name'],
-                order_by: 'creation desc',
-                limit: 50
-            },
-            callback: function (r) {
-                let sel = $('#select-term');
-                sel.empty().append('<option value="">— Choose a term —</option>');
-                if (r.message && r.message.length) {
-                    r.message.forEach(function (t) {
-                        let label = t.term_name || t.name;
-                        sel.append('<option value="' + t.name + '">' + label + '</option>');
-                    });
-                } else {
-                    sel.append('<option value="" disabled>No terms found</option>');
-                }
-            }
-        });
-    }
-
-    /* ── Step 3: On term change → fetch results ── */
-    $('#select-term').on('change', function () {
-        let term = $(this).val();
-        if (!term || !currentStudent) return;
-        resetStates();
-        $('#state-loading').show();
-        fetchReport(term);
-    });
-
-    /* ── Fetch Term Exam Report for this student's class + selected term ── */
-    function fetchReport(term) {
-        let filters = { term: term, docstatus: 1 };
-        // narrow by class if available
-        if (currentStudent.student_class) {
-            filters['student_class'] = currentStudent.student_class;
-        }
-
-        frappe.call({
-            method: 'frappe.client.get_list',
-            args: {
-                doctype: 'Term Exam Report',
-                filters: filters,
-                fields: ['name', 'report_name', 'term', 'academic_year', 'student_class', 'report_date'],
-                order_by: 'modified desc',
-                limit: 10
-            },
-            callback: function (r) {
-                if (!r.message || !r.message.length) {
-                    $('#state-loading').hide();
-                    $('#state-empty').show();
-                    return;
-                }
-                // Get the full doc (with child table) for the first matching report
-                loadFullReport(r.message[0]);
-            }
-        });
-    }
-
-    /* ── Load full report doc to access child table ── */
-    function loadFullReport(reportMeta) {
-        frappe.call({
-            method: 'frappe.client.get',
-            args: {
-                doctype: 'Term Exam Report',
-                name: reportMeta.name
-            },
-            callback: function (r) {
-                $('#state-loading').hide();
-                if (!r.message) {
-                    showError('Could not load the exam report. Please try again.');
-                    return;
-                }
-                let doc = r.message;
-                let allRows = doc.term_exam_results || [];
-
-                // Filter rows that belong to this student
-                let myRows = allRows.filter(function (row) {
-                    return row.student === currentStudent.name;
-                });
-
-                if (!myRows.length) {
-                    $('#state-empty').show();
-                    return;
-                }
-
-                renderResults(doc, myRows);
-            }
-        });
-    }
-
-    /* ── Render results table ── */
-    function renderResults(doc, rows) {
-        // Header
-        $('#results-title').text((doc.term || '') + ' — Exam Results');
-        let metaParts = [];
-        if (doc.report_date)   metaParts.push(doc.report_date);
-        if (doc.academic_year) metaParts.push(doc.academic_year);
-        $('#results-meta').text(metaParts.join('  |  '));
-
-        // Summary: aggregate across subjects
-        let totalObtained = 0, totalMax = 0, passCount = 0, failCount = 0;
-        rows.forEach(function (row) {
-            totalObtained += parseFloat(row.marks_obtained || 0);
-            totalMax      += parseFloat(row.max_marks || 0);
-            let status = (row.status || '').toLowerCase();
-            if (status === 'pass' || status === 'moderate') passCount++;
-            else if (status === 'failed') failCount++;
-        });
-        let overallPct = totalMax > 0 ? ((totalObtained / totalMax) * 100).toFixed(1) : '—';
-
-        let summaryHTML = '';
-        summaryHTML += sumBadge(rows.length, 'Subjects');
-        summaryHTML += sumBadge(totalObtained, 'Total Obtained');
-        if (totalMax > 0) summaryHTML += sumBadge(totalMax, 'Total Max');
-        if (totalMax > 0) summaryHTML += sumBadge(overallPct + '%', 'Overall %');
-        if (passCount > 0) summaryHTML += sumBadge(passCount, 'Passed');
-        if (failCount > 0) summaryHTML += sumBadge(failCount, 'Failed');
-        $('#summary-row').html(summaryHTML);
-
-        // Subject rows
-        let tbody = $('#results-body').empty();
-        rows.forEach(function (row) {
-            let obt   = parseFloat(row.marks_obtained || 0);
-            let max   = parseFloat(row.max_marks || 0);
-            let pct   = row.percentage != null ? parseFloat(row.percentage).toFixed(1)
-                        : (max > 0 ? ((obt / max) * 100).toFixed(1) : '—');
-            let grade  = (row.grade || autoGrade(parseFloat(pct))).toString().toUpperCase();
-            let status = row.status || '';
-            let color  = barColor(parseFloat(pct));
-
-            // Comments
-            let comments = [];
-            if (row.remarks)         comments.push(row.remarks);
-            if (row.teacher_comment) comments.push('Teacher: ' + row.teacher_comment);
-            if (row.admin_comment)   comments.push('Admin: '   + row.admin_comment);
-
-            tbody.append(
-                '<tr>' +
-                '<td><strong>' + (row.subject || '—') + '</strong></td>' +
-                '<td>' + obt + '</td>' +
-                '<td>' + (max || '—') + '</td>' +
-                '<td>' +
-                    '<div class="pct-wrap">' +
-                        '<span class="pct-num">' + pct + '%</span>' +
-                        '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(parseFloat(pct)||0, 100) + '%;background:' + color + ';"></div></div>' +
-                    '</div>' +
-                '</td>' +
-                '<td><span class="grade-pill ' + gradeClass(grade) + '">' + grade + '</span></td>' +
-                '<td>' + statusPill(status) + '</td>' +
-                '<td class="comment-cell">' + (comments.join(' — ') || '—') + '</td>' +
-                '</tr>'
-            );
-        });
-
-        $('#results-card').show();
-    }
-
-    /* ── Helpers ── */
-    function sumBadge(val, label) {
-        return '<div class="sum-badge"><strong>' + val + '</strong><span>' + label + '</span></div>';
-    }
-
-    function barColor(pct) {
-        if (pct >= 80) return '#4f46e5';
-        if (pct >= 65) return '#0891b2';
-        if (pct >= 50) return '#d97706';
-        return '#dc2626';
-    }
-
-    function gradeClass(g) {
-        if (g.startsWith('A')) return 'g-a';
-        if (g.startsWith('B')) return 'g-b';
-        if (g.startsWith('C')) return 'g-c';
-        if (g.startsWith('D')) return 'g-d';
-        return 'g-f';
-    }
-
-    function statusPill(s) {
-        let lower = (s || '').toLowerCase();
-        if (lower === 'pass')     return '<span class="status-pill s-pass">Pass ✓</span>';
-        if (lower === 'moderate') return '<span class="status-pill s-moderate">Moderate</span>';
-        if (lower === 'failed')   return '<span class="status-pill s-failed">Failed ✗</span>';
-        return '<span style="color:var(--muted)">—</span>';
-    }
-
-    function autoGrade(pct) {
-        if (pct >= 80) return 'A';
-        if (pct >= 70) return 'B';
-        if (pct >= 60) return 'C';
-        if (pct >= 50) return 'D';
-        return 'F';
-    }
-
-    function resetStates() {
-        $('#state-loading, #state-empty, #state-error, #state-prompt, #results-card').hide();
-    }
-
-    function showError(msg) {
-        resetStates();
-        $('#error-msg').text(msg);
-        $('#state-error').show();
-    }
-
+            resolveStudent(user);
+        })
+        .catch(function() { showError('Could not verify your session. Please login again.'); });
 });
+
+// ── Step 1: Find Student by portal_email ──
+function resolveStudent(userEmail) {
+    apiGet('Student', 'fields=["name","first_name","last_name","student_class","admission_number"]&filters=[["portal_email","=","' + userEmail + '"]]&limit=1')
+        .then(function(data) {
+            if (!data.data || !data.data.length) {
+                showError('No student record linked to your account. Please contact your administrator.');
+                return;
+            }
+            currentStudent = data.data[0];
+            renderBanner(currentStudent);
+            loadTerms();
+        })
+        .catch(function() { showError('Failed to load student data.'); });
+}
+
+// ── Render student banner ──
+function renderBanner(s) {
+    var name = ((s.first_name || '') + ' ' + (s.last_name || '')).trim() || s.name;
+    el('student-avatar').textContent = name.charAt(0).toUpperCase();
+    el('student-name').textContent = name;
+    var meta = [];
+    if (s.admission_number) meta.push('Adm No: ' + s.admission_number);
+    if (s.student_class)    meta.push('Class: ' + s.student_class);
+    el('student-meta').textContent = meta.join('  •  ') || s.name;
+    el('student-banner').style.display = 'flex';
+}
+
+// ── Step 2: Load terms from Term DocType ──
+function loadTerms() {
+    apiGet('Term', 'fields=["name","term_name"]&order_by=creation desc&limit=50')
+        .then(function(data) {
+            var sel = el('select-term');
+            sel.innerHTML = '<option value="">— Choose a term —</option>';
+            if (data.data && data.data.length) {
+                data.data.forEach(function(t) {
+                    var opt = document.createElement('option');
+                    opt.value = t.name;
+                    opt.textContent = t.term_name || t.name;
+                    sel.appendChild(opt);
+                });
+            } else {
+                var opt = document.createElement('option');
+                opt.disabled = true;
+                opt.textContent = 'No terms found';
+                sel.appendChild(opt);
+            }
+        })
+        .catch(function() { showError('Failed to load terms.'); });
+}
+
+// ── Step 3: On term select ──
+el('select-term').addEventListener('change', function() {
+    var term = this.value;
+    if (!term || !currentStudent) return;
+    hide();
+    show('state-loading');
+    fetchReport(term);
+});
+
+// ── Step 4: Fetch Term Exam Report ──
+function fetchReport(term) {
+    var filters = '[["term","=","' + term + '"],["docstatus","=","1"]';
+    if (currentStudent.student_class) {
+        filters += ',["student_class","=","' + currentStudent.student_class + '"]]';
+    } else {
+        filters += ']';
+    }
+
+    apiGet('Term Exam Report', 'fields=["name","report_name","term","academic_year","student_class","report_date"]&filters=' + encodeURIComponent(filters) + '&order_by=modified desc&limit=5')
+        .then(function(data) {
+            if (!data.data || !data.data.length) {
+                hide(); show('state-empty'); return;
+            }
+            loadFullReport(data.data[0]);
+        })
+        .catch(function() { hide(); showError('Failed to fetch exam reports.'); });
+}
+
+// ── Step 5: Load full doc with child table ──
+function loadFullReport(meta) {
+    apiGetDoc('Term Exam Report', meta.name)
+        .then(function(data) {
+            hide();
+            if (!data.data) { showError('Could not load the report details.'); return; }
+            var doc = data.data;
+            var allRows = doc.term_exam_results || [];
+            var myRows = allRows.filter(function(row) {
+                return row.student === currentStudent.name;
+            });
+            if (!myRows.length) { show('state-empty'); return; }
+            renderResults(doc, myRows);
+        })
+        .catch(function() { hide(); showError('Failed to load report details.'); });
+}
+
+// ── Step 6: Render results ──
+function renderResults(doc, rows) {
+    el('results-title').textContent = (doc.term || '') + ' — Exam Results';
+    var metaParts = [];
+    if (doc.report_date)   metaParts.push(doc.report_date);
+    if (doc.academic_year) metaParts.push(doc.academic_year);
+    el('results-meta').textContent = metaParts.join('  |  ');
+
+    var totalObt = 0, totalMax = 0, passCount = 0, failCount = 0;
+    rows.forEach(function(r) {
+        totalObt += parseFloat(r.marks_obtained || 0);
+        totalMax += parseFloat(r.max_marks || 0);
+        var s = (r.status || '').toLowerCase();
+        if (s === 'pass' || s === 'moderate') passCount++;
+        else if (s === 'failed') failCount++;
+    });
+    var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : '—';
+
+    var summaryHTML = sumBadge(rows.length, 'Subjects') +
+        sumBadge(totalObt, 'Total Obtained');
+    if (totalMax > 0) summaryHTML += sumBadge(totalMax, 'Total Max') + sumBadge(overallPct + '%', 'Overall %');
+    if (passCount) summaryHTML += sumBadge(passCount, 'Passed');
+    if (failCount) summaryHTML += sumBadge(failCount, 'Failed');
+    el('summary-row').innerHTML = summaryHTML;
+
+    var tbody = el('results-body');
+    tbody.innerHTML = '';
+    rows.forEach(function(row) {
+        var obt  = parseFloat(row.marks_obtained || 0);
+        var max  = parseFloat(row.max_marks || 0);
+        var pct  = row.percentage != null
+                   ? parseFloat(row.percentage).toFixed(1)
+                   : (max > 0 ? ((obt / max) * 100).toFixed(1) : '—');
+        var grade  = (row.grade || autoGrade(parseFloat(pct))).toString().toUpperCase();
+        var color  = barColor(parseFloat(pct));
+        var comments = [];
+        if (row.remarks)         comments.push(row.remarks);
+        if (row.teacher_comment) comments.push('Teacher: ' + row.teacher_comment);
+        if (row.admin_comment)   comments.push('Admin: '   + row.admin_comment);
+
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><strong>' + (row.subject || '—') + '</strong></td>' +
+            '<td>' + obt + '</td>' +
+            '<td>' + (max || '—') + '</td>' +
+            '<td><div class="pct-wrap"><span class="pct-num">' + pct + '%</span>' +
+                '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(parseFloat(pct)||0,100) + '%;background:' + color + ';"></div></div></div></td>' +
+            '<td><span class="grade-pill ' + gradeClass(grade) + '">' + grade + '</span></td>' +
+            '<td>' + statusPill(row.status) + '</td>' +
+            '<td class="comment-cell">' + (comments.join(' — ') || '—') + '</td>';
+        tbody.appendChild(tr);
+    });
+
+    show('results-card');
+}
+
+// ── Pure helpers ──
+function sumBadge(v, l) { return '<div class="sum-badge"><strong>' + v + '</strong><span>' + l + '</span></div>'; }
+function barColor(p) { return p >= 80 ? '#4f46e5' : p >= 65 ? '#0891b2' : p >= 50 ? '#d97706' : '#dc2626'; }
+function gradeClass(g) {
+    if (g.startsWith('A')) return 'g-a';
+    if (g.startsWith('B')) return 'g-b';
+    if (g.startsWith('C')) return 'g-c';
+    if (g.startsWith('D')) return 'g-d';
+    return 'g-f';
+}
+function statusPill(s) {
+    var l = (s || '').toLowerCase();
+    if (l === 'pass')     return '<span class="status-pill s-pass">Pass ✓</span>';
+    if (l === 'moderate') return '<span class="status-pill s-moderate">Moderate</span>';
+    if (l === 'failed')   return '<span class="status-pill s-failed">Failed ✗</span>';
+    return '<span style="color:var(--muted)">—</span>';
+}
+function autoGrade(p) {
+    if (p >= 80) return 'A'; if (p >= 70) return 'B';
+    if (p >= 60) return 'C'; if (p >= 50) return 'D';
+    return 'F';
+}
 </script>
 
 </body>
