@@ -60,7 +60,7 @@
     .term-btn:hover { border-color: var(--indigo); color: var(--indigo); }
     .term-btn.active { background: var(--indigo); color: white; border-color: var(--indigo); }
 
-    /* ── Report Card (matches print format style) ── */
+    /* ── Report Card ── */
     .report-card {
       background: var(--surface);
       border: 2px solid var(--navy);
@@ -69,30 +69,24 @@
       margin-bottom: 32px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.08);
     }
-
     .rc-header {
       background: var(--navy); color: white;
       padding: 16px 24px; text-align: center;
     }
     .rc-header h2 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
     .rc-header h3 { margin: 4px 0 0; font-size: 12px; font-weight: 400; opacity: 0.85; }
-
     .rc-meta {
       background: #eef2f7; padding: 14px 24px;
       display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
       border-bottom: 1px solid #cbd5e1;
     }
     .rc-meta p { margin: 3px 0; font-size: 13px; }
-
     .rc-actions {
       padding: 12px 24px; display: flex; gap: 8px; align-items: center;
       flex-wrap: wrap; border-bottom: 1px solid var(--border);
       background: #fafbfc;
     }
-
-    .badge {
-      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
-    }
+    .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .badge-emerald { background: rgba(16,185,129,0.12); color: var(--emerald); }
     .badge-rose    { background: rgba(244,63,94,0.12);  color: var(--rose); }
     .badge-violet  { background: rgba(139,92,246,0.12); color: var(--violet); }
@@ -113,10 +107,10 @@
     .grade-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
     .grade-Ap { background: rgba(16,185,129,0.15); color: #059669; }
     .grade-A  { background: rgba(16,185,129,0.12); color: var(--emerald); }
-    .grade-B  { background: rgba(245,158,11,0.12); color: var(--amber); }
-    .grade-C  { background: rgba(59,130,246,0.12); color: var(--blue); }
-    .grade-D  { background: rgba(139,92,246,0.12); color: var(--violet); }
-    .grade-F  { background: rgba(244,63,94,0.12);  color: var(--rose); }
+    .grade-B  { background: rgba(245,158,11,0.12);  color: var(--amber); }
+    .grade-C  { background: rgba(59,130,246,0.12);  color: var(--blue); }
+    .grade-D  { background: rgba(139,92,246,0.12);  color: var(--violet); }
+    .grade-F  { background: rgba(244,63,94,0.12);   color: var(--rose); }
     .status-pass     { color: var(--emerald); font-weight: 600; }
     .status-moderate { color: var(--amber);   font-weight: 600; }
     .status-failed   { color: var(--rose);    font-weight: 600; }
@@ -342,7 +336,6 @@
         const pctDisplay = overallPct !== null ? overallPct.toFixed(1) + '%' : '—';
         const verifyUrl = window.location.origin + '/term-exam-results?report=' + report.name;
 
-        // Build subject rows
         const subjectRows = subjects.map(s => {
           const marks = (s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained !== '') ? s.marks_obtained : '—';
           const pct = (s.percentage !== null && s.percentage !== undefined) ? s.percentage.toFixed(1) + '%' : '—';
@@ -366,13 +359,11 @@
         card.dataset.term = report.term;
 
         card.innerHTML = `
-          <!-- Header -->
           <div class="rc-header">
             <h2>${report.school_name || 'School'}</h2>
             <h3>TERM EXAMINATION REPORT CARD</h3>
           </div>
 
-          <!-- Student Meta -->
           <div class="rc-meta">
             <div>
               <p><strong>Student:</strong> ${data.student_name || ''}</p>
@@ -386,7 +377,6 @@
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="rc-actions">
             <span class="badge ${badgeClass}">Overall: ${pctDisplay}</span>
             <button class="btn btn-indigo" onclick="downloadPDF(this, '${report.name}', '${data.student_id}')">
@@ -397,7 +387,6 @@
             </button>
           </div>
 
-          <!-- Results Table -->
           <div class="table-wrap">
             <table class="subjects-table">
               <thead>
@@ -426,21 +415,18 @@
             </table>
           </div>
 
-          <!-- Grade key -->
           <div style="padding:8px 24px;font-size:11px;color:#64748b;border-top:1px solid var(--border)">
             <strong>Note:</strong> Grades and status are entered by subject teachers.
             Pass = meets passing mark &nbsp;|&nbsp; Moderate = borderline &nbsp;|&nbsp; Failed = below passing mark
             ${report.opening_date ? '&nbsp;|&nbsp; <strong>School Opens:</strong> ' + report.opening_date : ''}
           </div>
 
-          <!-- Signatures -->
           <div class="rc-signatures">
             <div class="sig-box"><div class="sig-line">Class Teacher</div></div>
             <div class="sig-box"><div class="sig-line">Head Teacher</div></div>
             <div class="sig-box"><div class="sig-line">Parent / Guardian</div></div>
           </div>
 
-          <!-- Footer -->
           <div class="rc-footer">
             <p>Verify at: <a href="${verifyUrl}">${verifyUrl}</a></p>
             <p>Report ID: ${report.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
@@ -540,10 +526,18 @@
       if (report) setTimeout(() => { openModal(); verifyReport(report); }, 600);
     }
 
-    // ── Load data ────────────────────────────────────────────────────
-    fetch('/term-exam-results?format=json')
-      .then(r => r.json())
-      .then(data => {
+    // ── Load data ─────────────────────────────────────────────────────
+    // FIX: fetch from this page's own ?format=json endpoint instead of
+    // a non-existent @frappe.whitelist() API method.
+    fetch(window.location.pathname + '?format=json', {
+      headers: { 'Accept': 'application/json' }
+    })
+      .then(r => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(res => {
+        const data = res.message || res;
         allData = data;
         if (data.error) {
           document.getElementById('filterBar').innerHTML = '';

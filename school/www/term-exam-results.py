@@ -13,8 +13,9 @@ def get_context(context):
 	context.show_sidebar = False
 
 	if frappe.form_dict.get("format") == "json":
-		frappe.response.update(get_reports_json())
-		return
+		frappe.response["type"] = "json"
+		frappe.response["message"] = get_reports_json()
+		raise frappe.exceptions.DoNotShowInBrowser
 
 
 def get_reports_json():
@@ -30,7 +31,6 @@ def get_reports_json():
 	if not student:
 		return {"reports": [], "student_id": None, "error": "Student record not found"}
 
-	# Get all submitted Term Exam Reports for this student's class/section
 	report_filters = {
 		"student_class": student.student_class,
 		"docstatus": 1
@@ -45,14 +45,12 @@ def get_reports_json():
 		order_by="report_date desc"
 	)
 
-	# Filter by section — include reports with no section or matching section
 	if student.section:
 		reports = [r for r in reports if not r.section or r.section == student.section]
 
 	result_reports = []
 
 	for report in reports:
-		# Get this student's rows from the child table
 		rows = frappe.get_all(
 			"Term Exam Result Item",
 			filters={"parent": report.name, "student": student.name},
@@ -64,13 +62,11 @@ def get_reports_json():
 		if not rows:
 			continue
 
-		# Calculate overall totals from actual data
 		marked = [r for r in rows if r.marks_obtained is not None]
 		total_obtained = sum(r.marks_obtained or 0 for r in marked)
 		total_max = sum(r.max_marks or 0 for r in marked)
 		overall_pct = round((total_obtained / total_max * 100), 1) if total_max else None
 
-		# Get school name from cost center
 		school_name = ""
 		if report.cost_center:
 			school_name = frappe.db.get_value("Cost Center", report.cost_center, "cost_center_name") or report.cost_center
