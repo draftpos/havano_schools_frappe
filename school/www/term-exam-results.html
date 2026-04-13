@@ -1,529 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Term Exam Reports</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #f4f6f9; --surface: #ffffff;
-      --border: rgba(0,0,0,0.07); --border2: rgba(0,0,0,0.12);
-      --text: #0f172a; --text2: #475569; --text3: #94a3b8;
-      --blue: #3b82f6; --indigo: #6366f1; --emerald: #10b981;
-      --amber: #f59e0b; --rose: #f43f5e; --violet: #8b5cf6;
-      --navy: #1e3a5f;
-      --sidebar-w: 272px; --header-h: 68px; --radius: 14px; --radius-sm: 8px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    .sidebar {
-      position: fixed; top: 0; left: 0; width: var(--sidebar-w);
-      height: 100vh; background: #fff; border-right: 1px solid var(--border2);
-      display: flex; flex-direction: column; z-index: 100; transition: transform .3s; overflow-y: auto;
-    }
-    .sidebar-logo { padding: 22px 20px 16px; border-bottom: 1px solid var(--border); }
-    .sidebar-logo .logo-text { font-size: 18px; font-weight: 800; color: var(--indigo); }
-    .sidebar-logo .logo-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
-    .nav-section { padding: 16px 12px 8px; font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-      border-radius: var(--radius-sm); margin: 2px 8px; font-size: 14px;
-      font-weight: 500; color: var(--text2); text-decoration: none; transition: all .15s;
-    }
-    .nav-item:hover { background: var(--bg); color: var(--text); }
-    .nav-item.active { background: rgba(99,102,241,0.1); color: var(--indigo); font-weight: 600; }
-    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
-
-    .main { margin-left: var(--sidebar-w); min-height: 100vh; display: flex; flex-direction: column; }
-    .topbar {
-      height: var(--header-h); background: #fff; border-bottom: 1px solid var(--border2);
-      display: flex; align-items: center; padding: 0 28px; gap: 16px;
-      position: sticky; top: 0; z-index: 50;
-    }
-    .page-title { font-size: 18px; font-weight: 700; }
-    .menu-toggle { display: none; background: none; border: none; font-size: 22px; cursor: pointer; }
-    .content { padding: 28px; flex: 1; }
-
-    .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; align-items: center; }
-    .filter-label { font-size: 13px; font-weight: 600; color: var(--text2); margin-right: 4px; }
-    .term-btn {
-      padding: 6px 16px; border-radius: 20px; border: 1.5px solid var(--border2);
-      background: white; font-size: 13px; font-weight: 600; color: var(--text2);
-      cursor: pointer; transition: all .15s; font-family: inherit;
-    }
-    .term-btn:hover { border-color: var(--indigo); color: var(--indigo); }
-    .term-btn.active { background: var(--indigo); color: white; border-color: var(--indigo); }
-
-    .report-card {
-      background: var(--surface); border: 2px solid var(--navy);
-      border-radius: var(--radius); overflow: hidden; margin-bottom: 32px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-    }
-    .rc-header { background: var(--navy); color: white; padding: 16px 24px; text-align: center; }
-    .rc-header h2 { margin: 0; font-size: 20px; letter-spacing: 0.5px; }
-    .rc-header h3 { margin: 4px 0 0; font-size: 12px; font-weight: 400; opacity: 0.85; }
-    .rc-meta {
-      background: #eef2f7; padding: 14px 24px;
-      display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-      border-bottom: 1px solid #cbd5e1;
-    }
-    .rc-meta p { margin: 3px 0; font-size: 13px; }
-    .rc-actions {
-      padding: 12px 24px; display: flex; gap: 8px; align-items: center;
-      flex-wrap: wrap; border-bottom: 1px solid var(--border); background: #fafbfc;
-    }
-
-    .badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-    .badge-emerald { background: rgba(16,185,129,0.12); color: var(--emerald); }
-    .badge-rose    { background: rgba(244,63,94,0.12);  color: var(--rose); }
-    .badge-violet  { background: rgba(139,92,246,0.12); color: var(--violet); }
-
-    .table-wrap { overflow-x: auto; padding: 0 24px 20px; }
-    .subjects-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 14px; }
-    .subjects-table th {
-      background: var(--navy); color: white;
-      padding: 9px 10px; text-align: left; white-space: nowrap;
-    }
-    .subjects-table th.center, .subjects-table td.center { text-align: center; }
-    .subjects-table td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; }
-    .subjects-table tr:nth-child(even) td { background: #f8fafc; }
-    .subjects-table tr:last-child td { border-bottom: none; }
-    .overall-row td { background: #eef2f7; font-weight: 700; border-top: 2px solid #cbd5e1; }
-
-    .grade-badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; }
-    .grade-Ap { background: rgba(16,185,129,0.15); color: #059669; }
-    .grade-A  { background: rgba(16,185,129,0.12); color: var(--emerald); }
-    .grade-B  { background: rgba(245,158,11,0.12);  color: var(--amber); }
-    .grade-C  { background: rgba(59,130,246,0.12);  color: var(--blue); }
-    .grade-D  { background: rgba(139,92,246,0.12);  color: var(--violet); }
-    .grade-F  { background: rgba(244,63,94,0.12);   color: var(--rose); }
-    .status-pass     { color: var(--emerald); font-weight: 600; }
-    .status-moderate { color: var(--amber);   font-weight: 600; }
-    .status-failed   { color: var(--rose);    font-weight: 600; }
-
-    .rc-signatures {
-      padding: 14px 24px; display: flex; justify-content: space-between;
-      border-top: 1px solid var(--border);
-    }
-    .sig-box { text-align: center; width: 30%; }
-    .sig-line { border-top: 1px solid #334155; margin-top: 32px; padding-top: 5px; font-size: 12px; color: var(--text2); }
-
-    .rc-footer { background: var(--navy); color: #cbd5e1; padding: 10px 24px; font-size: 11px; }
-    .rc-footer p { margin: 2px 0; }
-    .rc-footer a { color: #93c5fd; }
-
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 7px 14px; border-radius: var(--radius-sm);
-      font-size: 12px; font-weight: 600; border: none; cursor: pointer;
-      text-decoration: none; transition: opacity .15s; font-family: inherit;
-    }
-    .btn:hover { opacity: 0.85; }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    .btn-indigo  { background: var(--indigo); color: white; }
-    .btn-outline { background: transparent; color: var(--indigo); border: 1.5px solid var(--indigo); }
-
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-      z-index: 200; display: flex; align-items: center; justify-content: center;
-      padding: 20px; opacity: 0; pointer-events: none; transition: opacity .2s;
-    }
-    .modal-overlay.open { opacity: 1; pointer-events: all; }
-    .modal {
-      background: white; border-radius: 16px; max-width: 460px; width: 100%;
-      overflow: hidden; transform: scale(0.95); transition: transform .2s;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-    .modal-overlay.open .modal { transform: scale(1); }
-    .modal-header { padding: 22px 28px 16px; text-align: center; }
-    .modal-header.valid   { background: linear-gradient(135deg,#10b981,#059669); color: white; }
-    .modal-header.invalid { background: linear-gradient(135deg,#f43f5e,#dc2626); color: white; }
-    .modal-header.loading { background: linear-gradient(135deg,#6366f1,#4f46e5); color: white; }
-    .modal-icon { font-size: 42px; margin-bottom: 6px; }
-    .modal-header h2 { margin: 0; font-size: 19px; font-weight: 700; }
-    .modal-header p  { margin: 5px 0 0; opacity: 0.88; font-size: 13px; }
-    .modal-body { padding: 18px 28px; }
-    .detail-row {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px;
-    }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-label { color: #64748b; font-weight: 500; }
-    .detail-value { color: #0f172a; font-weight: 600; text-align: right; }
-    .id-chip { font-family: monospace; background: #f1f5f9; padding: 2px 7px; border-radius: 4px; font-size: 11px; }
-    .modal-footer { padding: 12px 28px 20px; text-align: center; }
-    .modal-close {
-      padding: 9px 28px; border-radius: var(--radius-sm);
-      background: #f1f5f9; color: var(--text2); font-size: 14px;
-      font-weight: 600; border: none; cursor: pointer; font-family: inherit;
-    }
-    .modal-close:hover { background: #e2e8f0; }
-
-    .skeleton {
-      background: linear-gradient(90deg,#e2e8f0 25%,#f1f5f9 50%,#e2e8f0 75%);
-      background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: var(--radius);
-    }
-    @keyframes shimmer { 0%{background-position:200% 0}100%{background-position:-200% 0} }
-    .empty-state { text-align: center; padding: 60px 20px; color: var(--text3); }
-    .empty-state .emoji { font-size: 48px; margin-bottom: 12px; }
-    .empty-state p { font-size: 15px; }
-
-    @media (max-width: 768px) {
-      .sidebar { transform: translateX(-100%); }
-      .sidebar.open { transform: translateX(0); }
-      .main { margin-left: 0; }
-      .menu-toggle { display: block; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Term Exam Results | Student Portal</title>
+    <!-- Include Frappe desk styles and Bootstrap -->
+    <link href="/assets/frappe/css/frappe-web.css" rel="stylesheet">
+    <script src="/assets/frappe/js/lib/jquery/jquery.min.js"></script>
+    <script src="/assets/frappe/js/frappe-web.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: #e5e7eb;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .portal-header {
+            background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header-content h1 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .btn-back {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-back:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border-color);
+        }
+        .filters {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .filters select {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            font-size: 1rem;
+            background-color: #f9fafb;
+            color: var(--text-main);
+        }
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            display: none;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        .results-table th, .results-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .results-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+        .results-table tr:hover td {
+            background-color: #f3f4f6;
+        }
+        .grade-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .grade-a { background-color: #dcfce7; color: #166534; }
+        .grade-b { background-color: #e0f2fe; color: #075985; }
+        .grade-c { background-color: #fef9c3; color: #854d0e; }
+        .grade-d { background-color: #ffedd5; color: #9a3412; }
+        .grade-f { background-color: #fee2e2; color: #991b1b; }
+        
+        /* Global Card Text Color Hover */
+        .card *, .module-card *, .reg-card *, .stat-card *, .reg-card-header *, .card-title, .status-value, .stat-value {
+            transition: color 0.3s ease;
+        }
+        .card:hover *, .module-card:hover *, .reg-card:hover *, .stat-card:hover *, .reg-card-header:hover * {
+            color: var(--primary) !important;
+        }
+    </style>
 </head>
 <body>
 
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-text">📚 School Portal</div>
-      <div class="logo-sub">Student Dashboard</div>
+<div class="portal-header">
+    <div class="container header-content">
+        <h1>Term Exam Results</h1>
+        <a href="/assets/school/html/student-portal.html" class="btn-back">← Back to Portal</a>
     </div>
-    <div class="nav-section">Main</div>
-    <a class="nav-item" href="/student-portal"><span class="icon">🏠</span> Home</a>
-    <a class="nav-item" href="/portal-home-schedule"><span class="icon">📖</span> Homework</a>
-    <a class="nav-item" href="/portal-test-schedule"><span class="icon">📝</span> Tests</a>
-    <a class="nav-item" href="/portal-exam-schedule"><span class="icon">🗓️</span> Exams</a>
-    <div class="nav-section">Results</div>
-    <a class="nav-item" href="/homework-results"><span class="icon">✅</span> Homework Results</a>
-    <a class="nav-item" href="/class-test-results"><span class="icon">📊</span> Test Results</a>
-    <a class="nav-item" href="/exam-results"><span class="icon">🎯</span> Exam Results</a>
-    <a class="nav-item active" href="/term-exam-results"><span class="icon">🏆</span> Term Reports</a>
-    <div class="nav-section">Account</div>
-    <a class="nav-item" href="/student-billing"><span class="icon">💳</span> Billing</a>
-    <a class="nav-item" href="/student-profile"><span class="icon">👤</span> Profile</a>
-    <a class="nav-item" href="/portal-login?action=logout"><span class="icon">🚪</span> Logout</a>
-  </aside>
+</div>
 
-  <div class="main">
-    <header class="topbar">
-      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
-      <div class="page-title">🏆 Term Exam Reports</div>
-    </header>
-    <div class="content">
-      <div class="filter-bar" id="filterBar">
-        <span class="filter-label">Term:</span>
-        <div class="skeleton" style="height:32px;width:220px;border-radius:20px"></div>
-      </div>
-      <div id="resultsContainer">
-        <div class="skeleton" style="height:400px;margin-bottom:20px"></div>
-        <div class="skeleton" style="height:400px"></div>
-      </div>
-    </div>
-  </div>
+<div class="container">
+    <div class="card">
+        <div class="filters">
+            <select id="academic-term" title="Select Academic Term">
+                <option value="">Select Term</option>
+            </select>
+            <select id="exam-group" title="Select Exam Group">
+                <option value="">Select Exam</option>
+            </select>
+        </div>
 
-  <div class="modal-overlay" id="verifyOverlay" onclick="closeModal(event)">
-    <div class="modal">
-      <div class="modal-header loading" id="modalHeader">
-        <div class="modal-icon" id="modalIcon">⏳</div>
-        <h2 id="modalTitle">Verifying…</h2>
-        <p id="modalSubtitle">Please wait</p>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
-      <div class="modal-footer">
-        <button class="modal-close" onclick="document.getElementById('verifyOverlay').classList.remove('open')">Close</button>
-      </div>
-    </div>
-  </div>
+        <div id="loading" class="loading">
+            Loading your results...
+        </div>
 
-  <script>
-    let allData = null;
-    let activeFilter = 'all';
-
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-
-    function gradeClass(g) {
-      const map = {'A+':'Ap','A':'A','B':'B','C':'C','D':'D','F':'F'};
-      return 'grade-' + (map[g] || (g ? g.charAt(0) : 'F'));
-    }
-
-    function statusClass(s) {
-      if (!s) return '';
-      const l = s.toLowerCase();
-      if (l === 'pass') return 'status-pass';
-      if (l === 'moderate') return 'status-moderate';
-      if (l === 'failed') return 'status-failed';
-      return '';
-    }
-
-    function buildFilterBar(reports) {
-      const bar = document.getElementById('filterBar');
-      const terms = [...new Set(reports.map(r => r.term).filter(Boolean))];
-      bar.innerHTML = '<span class="filter-label">Term:</span>';
-
-      const allBtn = document.createElement('button');
-      allBtn.className = 'term-btn active';
-      allBtn.textContent = 'All Terms';
-      allBtn.onclick = () => setFilter('all', allBtn);
-      bar.appendChild(allBtn);
-
-      terms.forEach(term => {
-        const btn = document.createElement('button');
-        btn.className = 'term-btn';
-        btn.textContent = term;
-        btn.onclick = () => setFilter(term, btn);
-        bar.appendChild(btn);
-      });
-    }
-
-    function setFilter(term, btn) {
-      activeFilter = term;
-      document.querySelectorAll('.term-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderReports(allData);
-    }
-
-    function renderReports(data) {
-      const container = document.getElementById('resultsContainer');
-      const reports = (data.reports || []).filter(r =>
-        activeFilter === 'all' || r.term === activeFilter
-      );
-
-      if (!reports.length) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="emoji">📭</div>
-            <p>No term exam reports found${activeFilter !== 'all' ? ' for ' + activeFilter : ''}.</p>
-          </div>`;
-        return;
-      }
-
-      container.innerHTML = '';
-
-      reports.forEach(report => {
-        const subjects = report.subjects || [];
-        const overallPct = report.overall_percentage;
-        const badgeClass = overallPct !== null
-          ? (overallPct >= 50 ? 'badge-emerald' : 'badge-rose')
-          : 'badge-violet';
-        const pctDisplay = overallPct !== null ? overallPct.toFixed(1) + '%' : '—';
-        const verifyUrl = window.location.origin + '/term-exam-results?report=' + report.name;
-
-        const subjectRows = subjects.map(s => {
-          const marks = (s.marks_obtained !== null && s.marks_obtained !== undefined && s.marks_obtained !== '') ? s.marks_obtained : '—';
-          const pct = (s.percentage !== null && s.percentage !== undefined) ? s.percentage.toFixed(1) + '%' : '—';
-          const grade = s.grade ? `<span class="grade-badge ${gradeClass(s.grade)}">${s.grade}</span>` : '—';
-          const status = s.status ? `<span class="${statusClass(s.status)}">${s.status}</span>` : '—';
-          return `
-          <tr>
-            <td>${s.subject || ''}</td>
-            <td class="center" style="color:#64748b;font-size:12px">${s.exam || ''}</td>
-            <td class="center">${marks}</td>
-            <td class="center">${s.max_marks || '—'}</td>
-            <td class="center">${pct}</td>
-            <td class="center">${grade}</td>
-            <td class="center">${status}</td>
-            <td style="font-size:12px;color:#64748b">${s.remarks || ''}</td>
-          </tr>`;
-        }).join('');
-
-        const card = document.createElement('div');
-        card.className = 'report-card';
-        card.dataset.term = report.term;
-
-        card.innerHTML = `
-          <div class="rc-header">
-            <h2>${report.school_name || 'School'}</h2>
-            <h3>TERM EXAMINATION REPORT CARD</h3>
-          </div>
-          <div class="rc-meta">
-            <div>
-              <p><strong>Student:</strong> ${data.student_name || ''}</p>
-              <p><strong>Admission No:</strong> ${data.student_id || ''}</p>
-              <p><strong>Class:</strong> ${report.student_class || ''}${report.section ? ' &nbsp;|&nbsp; Section: ' + report.section : ''}</p>
-            </div>
-            <div style="text-align:right">
-              <p><strong>Academic Year:</strong> ${report.academic_year || ''}</p>
-              <p><strong>Term:</strong> ${report.term || ''}</p>
-              <p><strong>Report Date:</strong> ${report.report_date || ''}</p>
-            </div>
-          </div>
-          <div class="rc-actions">
-            <span class="badge ${badgeClass}">Overall: ${pctDisplay}</span>
-            <button class="btn btn-indigo" onclick="downloadPDF(this, '${report.name}', '${data.student_id}')">
-              ⬇️ Download PDF
-            </button>
-            <button class="btn btn-outline" onclick="verifyReport('${report.name}')">
-              🔍 Verify
-            </button>
-          </div>
-          <div class="table-wrap">
-            <table class="subjects-table">
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th class="center">Exam</th>
-                  <th class="center">Marks</th>
-                  <th class="center">Max</th>
-                  <th class="center">%</th>
-                  <th class="center">Grade</th>
-                  <th class="center">Status</th>
-                  <th>Remarks</th>
-                </tr>
-              </thead>
-              <tbody>${subjectRows}</tbody>
-              <tfoot>
-                <tr class="overall-row">
-                  <td colspan="2">OVERALL TOTAL</td>
-                  <td class="center">${report.total_obtained}</td>
-                  <td class="center">${report.total_max}</td>
-                  <td class="center" style="color:${overallPct !== null && overallPct >= 50 ? '#16a34a' : '#dc2626'}">${pctDisplay}</td>
-                  <td class="center">—</td>
-                  <td></td><td></td>
-                </tr>
-              </tfoot>
+        <div id="results-container" style="display: none;">
+            <table class="results-table">
+                <thead>
+                    <tr>
+                        <th>Subject</th>
+                        <th>Maximum Marks</th>
+                        <th>Marks Obtained</th>
+                        <th>Grade</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <!-- Results populated via JS -->
+                </tbody>
             </table>
-          </div>
-          <div style="padding:8px 24px;font-size:11px;color:#64748b;border-top:1px solid var(--border)">
-            <strong>Note:</strong> Grades and status are entered by subject teachers.
-            Pass = meets passing mark &nbsp;|&nbsp; Moderate = borderline &nbsp;|&nbsp; Failed = below passing mark
-            ${report.opening_date ? '&nbsp;|&nbsp; <strong>School Opens:</strong> ' + report.opening_date : ''}
-          </div>
-          <div class="rc-signatures">
-            <div class="sig-box"><div class="sig-line">Class Teacher</div></div>
-            <div class="sig-box"><div class="sig-line">Head Teacher</div></div>
-            <div class="sig-box"><div class="sig-line">Parent / Guardian</div></div>
-          </div>
-          <div class="rc-footer">
-            <p>Verify at: <a href="${verifyUrl}">${verifyUrl}</a></p>
-            <p>Report ID: ${report.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
-          </div>`;
+        </div>
+    </div>
+</div>
 
-        container.appendChild(card);
-      });
-    }
-
-    function verifyReport(reportName) {
-      openModal();
-      fetch(`/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_report?report=${encodeURIComponent(reportName)}`)
-        .then(r => r.json())
-        .then(res => showVerifyResult(res.message || res))
-        .catch(() => showVerifyError());
-    }
-
-    function openModal() {
-      document.getElementById('modalHeader').className = 'modal-header loading';
-      document.getElementById('modalIcon').textContent = '⏳';
-      document.getElementById('modalTitle').textContent = 'Verifying…';
-      document.getElementById('modalSubtitle').textContent = 'Please wait';
-      document.getElementById('modalBody').innerHTML = '';
-      document.getElementById('verifyOverlay').classList.add('open');
-    }
-
-    function showVerifyResult(d) {
-      const header = document.getElementById('modalHeader');
-      if (d.valid) {
-        header.className = 'modal-header valid';
-        document.getElementById('modalIcon').textContent = '✅';
-        document.getElementById('modalTitle').textContent = 'Report Verified';
-        document.getElementById('modalSubtitle').textContent = d.message || 'This is a genuine official report card.';
-        document.getElementById('modalBody').innerHTML = `
-          <div class="detail-row"><span class="detail-label">Report</span><span class="detail-value">${d.report_name}</span></div>
-          <div class="detail-row"><span class="detail-label">Issued By</span><span class="detail-value">${d.issued_by}</span></div>
-          <div class="detail-row"><span class="detail-label">Term</span><span class="detail-value">${d.term}</span></div>
-          <div class="detail-row"><span class="detail-label">Academic Year</span><span class="detail-value">${d.academic_year}</span></div>
-          <div class="detail-row"><span class="detail-label">Class</span><span class="detail-value">${d.student_class}${d.section ? ' — ' + d.section : ''}</span></div>
-          <div class="detail-row"><span class="detail-label">Report Date</span><span class="detail-value">${d.report_date}</span></div>
-          <div class="detail-row"><span class="detail-label">Students</span><span class="detail-value">${d.total_students}</span></div>
-          <div class="detail-row"><span class="detail-label">Subjects</span><span class="detail-value">${d.total_subjects}</span></div>
-          <div class="detail-row"><span class="detail-label">Report ID</span><span class="detail-value"><span class="id-chip">${d.report_name}</span></span></div>`;
-      } else {
-        header.className = 'modal-header invalid';
-        document.getElementById('modalIcon').textContent = '❌';
-        document.getElementById('modalTitle').textContent = 'Verification Failed';
-        document.getElementById('modalSubtitle').textContent = d.message || 'Could not verify this record.';
-        document.getElementById('modalBody').innerHTML = `<p style="text-align:center;color:#64748b;font-size:13px;padding:12px 0">Contact the school if you believe this is an error.</p>`;
-      }
-    }
-
-    function showVerifyError() {
-      document.getElementById('modalHeader').className = 'modal-header invalid';
-      document.getElementById('modalIcon').textContent = '⚠️';
-      document.getElementById('modalTitle').textContent = 'Connection Error';
-      document.getElementById('modalSubtitle').textContent = 'Could not reach the server.';
-    }
-
-    function closeModal(e) {
-      if (e && e.target !== document.getElementById('verifyOverlay')) return;
-      document.getElementById('verifyOverlay').classList.remove('open');
-    }
-
-    function downloadPDF(btn, reportName, studentId) {
-      btn.disabled = true;
-      btn.textContent = '⏳ Generating…';
-      fetch('/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_student_pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Frappe-CSRF-Token': (document.cookie.match(/csrf_token=([^;]+)/) || [])[1] || ''
-        },
-        body: JSON.stringify({ report_name: reportName, student_id: studentId })
-      })
-      .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
-      .then(blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `ReportCard_${reportName}.pdf`.replace(/\s+/g, '_');
-        a.click();
-        btn.disabled = false;
-        btn.innerHTML = '⬇️ Download PDF';
-      })
-      .catch(() => {
-        alert('Could not generate PDF. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = '⬇️ Download PDF';
-      });
-    }
-
-    function checkQRParam() {
-      const report = new URLSearchParams(window.location.search).get('report');
-      if (report) setTimeout(() => { openModal(); verifyReport(report); }, 600);
-    }
-
-    // ── THE FIX: call the proper @frappe.whitelist() method in term_exam_report.py ──
-    fetch('/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_student_reports', {
-      credentials: 'same-origin'
-    })
-      .then(r => {
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        return r.json();
-      })
-      .then(res => {
-        const data = res.message || res;
-        allData = data;
-        if (data.error) {
-          document.getElementById('filterBar').innerHTML = '';
-          document.getElementById('resultsContainer').innerHTML = `
-            <div class="empty-state"><div class="emoji">⚠️</div><p>${data.error}</p></div>`;
-          return;
+<script>
+    frappe.ready(function() {
+        if(frappe.session.user === "Guest") {
+            window.location.href = "/portal-login";
+            return;
         }
-        if (!data.reports || !data.reports.length) {
-          document.getElementById('filterBar').innerHTML = '';
-          document.getElementById('resultsContainer').innerHTML = `
-            <div class="empty-state">
-              <div class="emoji">📭</div>
-              <p>No term exam reports have been published yet.</p>
-            </div>`;
-          return;
+        
+        loadFilters();
+
+        $('#academic-term, #exam-group').on('change', function() {
+            fetchResults();
+        });
+    });
+
+    function loadFilters() {
+        // Fetch valid terms and exams for the student
+        frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+                doctype: 'Academic Term',
+                fields: ['name', 'term_name']
+            },
+            callback: function(r) {
+                if (r.message) {
+                    let termSelect = $('#academic-term');
+                    termSelect.empty().append('<option value="">Select Academic Term</option>');
+                    r.message.forEach(term => {
+                        termSelect.append(`<option value="${term.name}">${term.term_name || term.name}</option>`);
+                    });
+                }
+            }
+        });
+
+        frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+                doctype: 'Exam Group',
+                fields: ['name']
+            },
+            callback: function(r) {
+                if (r.message) {
+                    let examSelect = $('#exam-group');
+                    examSelect.empty().append('<option value="">Select Exam</option>');
+                    r.message.forEach(exam => {
+                        examSelect.append(`<option value="${exam.name}">${exam.name}</option>`);
+                    });
+                }
+            }
+        });
+    }
+
+    function fetchResults() {
+        let term = $('#academic-term').val();
+        let exam = $('#exam-group').val();
+
+        if(!term || !exam) {
+            $('#results-container').hide();
+            return;
         }
-        buildFilterBar(data.reports);
-        renderReports(data);
-        checkQRParam();
-      })
-      .catch(err => {
-        console.error(err);
-        document.getElementById('resultsContainer').innerHTML = `
-          <div class="empty-state"><div class="emoji">⚠️</div><p>Could not load results. Please refresh.</p></div>`;
-      });
-  </script>
+
+        $('#loading').show();
+        $('#results-container').hide();
+
+        // First find the Student id linked to current user
+        frappe.call({
+            method: 'frappe.client.get_value',
+            args: {
+                doctype: 'Student',
+                filters: { 'portal_email': frappe.session.user },
+                fieldname: 'name'
+            },
+            callback: function(r) {
+                if (r.message && r.message.name) {
+                    let student = r.message.name;
+                    getExamResults(student, term, exam);
+                } else {
+                    $('#loading').html('Student record not found associated with your account.');
+                }
+            }
+        });
+    }
+
+    function getExamResults(student, term, exam) {
+        frappe.call({
+            method: 'frappe.client.get_list',
+            args: {
+                doctype: 'Exam Result',
+                filters: {
+                    'student': student,
+                    'academic_term': term,
+                    'exam_group': exam,
+                    'docstatus': 1
+                },
+                fields: ['name']
+            },
+            callback: function(r) {
+                if (r.message && r.message.length > 0) {
+                    let result_id = r.message[0].name;
+                    getExamDetails(result_id);
+                } else {
+                    $('#loading').html('No results found for the selected term and exam.');
+                }
+            }
+        });
+    }
+
+    function getExamDetails(result_id) {
+        frappe.call({
+            method: 'frappe.client.get',
+            args: {
+                doctype: 'Exam Result',
+                name: result_id
+            },
+            callback: function(r) {
+                $('#loading').hide();
+                if (r.message && r.message.details) {
+                    populateTable(r.message.details);
+                    $('#results-container').show();
+                } else {
+                    $('#loading').html('No detailed marks found in this result.').show();
+                }
+            }
+        });
+    }
+
+    function populateTable(details) {
+        let body = $('#results-body');
+        body.empty();
+
+        details.forEach(row => {
+            let gradeClass = '';
+            let grade = (row.grade || '').toUpperCase();
+            if(grade.startsWith('A')) gradeClass = 'grade-a';
+            else if(grade.startsWith('B')) gradeClass = 'grade-b';
+            else if(grade.startsWith('C')) gradeClass = 'grade-c';
+            else if(grade.startsWith('D')) gradeClass = 'grade-d';
+            else if(grade.startsWith('F')) gradeClass = 'grade-f';
+
+            let tr = `<tr>
+                <td><strong>${row.subject || '-'}</strong></td>
+                <td>${row.maximum_marks || 100}</td>
+                <td>${row.marks || 0}</td>
+                <td><span class="grade-badge ${gradeClass}">${row.grade || '-'}</span></td>
+            </tr>`;
+            body.append(tr);
+        });
+    }
+</script>
+
 </body>
 </html>
