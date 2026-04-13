@@ -122,6 +122,7 @@ def get_portal_dashboard():
     exam_results   = frappe.db.count("Exam Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Exam Schedule Item") else 0
     inclass_tests  = frappe.db.count("Inclass Test",   {}) if frappe.db.exists("DocType", "Inclass Test") else 0
     homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Home Schedule Item") else 0
+    term_reports   = frappe.db.count("Term Exam Report", {"student_class": s_class, "docstatus": 1}) if s_class else 0
     billing_summary = frappe.db.sql("""
         SELECT SUM(outstanding_amount) as balance
         FROM `tabSales Invoice`
@@ -147,6 +148,7 @@ def get_portal_dashboard():
             "exam_results":   exam_results,
             "inclass_tests":  inclass_tests,
             "homework":       homework,
+            "term_reports":   term_reports,
             "balance":        float(balance)
         }
     }
@@ -958,6 +960,11 @@ def get_student_sidebar_data(student=None):
         ORDER BY ts.date DESC
     """, s_reg_no, as_dict=True)
 
+    term_reports = frappe.get_all("Term Exam Report",
+        filters={"student_class": s_class, "docstatus": 1},
+        fields=["name", "term", "report_date"],
+        order_by="report_date desc") if s_class else []
+
     exam_results_raw = frappe.db.sql("""
         SELECT er.name, er.source_doc, er.student_class, er.subject, er.date,
                tsi.marks_obtained, tsi.status
@@ -995,6 +1002,7 @@ def get_student_sidebar_data(student=None):
             "exam_result":   exam_results_raw,
             "home":          home_results,
             "test":          test_results,
+            "term_reports":  term_reports,
         },
         "counts": {
             "exam_schedules": len(exam_schedules),
@@ -1003,6 +1011,7 @@ def get_student_sidebar_data(student=None):
             "exam_results":   len(exam_schedule_results) + len(exam_results_raw),
             "home_results":   len(home_results),
             "test_results":   len(test_results),
+            "term_reports":   len(term_reports),
         }
     }
 

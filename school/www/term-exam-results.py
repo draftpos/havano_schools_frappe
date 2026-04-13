@@ -9,4 +9,5 @@ def get_context(context):
 		raise frappe.Redirect
 
 	context.no_cache = 1
-	context.show_sidebar = False
+	context.show_sidebar = True
+	context.website_sidebar = "Student Portal"

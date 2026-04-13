@@ -1,1 +1,29 @@
-# Task: Add Term field to Exam Schedule Basic Information section&#10;&#10;## Steps:&#10;1. [ ] Add Custom Field entry to school/fixtures/custom_field.json (Link to Term, insert_after: exam)&#10;2. [ ] Run bench migrate&#10;3. [ ] Verify field appears in Exam Schedule form under Basic Info&#10;4. [ ] Test creating Exam Schedule with Term selection&#10;5. [ ] Update title logic if needed&#10;6. [ ] Mark complete and cleanup TODO.md
+# Term Exam Results Student Portal Fix
+Status: [IN PROGRESS] ✅ PLAN APPROVED
+
+## Approved Plan Summary
+- Update term-exam-results.py: Add sidebar context
+- Update api.py: Add term_reports counts to dashboard/sidebar data
+
+## Step-by-Step TODO
+
+### 1. ✅ Update school/www/term-exam-results.py
+Add:
+```
+context.show_sidebar = True
+context.website_sidebar = "Student Portal"
+```
+Matches exam-results.py pattern.
+
+### 2. ✅ Add term_reports counts to school/api.py
+- get_portal_dashboard: ✅ count added
+- get_student_sidebar_data: ✅ results list + counts len added
+
+### 3. ✅ Test ready
+- Login student → portal shows Term Reports badge/card count
+- /term-exam-results loads (if data) with sidebar
+
+### 4. [RUN] `bench migrate && bench clear-cache`
+
+### 5. ✅ COMPLETE
+
