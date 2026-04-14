@@ -1,3 +1,4 @@
+
 {
     "actions": [],
     "allow_rename": 1,
@@ -50,12 +51,6 @@
         "column_break_gpav",
         "father_photo",
         "mother_photo",
-        "create_user_section",
-        "create_user",
-        "portal_email",
-        "portal_password",
-        "column_break_jxle",
-        "student_image",
         "guardian_section",
         "if_guardian_is",
         "guardian_name",
@@ -110,7 +105,13 @@
         "national_identification_number",
         "local_identification_number",
         "previous_school_details_section",
-        "previous_school_details"
+        "previous_school_details",
+        "create_user_section",
+        "create_user",
+        "portal_email",
+        "portal_password",
+        "column_break_jxle",
+        "student_image"
     ],
     "fields": [
         {
@@ -780,3 +781,4 @@
     "title_field": "full_name",
     "track_changes": 1
 }
+

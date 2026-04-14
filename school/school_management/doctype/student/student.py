@@ -13,6 +13,13 @@ class Student(Document):
         
         parts = [self.first_name, self.second_name, self.last_name]
         self.full_name = " ".join([p for p in parts if p])
+        
+        settings = frappe.get_single("School Settings")
+        # Generate dummy email only if non-strict email is enabled AND no portal email provided
+        if settings.allow_non_strict_email and self.create_user and not self.portal_email:
+            self.portal_email = f"stu_{self.name}@dummy.school"
+            frappe.msgprint(f"Dummy portal email generated: {self.portal_email}", indicator="blue")
+    
     def generate_reg_no(self):
         school_name = self.school or ""
         prefix_raw = school_name.split(" - ")[0].strip()
@@ -65,10 +72,15 @@ class Student(Document):
             return
 
         sender_email = "makoniashleytadiswa@gmail.com"
+        settings = frappe.get_single("School Settings")
 
         # ── Student user ──────────────────────────────────────────
         if self.portal_email:
-            self._ensure_user(self.portal_email, self.full_name or self.first_name, "Student Portal")
+            # If non-strict email is enabled and password is provided, set it
+            if settings.allow_non_strict_email and hasattr(self, 'portal_password') and self.portal_password:
+                self._ensure_user_with_password(self.portal_email, self.full_name or self.first_name, "Student Portal", self.portal_password)
+            else:
+                self._ensure_user(self.portal_email, self.full_name or self.first_name, "Student Portal")
 
         # ── Parent users ──────────────────────────────────────────
         parent_entries = []
@@ -89,7 +101,7 @@ class Student(Document):
             })
 
         for entry in parent_entries:
-            email     = entry["email"]
+            email = entry["email"]
             full_name = entry["full_name"]
 
             try:
@@ -117,7 +129,7 @@ class Student(Document):
 
                 else:
                     parent_doc = frappe.new_doc("Parent")
-                    parent_doc.full_name    = full_name
+                    parent_doc.full_name = full_name
                     parent_doc.portal_email = email
                     parent_doc.flags.ignore_permissions = True
                     parent_doc.insert(ignore_permissions=True)
@@ -133,6 +145,40 @@ class Student(Document):
                     title=f"Parent portal setup failed for {email}",
                     message=frappe.get_traceback()
                 )
+
+    def _ensure_user_with_password(self, email, full_name, role, password):
+        """Create user with specific password if non-strict email is enabled"""
+        try:
+            if frappe.db.exists("User", email):
+                user = frappe.get_doc("User", email)
+                roles = [r.role for r in user.roles]
+                if role not in roles:
+                    user.append("roles", {"role": role})
+                user.flags.ignore_permissions = True
+                user.save(ignore_permissions=True)
+                return
+
+            user = frappe.get_doc({
+                "doctype": "User",
+                "email": email,
+                "first_name": full_name,
+                "enabled": 1,
+                "user_type": "Website User",
+                "send_welcome_email": 0,
+                "new_password": password,
+                "roles": [
+                    {"role": role}
+                ]
+            })
+            user.flags.ignore_permissions = True
+            user.insert(ignore_permissions=True)
+            frappe.db.commit()
+
+        except Exception:
+            frappe.log_error(
+                title=f"User creation failed for {email}",
+                message=frappe.get_traceback()
+            )
 
     def _ensure_user(self, email, full_name, role, send_email=False, sender=None):
         """Create user if not exists, ensure role is assigned."""
@@ -216,42 +262,42 @@ class Student(Document):
 
             if existing:
                 customer = frappe.get_doc("Customer", existing)
-                customer.customer_name          = self.full_name
-                customer.customer_group         = customer_group
-                customer.territory              = territory
-                customer.mobile_no              = self.phone_number or customer.mobile_no
-                customer.custom_student_reg_no  = self.student_reg_no or ""
+                customer.customer_name = self.full_name
+                customer.customer_group = customer_group
+                customer.territory = territory
+                customer.mobile_no = self.phone_number or customer.mobile_no
+                customer.custom_student_reg_no = self.student_reg_no or ""
                 customer.custom_student_section = self.section or ""
-                customer.custom_student_class   = self.student_class or ""
-                customer.custom_school          = self.school or ""
-                customer.custom_student_type    = self.student_type or ""
-                customer.custom_gender          = self.gender or ""
-                customer.customer_details       = customer_details
-                customer.custom_class           = self.name
-                customer.student_name           = self.full_name
+                customer.custom_student_class = self.student_class or ""
+                customer.custom_school = self.school or ""
+                customer.custom_student_type = self.student_type or ""
+                customer.custom_gender = self.gender or ""
+                customer.customer_details = customer_details
+                customer.custom_class = self.name
+                customer.student_name = self.full_name
                 if self.student_image:
                     customer.image = self.student_image
                 customer.flags.ignore_permissions = True
-                customer.flags.ignore_mandatory   = True
+                customer.flags.ignore_mandatory = True
                 customer.save(ignore_permissions=True)
             else:
                 customer = frappe.get_doc({
-                    "doctype":               "Customer",
-                    "customer_name":         self.full_name,
-                    "customer_type":         "Individual",
-                    "customer_group":        customer_group,
-                    "territory":             territory,
-                    "mobile_no":             self.phone_number or "",
+                    "doctype": "Customer",
+                    "customer_name": self.full_name,
+                    "customer_type": "Individual",
+                    "customer_group": customer_group,
+                    "territory": territory,
+                    "mobile_no": self.phone_number or "",
                     "custom_student_reg_no": self.student_reg_no or "",
-                    "custom_student_section":self.section or "",
-                    "custom_student_class":  self.student_class or "",
-                    "custom_school":         self.school or "",
-                    "custom_student_type":   self.student_type or "",
-                    "custom_gender":         self.gender or "",
-                    "customer_details":      customer_details,
-                    "image":                 self.student_image or "",
-                    "custom_class":          self.name,
-                    "student_name":          self.full_name
+                    "custom_student_section": self.section or "",
+                    "custom_student_class": self.student_class or "",
+                    "custom_school": self.school or "",
+                    "custom_student_type": self.student_type or "",
+                    "custom_gender": self.gender or "",
+                    "customer_details": customer_details,
+                    "image": self.student_image or "",
+                    "custom_class": self.name,
+                    "student_name": self.full_name
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
@@ -505,59 +551,59 @@ class Student(Document):
             )
 
 
-
 def get_permission_query_conditions(user):
-	"""
-	Teachers only see students in their assigned classes/sections.
-	System Manager and other roles see everything.
-	"""
-	if not user:
-		user = frappe.session.user
+    """
+    Teachers only see students in their assigned classes/sections.
+    System Manager and other roles see everything.
+    """
+    if not user:
+        user = frappe.session.user
 
-	if "System Manager" in frappe.get_roles(user):
-		return ""
+    if "System Manager" in frappe.get_roles(user):
+        return ""
 
-	if "Teacher" not in frappe.get_roles(user):
-		return ""
+    if "Teacher" not in frappe.get_roles(user):
+        return ""
 
-	# Find Teacher record by portal_email then email
-	teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
-	if not teacher_name:
-		teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
+    # Find Teacher record by portal_email then email
+    teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+    if not teacher_name:
+        teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
 
-	if not teacher_name:
-		return "1=0"
+    if not teacher_name:
+        return "1=0"
 
-	# Get assigned class+section rows
-	assigned = frappe.db.get_all(
-		"Teacher Class Assignment Item",
-		filters={"parent": teacher_name},
-		fields=["class_name", "section"]
-	)
+    # Get assigned class+section rows
+    assigned = frappe.db.get_all(
+        "Teacher Class Assignment Item",
+        filters={"parent": teacher_name},
+        fields=["class_name", "section"]
+    )
 
-	if not assigned:
-		return "1=0"
+    if not assigned:
+        return "1=0"
 
-	conditions = []
-	for row in assigned:
-		if row.class_name and row.section:
-			conditions.append(
-				"(`tabStudent`.`student_class` = {cls} AND `tabStudent`.`section` = {sec})".format(
-					cls=frappe.db.escape(row.class_name),
-					sec=frappe.db.escape(row.section)
-				)
-			)
-		elif row.class_name:
-			conditions.append(
-				"`tabStudent`.`student_class` = {cls}".format(
-					cls=frappe.db.escape(row.class_name)
-				)
-			)
+    conditions = []
+    for row in assigned:
+        if row.class_name and row.section:
+            conditions.append(
+                "(`tabStudent`.`student_class` = {cls} AND `tabStudent`.`section` = {sec})".format(
+                    cls=frappe.db.escape(row.class_name),
+                    sec=frappe.db.escape(row.section)
+                )
+            )
+        elif row.class_name:
+            conditions.append(
+                "`tabStudent`.`student_class` = {cls}".format(
+                    cls=frappe.db.escape(row.class_name)
+                )
+            )
 
-	if not conditions:
-		return "1=0"
+    if not conditions:
+        return "1=0"
 
-	return "(" + " OR ".join(conditions) + ")"
+    return "(" + " OR ".join(conditions) + ")"
+
 
 @frappe.whitelist()
 def generate_reg_no_for_school(school, current_student=None):

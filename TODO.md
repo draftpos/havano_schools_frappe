@@ -1,29 +1,11 @@
-# Term Exam Results Student Portal Fix
-Status: [IN PROGRESS] ✅ PLAN APPROVED
+# Student Portal Manual Login Setup
+✅ Step 1: Add portal_password field to student.json
 
-## Approved Plan Summary
-- Update term-exam-results.py: Add sidebar context
-- Update api.py: Add term_reports counts to dashboard/sidebar data
+✅ Step 2: Update server scripts in fixtures/server_script.json to use manual password
 
-## Step-by-Step TODO
+✅ Step 3: Test field visibility, user creation with dummy email/password
 
-### 1. ✅ Update school/www/term-exam-results.py
-Add:
-```
-context.show_sidebar = True
-context.website_sidebar = "Student Portal"
-```
-Matches exam-results.py pattern.
+✅ Step 4: Verify portal login works
 
-### 2. ✅ Add term_reports counts to school/api.py
-- get_portal_dashboard: ✅ count added
-- get_student_sidebar_data: ✅ results list + counts len added
-
-### 3. ✅ Test ready
-- Login student → portal shows Term Reports badge/card count
-- /term-exam-results loads (if data) with sidebar
-
-### 4. [RUN] `bench migrate && bench clear-cache`
-
-### 5. ✅ COMPLETE
+✅ Step 5: bench migrate && bench clear-cache
 

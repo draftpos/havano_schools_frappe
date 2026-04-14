@@ -9,7 +9,9 @@
         "online_enrollment_section",
         "allow_online_enrollment",
         "fee_structure_defaults_section",
-        "fee_structure_defaults"
+        "fee_structure_defaults",
+        "portal_settings",
+        "allow_non_strict_email"
     ],
     "fields": [
         {
@@ -34,6 +36,18 @@
             "fieldtype": "Table",
             "label": "Fee Structure Defaults",
             "options": "Fee Structure Defaults"
+        },
+        {
+            "fieldname": "portal_settings",
+            "fieldtype": "Section Break",
+            "label": "Portal Access"
+        },
+        {
+            "default": "0",
+            "description": "Allow non-strict email validation. When enabled: auto-generates dummy emails (stu_<name>@dummy.school) for students without portal email, and shows password field in Student doctype under Portal Email",
+            "fieldname": "allow_non_strict_email",
+            "fieldtype": "Check",
+            "label": "Allow Non-Strict Email"
         }
     ],
     "grid_page_length": 50,

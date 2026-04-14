@@ -17,15 +17,39 @@ frappe.ui.form.on('Student', {
             };
         });
 
+        // Check School Settings for non-strict email
         frappe.call({
             method: "frappe.client.get",
             args: { doctype: "School Settings", name: "School Settings" },
             callback: function(r) {
-                if (r.message && r.message.enable_registration_billing) {
-                    frm.set_df_property("billed_on_registration", "read_only", 1);
+                if (r.message) {
+                    frm.settings = r.message;
+                    
+                    // Handle portal access section visibility on refresh
+                    handlePortalAccessFields(frm);
+                    
+                    if (r.message.enable_registration_billing) {
+                        frm.set_df_property("billed_on_registration", "read_only", 1);
+                    }
                 }
             }
         });
+    },
+
+    create_user: function(frm) {
+        handlePortalAccessFields(frm);
+    },
+    
+    portal_email: function(frm) {
+        // Validate email if non-strict email is not enabled
+        if (frm.settings && !frm.settings.allow_non_strict_email && frm.doc.portal_email) {
+            var email = frm.doc.portal_email;
+            var emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                frappe.msgprint(__("Please enter a valid email address."));
+                frm.set_value("portal_email", "");
+            }
+        }
     },
 
     student_class: function(frm) {
@@ -67,6 +91,7 @@ frappe.ui.form.on('Student', {
             callback: function(r) {
                 if (!r.message) return;
                 var settings = r.message;
+                frm.settings = settings;
 
                 var adminRows = settings.fee_structure_defaults || [];
                 var adminMatch = adminRows.find(row => row.status === frm.doc.student_type);
@@ -101,3 +126,25 @@ frappe.ui.form.on('Student', {
         });
     }
 });
+
+function handlePortalAccessFields(frm) {
+    // Show/hide portal access section based on create_user checkbox
+    if (frm.doc.create_user) {
+        frm.set_df_property("portal_email", "reqd", 1);
+        frm.toggle_display("portal_email", true);
+        
+        // Show password field only if non-strict email is enabled
+        if (frm.settings && frm.settings.allow_non_strict_email) {
+            frm.toggle_display("portal_password", true);
+            frm.set_df_property("portal_password", "reqd", 1);
+        } else {
+            frm.toggle_display("portal_password", false);
+            frm.set_df_property("portal_password", "reqd", 0);
+        }
+    } else {
+        frm.set_df_property("portal_email", "reqd", 0);
+        frm.toggle_display("portal_email", false);
+        frm.toggle_display("portal_password", false);
+        frm.set_df_property("portal_password", "reqd", 0);
+    }
+}
