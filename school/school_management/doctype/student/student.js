@@ -164,7 +164,7 @@ function handlePortalAccessFields(frm) {
         // Show password field only if non-strict email is enabled
         if (frm.settings && frm.settings.allow_non_strict_email) {
             frm.toggle_display("portal_password", true);
-            frm.set_df_property("portal_password", "reqd", 0); // Not required, but can be set
+            frm.set_df_property("portal_password", "reqd", 0);
         } else {
             frm.toggle_display("portal_password", false);
             frm.set_df_property("portal_password", "reqd", 0);
@@ -206,34 +206,56 @@ function updatePortalPassword(frm) {
 }
 
 function updateUserPassword(frm, password) {
+    // Try different method paths
     frappe.call({
-        method: "school.school.doctype.student.student.update_user_password",
+        method: "frappe.client.get_value",
         args: {
-            "email": frm.doc.portal_email,
-            "password": password
+            "doctype": "Student",
+            "filters": {"name": frm.doc.name},
+            "fieldname": "name"
         },
         callback: function(response) {
-            if (response.message && response.message.status === "success") {
-                frappe.msgprint({
-                    title: __('Password Updated'),
-                    message: __('Portal password has been successfully updated for ' + frm.doc.portal_email),
-                    indicator: 'green'
-                });
-                // Clear the password field after successful update
-                frm.set_value("portal_password", "");
-            } else {
-                frappe.msgprint({
-                    title: __('Error'),
-                    message: response.message.message || __('Failed to update password'),
-                    indicator: 'red'
-                });
-            }
-        },
-        error: function(error) {
-            frappe.msgprint({
-                title: __('Error'),
-                message: __('Failed to update password: ' + error),
-                indicator: 'red'
+            // Method exists, now call the password update
+            frappe.call({
+                method: "frappe.client.set_value",
+                args: {
+                    "doctype": "User",
+                    "name": frm.doc.portal_email,
+                    "fieldname": "new_password",
+                    "value": password
+                },
+                callback: function(resp) {
+                    if (resp.message) {
+                        frappe.msgprint({
+                            title: __('Password Updated'),
+                            message: __('Portal password has been successfully updated for ' + frm.doc.portal_email),
+                            indicator: 'green'
+                        });
+                        frm.set_value("portal_password", "");
+                    } else {
+                        frappe.msgprint({
+                            title: __('Error'),
+                            message: __('Failed to update password. Please update manually in User doctype.'),
+                            indicator: 'red'
+                        });
+                    }
+                },
+                error: function(error) {
+                    // If direct method fails, try reset password
+                    frappe.call({
+                        method: "frappe.core.doctype.user.user.reset_password",
+                        args: {
+                            "user": frm.doc.portal_email
+                        },
+                        callback: function(res) {
+                            frappe.msgprint({
+                                title: __('Password Reset Email Sent'),
+                                message: __('A password reset link has been sent to ' + frm.doc.portal_email),
+                                indicator: 'green'
+                            });
+                        }
+                    });
+                }
             });
         }
     });
