@@ -1045,7 +1045,22 @@ title: Term Exam Results
         }
         AR = r.message;
         el("loading").style.display = "none";
-        renderList();
+
+        /* ── TEMP DEBUG: show raw data on screen ── */
+        var first = AR[0] || {};
+        var firstItem = (first.items && first.items[0]) || {};
+        el("ll").innerHTML =
+          '<pre style="background:#0f172a;color:#7dd3fc;padding:16px;border-radius:8px;font-size:11px;overflow-x:auto;white-space:pre-wrap;margin-bottom:16px;">'
+          + '<b style="color:#f0abfc">RESULT object keys + values:</b>\n'
+          + Object.keys(first).map(function (k) {
+            return k + ' = ' + (k === 'items' ? '[' + first.items.length + ' rows]' : JSON.stringify(first[k]));
+          }).join('\n')
+          + '\n\n<b style="color:#f0abfc">FIRST ITEM row keys + values:</b>\n'
+          + Object.keys(firstItem).map(function (k) {
+            return k + ' = ' + JSON.stringify(firstItem[k]);
+          }).join('\n')
+          + '</pre>';
+
         el("lv").style.display = "block";
       })
       .catch(function () {
