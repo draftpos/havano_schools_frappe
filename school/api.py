@@ -442,20 +442,23 @@ def get_homework_results(student=None):
 def get_term_exam_results(student=None):
     user = frappe.session.user
     if user in ("Administrator", "Guest"): return []
+    
     if not student:
         student = frappe.db.get_value("Student", {"portal_email": user},
             ["name", "full_name", "student_reg_no", "student_class", "section"], as_dict=True)
     else:
         student = frappe.db.get_value("Student", student,
             ["name", "full_name", "student_reg_no", "student_class", "section"], as_dict=True)
+    
     if not student: return []
 
-    s_name  = student.name
+    s_name = student.name
     s_class = student.student_class or ""
+    s_section = student.section or ""
 
     # Get term reports
     reports = frappe.db.sql("""
-        SELECT name, report_name, term, academic_year, report_date, student_class
+        SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
         FROM `tabTerm Exam Report`
         WHERE student_class = %s AND docstatus = 1
         ORDER BY report_date DESC
@@ -466,7 +469,7 @@ def get_term_exam_results(student=None):
         # Get items for this student
         items = frappe.db.sql("""
             SELECT subject, marks_obtained, max_marks, percentage, grade, status,
-                   remarks, teacher_comment, admin_comment
+                   remarks, teacher_comment, admin_comment, student, student_name
             FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         """, (report.name, s_name), as_dict=True)
@@ -477,7 +480,60 @@ def get_term_exam_results(student=None):
         for item in items:
             sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
             item["subject_name"] = sub_name
+            # Add subject name for display
+            item["subject"] = sub_name
+            # Ensure student fields are present
+            if "student_name" not in item or not item["student_name"]:
+                item["student_name"] = student.full_name or s_name
+            if "student" not in item or not item["student"]:
+                item["student"] = student.student_reg_no or s_name
 
+        # Get school name from cost center
+        school_name = ""
+        if report.cost_center:
+            cc = frappe.get_doc("Cost Center", report.cost_center)
+            school_name = cc.cost_center_name or report.cost_center
+
+        # Calculate class position for this report
+        # Get all students in this class/section
+        class_students = frappe.db.sql("""
+            SELECT DISTINCT student, student_name
+            FROM `tabTerm Exam Result Item`
+            WHERE parent = %s
+        """, (report.name,), as_dict=True)
+        
+        total_students = len(class_students)
+        class_rank = "—"
+        
+        if total_students > 1:
+            # Calculate totals for each student
+            student_totals = []
+            for cs in class_students:
+                # Get all items for this student in this report
+                student_items = frappe.db.sql("""
+                    SELECT marks_obtained, max_marks
+                    FROM `tabTerm Exam Result Item`
+                    WHERE parent = %s AND student = %s
+                """, (report.name, cs.student), as_dict=True)
+                
+                total_obtained = sum(item.marks_obtained or 0 for item in student_items)
+                student_totals.append({
+                    "student": cs.student,
+                    "total": total_obtained
+                })
+            
+            # Sort by total and assign ranks
+            sorted_totals = sorted(student_totals, key=lambda x: x["total"], reverse=True)
+            for idx, st in enumerate(sorted_totals, 1):
+                if st["student"] == s_name:
+                    class_rank = str(idx)
+                    break
+        
+        # Calculate overall percentage for this student in this report
+        total_obtained = sum(item.marks_obtained or 0 for item in items)
+        total_max = sum(item.max_marks or 0 for item in items)
+        overall_percentage = (total_obtained / total_max * 100) if total_max > 0 else 0
+        
         result.append({
             "exam_name": report.term or report.report_name or "Term Report",
             "report_name": report.report_name or report.name,
@@ -485,11 +541,17 @@ def get_term_exam_results(student=None):
             "academic_year": report.academic_year or "",
             "date": str(report.report_date) if report.report_date else "",
             "class_name": report.student_class or "",
+            "section": report.section or "",
+            "school_name": school_name,
+            "student_name": student.full_name or s_name,
+            "admission_no": student.student_reg_no or s_name,
+            "class_rank": class_rank,
+            "total_students": total_students,
+            "overall_percentage": round(overall_percentage, 1),
             "items": items
         })
 
     return result
-
 
 @frappe.whitelist()
 def get_teacher_portal_dashboard():
