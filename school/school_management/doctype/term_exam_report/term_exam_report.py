@@ -560,20 +560,20 @@ def verify_report_text(report, student=None):
 	QR code endpoint — returns a styled HTML verification card in the browser.
 	URL pattern: /api/method/school...verify_report_text?report=REPORT-001&student=STU-0001
 	"""
-	def html_response(content):
-		frappe.response["type"] = "html"
-		frappe.response["message"] = content
-
 	try:
 		doc = frappe.get_doc("Term Exam Report", report)
 
 		if doc.docstatus != 1:
-			html_response(_verification_card(
-				valid=False,
+			frappe.respond_as_webpage(
 				title="Invalid Report",
-				message="This report has not been officially submitted or has been cancelled.",
-				details=[]
-			))
+				body=_verification_card(
+					valid=False,
+					title="Invalid Report",
+					message="This report has not been officially submitted or has been cancelled.",
+					details=[]
+				),
+				http_status_code=200
+			)
 			return
 
 		school_name = (
@@ -597,7 +597,6 @@ def verify_report_text(report, student=None):
 				)
 
 		section_part = f" — {doc.section}" if doc.section else ""
-		intro = ""
 		if student_name:
 			intro = (
 				f"This is {student_name}, from {school_name}, "
@@ -611,58 +610,69 @@ def verify_report_text(report, student=None):
 			)
 
 		details = [
-			("Student Name",    student_name or "—"),
-			("Admission No.",   student or "—"),
-			("School",          school_name),
-			("Class",           doc.student_class or "—"),
-			("Section",         doc.section or "—"),
-			("Term",            doc.term or "—"),
-			("Academic Year",   doc.academic_year or "—"),
-			("Report Date",     str(doc.report_date) if doc.report_date else "—"),
-			("Report ID",       doc.name),
+			("Student Name",  student_name or "—"),
+			("Admission No.", student or "—"),
+			("School",        school_name),
+			("Class",         doc.student_class or "—"),
+			("Section",       doc.section or "—"),
+			("Term",          doc.term or "—"),
+			("Academic Year", doc.academic_year or "—"),
+			("Report Date",   str(doc.report_date) if doc.report_date else "—"),
+			("Report ID",     doc.name),
 		]
 
-		html_response(_verification_card(
-			valid=True,
-			title="Valid",
-			message=intro,
-			details=details
-		))
+		frappe.respond_as_webpage(
+			title="Report Verified",
+			body=_verification_card(
+				valid=True,
+				title="Valid",
+				message=intro,
+				details=details
+			),
+			http_status_code=200
+		)
 
 	except frappe.DoesNotExistError:
-		html_response(_verification_card(
-			valid=False,
+		frappe.respond_as_webpage(
 			title="Not Found",
-			message="This report could not be found. It may be invalid or has been removed.",
-			details=[]
-		))
+			body=_verification_card(
+				valid=False,
+				title="Not Found",
+				message="This report could not be found. It may be invalid or has been removed.",
+				details=[]
+			),
+			http_status_code=200
+		)
 
 
 def _verification_card(valid, title, message, details):
-	"""Returns a self-contained HTML verification card."""
+	"""Returns a self-contained HTML verification card string."""
 	accent      = "#16a34a" if valid else "#dc2626"
-	icon        = "✔" if valid else "✘"
+	icon        = "&#10004;" if valid else "&#10008;"
+	badge_text  = "Verified Official Document" if valid else "Verification Failed"
 	badge_bg    = "#dcfce7" if valid else "#fee2e2"
 	badge_color = "#15803d" if valid else "#b91c1c"
 
 	rows_html = ""
 	for label, value in details:
 		if value and value != "—":
-			rows_html += f"""
-			<tr>
-				<td style="padding:9px 14px;font-weight:600;color:#475569;font-size:13px;
-				           border-bottom:1px solid #f1f5f9;width:40%;white-space:nowrap">{label}</td>
-				<td style="padding:9px 14px;color:#0f172a;font-size:13px;
-				           border-bottom:1px solid #f1f5f9">{value}</td>
-			</tr>"""
+			rows_html += (
+				f'<tr>'
+				f'<td style="padding:10px 16px;font-weight:600;color:#475569;font-size:13px;'
+				f'border-bottom:1px solid #f1f5f9;width:42%;white-space:nowrap">{label}</td>'
+				f'<td style="padding:10px 16px;color:#0f172a;font-size:13px;'
+				f'border-bottom:1px solid #f1f5f9">{value}</td>'
+				f'</tr>'
+			)
 
 	table_section = ""
 	if rows_html:
-		table_section = f"""
-		<table style="width:100%;border-collapse:collapse;margin-top:20px;
-		              border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
-			<tbody>{rows_html}</tbody>
-		</table>"""
+		table_section = (
+			f'<table style="width:100%;border-collapse:collapse;margin-top:22px;'
+			f'border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">'
+			f'<tbody>{rows_html}</tbody>'
+			f'</table>'
+		)
 
 	return f"""<!DOCTYPE html>
 <html lang="en">
@@ -671,75 +681,39 @@ def _verification_card(valid, title, message, details):
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Report Verification</title>
   <style>
-    * {{ margin:0; padding:0; box-sizing:border-box; }}
-    body {{
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      background: #f1f5f9;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 24px 16px;
+    *{{margin:0;padding:0;box-sizing:border-box}}
+    body{{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:#f1f5f9;min-height:100vh;
+      display:flex;align-items:center;justify-content:center;padding:24px 16px
     }}
-    .card {{
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
-      max-width: 520px;
-      width: 100%;
-      overflow: hidden;
+    .card{{
+      background:#fff;border-radius:16px;
+      box-shadow:0 4px 32px rgba(0,0,0,0.12);
+      max-width:500px;width:100%;overflow:hidden
     }}
-    .card-top {{
-      background: {accent};
-      padding: 28px 28px 24px;
-      text-align: center;
+    .card-top{{
+      background:{accent};padding:32px 28px 26px;text-align:center
     }}
-    .icon-circle {{
-      width: 64px; height: 64px;
-      background: rgba(255,255,255,0.2);
-      border-radius: 50%;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      color: #fff;
-      margin-bottom: 12px;
+    .icon-circle{{
+      width:68px;height:68px;background:rgba(255,255,255,0.2);
+      border-radius:50%;display:inline-flex;align-items:center;
+      justify-content:center;font-size:34px;color:#fff;margin-bottom:14px
     }}
-    .card-top h1 {{
-      color: #fff;
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: 1px;
+    .card-top h1{{color:#fff;font-size:28px;font-weight:800;letter-spacing:1px}}
+    .card-body{{padding:26px 28px 32px}}
+    .badge{{
+      display:inline-block;background:{badge_bg};color:{badge_color};
+      font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;
+      letter-spacing:0.6px;margin-bottom:16px;text-transform:uppercase
     }}
-    .card-body {{
-      padding: 24px 28px 32px;
+    .message{{
+      font-size:14px;color:#334155;line-height:1.7;
+      background:#f8fafc;border-left:4px solid {accent};
+      border-radius:0 6px 6px 0;padding:13px 16px
     }}
-    .badge {{
-      display: inline-block;
-      background: {badge_bg};
-      color: {badge_color};
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 20px;
-      letter-spacing: 0.5px;
-      margin-bottom: 14px;
-      text-transform: uppercase;
-    }}
-    .message {{
-      font-size: 14px;
-      color: #334155;
-      line-height: 1.65;
-      background: #f8fafc;
-      border-left: 4px solid {accent};
-      border-radius: 4px;
-      padding: 12px 16px;
-    }}
-    .footer-note {{
-      margin-top: 24px;
-      font-size: 11px;
-      color: #94a3b8;
-      text-align: center;
+    .footer-note{{
+      margin-top:24px;font-size:11px;color:#94a3b8;text-align:center;line-height:1.6
     }}
   </style>
 </head>
@@ -750,10 +724,13 @@ def _verification_card(valid, title, message, details):
       <h1>{title}</h1>
     </div>
     <div class="card-body">
-      <div class="badge">{"Verified Official Document" if valid else "Verification Failed"}</div>
+      <div class="badge">{badge_text}</div>
       <div class="message">{message}</div>
       {table_section}
-      <p class="footer-note">This verification is generated automatically. Do not alter this document.</p>
+      <p class="footer-note">
+        This verification is generated automatically.<br>
+        Official school document &mdash; do not alter.
+      </p>
     </div>
   </div>
 </body>
