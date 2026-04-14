@@ -558,23 +558,18 @@ def get_student_pdf(report_name, student_id):
 def verify_report_text(report, student=None):
 	"""
 	QR code endpoint — returns a styled HTML verification card in the browser.
-	URL pattern: /api/method/school...verify_report_text?report=REPORT-001&student=STU-0001
+	Raises a Werkzeug Response directly, bypassing Frappe's JSON wrapper.
 	"""
 	try:
 		doc = frappe.get_doc("Term Exam Report", report)
 
 		if doc.docstatus != 1:
-			frappe.respond_as_webpage(
+			_throw_html(_verification_card(
+				valid=False,
 				title="Invalid Report",
-				body=_verification_card(
-					valid=False,
-					title="Invalid Report",
-					message="This report has not been officially submitted or has been cancelled.",
-					details=[]
-				),
-				http_status_code=200
-			)
-			return
+				message="This report has not been officially submitted or has been cancelled.",
+				details=[]
+			))
 
 		school_name = (
 			frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
@@ -621,32 +616,38 @@ def verify_report_text(report, student=None):
 			("Report ID",     doc.name),
 		]
 
-		frappe.respond_as_webpage(
-			title="Report Verified",
-			body=_verification_card(
-				valid=True,
-				title="Valid",
-				message=intro,
-				details=details
-			),
-			http_status_code=200
-		)
+		_throw_html(_verification_card(
+			valid=True,
+			title="Valid",
+			message=intro,
+			details=details
+		))
 
 	except frappe.DoesNotExistError:
-		frappe.respond_as_webpage(
+		_throw_html(_verification_card(
+			valid=False,
 			title="Not Found",
-			body=_verification_card(
-				valid=False,
-				title="Not Found",
-				message="This report could not be found. It may be invalid or has been removed.",
-				details=[]
-			),
-			http_status_code=200
-		)
+			message="This report could not be found. It may be invalid or has been removed.",
+			details=[]
+		))
+
+
+def _throw_html(html):
+	"""
+	Raise a Werkzeug Response as an exception.
+	Frappe's app.py catches BaseException → werkzeug Response objects are
+	WSGI callables, so raising one causes gunicorn/werkzeug to serve it directly.
+	This is the same mechanism frappe.redirect() uses internally.
+	"""
+	from werkzeug.wrappers import Response
+	raise Response(
+		html,
+		status=200,
+		mimetype="text/html; charset=utf-8"
+	)
 
 
 def _verification_card(valid, title, message, details):
-	"""Returns a self-contained HTML verification card string."""
 	accent      = "#16a34a" if valid else "#dc2626"
 	icon        = "&#10004;" if valid else "&#10008;"
 	badge_text  = "Verified Official Document" if valid else "Verification Failed"
@@ -692,9 +693,7 @@ def _verification_card(valid, title, message, details):
       box-shadow:0 4px 32px rgba(0,0,0,0.12);
       max-width:500px;width:100%;overflow:hidden
     }}
-    .card-top{{
-      background:{accent};padding:32px 28px 26px;text-align:center
-    }}
+    .card-top{{background:{accent};padding:32px 28px 26px;text-align:center}}
     .icon-circle{{
       width:68px;height:68px;background:rgba(255,255,255,0.2);
       border-radius:50%;display:inline-flex;align-items:center;
@@ -712,9 +711,7 @@ def _verification_card(valid, title, message, details):
       background:#f8fafc;border-left:4px solid {accent};
       border-radius:0 6px 6px 0;padding:13px 16px
     }}
-    .footer-note{{
-      margin-top:24px;font-size:11px;color:#94a3b8;text-align:center;line-height:1.6
-    }}
+    .footer-note{{margin-top:24px;font-size:11px;color:#94a3b8;text-align:center;line-height:1.6}}
   </style>
 </head>
 <body>
