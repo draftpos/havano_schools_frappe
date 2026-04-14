@@ -34,6 +34,34 @@ frappe.ui.form.on('Student', {
                 }
             }
         });
+        
+        // Add custom button to update password manually
+        if (frm.doc.create_user && frm.doc.portal_email) {
+            frm.add_custom_button(__('Update Portal Password'), function() {
+                updatePortalPassword(frm);
+            }, __('Portal'));
+        }
+    },
+    
+    after_save: function(frm) {
+        // Check if create_user is checked and password was provided
+        if (frm.doc.create_user && frm.doc.portal_password && frm.settings && frm.settings.allow_non_strict_email) {
+            frappe.confirm(
+                __('Do you want to update the portal password for ' + frm.doc.portal_email + ' now?'),
+                function() {
+                    // Yes - update password
+                    updatePortalPassword(frm);
+                },
+                function() {
+                    // No - do nothing
+                    frappe.msgprint({
+                        title: __('Password Not Updated'),
+                        message: __('You can update the password later using the "Update Portal Password" button.'),
+                        indicator: 'orange'
+                    });
+                }
+            );
+        }
     },
 
     create_user: function(frm) {
@@ -136,7 +164,7 @@ function handlePortalAccessFields(frm) {
         // Show password field only if non-strict email is enabled
         if (frm.settings && frm.settings.allow_non_strict_email) {
             frm.toggle_display("portal_password", true);
-            frm.set_df_property("portal_password", "reqd", 1);
+            frm.set_df_property("portal_password", "reqd", 0); // Not required, but can be set
         } else {
             frm.toggle_display("portal_password", false);
             frm.set_df_property("portal_password", "reqd", 0);
@@ -147,4 +175,66 @@ function handlePortalAccessFields(frm) {
         frm.toggle_display("portal_password", false);
         frm.set_df_property("portal_password", "reqd", 0);
     }
+}
+
+function updatePortalPassword(frm) {
+    if (!frm.doc.portal_email) {
+        frappe.msgprint({
+            title: __('Error'),
+            message: __('No portal email found. Please set a portal email first.'),
+            indicator: 'red'
+        });
+        return;
+    }
+    
+    // Ask for password if not already set
+    let password = frm.doc.portal_password;
+    
+    if (!password) {
+        frappe.prompt({
+            fieldtype: 'Password',
+            label: 'New Password',
+            fieldname: 'password',
+            reqd: 1,
+            description: 'Enter the new password for ' + frm.doc.portal_email
+        }, function(values) {
+            updateUserPassword(frm, values.password);
+        }, __('Set Portal Password'), __('Update'));
+    } else {
+        updateUserPassword(frm, password);
+    }
+}
+
+function updateUserPassword(frm, password) {
+    frappe.call({
+        method: "school.school.doctype.student.student.update_user_password",
+        args: {
+            "email": frm.doc.portal_email,
+            "password": password
+        },
+        callback: function(response) {
+            if (response.message && response.message.status === "success") {
+                frappe.msgprint({
+                    title: __('Password Updated'),
+                    message: __('Portal password has been successfully updated for ' + frm.doc.portal_email),
+                    indicator: 'green'
+                });
+                // Clear the password field after successful update
+                frm.set_value("portal_password", "");
+            } else {
+                frappe.msgprint({
+                    title: __('Error'),
+                    message: response.message.message || __('Failed to update password'),
+                    indicator: 'red'
+                });
+            }
+        },
+        error: function(error) {
+            frappe.msgprint({
+                title: __('Error'),
+                message: __('Failed to update password: ' + error),
+                indicator: 'red'
+            });
+        }
+    });
 }

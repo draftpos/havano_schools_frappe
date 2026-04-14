@@ -1131,6 +1131,73 @@ def create_user_via_webhook(email, first_name, last_name, role, password=None, a
         frappe.log_error(f"Webhook user creation failed: {str(e)}", "Webhook Error")
         return {"status": "error", "message": str(e)}
 
+@frappe.whitelist()
+def update_user_password(email, password):
+    """
+    Update user password directly via API call
+    """
+    try:
+        if not email or not password:
+            return {"status": "error", "message": "Email and password are required"}
+        
+        # Check if user exists
+        if not frappe.db.exists("User", email):
+            return {"status": "error", "message": f"User {email} does not exist"}
+        
+        # Update password using multiple methods
+        from frappe.utils.password import update_password as _update_password
+        
+        # Method 1: Official update_password
+        _update_password(email, password, logout_all_sessions=True)
+        
+        # Method 2: Direct __Auth update
+        try:
+            from frappe.utils.password import passlibctx
+            hashed = passlibctx.hash(password)
+            
+            existing_auth = frappe.db.sql(
+                "SELECT name FROM `__Auth` "
+                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
+                ("User", email, "password"),
+            )
+            if existing_auth:
+                frappe.db.sql(
+                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
+                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
+                    (hashed, "User", email, "password"),
+                )
+            else:
+                frappe.db.sql(
+                    "INSERT INTO `__Auth` "
+                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
+                    "VALUES (%s, %s, %s, %s, 0)",
+                    ("User", email, "password", hashed),
+                )
+        except Exception as e:
+            frappe.log_error(f"Direct Auth update failed: {str(e)}", "Password Update")
+        
+        # Method 3: Update user document
+        user = frappe.get_doc("User", email)
+        user.new_password = password
+        user.flags.ignore_password_policy = True
+        user.flags.ignore_permissions = True
+        user.save(ignore_permissions=True)
+        
+        frappe.db.commit()
+        
+        # Test if password works
+        try:
+            from frappe.utils.password import check_password
+            check_password(email, password)
+            frappe.log_error(f"Password test successful for {email}", "Password Update")
+        except Exception as e:
+            frappe.log_error(f"Password test failed for {email}: {str(e)}", "Password Update")
+        
+        return {"status": "success", "message": f"Password updated for {email}"}
+        
+    except Exception as e:
+        frappe.log_error(f"Password update failed: {str(e)}", "Password Update Error")
+        return {"status": "error", "message": str(e)}
 
 # ----------------------------------------------------------------------
 # Permission query hook
