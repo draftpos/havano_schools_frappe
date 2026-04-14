@@ -412,15 +412,21 @@ def fetch_results(report_name):
 			score = frappe.db.get_value(
 				"Exam Schedule Item",
 				{"parent": sched.name, "student_admission_no": student.name},
-				["marks_obtained", "grade", "status"],
+
+["marks_obtained", "grade", "status", "teacher_comment", "admin_comment"],
 				as_dict=1
+
 			)
 
 			marks = score.marks_obtained if score else None
 			max_m = sched.max_marks or None
 			pct = round((marks / max_m * 100), 1) if (marks is not None and max_m) else None
-			grade = score.grade if score else ""
+
+grade = score.grade if score else ""
+			teacher_comment = score.teacher_comment if score else ""
+			admin_comment = score.admin_comment if score else ""
 			status = score.status if score else ""
+
 
 			rows.append({
 				"student": student.name,
@@ -431,8 +437,12 @@ def fetch_results(report_name):
 				"max_marks": max_m,
 				"percentage": pct,
 				"grade": grade,
-				"status": status,
-				"remarks": ""
+
+"status": status,
+				"remarks": "",
+				"teacher_comment": teacher_comment,
+				"admin_comment": admin_comment
+
 			})
 
 	return {
@@ -577,11 +587,10 @@ def verify_report_text(report, student=None):
 		) if doc.cost_center else "School"
 
 		student_name = ""
-		student_reg_no = ""
 		if student:
 			sdata = frappe.db.get_value(
 				"Student", student,
-				["first_name", "second_name", "last_name", "full_name", "student_reg_no"],
+				["first_name", "second_name", "last_name", "full_name"],
 				as_dict=True
 			)
 			if sdata:
@@ -590,92 +599,31 @@ def verify_report_text(report, student=None):
 						sdata.first_name, sdata.second_name, sdata.last_name
 					])) or sdata.full_name or student
 				)
-				student_reg_no = sdata.student_reg_no or student
 
 		section_part = f" under {doc.section}" if doc.section else ""
 
-		# Build the verification message
-		separator = "=" * 60
-		
 		if student_name:
-			msg = f"""
-{separator}
-                    ╔════════════════════════════╗
-                    ║         ✓ VALID            ║
-                    ║    OFFICIAL DOCUMENT       ║
-                    ╚════════════════════════════╝
-{separator}
-
-This is {student_name}, from {school_name}, in {doc.student_class}{section_part}.
-This is an official report.
-
-┌─────────────────────────────────────────────────────────────┐
-│                      STUDENT INFORMATION                     │
-├─────────────────────────────────────────────────────────────┤
-│ Student Name      : {student_name}
-│ Admission Number  : {student_reg_no}
-│ Class             : {doc.student_class}{section_part}
-│ Academic Year     : {doc.academic_year}
-│ Term              : {doc.term}
-│ Report Date       : {doc.report_date}
-│ Report ID         : {doc.name}
-└─────────────────────────────────────────────────────────────┘
-
-{separator}
-This is an electronically generated document. 
-Scanning this QR code confirms the authenticity of this report.
-{separator}
-
-© {school_name} - All Rights Reserved
-"""
+			msg = (
+				f"This is {student_name}, from {school_name}, "
+				f"in {doc.student_class}{section_part}. "
+				f"This is an official report.\n\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
 		else:
-			msg = f"""
-{separator}
-                    ╔════════════════════════════╗
-                    ║         ✓ VALID            ║
-                    ║    OFFICIAL DOCUMENT       ║
-                    ╚════════════════════════════╝
-{separator}
+			msg = (
+				f"Official Term Exam Report — {school_name}\n"
+				f"Class: {doc.student_class}{section_part}\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
 
-Official Term Exam Report — {school_name}
-Class: {doc.student_class}{section_part}
-
-┌─────────────────────────────────────────────────────────────┐
-│                      REPORT INFORMATION                      │
-├─────────────────────────────────────────────────────────────┤
-│ Class             : {doc.student_class}{section_part}
-│ Academic Year     : {doc.academic_year}
-│ Term              : {doc.term}
-│ Report Date       : {doc.report_date}
-│ Report ID         : {doc.name}
-└─────────────────────────────────────────────────────────────┘
-
-{separator}
-This is an electronically generated document. 
-Scanning this QR code confirms the authenticity of this report.
-{separator}
-
-© {school_name} - All Rights Reserved
-"""
-
-		frappe.response["type"] = "txt"
-		frappe.response["filecontent"] = msg.strip()
-		frappe.response["filename"] = f"verification_{report}_{student}.txt"
+		frappe.response["type"]     = "txt"
+		frappe.response["filecontent"] = msg
+		frappe.response["filename"] = "verification.txt"
 
 	except frappe.DoesNotExistError:
-		frappe.response["type"] = "txt"
-		frappe.response["filecontent"] = """
-================================================================
-                    VERIFICATION FAILED
-================================================================
+		frappe.response["type"]        = "txt"
+		frappe.response["filecontent"] = "Report not found. This document may be invalid or has been removed."
+		frappe.response["filename"]    = "verification.txt"
 
-✗ Report not found. This document may be invalid or has been removed.
-
-Please contact the school administration for assistance.
-
-Report ID: {report}
-Student ID: {student}
-
-================================================================
-""".format(report=report, student=student)
-		frappe.response["filename"] = "verification_failed.txt"
