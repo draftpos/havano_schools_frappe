@@ -1,4 +1,3 @@
-
 import frappe
 from frappe.model.document import Document
 from frappe import _
@@ -577,11 +576,10 @@ def verify_report_text(report, student=None):
 		) if doc.cost_center else "School"
 
 		student_name = ""
-		student_reg_no = ""
 		if student:
 			sdata = frappe.db.get_value(
 				"Student", student,
-				["first_name", "second_name", "last_name", "full_name", "student_reg_no"],
+				["first_name", "second_name", "last_name", "full_name"],
 				as_dict=True
 			)
 			if sdata:
@@ -590,92 +588,30 @@ def verify_report_text(report, student=None):
 						sdata.first_name, sdata.second_name, sdata.last_name
 					])) or sdata.full_name or student
 				)
-				student_reg_no = sdata.student_reg_no or student
 
 		section_part = f" under {doc.section}" if doc.section else ""
 
-		# Build the verification message
-		separator = "=" * 60
-		
 		if student_name:
-			msg = f"""
-{separator}
-                    ╔════════════════════════════╗
-                    ║         ✓ VALID            ║
-                    ║    OFFICIAL DOCUMENT       ║
-                    ╚════════════════════════════╝
-{separator}
-
-This is {student_name}, from {school_name}, in {doc.student_class}{section_part}.
-This is an official report.
-
-┌─────────────────────────────────────────────────────────────┐
-│                      STUDENT INFORMATION                     │
-├─────────────────────────────────────────────────────────────┤
-│ Student Name      : {student_name}
-│ Admission Number  : {student_reg_no}
-│ Class             : {doc.student_class}{section_part}
-│ Academic Year     : {doc.academic_year}
-│ Term              : {doc.term}
-│ Report Date       : {doc.report_date}
-│ Report ID         : {doc.name}
-└─────────────────────────────────────────────────────────────┘
-
-{separator}
-This is an electronically generated document. 
-Scanning this QR code confirms the authenticity of this report.
-{separator}
-
-© {school_name} - All Rights Reserved
-"""
+			msg = (
+				f"This is {student_name}, from {school_name}, "
+				f"in {doc.student_class}{section_part}. "
+				f"This is an official report.\n\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
 		else:
-			msg = f"""
-{separator}
-                    ╔════════════════════════════╗
-                    ║         ✓ VALID            ║
-                    ║    OFFICIAL DOCUMENT       ║
-                    ╚════════════════════════════╝
-{separator}
+			msg = (
+				f"Official Term Exam Report — {school_name}\n"
+				f"Class: {doc.student_class}{section_part}\n"
+				f"Term: {doc.term} | Academic Year: {doc.academic_year} | "
+				f"Report Date: {doc.report_date} | Report ID: {doc.name}"
+			)
 
-Official Term Exam Report — {school_name}
-Class: {doc.student_class}{section_part}
-
-┌─────────────────────────────────────────────────────────────┐
-│                      REPORT INFORMATION                      │
-├─────────────────────────────────────────────────────────────┤
-│ Class             : {doc.student_class}{section_part}
-│ Academic Year     : {doc.academic_year}
-│ Term              : {doc.term}
-│ Report Date       : {doc.report_date}
-│ Report ID         : {doc.name}
-└─────────────────────────────────────────────────────────────┘
-
-{separator}
-This is an electronically generated document. 
-Scanning this QR code confirms the authenticity of this report.
-{separator}
-
-© {school_name} - All Rights Reserved
-"""
-
-		frappe.response["type"] = "txt"
-		frappe.response["filecontent"] = msg.strip()
-		frappe.response["filename"] = f"verification_{report}_{student}.txt"
+		frappe.response["type"]     = "txt"
+		frappe.response["filecontent"] = msg
+		frappe.response["filename"] = "verification.txt"
 
 	except frappe.DoesNotExistError:
-		frappe.response["type"] = "txt"
-		frappe.response["filecontent"] = """
-================================================================
-                    VERIFICATION FAILED
-================================================================
-
-✗ Report not found. This document may be invalid or has been removed.
-
-Please contact the school administration for assistance.
-
-Report ID: {report}
-Student ID: {student}
-
-================================================================
-""".format(report=report, student=student)
-		frappe.response["filename"] = "verification_failed.txt"
+		frappe.response["type"]        = "txt"
+		frappe.response["filecontent"] = "Report not found. This document may be invalid or has been removed."
+		frappe.response["filename"]    = "verification.txt"
