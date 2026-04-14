@@ -784,52 +784,45 @@ title: Term Exam Results
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct));
 
-    /* ── Student identity — pull from first item row ───── */
+    /* ── Student identity — exact field names from print format Jinja ──
+       Print format iterates doc.term_exam_results rows and uses:
+         row.student        → admission number
+         row.student_name   → full name
+         row.subject        → subject
+         row.exam           → exam name
+         row.marks_obtained → marks
+         row.max_marks      → max marks
+         row.percentage     → percentage
+         row.grade          → grade
+         row.status         → Pass/Moderate/Failed
+         row.teacher_comment, row.admin_comment
+       The portal API groups these same rows under r.items[].
+       Top-level r fields (exam_name, academic_year, class_name, date, term)
+       come from the Term Exam Report doc itself.                           */
     var firstItem = r.items[0] || {};
-    /* API may return student_name / student_id at result level or inside items */
-    var studentName = r.student_name || firstItem.student_name || firstItem.student || "—";
-    var admissionNo = r.student || firstItem.student || firstItem.student_id || "—";
-    var className = r.class_name || firstItem.class_name || firstItem.student_class || "—";
-    var termLabel = r.term || firstItem.term || "—";
-    var dateLabel = r.date || firstItem.date || "—";
-    var academicYear = r.academic_year || firstItem.academic_year || "—";
-    var examTitle = r.exam_name || firstItem.exam_name || "—";
-    /* report_name is the Frappe docname used for the QR verify URL */
-    var reportName = r.report_name || r.name || "";
+    var studentName = firstItem.student_name || "—";
+    var admissionNo = firstItem.student || "—";
+    var className = r.class_name || r.student_class || "—";
+    var termLabel = r.term || "—";
+    var dateLabel = r.date || r.report_date || "—";
+    var academicYear = r.academic_year || "—";
+    var examTitle = r.exam_name || "—";
+    var reportName = r.name || r.report_name || "";
 
-    /* ── Class position — computed from all loaded results  ─
-       Among the AR array, find all exams with the same exam_name
-       and rank this student by overall% descending.             */
-    var cRank = "—", totalStudents = "—";
-    try {
-      /* Collect all result entries for this same exam across all fetched records.
-         In a single-student portal AR only has this student's results, so we
-         fall back to the server-supplied fields when available. */
-      if (r.class_rank) {
-        cRank = r.class_rank;
-        totalStudents = r.total_students || "—";
-      } else {
-        /* Build a mini leaderboard from sibling items if the API embeds them */
-        var siblings = r.siblings || [];   /* optional: [{student, total_obtained, total_max}] */
-        if (siblings.length > 0) {
-          var myPct = parseFloat(overallPct);
-          siblings.sort(function (a, b) { return (b.pct || 0) - (a.pct || 0); });
-          var pos = 1;
-          siblings.forEach(function (s) { if ((s.pct || 0) > myPct) pos++; });
-          cRank = pos;
-          totalStudents = siblings.length;
-        }
-        /* else — we genuinely don't have class-wide data; leave as "—" */
-      }
-    } catch (e) { }
+    /* ── Class position — print format computes this server-side via
+       sorted_totals / class_rank dict. Mirror: if API returns class_rank
+       use it; otherwise compute rank from AR (all exams loaded for this
+       student — single student portal won't have peer data so shows —). */
+    var cRank = r.class_rank || "—";
+    var totalStudents = r.total_students || "—";
 
 
-    /* ── Sort subjects alphabetically ─────────────────── */
+    /* ── Sort subjects — print format sorts by 'subject' field ── */
     var subjects = r.items.slice().sort(function (a, b) {
-      return (a.subject_name || a.subject || "").localeCompare(b.subject_name || b.subject || "");
+      return (a.subject || "").localeCompare(b.subject || "");
     });
 
-    /* ── Build subject rows ─────────────────────────────── */
+    /* ── Build subject rows — exact field names from print format ── */
     var tbRows = "", legendHTML = "";
     subjects.forEach(function (s, i) {
       var max = parseFloat(s.max_marks || 0);
@@ -839,19 +832,20 @@ title: Term Exam Results
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       var g = s.grade || G(parseFloat(pct));
       var stat = s.status || (parseFloat(pct) >= 60 ? "Pass" : parseFloat(pct) >= 50 ? "Moderate" : "Failed");
-      var sc = (stat === "Pass" || stat === "Moderate") ? "status-" + stat.toLowerCase() : "status-failed";
+      var sc = stat === "Pass" ? "status-pass" : stat === "Moderate" ? "status-moderate" : "status-failed";
       var comments = [];
       if (s.remarks) comments.push(s.remarks);
       if (s.teacher_comment) comments.push("T: " + s.teacher_comment);
       if (s.admin_comment) comments.push("A: " + s.admin_comment);
       var cstr = comments.join(" | ") || "";
 
-      var subName = s.subject_name || s.subject || "—";
+      var subName = s.subject || "—";   /* print format uses row.subject */
+      var examLbl = s.exam || "";    /* print format uses row.exam */
       var color = PIE_COLORS[i % PIE_COLORS.length];
 
       tbRows += "<tr>"
         + "<td><strong>" + subName + "</strong></td>"
-        + "<td style='color:#64748b;font-size:10px'>" + (s.exam || "") + "</td>"
+        + "<td style='color:#64748b;font-size:10px'>" + examLbl + "</td>"
         + "<td class='center'>" + obt + " / " + max + "</td>"
         + "<td class='center'>" + pct + "%</td>"
         + "<td class='center'><span class='gb g" + g + "'>" + g + "</span></td>"
@@ -1011,7 +1005,7 @@ title: Term Exam Results
         var max = parseFloat(s.max_marks || 0);
         var obt = parseFloat(s.marks_obtained || 0);
         var pct = s.percentage != null ? parseFloat(s.percentage) : (max > 0 ? (obt / max) * 100 : 0);
-        labels.push(s.subject_name || s.subject || "?");
+        labels.push(s.subject || "?");
         values.push(parseFloat(pct.toFixed(1)));
         colors.push(PIE_COLORS[i % PIE_COLORS.length]);
       });
@@ -1050,11 +1044,6 @@ title: Term Exam Results
           return;
         }
         AR = r.message;
-        /* DEV: log first result so you can verify field names from your API */
-        if (console && AR[0]) {
-          console.log("[term_exam_results] First result object:", AR[0]);
-          console.log("[term_exam_results] First item row:", AR[0].items && AR[0].items[0]);
-        }
         el("loading").style.display = "none";
         renderList();
         el("lv").style.display = "block";
