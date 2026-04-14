@@ -56,12 +56,27 @@ class Student(Document):
 
         return "{}{:05d}".format(prefix, next_num)
     
+    def after_insert(self):
+        """After insert - generate registration number if not set"""
+        if not self.student_reg_no and self.school:
+            reg_no = self.generate_reg_no()
+            frappe.db.set_value("Student", self.name, "student_reg_no", reg_no)
+            self.student_reg_no = reg_no
+        
+        # Create user IMMEDIATELY after insert
+        self._create_all_users_and_records()
+    
     def on_update(self):
-        """On update - create/update customer and portal users"""
+        """On update - create/update all records"""
         if self.flags.get("ignore_on_update"):
             return
         
-        # Always create/update customer
+        # Create/update all records
+        self._create_all_users_and_records()
+    
+    def _create_all_users_and_records(self):
+        """Central method to create all users and records"""
+        # Create/update customer
         self.create_customer()
         
         # Create opening balance entry if needed
@@ -73,47 +88,45 @@ class Student(Document):
         # Create registration billing if needed
         self.create_registration_billing()
         
-        # Create portal user IMMEDIATELY if create_user is checked
+        # Create portal user if create_user is checked - THIS IS CRITICAL
         if self.create_user:
-            self.create_portal_users()
-
-    def after_insert(self):
-        """After insert - generate registration number if not set"""
-        if not self.student_reg_no and self.school:
-            reg_no = self.generate_reg_no()
-            frappe.db.set_value("Student", self.name, "student_reg_no", reg_no)
-            self.student_reg_no = reg_no
-
-    def create_portal_users(self):
-        """Create portal user for student IMMEDIATELY when create_user is checked"""
+            self.create_student_portal_user()
+            self.create_parent_portal_users()
+        else:
+            frappe.msgprint("Create Portal User is not checked. No user will be created.", indicator="orange", alert=True)
+    
+    def create_student_portal_user(self):
+        """Create portal user for student - MAIN FUNCTION"""
         if not self.create_user:
             return
         
         if not self.portal_email:
-            frappe.msgprint("Please enter Portal Email address", indicator="red", alert=True)
-            return
+            frappe.throw("Please enter Portal Email address before saving.")
+        
+        frappe.msgprint(f"Creating portal user for: {self.portal_email}", indicator="blue", alert=True)
         
         settings = frappe.get_single("School Settings")
         
         # Create Student Portal User
         if settings.allow_non_strict_email and hasattr(self, 'portal_password') and self.portal_password:
-            self._create_user_with_password(
+            success = self._create_user_with_password(
                 self.portal_email, 
                 self.full_name or self.first_name, 
                 "Student Portal", 
                 self.portal_password
             )
+            if success:
+                frappe.msgprint(f"✅ Student user {self.portal_email} created with password", indicator="green", alert=True)
         else:
-            self._create_user_and_send_invite(
+            success = self._create_user_and_send_invite(
                 self.portal_email, 
                 self.full_name or self.first_name, 
                 "Student Portal"
             )
-        
-        # Also create parent portal users
-        self._create_parent_users(settings)
+            if success:
+                frappe.msgprint(f"✅ Student user {self.portal_email} created. Invitation sent.", indicator="green", alert=True)
     
-    def _create_parent_users(self, settings):
+    def create_parent_portal_users(self):
         """Create portal users for parents"""
         parent_entries = []
         
@@ -211,10 +224,12 @@ class Student(Document):
             self._assign_cost_center_permission(email)
             
             frappe.db.commit()
+            return True
             
         except Exception as e:
             frappe.log_error(f"User creation failed for {email}", frappe.get_traceback())
             frappe.msgprint(f"❌ Error creating user {email}: {str(e)}", indicator="red", alert=True)
+            return False
     
     def _create_user_and_send_invite(self, email, full_name, role):
         """Create user and send password reset invite"""
@@ -265,17 +280,19 @@ class Student(Document):
             self._assign_cost_center_permission(email)
             
             frappe.db.commit()
+            return True
             
         except Exception as e:
             frappe.log_error(f"User creation failed for {email}", frappe.get_traceback())
             frappe.msgprint(f"❌ Error creating user {email}: {str(e)}", indicator="red", alert=True)
+            return False
     
     def _assign_cost_center_permission(self, email):
         """Assign cost center permission to user based on selected school"""
         try:
             if not self.school:
                 frappe.msgprint("⚠️ No school selected, skipping cost center permission", indicator="orange", alert=True)
-                return
+                return False
             
             # Check if user permission already exists
             existing_permission = frappe.db.exists("User Permission", {
@@ -299,10 +316,13 @@ class Student(Document):
                 frappe.msgprint(f"✅ Cost Center '{self.school}' permission assigned to {email}", indicator="green", alert=True)
             else:
                 frappe.msgprint(f"ℹ️ Cost Center permission already exists for {email}", indicator="blue", alert=True)
+            
+            return True
                 
         except Exception as e:
             frappe.log_error(f"Cost center permission assignment failed for {email}", frappe.get_traceback())
             frappe.msgprint(f"⚠️ Could not assign cost center permission: {str(e)}", indicator="orange", alert=True)
+            return False
     
     def create_customer(self):
         """Create or update customer"""
