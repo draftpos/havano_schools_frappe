@@ -77,32 +77,27 @@ class Student(Document):
         self._create_all_users_and_records()
 
     def on_update(self):
-        """On update - only re-run user creation when relevant fields change"""
+        """On update - create all records"""
         if self.flags.get("ignore_on_update"):
             return
 
-        user_fields_changed = self.has_value_changed(
-            "create_user"
-        ) or self.has_value_changed("portal_email")
-
-        self.create_customer()
-        self.create_opening_balance_entry()
-        self.create_admin_fee_invoice()
-        self.create_registration_billing()
-
-        if user_fields_changed and self.create_user:
-            if not self.portal_email:
-                frappe.throw("Please enter Portal Email address before saving.")
-            self.create_student_portal_user()
-            self.create_parent_portal_users()
+        self._create_all_users_and_records()
 
     def _create_all_users_and_records(self):
-        """Central method to create all users and records (used on first insert)"""
+        """Central method to create all users and records"""
+        # Create customer
         self.create_customer()
+        
+        # Create opening balance entry
         self.create_opening_balance_entry()
+        
+        # Create admin fee invoice
         self.create_admin_fee_invoice()
+        
+        # Create registration billing
         self.create_registration_billing()
 
+        # Create portal user if checked
         if self.create_user:
             if not self.portal_email:
                 frappe.throw("Please enter Portal Email address before saving.")
@@ -116,241 +111,128 @@ class Student(Document):
             )
 
     # ------------------------------------------------------------------
-    # Core helper: create or update a Frappe Website User
-    # ------------------------------------------------------------------
-
-    def _get_or_create_user(self, email, full_name, role):
-        """
-        Create a Website User with the given role, or update the existing one.
-        Returns (user_doc, is_new). Password is NOT touched here.
-        """
-        name_parts = (full_name or email.split("@")[0]).split()
-        first = name_parts[0]
-        last = " ".join(name_parts[1:]) if len(name_parts) > 1 else ""
-
-        if frappe.db.exists("User", email):
-            user = frappe.get_doc("User", email)
-            existing_roles = [r.role for r in user.roles]
-            if role not in existing_roles:
-                user.append("roles", {"role": role})
-            user.enabled = 1
-            user.flags.ignore_permissions = True
-            user.flags.ignore_password_policy = True
-            user.save(ignore_permissions=True)
-            return user, False  # (doc, is_new)
-        else:
-            user = frappe.get_doc({
-                "doctype": "User",
-                "email": email,
-                "first_name": first,
-                "last_name": last,
-                "enabled": 1,
-                "user_type": "Website User",
-                "send_welcome_email": 0,
-                "roles": [{"role": role}],
-            })
-            user.flags.ignore_permissions = True
-            user.flags.ignore_password_policy = True
-            user.insert(ignore_permissions=True)
-            
-            # Trigger webhook after user creation
-            self._trigger_user_created_webhook(email, full_name, role)
-            
-            return user, True  # (doc, is_new)
-
-    def _trigger_user_created_webhook(self, email, full_name, role):
-        """Trigger webhook when user is created"""
-        try:
-            # Create a webhook event
-            webhook_data = {
-                "event": "user_created",
-                "user_email": email,
-                "user_name": full_name,
-                "user_role": role,
-                "student_name": self.name,
-                "student_full_name": self.full_name,
-                "timestamp": frappe.utils.now()
-            }
-            
-            # Log webhook event
-            frappe.log_error(
-                "User Created Webhook",
-                f"User: {email}, Role: {role}, Student: {self.name}\nData: {webhook_data}"
-            )
-            
-            # You can add external webhook call here if needed
-            # Example: requests.post("https://your-webhook-url.com/endpoint", json=webhook_data)
-            
-        except Exception as e:
-            frappe.log_error(f"Webhook trigger failed: {str(e)}", "Webhook Error")
-
-    # ------------------------------------------------------------------
-    # Password helper — three-layer approach for guaranteed login
-    # ------------------------------------------------------------------
-
-    def _force_set_password(self, email, password):
-        """
-        Reliably write the password so the user can log in immediately.
-
-        Layer 1 — frappe.utils.password.update_password
-        Layer 2 — direct __Auth upsert
-        Layer 3 — frappe.db.commit
-        """
-        # Layer 1
-        _update_password(email, password, logout_all_sessions=True)
-
-        # Layer 2 — direct upsert into __Auth
-        try:
-            from frappe.utils.password import passlibctx
-            hashed = passlibctx.hash(password)
-
-            existing_auth = frappe.db.sql(
-                "SELECT name FROM `__Auth` "
-                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                ("User", email, "password"),
-            )
-            if existing_auth:
-                frappe.db.sql(
-                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
-                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                    (hashed, "User", email, "password"),
-                )
-            else:
-                frappe.db.sql(
-                    "INSERT INTO `__Auth` "
-                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
-                    "VALUES (%s, %s, %s, %s, 0)",
-                    ("User", email, "password", hashed),
-                )
-        except Exception:
-            frappe.log_error(
-                "_force_set_password direct __Auth write",
-                frappe.get_traceback(),
-            )
-
-        # Layer 3 — flush so the row is committed before the response returns
-        frappe.db.commit()
-        
-        # Trigger password set webhook
-        self._trigger_password_set_webhook(email)
-
-    def _trigger_password_set_webhook(self, email):
-        """Trigger webhook when password is set"""
-        try:
-            webhook_data = {
-                "event": "password_set",
-                "user_email": email,
-                "student_name": self.name,
-                "student_full_name": self.full_name,
-                "timestamp": frappe.utils.now()
-            }
-            
-            frappe.log_error(
-                "Password Set Webhook",
-                f"Password set for user: {email}\nData: {webhook_data}"
-            )
-            
-        except Exception as e:
-            frappe.log_error(f"Password webhook failed: {str(e)}", "Webhook Error")
-
-    # ------------------------------------------------------------------
-    # Student portal user
+    # Student portal user with AUTO PASSWORD SAVE
     # ------------------------------------------------------------------
 
     def create_student_portal_user(self):
-        """Create portal user for student with immediate login capability"""
+        """Create portal user for student with automatic password save"""
         settings = frappe.get_single("School Settings")
         has_password = hasattr(self, "portal_password") and self.portal_password
 
         try:
-            user, is_new = self._get_or_create_user(
-                self.portal_email,
-                self.full_name or self.first_name,
-                "Student Portal",
-            )
-
-            if settings.allow_non_strict_email and has_password:
-                # Force-write the password so the student can log in immediately
-                self._force_set_password(self.portal_email, self.portal_password)
+            email = self.portal_email
+            first_name = self.first_name or "Student"
+            last_name = self.last_name or ""
+            full_name = self.full_name or first_name
+            
+            frappe.msgprint(f"Creating user: {email}", indicator="blue", alert=True)
+            
+            # Check if user exists
+            if frappe.db.exists("User", email):
+                user = frappe.get_doc("User", email)
+                # Add role if not present
+                roles = [r.role for r in user.roles]
+                if "Student Portal" not in roles:
+                    user.append("roles", {"role": "Student Portal"})
+                user.enabled = 1
+                user.flags.ignore_permissions = True
+                user.flags.ignore_password_policy = True
+                user.save(ignore_permissions=True)
+                frappe.msgprint(f"User {email} already exists and enabled", indicator="green", alert=True)
+            else:
+                # Create new user
+                user = frappe.get_doc({
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "enabled": 1,
+                    "user_type": "Website User",
+                    "send_welcome_email": 0,
+                    "roles": [{"role": "Student Portal"}]
+                })
+                user.flags.ignore_permissions = True
+                user.flags.ignore_password_policy = True
+                user.insert(ignore_permissions=True)
+                frappe.msgprint(f"User {email} created successfully", indicator="green", alert=True)
+            
+            # Set password if provided
+            if settings.allow_non_strict_email and has_password and self.portal_password:
+                # Method 1: Update password directly
+                _update_password(email, self.portal_password, logout_all_sessions=True)
                 
-                # Also set as new_password for immediate effect
+                # Method 2: Set via user document
                 user.new_password = self.portal_password
                 user.flags.ignore_password_policy = True
                 user.save(ignore_permissions=True)
                 
-                frappe.msgprint(
-                    f"✅ Student user {self.portal_email} "
-                    f"{'created' if is_new else 'updated'} — can log in now with password.",
-                    indicator="green",
-                    alert=True,
-                )
+                # Method 3: Direct database update
+                self._direct_password_update(email, self.portal_password)
                 
-                # Test login capability
-                self._test_user_login(self.portal_email, self.portal_password)
+                frappe.db.commit()
+                frappe.msgprint(f"✅ Password set for {email}", indicator="green", alert=True)
                 
+                # Test login
+                self._test_login(email, self.portal_password)
             else:
-                # No password supplied — send a reset / welcome link
+                # Send password reset email
                 reset_key = user.reset_password()
                 frappe.sendmail(
-                    recipients=[self.portal_email],
+                    recipients=[email],
                     subject="Your School Portal Access",
-                    message=(
-                        f"<p>Dear {self.full_name or self.first_name},</p>"
-                        f"<p>Your student portal account has been created.</p>"
-                        f"<p>Email: {self.portal_email}</p>"
-                        f"<p>Click below to set your password and log in:</p>"
-                        f"<p><a href=\"{frappe.utils.get_url()}"
-                        f"/update-password?key={reset_key}\">"
-                        f"Set Password &amp; Login</a></p>"
-                        f"<p>Regards,<br>School Administration</p>"
-                    ),
+                    message=f"""<p>Dear {full_name},</p>
+<p>Your student portal account has been created.</p>
+<p>Email: {email}</p>
+<p>Click below to set your password:</p>
+<p><a href="{frappe.utils.get_url()}/update-password?key={reset_key}">Set Password & Login</a></p>
+<p>Regards,<br>School Administration</p>"""
                 )
-                frappe.msgprint(
-                    f"✅ Student user {self.portal_email} created. Invitation email sent.",
-                    indicator="green",
-                    alert=True,
-                )
+                frappe.msgprint(f"✅ Password reset email sent to {email}", indicator="green", alert=True)
 
-            self._assign_cost_center_permission(self.portal_email)
-            self._assign_default_role_permissions(self.portal_email)
-            self._assign_user_to_student(self.portal_email)
+            # Assign permissions
+            self._assign_cost_center_permission(email)
+            self._assign_user_to_student(email)
 
         except Exception as e:
-            frappe.log_error(
-                f"Student portal user creation failed for {self.portal_email}",
-                frappe.get_traceback(),
-            )
-            frappe.msgprint(
-                f"❌ Error creating student user {self.portal_email}: {str(e)}",
-                indicator="red",
-                alert=True,
-            )
+            frappe.log_error(f"Student portal user creation failed: {str(e)}", "Student User Creation")
+            frappe.msgprint(f"❌ Error creating user: {str(e)}", indicator="red", alert=True)
 
-    def _test_user_login(self, email, password):
-        """Test if user can login with the given password"""
+    def _direct_password_update(self, email, password):
+        """Direct database update for password"""
         try:
-            from frappe.utils.password import check_password
+            from frappe.utils.password import passlibctx
+            hashed = passlibctx.hash(password)
             
-            # Try to authenticate
-            authenticated_user = check_password(email, password)
-            if authenticated_user:
-                frappe.msgprint(
-                    f"✅ Login test successful for {email}",
-                    indicator="green",
-                    alert=True,
+            # Check if auth record exists
+            existing = frappe.db.sql(
+                "SELECT name FROM `__Auth` WHERE doctype='User' AND name=%s AND fieldname='password'",
+                (email,)
+            )
+            
+            if existing:
+                frappe.db.sql(
+                    "UPDATE `__Auth` SET password=%s WHERE doctype='User' AND name=%s AND fieldname='password'",
+                    (hashed, email)
                 )
             else:
-                frappe.msgprint(
-                    f"⚠️ Login test failed for {email}. Please reset password if needed.",
-                    indicator="orange",
-                    alert=True,
+                frappe.db.sql(
+                    "INSERT INTO `__Auth` (doctype, name, fieldname, password, encrypted) VALUES ('User', %s, 'password', %s, 0)",
+                    (email, hashed)
                 )
+            
+            frappe.db.commit()
+            frappe.msgprint(f"✅ Password saved directly to database for {email}", indicator="green", alert=True)
         except Exception as e:
-            frappe.msgprint(
-                f"⚠️ Login test warning for {email}: {str(e)}",
-                indicator="orange",
-                alert=True,
-            )
+            frappe.log_error(f"Direct password update failed: {str(e)}", "Password Error")
+
+    def _test_login(self, email, password):
+        """Test if user can login"""
+        try:
+            from frappe.utils.password import check_password
+            check_password(email, password)
+            frappe.msgprint(f"✅ Login test PASSED for {email}", indicator="green", alert=True)
+        except Exception as e:
+            frappe.msgprint(f"⚠️ Login test failed: {str(e)}. Please reset password if needed.", indicator="orange", alert=True)
 
     def _assign_user_to_student(self, email):
         """Link the portal user to the student document"""
@@ -370,12 +252,7 @@ class Student(Document):
                 })
                 user_permission.flags.ignore_permissions = True
                 user_permission.insert(ignore_permissions=True)
-                
-                frappe.msgprint(
-                    f"✅ User {email} linked to student {self.name}",
-                    indicator="green",
-                    alert=True,
-                )
+                frappe.msgprint(f"✅ User {email} linked to student {self.name}", indicator="green", alert=True)
         except Exception as e:
             frappe.log_error(f"User to student assignment failed: {str(e)}", "Assignment Error")
 
@@ -446,46 +323,56 @@ class Student(Document):
                         alert=True,
                     )
 
-                # Parents always receive a reset link (no stored password)
-                user, is_new = self._get_or_create_user(
-                    entry["email"], entry["full_name"], entry["role"]
-                )
-
-                if is_new:
-                    reset_key = user.reset_password()
-                    frappe.sendmail(
-                        recipients=[entry["email"]],
-                        subject="Your School Portal Access",
-                        message=(
-                            f"<p>Dear {entry['full_name']},</p>"
-                            f"<p>A portal account has been created for you.</p>"
-                            f"<p>Email: {entry['email']}</p>"
-                            f"<p>Click below to set your password:</p>"
-                            f"<p><a href=\"{frappe.utils.get_url()}"
-                            f"/update-password?key={reset_key}\">"
-                            f"Set Password &amp; Login</a></p>"
-                            f"<p>Regards,<br>School Administration</p>"
-                        ),
-                    )
-                    frappe.msgprint(
-                        f"✅ Parent user {entry['email']} created. Invitation sent.",
-                        indicator="green",
-                        alert=True,
-                    )
-
-                self._assign_cost_center_permission(entry["email"])
-                self._assign_default_role_permissions(entry["email"])
+                # Create user for parent
+                self._create_parent_user(entry["email"], entry["full_name"])
 
             except Exception as e:
                 frappe.log_error(
                     f"Parent user creation failed for {entry['email']}",
                     frappe.get_traceback(),
                 )
-                frappe.msgprint(
-                    f"❌ Error creating parent user {entry['email']}: {str(e)}",
-                    indicator="red",
-                    alert=True,
+
+    def _create_parent_user(self, email, full_name):
+        """Create parent user"""
+        try:
+            if frappe.db.exists("User", email):
+                user = frappe.get_doc("User", email)
+                roles = [r.role for r in user.roles]
+                if "Parent" not in roles:
+                    user.append("roles", {"role": "Parent"})
+                user.enabled = 1
+                user.save(ignore_permissions=True)
+            else:
+                user = frappe.get_doc({
+                    "doctype": "User",
+                    "email": email,
+                    "first_name": full_name,
+                    "enabled": 1,
+                    "user_type": "Website User",
+                    "send_welcome_email": 0,
+                    "roles": [{"role": "Parent"}]
+                })
+                user.flags.ignore_permissions = True
+                user.insert(ignore_permissions=True)
+                
+                # Send password reset email
+                reset_key = user.reset_password()
+                frappe.sendmail(
+                    recipients=[email],
+                    subject="Your School Portal Access",
+                    message=f"""<p>Dear {full_name},</p>
+<p>A parent portal account has been created for you.</p>
+<p>Email: {email}</p>
+<p>Click below to set your password:</p>
+<p><a href="{frappe.utils.get_url()}/update-password?key={reset_key}">Set Password & Login</a></p>
+<p>Regards,<br>School Administration</p>"""
                 )
+            
+            self._assign_cost_center_permission(email)
+            frappe.msgprint(f"✅ Parent user {email} created", indicator="green", alert=True)
+            
+        except Exception as e:
+            frappe.log_error(f"Parent user creation failed: {str(e)}", "Parent User Error")
 
     # ------------------------------------------------------------------
     # Permission helpers
@@ -495,11 +382,6 @@ class Student(Document):
         """Assign cost center permission to user based on selected school"""
         try:
             if not self.school:
-                frappe.msgprint(
-                    "⚠️ No school selected, skipping cost center permission",
-                    indicator="orange",
-                    alert=True,
-                )
                 return False
 
             existing_permission = frappe.db.exists(
@@ -526,12 +408,6 @@ class Student(Document):
                     indicator="green",
                     alert=True,
                 )
-            else:
-                frappe.msgprint(
-                    f"ℹ️ Cost Center permission already exists for {email}",
-                    indicator="blue",
-                    alert=True,
-                )
 
             return True
 
@@ -540,34 +416,7 @@ class Student(Document):
                 f"Cost center permission assignment failed for {email}",
                 frappe.get_traceback(),
             )
-            frappe.msgprint(
-                f"⚠️ Could not assign cost center permission: {str(e)}",
-                indicator="orange",
-                alert=True,
-            )
             return False
-
-    def _assign_default_role_permissions(self, email):
-        """Assign default role-based permissions to user"""
-        try:
-            user = frappe.get_doc("User", email)
-            
-            if not user.user_type == "Website User":
-                user.user_type = "Website User"
-                user.flags.ignore_permissions = True
-                user.save(ignore_permissions=True)
-            
-            frappe.msgprint(
-                f"✅ Default permissions assigned to {email}",
-                indicator="green",
-                alert=True,
-            )
-            
-        except Exception as e:
-            frappe.log_error(
-                f"Default role permission assignment failed for {email}",
-                frappe.get_traceback(),
-            )
 
     # ------------------------------------------------------------------
     # Customer
@@ -636,9 +485,6 @@ class Student(Document):
                     customer.image = self.student_image
                 customer.flags.ignore_permissions = True
                 customer.save(ignore_permissions=True)
-                
-                if self.create_user and self.portal_email:
-                    self._assign_customer_to_user(self.portal_email, customer.name)
             else:
                 customer = frappe.get_doc({
                     "doctype": "Customer",
@@ -660,9 +506,6 @@ class Student(Document):
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
-                
-                if self.create_user and self.portal_email:
-                    self._assign_customer_to_user(self.portal_email, customer.name)
 
             frappe.msgprint(
                 f"✅ Customer {self.full_name} created/updated",
@@ -673,42 +516,6 @@ class Student(Document):
         except Exception as e:
             frappe.log_error(
                 f"Customer creation failed for {self.full_name}",
-                frappe.get_traceback(),
-            )
-            frappe.msgprint(
-                f"❌ Error creating customer: {str(e)}",
-                indicator="red",
-                alert=True,
-            )
-
-    def _assign_customer_to_user(self, email, customer_name):
-        """Assign customer to user for portal access"""
-        try:
-            existing_contact = frappe.db.exists(
-                "Contact",
-                {
-                    "email_id": email,
-                }
-            )
-            
-            if not existing_contact:
-                contact = frappe.get_doc({
-                    "doctype": "Contact",
-                    "first_name": self.first_name,
-                    "last_name": self.last_name,
-                    "email_ids": [{"email_id": email, "is_primary": 1}],
-                    "links": [{"link_doctype": "Customer", "link_name": customer_name}]
-                })
-                contact.flags.ignore_permissions = True
-                contact.insert(ignore_permissions=True)
-                frappe.msgprint(
-                    f"✅ Contact created for {email} linked to customer {customer_name}",
-                    indicator="green",
-                    alert=True,
-                )
-        except Exception as e:
-            frappe.log_error(
-                f"Customer to user assignment failed for {email}",
                 frappe.get_traceback(),
             )
 
@@ -1026,178 +833,6 @@ class Student(Document):
                 f"Student: {self.name} Error: {str(e)}",
             )
 
-
-# ----------------------------------------------------------------------
-# Webhook endpoint for external password setting
-# ----------------------------------------------------------------------
-
-@frappe.whitelist(allow_guest=True)
-def set_user_password_via_webhook(email, password, api_key=None):
-    """
-    Webhook endpoint to set user password externally
-    Usage: POST /api/method/school.school.doctype.student.student.set_user_password_via_webhook
-    """
-    try:
-        # Verify API key if provided
-        if api_key:
-            valid_api_key = frappe.db.get_single_value("School Settings", "webhook_api_key")
-            if api_key != valid_api_key:
-                return {"status": "error", "message": "Invalid API key"}
-        
-        # Check if user exists
-        if not frappe.db.exists("User", email):
-            return {"status": "error", "message": f"User {email} does not exist"}
-        
-        # Set password
-        _update_password(email, password, logout_all_sessions=True)
-        
-        # Direct __Auth update for safety
-        try:
-            from frappe.utils.password import passlibctx
-            hashed = passlibctx.hash(password)
-            
-            existing_auth = frappe.db.sql(
-                "SELECT name FROM `__Auth` "
-                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                ("User", email, "password"),
-            )
-            if existing_auth:
-                frappe.db.sql(
-                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
-                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                    (hashed, "User", email, "password"),
-                )
-            else:
-                frappe.db.sql(
-                    "INSERT INTO `__Auth` "
-                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
-                    "VALUES (%s, %s, %s, %s, 0)",
-                    ("User", email, "password", hashed),
-                )
-        except:
-            pass
-        
-        frappe.db.commit()
-        
-        return {"status": "success", "message": f"Password set for {email}"}
-        
-    except Exception as e:
-        frappe.log_error(f"Webhook password set failed: {str(e)}", "Webhook Error")
-        return {"status": "error", "message": str(e)}
-
-
-@frappe.whitelist()
-def create_user_via_webhook(email, first_name, last_name, role, password=None, api_key=None):
-    """
-    Webhook endpoint to create user externally
-    """
-    try:
-        # Verify API key if provided
-        if api_key:
-            valid_api_key = frappe.db.get_single_value("School Settings", "webhook_api_key")
-            if api_key != valid_api_key:
-                return {"status": "error", "message": "Invalid API key"}
-        
-        # Check if user exists
-        if frappe.db.exists("User", email):
-            return {"status": "error", "message": f"User {email} already exists"}
-        
-        # Create user
-        user = frappe.get_doc({
-            "doctype": "User",
-            "email": email,
-            "first_name": first_name,
-            "last_name": last_name,
-            "enabled": 1,
-            "user_type": "Website User",
-            "send_welcome_email": 0,
-            "roles": [{"role": role}]
-        })
-        user.flags.ignore_permissions = True
-        user.flags.ignore_password_policy = True
-        user.insert(ignore_permissions=True)
-        
-        # Set password if provided
-        if password:
-            _update_password(email, password, logout_all_sessions=True)
-            user.new_password = password
-            user.save(ignore_permissions=True)
-        
-        frappe.db.commit()
-        
-        return {"status": "success", "message": f"User {email} created", "user": user.name}
-        
-    except Exception as e:
-        frappe.log_error(f"Webhook user creation failed: {str(e)}", "Webhook Error")
-        return {"status": "error", "message": str(e)}
-
-@frappe.whitelist()
-def update_user_password(email, password):
-    """
-    Update user password directly via API call
-    """
-    try:
-        if not email or not password:
-            return {"status": "error", "message": "Email and password are required"}
-        
-        # Check if user exists
-        if not frappe.db.exists("User", email):
-            return {"status": "error", "message": f"User {email} does not exist"}
-        
-        # Update password using multiple methods
-        from frappe.utils.password import update_password as _update_password
-        
-        # Method 1: Official update_password
-        _update_password(email, password, logout_all_sessions=True)
-        
-        # Method 2: Direct __Auth update
-        try:
-            from frappe.utils.password import passlibctx
-            hashed = passlibctx.hash(password)
-            
-            existing_auth = frappe.db.sql(
-                "SELECT name FROM `__Auth` "
-                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                ("User", email, "password"),
-            )
-            if existing_auth:
-                frappe.db.sql(
-                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
-                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                    (hashed, "User", email, "password"),
-                )
-            else:
-                frappe.db.sql(
-                    "INSERT INTO `__Auth` "
-                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
-                    "VALUES (%s, %s, %s, %s, 0)",
-                    ("User", email, "password", hashed),
-                )
-        except Exception as e:
-            frappe.log_error(f"Direct Auth update failed: {str(e)}", "Password Update")
-        
-        # Method 3: Update user document
-        user = frappe.get_doc("User", email)
-        user.new_password = password
-        user.flags.ignore_password_policy = True
-        user.flags.ignore_permissions = True
-        user.save(ignore_permissions=True)
-        
-        frappe.db.commit()
-        
-        # Test if password works
-        try:
-            from frappe.utils.password import check_password
-            check_password(email, password)
-            frappe.log_error(f"Password test successful for {email}", "Password Update")
-        except Exception as e:
-            frappe.log_error(f"Password test failed for {email}: {str(e)}", "Password Update")
-        
-        return {"status": "success", "message": f"Password updated for {email}"}
-        
-    except Exception as e:
-        frappe.log_error(f"Password update failed: {str(e)}", "Password Update Error")
-        return {"status": "error", "message": str(e)}
 
 # ----------------------------------------------------------------------
 # Permission query hook
