@@ -146,6 +146,52 @@ class Student(Document):
                     message=frappe.get_traceback()
                 )
 
+    def _assign_cost_center_permission(self, email):
+        """Assign cost center permission to user based on selected school"""
+        try:
+            if self.school:
+                # Check if user permission already exists
+                existing_permission = frappe.db.exists("User Permission", {
+                    "user": email,
+                    "allow": "Cost Center",
+                    "for_value": self.school
+                })
+                
+                if not existing_permission:
+                    # Create user permission for cost center
+                    user_permission = frappe.get_doc({
+                        "doctype": "User Permission",
+                        "user": email,
+                        "allow": "Cost Center",
+                        "for_value": self.school,
+                        "applicable_for": "Cost Center"
+                    })
+                    user_permission.flags.ignore_permissions = True
+                    user_permission.insert(ignore_permissions=True)
+                    
+                    frappe.msgprint(
+                        f"✅ Cost Center '{self.school}' permission assigned to {email}",
+                        indicator="green",
+                        alert=True
+                    )
+                else:
+                    frappe.msgprint(
+                        f"ℹ️ Cost Center permission already exists for {email}",
+                        indicator="blue",
+                        alert=True
+                    )
+                    
+        except Exception as e:
+            frappe.log_error(
+                title=f"Cost center permission assignment failed for {email}",
+                message=frappe.get_traceback()
+            )
+            frappe.msgprint(
+                f"⚠️ Could not assign cost center permission: {str(e)}",
+                indicator="orange",
+                alert=True
+            )
+
     def _ensure_user_with_password(self, email, full_name, role, password):
         """Create user with specific password if non-strict email is enabled"""
         try:
@@ -154,10 +200,27 @@ class Student(Document):
                 roles = [r.role for r in user.roles]
                 if role not in roles:
                     user.append("roles", {"role": role})
+                # Ensure user is enabled
+                if not user.enabled:
+                    user.enabled = 1
                 user.flags.ignore_permissions = True
                 user.save(ignore_permissions=True)
+                
+                # Set/update password
+                user.new_password = password
+                user.save(ignore_permissions=True)
+                
+                # Assign cost center permission
+                self._assign_cost_center_permission(email)
+                
+                frappe.msgprint(
+                    f"✅ User {email} updated successfully. Password has been set.",
+                    indicator="green",
+                    alert=True
+                )
                 return
 
+            # Create new user
             user = frappe.get_doc({
                 "doctype": "User",
                 "email": email,
@@ -165,19 +228,37 @@ class Student(Document):
                 "enabled": 1,
                 "user_type": "Website User",
                 "send_welcome_email": 0,
-                "new_password": password,
                 "roles": [
                     {"role": role}
                 ]
             })
             user.flags.ignore_permissions = True
             user.insert(ignore_permissions=True)
+            
+            # Set the password after user is created
+            user.new_password = password
+            user.save(ignore_permissions=True)
+            
+            # Assign cost center permission
+            self._assign_cost_center_permission(email)
+            
             frappe.db.commit()
+            
+            frappe.msgprint(
+                f"✅ User {email} created successfully with password. They can now login.",
+                indicator="green",
+                alert=True
+            )
 
-        except Exception:
+        except Exception as e:
             frappe.log_error(
                 title=f"User creation failed for {email}",
                 message=frappe.get_traceback()
+            )
+            frappe.msgprint(
+                f"❌ Error creating user {email}: {str(e)}",
+                indicator="red",
+                alert=True
             )
 
     def _ensure_user(self, email, full_name, role, send_email=False, sender=None):
@@ -188,8 +269,14 @@ class Student(Document):
                 roles = [r.role for r in user.roles]
                 if role not in roles:
                     user.append("roles", {"role": role})
+                # Ensure user is enabled
+                if not user.enabled:
+                    user.enabled = 1
                 user.flags.ignore_permissions = True
                 user.save(ignore_permissions=True)
+                
+                # Assign cost center permission
+                self._assign_cost_center_permission(email)
                 return
 
             user = frappe.get_doc({
@@ -205,6 +292,9 @@ class Student(Document):
             })
             user.flags.ignore_permissions = True
             user.insert(ignore_permissions=True)
+            
+            # Assign cost center permission
+            self._assign_cost_center_permission(email)
 
             if send_email:
                 reset_key = user.reset_password()
@@ -222,12 +312,23 @@ class Student(Document):
                         url=frappe.utils.get_url(), key=reset_key
                     )
                 )
+                frappe.msgprint(
+                    f"📧 Password reset email sent to {email}",
+                    indicator="blue",
+                    alert=True
+                )
+            
             frappe.db.commit()
 
         except Exception:
             frappe.log_error(
                 title=f"User creation failed for {email}",
                 message=frappe.get_traceback()
+            )
+            frappe.msgprint(
+                f"❌ Error creating user {email}. Please check logs.",
+                indicator="red",
+                alert=True
             )
 
     def create_customer(self):
