@@ -2,6 +2,7 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
 from frappe.utils.password import update_password as _update_password
+from frappe.core.doctype.user.user import User
 
 
 class Student(Document):
@@ -121,7 +122,7 @@ class Student(Document):
     def _get_or_create_user(self, email, full_name, role):
         """
         Create a Website User with the given role, or update the existing one.
-        Returns (user_doc, is_new).  Password is NOT touched here.
+        Returns (user_doc, is_new). Password is NOT touched here.
         """
         name_parts = (full_name or email.split("@")[0]).split()
         first = name_parts[0]
@@ -151,7 +152,37 @@ class Student(Document):
             user.flags.ignore_permissions = True
             user.flags.ignore_password_policy = True
             user.insert(ignore_permissions=True)
+            
+            # Trigger webhook after user creation
+            self._trigger_user_created_webhook(email, full_name, role)
+            
             return user, True  # (doc, is_new)
+
+    def _trigger_user_created_webhook(self, email, full_name, role):
+        """Trigger webhook when user is created"""
+        try:
+            # Create a webhook event
+            webhook_data = {
+                "event": "user_created",
+                "user_email": email,
+                "user_name": full_name,
+                "user_role": role,
+                "student_name": self.name,
+                "student_full_name": self.full_name,
+                "timestamp": frappe.utils.now()
+            }
+            
+            # Log webhook event
+            frappe.log_error(
+                "User Created Webhook",
+                f"User: {email}, Role: {role}, Student: {self.name}\nData: {webhook_data}"
+            )
+            
+            # You can add external webhook call here if needed
+            # Example: requests.post("https://your-webhook-url.com/endpoint", json=webhook_data)
+            
+        except Exception as e:
+            frappe.log_error(f"Webhook trigger failed: {str(e)}", "Webhook Error")
 
     # ------------------------------------------------------------------
     # Password helper — three-layer approach for guaranteed login
@@ -162,17 +193,8 @@ class Student(Document):
         Reliably write the password so the user can log in immediately.
 
         Layer 1 — frappe.utils.password.update_password
-            The official high-level API.  Handles hashing and writes to __Auth.
-
         Layer 2 — direct __Auth upsert
-            Belt-and-suspenders: some Frappe versions silently skip
-            update_password when called outside a normal request context
-            (e.g. during after_insert).  Writing directly guarantees the row
-            exists with the correct hash.
-
         Layer 3 — frappe.db.commit
-            Flushes the transaction so the password row is visible before the
-            HTTP response is sent back to the browser.
         """
         # Layer 1
         _update_password(email, password, logout_all_sessions=True)
@@ -201,8 +223,6 @@ class Student(Document):
                     ("User", email, "password", hashed),
                 )
         except Exception:
-            # passlibctx is not available on every Frappe version.
-            # Layer 1 is sufficient in that case.
             frappe.log_error(
                 "_force_set_password direct __Auth write",
                 frappe.get_traceback(),
@@ -210,13 +230,35 @@ class Student(Document):
 
         # Layer 3 — flush so the row is committed before the response returns
         frappe.db.commit()
+        
+        # Trigger password set webhook
+        self._trigger_password_set_webhook(email)
+
+    def _trigger_password_set_webhook(self, email):
+        """Trigger webhook when password is set"""
+        try:
+            webhook_data = {
+                "event": "password_set",
+                "user_email": email,
+                "student_name": self.name,
+                "student_full_name": self.full_name,
+                "timestamp": frappe.utils.now()
+            }
+            
+            frappe.log_error(
+                "Password Set Webhook",
+                f"Password set for user: {email}\nData: {webhook_data}"
+            )
+            
+        except Exception as e:
+            frappe.log_error(f"Password webhook failed: {str(e)}", "Webhook Error")
 
     # ------------------------------------------------------------------
     # Student portal user
     # ------------------------------------------------------------------
 
     def create_student_portal_user(self):
-        """Create portal user for student"""
+        """Create portal user for student with immediate login capability"""
         settings = frappe.get_single("School Settings")
         has_password = hasattr(self, "portal_password") and self.portal_password
 
@@ -230,12 +272,22 @@ class Student(Document):
             if settings.allow_non_strict_email and has_password:
                 # Force-write the password so the student can log in immediately
                 self._force_set_password(self.portal_email, self.portal_password)
+                
+                # Also set as new_password for immediate effect
+                user.new_password = self.portal_password
+                user.flags.ignore_password_policy = True
+                user.save(ignore_permissions=True)
+                
                 frappe.msgprint(
                     f"✅ Student user {self.portal_email} "
-                    f"{'created' if is_new else 'updated'} — can log in now.",
+                    f"{'created' if is_new else 'updated'} — can log in now with password.",
                     indicator="green",
                     alert=True,
                 )
+                
+                # Test login capability
+                self._test_user_login(self.portal_email, self.portal_password)
+                
             else:
                 # No password supplied — send a reset / welcome link
                 reset_key = user.reset_password()
@@ -261,6 +313,7 @@ class Student(Document):
 
             self._assign_cost_center_permission(self.portal_email)
             self._assign_default_role_permissions(self.portal_email)
+            self._assign_user_to_student(self.portal_email)
 
         except Exception as e:
             frappe.log_error(
@@ -272,6 +325,59 @@ class Student(Document):
                 indicator="red",
                 alert=True,
             )
+
+    def _test_user_login(self, email, password):
+        """Test if user can login with the given password"""
+        try:
+            from frappe.utils.password import check_password
+            
+            # Try to authenticate
+            authenticated_user = check_password(email, password)
+            if authenticated_user:
+                frappe.msgprint(
+                    f"✅ Login test successful for {email}",
+                    indicator="green",
+                    alert=True,
+                )
+            else:
+                frappe.msgprint(
+                    f"⚠️ Login test failed for {email}. Please reset password if needed.",
+                    indicator="orange",
+                    alert=True,
+                )
+        except Exception as e:
+            frappe.msgprint(
+                f"⚠️ Login test warning for {email}: {str(e)}",
+                indicator="orange",
+                alert=True,
+            )
+
+    def _assign_user_to_student(self, email):
+        """Link the portal user to the student document"""
+        try:
+            # Add user permission for student document
+            if not frappe.db.exists("User Permission", {
+                "user": email,
+                "allow": "Student",
+                "for_value": self.name
+            }):
+                user_permission = frappe.get_doc({
+                    "doctype": "User Permission",
+                    "user": email,
+                    "allow": "Student",
+                    "for_value": self.name,
+                    "applicable_for": "Student"
+                })
+                user_permission.flags.ignore_permissions = True
+                user_permission.insert(ignore_permissions=True)
+                
+                frappe.msgprint(
+                    f"✅ User {email} linked to student {self.name}",
+                    indicator="green",
+                    alert=True,
+                )
+        except Exception as e:
+            frappe.log_error(f"User to student assignment failed: {str(e)}", "Assignment Error")
 
     # ------------------------------------------------------------------
     # Parent portal users
@@ -411,7 +517,6 @@ class Student(Document):
                     "user": email,
                     "allow": "Cost Center",
                     "for_value": self.school,
-                    # Blank = applies across ALL doctypes
                     "applicable_for": "",
                 })
                 user_permission.flags.ignore_permissions = True
@@ -445,36 +550,12 @@ class Student(Document):
     def _assign_default_role_permissions(self, email):
         """Assign default role-based permissions to user"""
         try:
-            # Get the user document
             user = frappe.get_doc("User", email)
             
-            # Ensure the user has basic website access
             if not user.user_type == "Website User":
                 user.user_type = "Website User"
                 user.flags.ignore_permissions = True
                 user.save(ignore_permissions=True)
-            
-            # Add default portal view permissions
-            default_permissions = [
-                {"doctype": "Student", "read": 1, "write": 1},
-                {"doctype": "Parent", "read": 1, "write": 0},
-                {"doctype": "Fees Structure", "read": 1, "write": 0},
-                {"doctype": "Billing", "read": 1, "write": 0},
-            ]
-            
-            for perm in default_permissions:
-                # Check if permission already exists
-                existing = frappe.db.exists(
-                    "Custom DocPerm",
-                    {
-                        "parent": perm["doctype"],
-                        "role": "Student Portal" if "Student" in email else "Parent",
-                        "read": perm.get("read", 0),
-                    }
-                )
-                if not existing:
-                    # Add custom permission if needed
-                    pass
             
             frappe.msgprint(
                 f"✅ Default permissions assigned to {email}",
@@ -556,7 +637,6 @@ class Student(Document):
                 customer.flags.ignore_permissions = True
                 customer.save(ignore_permissions=True)
                 
-                # Assign customer to user if portal user exists
                 if self.create_user and self.portal_email:
                     self._assign_customer_to_user(self.portal_email, customer.name)
             else:
@@ -581,7 +661,6 @@ class Student(Document):
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
                 
-                # Assign customer to user if portal user exists
                 if self.create_user and self.portal_email:
                     self._assign_customer_to_user(self.portal_email, customer.name)
 
@@ -605,17 +684,14 @@ class Student(Document):
     def _assign_customer_to_user(self, email, customer_name):
         """Assign customer to user for portal access"""
         try:
-            # Check if contact exists for this customer
             existing_contact = frappe.db.exists(
                 "Contact",
                 {
                     "email_id": email,
-                    "links": ["like", f'%"customer": "{customer_name}"%']
                 }
             )
             
             if not existing_contact:
-                # Create contact linked to customer
                 contact = frappe.get_doc({
                     "doctype": "Contact",
                     "first_name": self.first_name,
@@ -949,6 +1025,111 @@ class Student(Document):
                 "Registration Billing Error",
                 f"Student: {self.name} Error: {str(e)}",
             )
+
+
+# ----------------------------------------------------------------------
+# Webhook endpoint for external password setting
+# ----------------------------------------------------------------------
+
+@frappe.whitelist(allow_guest=True)
+def set_user_password_via_webhook(email, password, api_key=None):
+    """
+    Webhook endpoint to set user password externally
+    Usage: POST /api/method/school.school.doctype.student.student.set_user_password_via_webhook
+    """
+    try:
+        # Verify API key if provided
+        if api_key:
+            valid_api_key = frappe.db.get_single_value("School Settings", "webhook_api_key")
+            if api_key != valid_api_key:
+                return {"status": "error", "message": "Invalid API key"}
+        
+        # Check if user exists
+        if not frappe.db.exists("User", email):
+            return {"status": "error", "message": f"User {email} does not exist"}
+        
+        # Set password
+        _update_password(email, password, logout_all_sessions=True)
+        
+        # Direct __Auth update for safety
+        try:
+            from frappe.utils.password import passlibctx
+            hashed = passlibctx.hash(password)
+            
+            existing_auth = frappe.db.sql(
+                "SELECT name FROM `__Auth` "
+                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
+                ("User", email, "password"),
+            )
+            if existing_auth:
+                frappe.db.sql(
+                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
+                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
+                    (hashed, "User", email, "password"),
+                )
+            else:
+                frappe.db.sql(
+                    "INSERT INTO `__Auth` "
+                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
+                    "VALUES (%s, %s, %s, %s, 0)",
+                    ("User", email, "password", hashed),
+                )
+        except:
+            pass
+        
+        frappe.db.commit()
+        
+        return {"status": "success", "message": f"Password set for {email}"}
+        
+    except Exception as e:
+        frappe.log_error(f"Webhook password set failed: {str(e)}", "Webhook Error")
+        return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def create_user_via_webhook(email, first_name, last_name, role, password=None, api_key=None):
+    """
+    Webhook endpoint to create user externally
+    """
+    try:
+        # Verify API key if provided
+        if api_key:
+            valid_api_key = frappe.db.get_single_value("School Settings", "webhook_api_key")
+            if api_key != valid_api_key:
+                return {"status": "error", "message": "Invalid API key"}
+        
+        # Check if user exists
+        if frappe.db.exists("User", email):
+            return {"status": "error", "message": f"User {email} already exists"}
+        
+        # Create user
+        user = frappe.get_doc({
+            "doctype": "User",
+            "email": email,
+            "first_name": first_name,
+            "last_name": last_name,
+            "enabled": 1,
+            "user_type": "Website User",
+            "send_welcome_email": 0,
+            "roles": [{"role": role}]
+        })
+        user.flags.ignore_permissions = True
+        user.flags.ignore_password_policy = True
+        user.insert(ignore_permissions=True)
+        
+        # Set password if provided
+        if password:
+            _update_password(email, password, logout_all_sessions=True)
+            user.new_password = password
+            user.save(ignore_permissions=True)
+        
+        frappe.db.commit()
+        
+        return {"status": "success", "message": f"User {email} created", "user": user.name}
+        
+    except Exception as e:
+        frappe.log_error(f"Webhook user creation failed: {str(e)}", "Webhook Error")
+        return {"status": "error", "message": str(e)}
 
 
 # ----------------------------------------------------------------------
