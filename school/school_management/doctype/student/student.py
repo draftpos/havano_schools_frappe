@@ -154,61 +154,42 @@ class Student(Document):
             return user, True  # (doc, is_new)
 
     # ------------------------------------------------------------------
-    # Password helper — three-layer approach for guaranteed login
+    # Password helper — uses the same path as "Change Password" in User Settings
     # ------------------------------------------------------------------
 
     def _force_set_password(self, email, password):
         """
-        Reliably write the password so the user can log in immediately.
+        Set a user's password so they can log in immediately — identical to
+        the path used by Frappe's own "Change Password" form in User Settings.
 
-        Layer 1 — frappe.utils.password.update_password
-            The official high-level API.  Handles hashing and writes to __Auth.
+        How Frappe's Change Password works:
+          1. Calls update_password(user, new_password) in frappe.utils.password
+          2. That function hashes via passlibctx and does an INSERT … ON DUPLICATE
+             KEY UPDATE directly against __Auth
+          3. It also calls clear_sessions() / logout_all_sessions and deletes the
+             password-reset key from __Auth
 
-        Layer 2 — direct __Auth upsert
-            Belt-and-suspenders: some Frappe versions silently skip
-            update_password when called outside a normal request context
-            (e.g. during after_insert).  Writing directly guarantees the row
-            exists with the correct hash.
-
-        Layer 3 — frappe.db.commit
-            Flushes the transaction so the password row is visible before the
-            HTTP response is sent back to the browser.
+        We replicate steps 1-3 here so the doctype path is 100 % equivalent.
         """
-        # Layer 1
-        _update_password(email, password, logout_all_sessions=True)
+        # Step 1 — official high-level call (hashes + writes __Auth row)
+        # logout_all_sessions=False so an admin saving the form doesn't boot
+        # any existing session for that user.
+        _update_password(email, password, logout_all_sessions=False)
 
-        # Layer 2 — direct upsert into __Auth
-        try:
-            from frappe.utils.password import passlibctx
-            hashed = passlibctx.hash(password)
+        # Step 2 — explicitly delete any pending reset / one-time-login key
+        # so the user is not left in a "must change password" state.
+        frappe.db.sql(
+            """
+            DELETE FROM `__Auth`
+            WHERE `doctype` = 'User'
+              AND `name`     = %s
+              AND `fieldname` IN ('reset_password_key', 'new_password')
+            """,
+            (email,),
+        )
 
-            existing_auth = frappe.db.sql(
-                "SELECT name FROM `__Auth` "
-                "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                ("User", email, "password"),
-            )
-            if existing_auth:
-                frappe.db.sql(
-                    "UPDATE `__Auth` SET `password`=%s, `encrypted`=0 "
-                    "WHERE `doctype`=%s AND `name`=%s AND `fieldname`=%s",
-                    (hashed, "User", email, "password"),
-                )
-            else:
-                frappe.db.sql(
-                    "INSERT INTO `__Auth` "
-                    "(`doctype`, `name`, `fieldname`, `password`, `encrypted`) "
-                    "VALUES (%s, %s, %s, %s, 0)",
-                    ("User", email, "password", hashed),
-                )
-        except Exception:
-            # passlibctx is not available on every Frappe version.
-            # Layer 1 is sufficient in that case.
-            frappe.log_error(
-                "_force_set_password direct __Auth write",
-                frappe.get_traceback(),
-            )
-
-        # Layer 3 — flush so the row is committed before the response returns
+        # Step 3 — flush so the __Auth row is visible before the HTTP response
+        # returns (same as frappe.db.commit() at the end of the API handler).
         frappe.db.commit()
 
     # ------------------------------------------------------------------
@@ -228,7 +209,7 @@ class Student(Document):
             )
 
             if settings.allow_non_strict_email and has_password:
-                # Force-write the password so the student can log in immediately
+                # Set password via the same code-path as User Settings → Change Password
                 self._force_set_password(self.portal_email, self.portal_password)
                 frappe.msgprint(
                     f"✅ Student user {self.portal_email} "
