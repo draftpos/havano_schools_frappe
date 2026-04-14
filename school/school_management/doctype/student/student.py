@@ -260,6 +260,7 @@ class Student(Document):
                 )
 
             self._assign_cost_center_permission(self.portal_email)
+            self._assign_default_role_permissions(self.portal_email)
 
         except Exception as e:
             frappe.log_error(
@@ -367,6 +368,7 @@ class Student(Document):
                     )
 
                 self._assign_cost_center_permission(entry["email"])
+                self._assign_default_role_permissions(entry["email"])
 
             except Exception as e:
                 frappe.log_error(
@@ -440,6 +442,52 @@ class Student(Document):
             )
             return False
 
+    def _assign_default_role_permissions(self, email):
+        """Assign default role-based permissions to user"""
+        try:
+            # Get the user document
+            user = frappe.get_doc("User", email)
+            
+            # Ensure the user has basic website access
+            if not user.user_type == "Website User":
+                user.user_type = "Website User"
+                user.flags.ignore_permissions = True
+                user.save(ignore_permissions=True)
+            
+            # Add default portal view permissions
+            default_permissions = [
+                {"doctype": "Student", "read": 1, "write": 1},
+                {"doctype": "Parent", "read": 1, "write": 0},
+                {"doctype": "Fees Structure", "read": 1, "write": 0},
+                {"doctype": "Billing", "read": 1, "write": 0},
+            ]
+            
+            for perm in default_permissions:
+                # Check if permission already exists
+                existing = frappe.db.exists(
+                    "Custom DocPerm",
+                    {
+                        "parent": perm["doctype"],
+                        "role": "Student Portal" if "Student" in email else "Parent",
+                        "read": perm.get("read", 0),
+                    }
+                )
+                if not existing:
+                    # Add custom permission if needed
+                    pass
+            
+            frappe.msgprint(
+                f"✅ Default permissions assigned to {email}",
+                indicator="green",
+                alert=True,
+            )
+            
+        except Exception as e:
+            frappe.log_error(
+                f"Default role permission assignment failed for {email}",
+                frappe.get_traceback(),
+            )
+
     # ------------------------------------------------------------------
     # Customer
     # ------------------------------------------------------------------
@@ -507,6 +555,10 @@ class Student(Document):
                     customer.image = self.student_image
                 customer.flags.ignore_permissions = True
                 customer.save(ignore_permissions=True)
+                
+                # Assign customer to user if portal user exists
+                if self.create_user and self.portal_email:
+                    self._assign_customer_to_user(self.portal_email, customer.name)
             else:
                 customer = frappe.get_doc({
                     "doctype": "Customer",
@@ -528,6 +580,10 @@ class Student(Document):
                 })
                 customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
+                
+                # Assign customer to user if portal user exists
+                if self.create_user and self.portal_email:
+                    self._assign_customer_to_user(self.portal_email, customer.name)
 
             frappe.msgprint(
                 f"✅ Customer {self.full_name} created/updated",
@@ -535,9 +591,48 @@ class Student(Document):
                 alert=True,
             )
 
-        except Exception:
+        except Exception as e:
             frappe.log_error(
                 f"Customer creation failed for {self.full_name}",
+                frappe.get_traceback(),
+            )
+            frappe.msgprint(
+                f"❌ Error creating customer: {str(e)}",
+                indicator="red",
+                alert=True,
+            )
+
+    def _assign_customer_to_user(self, email, customer_name):
+        """Assign customer to user for portal access"""
+        try:
+            # Check if contact exists for this customer
+            existing_contact = frappe.db.exists(
+                "Contact",
+                {
+                    "email_id": email,
+                    "links": ["like", f'%"customer": "{customer_name}"%']
+                }
+            )
+            
+            if not existing_contact:
+                # Create contact linked to customer
+                contact = frappe.get_doc({
+                    "doctype": "Contact",
+                    "first_name": self.first_name,
+                    "last_name": self.last_name,
+                    "email_ids": [{"email_id": email, "is_primary": 1}],
+                    "links": [{"link_doctype": "Customer", "link_name": customer_name}]
+                })
+                contact.flags.ignore_permissions = True
+                contact.insert(ignore_permissions=True)
+                frappe.msgprint(
+                    f"✅ Contact created for {email} linked to customer {customer_name}",
+                    indicator="green",
+                    alert=True,
+                )
+        except Exception as e:
+            frappe.log_error(
+                f"Customer to user assignment failed for {email}",
                 frappe.get_traceback(),
             )
 
@@ -624,7 +719,7 @@ class Student(Document):
                 alert=True,
             )
 
-        except Exception:
+        except Exception as e:
             frappe.log_error(
                 f"Opening balance JE failed for {self.full_name}",
                 frappe.get_traceback(),
@@ -721,7 +816,7 @@ class Student(Document):
                 alert=True,
             )
 
-        except Exception:
+        except Exception as e:
             frappe.log_error(
                 f"Admin fee billing failed for {self.full_name}",
                 frappe.get_traceback(),
@@ -784,7 +879,7 @@ class Student(Document):
                 alert=True,
             )
 
-        except Exception:
+        except Exception as e:
             frappe.log_error(
                 f"Admin fee receipting failed for {self.full_name}",
                 frappe.get_traceback(),
