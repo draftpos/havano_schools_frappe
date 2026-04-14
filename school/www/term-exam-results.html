@@ -4,139 +4,1021 @@ title: Term Exam Results
 ---
 
 <script>
-// Smart back button — goes to parent portal if viewing as parent
-(function(){
-  var params = new URLSearchParams(window.location.search);
-  var backUrl = params.get('from') === 'parent'
-    ? '/assets/school/html/parent-portal.html'
-    : '/assets/school/html/student-portal.html';
-  document.addEventListener('DOMContentLoaded', function(){
-    document.querySelectorAll('a.bb').forEach(function(a){
-      if(a.textContent.includes('Dashboard')) {
-         a.href = backUrl;
-      }
+  (function () {
+    var params = new URLSearchParams(window.location.search);
+    var backUrl = params.get('from') === 'parent'
+      ? '/assets/school/html/parent-portal.html'
+      : '/assets/school/html/student-portal.html';
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('a.bb').forEach(function (a) {
+        if (a.textContent.includes('Dashboard')) a.href = backUrl;
+      });
     });
-  });
-  window.BACK_URL = backUrl;
-})();
+    window.BACK_URL = backUrl;
+  })();
 </script>
 
 <style>
-.rh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
-.rh h2{margin:0;}.rh p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
-.ic{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:14px;margin-bottom:24px;}
-.ic-box{background:white;border-radius:12px;padding:18px 14px;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.07);border-top:4px solid #2e86de;}
-.ic-box.g{border-top-color:#34a853;}.ic-box.o{border-top-color:#fbbc04;}.ic-box.p{border-top-color:#7c4dff;}.ic-box.r{border-top-color:#ea4335;}
-.ic-icon{font-size:1.6rem;margin-bottom:6px;}.ic-val{font-size:1rem;font-weight:700;color:#1e3a5f;margin-bottom:3px;word-break:break-word;}.ic-lbl{font-size:0.75rem;color:#888;text-transform:uppercase;}
-.tc{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;margin-bottom:20px;}
-.tc .th{background:#f8f9fa;padding:14px 18px;font-weight:700;color:#1e3a5f;border-bottom:1px solid #e0e0e0;}
-.tc table{width:100%;border-collapse:collapse;}.tc table th{background:#f0f4ff;padding:10px 14px;text-align:left;font-size:0.8rem;font-weight:600;color:#555;text-transform:uppercase;}
-.tc table td{padding:10px 14px;border-bottom:1px solid #f5f5f5;font-size:0.9rem;}.tc table tr:last-child td{border-bottom:none;}
-.gb{display:inline-block;padding:3px 10px;border-radius:20px;font-weight:700;font-size:0.82rem;}
-.gA{background:#e6f4ea;color:#2e7d32;}.gB{background:#e8f0fe;color:#1565c0;}.gC{background:#fff3e0;color:#e65100;}.gD{background:#fce4ec;color:#c62828;}.gE{background:#fce8e6;color:#b71c1c;}
-.sp{color:#2e7d32;font-weight:600;}.sf{color:#c62828;font-weight:600;}
-.ri{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;cursor:pointer;transition:transform 0.15s;}
-.ri:hover{transform:translateY(-2px);}.ri-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
-.ri-h h5{margin:0;font-size:1.1rem;}.ri-h .m{font-size:0.85rem;opacity:0.85;margin-top:4px;}
-.bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
-.bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
-.msc{display:none;background:#f8f9fa;border-radius:8px;padding:10px 14px;margin-bottom:8px;border-left:3px solid #2e86de;}
-.msc .sn{font-weight:600;color:#1e3a5f;margin-bottom:5px;}.msc .sr{display:flex;justify-content:space-between;font-size:0.86rem;margin-bottom:3px;}
-.msc .sl{color:#888;}.msc .sv{font-weight:600;color:#333;}
-@media(max-width:768px){.ic{grid-template-columns:repeat(2,1fr);}.dt{display:none;}.msc{display:block !important;}}
+  /* ── Google Font ── */
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+
+  /* ══════════════════════════════════════════
+   PORTAL SHELL  (nav bar, list view, etc.)
+══════════════════════════════════════════ */
+  :root {
+    --navy: #1e3a5f;
+    --blue: #2e86de;
+    --blue2: #2563eb;
+    --green: #16a34a;
+    --amber: #d97706;
+    --red: #dc2626;
+    --bg: #f1f5f9;
+    --card: #fff;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+    font-size: 13px;
+    color: #0f172a;
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  /* Portal header */
+  .portal-header {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: #fff;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .portal-header h2 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+
+  .portal-header p {
+    margin: 6px 0 0;
+    opacity: .85;
+    font-size: .9rem;
+  }
+
+  /* Back button */
+  .bb {
+    background: rgba(255, 255, 255, .2);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, .4);
+    border-radius: 8px;
+    padding: 6px 14px;
+    text-decoration: none;
+    font-size: .83rem;
+    display: inline-block;
+    margin-bottom: 10px;
+    transition: background .2s;
+  }
+
+  .bb:hover {
+    background: rgba(255, 255, 255, .33);
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* Exam list cards */
+  .ri {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    margin-bottom: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+
+  .ri:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .12);
+  }
+
+  .ri-h {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+    color: #fff;
+    padding: 14px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .ri-h h5 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+  }
+
+  .ri-h .m {
+    font-size: .8rem;
+    opacity: .85;
+    margin-top: 4px;
+  }
+
+  /* Loading / error */
+  #loading {
+    text-align: center;
+    padding: 60px;
+    color: #888;
+  }
+
+  #loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #e2e8f0;
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ══════════════════════════════════════════
+   PRINT-QUALITY REPORT CARD  (detail view)
+══════════════════════════════════════════ */
+
+  /* Toolbar shown above report card in browser only */
+  .rc-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .07);
+    margin-bottom: 16px;
+  }
+
+  .rc-toolbar .tl-title {
+    font-weight: 700;
+    color: var(--navy);
+    flex: 1;
+    font-size: 1rem;
+  }
+
+  .btn-print {
+    background: var(--blue2);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: .85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+
+  .btn-print:hover {
+    background: #1d4ed8;
+  }
+
+  /* The report card itself — mirrors the Jinja print format exactly */
+  .report-card {
+    border: .7px solid var(--navy);
+    overflow: hidden;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, .10);
+    font-family: "Roboto", "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    color: #0f172a;
+  }
+
+  /* Header row */
+  .card-header-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    border-bottom: .7px solid var(--navy);
+  }
+
+  .header-logo-panel {
+    width: 22%;
+    border-right: .7px solid var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 8px;
+    background: #fff;
+  }
+
+  .header-logo-panel img {
+    max-width: 90%;
+    max-height: 75px;
+    object-fit: contain;
+  }
+
+  .header-no-logo {
+    font-size: 11px;
+    color: #94a3b8;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .header-info-panel {
+    width: 78%;
+    background: var(--navy);
+    color: #fff;
+    padding: 14px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .header-info-panel h2 {
+    margin: 0;
+    font-size: 19px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  .header-info-panel h3 {
+    margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 400;
+    opacity: .85;
+    letter-spacing: .5px;
+  }
+
+  .header-info-panel .ref {
+    margin-top: 5px;
+    font-size: 10px;
+    opacity: .65;
+  }
+
+  /* Meta strip */
+  .card-meta {
+    background: #eef2f7;
+    padding: 10px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: .7px solid #cbd5e1;
+  }
+
+  .card-meta p {
+    margin: 3px 0;
+    font-size: 12px;
+  }
+
+  .card-meta strong {
+    font-weight: 600;
+  }
+
+  .positions-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+
+  .position-badge {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 6px;
+    padding: 4px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .position-badge span {
+    font-size: 10px;
+    font-weight: 400;
+    display: block;
+    opacity: .8;
+  }
+
+  /* Subject table */
+  .table-wrap {
+    border-bottom: .7px solid #cbd5e1;
+  }
+
+  .rc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .rc-table thead th {
+    background: var(--navy);
+    color: #fff;
+    padding: 7px 8px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    border: .7px solid var(--navy);
+  }
+
+  .rc-table thead th.center {
+    text-align: center;
+  }
+
+  .rc-table tbody td {
+    padding: 6px 8px;
+    border: .7px solid #e2e8f0;
+    vertical-align: top;
+  }
+
+  .rc-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .rc-table tfoot td {
+    background: #eef2f7;
+    font-weight: 700;
+    border: .7px solid #cbd5e1;
+    padding: 7px 8px;
+    border-top: 2px solid var(--navy);
+  }
+
+  .center {
+    text-align: center;
+  }
+
+  .status-pass {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .status-moderate {
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  .status-failed {
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* Grade badge */
+  .gb {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: .8rem;
+  }
+
+  .gA {
+    background: #e6f4ea;
+    color: #2e7d32;
+  }
+
+  .gB {
+    background: #e8f0fe;
+    color: #1565c0;
+  }
+
+  .gC {
+    background: #fff3e0;
+    color: #e65100;
+  }
+
+  .gD {
+    background: #fce4ec;
+    color: #c62828;
+  }
+
+  .gE {
+    background: #fce8e6;
+    color: #b71c1c;
+  }
+
+  /* Analytics row */
+  .analytics-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    border-bottom: .7px solid #cbd5e1;
+    align-items: stretch;
+  }
+
+  .chart-panel {
+    width: 42%;
+    border-right: .7px solid #cbd5e1;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .chart-panel h4 {
+    font-size: 11px;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .chart-canvas-wrap {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+  }
+
+  .chart-legend {
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 2px 0;
+    font-size: 10px;
+    color: #334155;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .grade-scale-panel {
+    width: 58%;
+    padding: 12px 16px;
+  }
+
+  .grade-scale-panel h4 {
+    font-size: 11px;
+    color: var(--navy);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+
+  .grade-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  .grade-table th {
+    background: var(--navy);
+    color: #fff;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 600;
+    border: .7px solid var(--navy);
+  }
+
+  .grade-table td {
+    padding: 5px 8px;
+    border: .7px solid #e2e8f0;
+  }
+
+  .grade-table tr:nth-child(even) td {
+    background: #f8fafc;
+  }
+
+  .gs-pass {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  .gs-moderate {
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  .gs-failed {
+    color: var(--red);
+    font-weight: 600;
+  }
+
+  /* Bottom panel */
+  .bottom-unified-wrapper {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 100%;
+    border-top: .7px solid var(--navy);
+    align-items: stretch;
+  }
+
+  .bottom-panel {
+    flex: 1;
+    width: 50%;
+    padding: 12px 18px;
+  }
+
+  .bottom-panel:first-child {
+    border-right: .7px solid var(--navy);
+  }
+
+  .grade-key {
+    font-size: 11px;
+    color: #475569;
+    line-height: 1.7;
+  }
+
+  .grade-key strong {
+    color: var(--navy);
+  }
+
+  .qr-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+  }
+
+  .qr-wrap p {
+    font-size: 10px;
+    color: #64748b;
+    margin-top: 4px;
+    text-align: center;
+  }
+
+  /* Signatures */
+  .signatures-stamp {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 14px 22px 12px;
+    border-top: .7px solid #e2e8f0;
+  }
+
+  .sig-group {
+    display: flex;
+    gap: 30px;
+  }
+
+  .sig-box {
+    text-align: center;
+    min-width: 110px;
+  }
+
+  .sig-line {
+    border-top: 1px solid #334155;
+    margin-top: 36px;
+    padding-top: 5px;
+    font-size: 11px;
+    color: #475569;
+  }
+
+  .stamp-placeholder {
+    width: 80px;
+    height: 80px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: #94a3b8;
+    text-align: center;
+    line-height: 1.4;
+    padding: 8px;
+  }
+
+  /* Footer strip */
+  .card-footer {
+    background: var(--navy);
+    color: #cbd5e1;
+    padding: 8px 22px;
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .card-footer p {
+    margin: 2px 0;
+  }
+
+  /* ══════════════════════════════════════════
+   PRINT OVERRIDES
+══════════════════════════════════════════ */
+  @media print {
+    body {
+      background: #fff;
+    }
+
+    .portal-header,
+    .rc-toolbar,
+    .bb {
+      display: none !important;
+    }
+
+    #dv {
+      padding: 0 !important;
+    }
+
+    .report-card {
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+
+    .card-header-wrapper,
+    .analytics-wrapper,
+    .bottom-unified-wrapper {
+      display: flex !important;
+      flex-wrap: nowrap !important;
+    }
+
+    .header-info-panel,
+    .card-footer,
+    .rc-table thead th,
+    .rc-table tfoot td,
+    .card-meta,
+    .position-badge {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+  }
+
+  @page {
+    size: A4;
+    margin: .5cm;
+  }
 </style>
-<div id="loading" style="text-align:center;padding:60px;color:#888;">Loading results...</div>
+
+<!-- ═══════ LOADING ═══════ -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Loading results…</p>
+</div>
+
+<!-- ═══════ LIST VIEW ═══════ -->
 <div id="lv" style="display:none;">
-  <div class="rh"><a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a><h2>&#127979; Term Exam Results</h2><p>Click a term summary to view full results</p></div>
+  <div class="portal-header">
+    <a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a>
+    <h2>&#127979; Term Exam Results</h2>
+    <p>Select a term to view your full report card</p>
+  </div>
   <div id="ll"></div>
 </div>
-<div id="dv" style="display:none;">
-  <div class="rh"><a href="#" onclick="showList();return false;" class="bb">&#8592; Back</a><h2 id="dt"></h2><p id="ds"></p></div>
-  <div class="ic" id="dc"></div>
-  <div class="tc"><div class="th">&#128203; Subject Scores</div>
-    <div class="dt"><table><thead><tr><th>Subject</th><th>Marks</th><th>%</th><th>Grade</th><th>Status</th><th>Comments</th></tr></thead><tbody id="stb"></tbody></table></div>
-    <div id="msd" style="padding:14px;"></div>
+
+<!-- ═══════ DETAIL VIEW ═══════ -->
+<div id="dv" style="display:none;padding-bottom:40px;">
+
+  <!-- Toolbar (hidden on print) -->
+  <div class="rc-toolbar">
+    <a href="#" onclick="showList();return false;" class="bb" style="margin-bottom:0;">&#8592; Back to List</a>
+    <span class="tl-title" id="rc-title"></span>
+    <button class="btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
   </div>
+
+  <!-- Report Card container (filled by JS) -->
+  <div id="rc-container"></div>
 </div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-var AR=[];
-function G(p){if(p>=75)return"A";if(p>=60)return"B";if(p>=50)return"C";if(p>=40)return"D";return"E";}
-function showList(){document.getElementById("dv").style.display="none";document.getElementById("lv").style.display="block";}
-function el(id){return document.getElementById(id);}
-function showDetail(i){
-  var r=AR[i];el("lv").style.display="none";
-  el("dt").textContent=r.exam_name;
-  el("ds").textContent=r.academic_year+" | "+r.class_name+" | "+r.date;
-  
-  var totalMax=0, totalObt=0, subjCount=0;
-  r.items.forEach(function(s){
-     totalMax += parseFloat(s.max_marks||0);
-     totalObt += parseFloat(s.marks_obtained||0);
-     subjCount++;
-  });
-  var overallPct = totalMax>0 ? ((totalObt/totalMax)*100).toFixed(1) : 0;
-  var overallGrade = G(parseFloat(overallPct));
+  /* ═══════════════════════════════════════════════════════
+     HELPERS
+  ═══════════════════════════════════════════════════════ */
+  var AR = [];      // all exam results from API
+  var SCHOOL = {};  // optional metadata fetched once
+  var PIE_COLORS = ["#1e3a5f", "#2563eb", "#16a34a", "#d97706", "#dc2626",
+    "#7c3aed", "#0891b2", "#db2777", "#65a30d", "#ea580c",
+    "#0d9488", "#9333ea"];
 
-  el("dc").innerHTML=
-    '<div class="ic-box"><div class="ic-icon">&#127979;</div><div class="ic-val">'+r.class_name+'</div><div class="ic-lbl">Class</div></div>'+
-    '<div class="ic-box o"><div class="ic-icon">&#128197;</div><div class="ic-val">'+r.academic_year+'</div><div class="ic-lbl">Year</div></div>'+
-    '<div class="ic-box p"><div class="ic-icon">&#128218;</div><div class="ic-val">'+subjCount+'</div><div class="ic-lbl">Subjects</div></div>'+
-    '<div class="ic-box r"><div class="ic-icon">&#127919;</div><div class="ic-val">'+totalObt+' / '+totalMax+'</div><div class="ic-lbl">Total Marks</div></div>'+
-    '<div class="ic-box g"><div class="ic-icon">&#127942;</div><div class="ic-val">'+overallPct+'%</div><div class="ic-lbl">Overall</div></div>';
+  function el(id) { return document.getElementById(id); }
 
-  var tb="", mb="";
-  r.items.forEach(function(s){
-    var max = parseFloat(s.max_marks||0);
-    var obt = parseFloat(s.marks_obtained||0);
-    var pct = s.percentage != null ? parseFloat(s.percentage).toFixed(1) : (max>0?((obt/max)*100).toFixed(1):0);
-    var g = s.grade || G(parseFloat(pct));
-    var stat = (s.status||"-").toLowerCase();
-    var sc = (stat==="pass"||stat==="moderate")?"sp":"sf";
-    var comments = [];
-    if(s.remarks) comments.push(s.remarks);
-    if(s.teacher_comment) comments.push("T: "+s.teacher_comment);
-    if(s.admin_comment) comments.push("A: "+s.admin_comment);
-    var cstr = comments.join(" | ")||"-";
+  function G(pct) {
+    if (pct >= 75) return "A"; if (pct >= 60) return "B"; if (pct >= 50) return "C";
+    if (pct >= 40) return "D"; return "E";
+  }
 
-    tb+="<tr><td><strong>"+(s.subject_name||"-")+"</strong></td><td>"+obt+"/"+max+"</td><td>"+pct+"%</td><td><span class='gb g"+g[0]+"'>"+g+"</span></td><td class='"+sc+"'>"+(s.status||"-")+"</td><td><small style='color:#777'>"+cstr+"</small></td></tr>";
-    
-    mb+="<div class='msc' style='display:block;'><div class='sn'>"+(s.subject_name||"-")+"</div><div class='sr'><span class='sl'>Marks</span><span class='sv'>"+obt+"/"+max+"</span></div><div class='sr'><span class='sl'>%</span><span class='sv'>"+pct+"%</span></div><div class='sr'><span class='sl'>Grade</span><span class='sv'><span class='gb g"+g[0]+"'>"+g+"</span></span></div><div class='sr'><span class='sl'>Status</span><span class='sv "+sc+"'>"+(s.status||"-")+"</span></div><div class='sr' style='display:block;margin-top:5px;font-size:0.8rem;color:#777;'><span class='sl'>Comm: </span><span class='sv'>"+cstr+"</span></div></div>";
-  });
+  // Grading scale — can be extended from API if available
+  var GRADING = [
+    { from: 75, to: 100, grade: "A", status: "Pass" },
+    { from: 60, to: 74, grade: "B", status: "Pass" },
+    { from: 50, to: 59, grade: "C", status: "Moderate" },
+    { from: 40, to: 49, grade: "D", status: "Failed" },
+    { from: 0, to: 39, grade: "E", status: "Failed" }
+  ];
 
-  el("stb").innerHTML=tb;
-  el("msd").innerHTML=mb;
-  el("dv").style.display="block";
-}
-window.addEventListener("load", function(){
-  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_term_exam_results"+_qs,{credentials:"same-origin"});})()
-  .then(function(res){return res.json();})
-  .then(function(r){
-    if(!r.message||!r.message.length){
-      el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No term exam results found.</p><a href="#" onclick="if(window.BACK_URL) window.location.href=window.BACK_URL; else window.history.back(); return false;" class="bb" style="background:#1e3a5f;padding:10px 20px;margin-top:20px;">Return to Dashboard</a></div>';
-      return;
-    }
-    AR=r.message;
-    var h="";
-    AR.forEach(function(result,idx){
-      var totalMax=0, totalObt=0, subjCount=0;
-      result.items.forEach(function(s){
-         totalMax += parseFloat(s.max_marks||0);
-         totalObt += parseFloat(s.marks_obtained||0);
-         subjCount++;
+  function showList() {
+    el("dv").style.display = "none";
+    el("lv").style.display = "block";
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     LIST VIEW  renderer
+  ═══════════════════════════════════════════════════════ */
+  function renderList() {
+    var h = "";
+    AR.forEach(function (result, idx) {
+      var totalMax = 0, totalObt = 0, subjCount = 0;
+      result.items.forEach(function (s) {
+        totalMax += parseFloat(s.max_marks || 0);
+        totalObt += parseFloat(s.marks_obtained || 0);
+        subjCount++;
       });
-      var pct = totalMax>0 ? ((totalObt/totalMax)*100).toFixed(1) : 0;
+      var pct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
       var g = G(parseFloat(pct));
-      var sc = pct >= 50 ? "sp" : "sf";
-      var statStr = pct >= 50 ? "Pass" : "Fail";
+      var pass = parseFloat(pct) >= 50;
+      var sc = pass ? "color:#16a34a;font-weight:600" : "color:#dc2626;font-weight:600";
 
-      h+='<div class="ri" onclick="showDetail('+idx+')"><div class="ri-h"><div><h5>'+result.exam_name+'</h5><div class="m">'+result.academic_year+' &bull; '+result.class_name+' &bull; '+subjCount+' Subjects</div></div><div style="text-align:right;min-width:70px;"><div style="font-size:1.2rem;font-weight:700;">'+pct+'%</div><div style="font-size:0.95rem;font-weight:700;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;">'+g+'</div><div style="font-size:0.78rem;" class="'+sc+'">'+statStr+'</div></div></div></div>';
+      h += '<div class="ri" onclick="showDetail(' + idx + ')">'
+        + '<div class="ri-h">'
+        + '<div>'
+        + '<h5>' + result.exam_name + '</h5>'
+        + '<div class="m">' + result.academic_year + ' &bull; ' + (result.class_name || "")
+        + ' &bull; ' + subjCount + ' Subjects</div>'
+        + '</div>'
+        + '<div style="text-align:right;min-width:80px;">'
+        + '<div style="font-size:1.2rem;font-weight:700;">' + pct + '%</div>'
+        + '<div style="font-size:.9rem;font-weight:700;background:rgba(255,255,255,.2);'
+        + 'padding:2px 8px;border-radius:10px;">' + g + '</div>'
+        + '<div style="font-size:.78rem;' + sc + '">' + (pass ? "Pass" : "Fail") + '</div>'
+        + '</div>'
+        + '</div>'
+        + '</div>';
     });
-    el("ll").innerHTML=h;
-    el("loading").style.display="none";
-    el("lv").style.display="block";
-  })
-  .catch(function(){
-    el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>Error loading results.</p><a href="#" onclick="if(window.BACK_URL) window.location.href=window.BACK_URL; else window.history.back(); return false;" class="bb" style="background:#1e3a5f;padding:10px 20px;margin-top:20px;">Return to Dashboard</a></div>';
+    el("ll").innerHTML = h;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     DETAIL VIEW  renderer  — full print-format quality
+  ═══════════════════════════════════════════════════════ */
+  function showDetail(idx) {
+    var r = AR[idx];
+    el("lv").style.display = "none";
+    el("rc-title").textContent = r.exam_name + "  |  " + r.academic_year;
+
+    /* ── Compute totals & rank ─────────────────────────── */
+    var totalMax = 0, totalObt = 0;
+    r.items.forEach(function (s) {
+      totalMax += parseFloat(s.max_marks || 0);
+      totalObt += parseFloat(s.marks_obtained || 0);
+    });
+    var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
+    var overallG = G(parseFloat(overallPct));
+    var subjCount = r.items.length;
+
+    /* class rank — position among all terms in this exam (if multiple students
+       were ever in the data).  For single-student portal just show "—". */
+    var cRank = r.class_rank || "—";
+    var totalStudents = r.total_students || "—";
+
+    /* ── Sort subjects alphabetically ─────────────────── */
+    var subjects = r.items.slice().sort(function (a, b) {
+      return (a.subject_name || a.subject || "").localeCompare(b.subject_name || b.subject || "");
+    });
+
+    /* ── Build subject rows ─────────────────────────────── */
+    var tbRows = "", legendHTML = "";
+    subjects.forEach(function (s, i) {
+      var max = parseFloat(s.max_marks || 0);
+      var obt = parseFloat(s.marks_obtained || 0);
+      var pct = s.percentage != null
+        ? parseFloat(s.percentage).toFixed(1)
+        : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
+      var g = s.grade || G(parseFloat(pct));
+      var stat = s.status || (parseFloat(pct) >= 60 ? "Pass" : parseFloat(pct) >= 50 ? "Moderate" : "Failed");
+      var sc = (stat === "Pass" || stat === "Moderate") ? "status-" + stat.toLowerCase() : "status-failed";
+      var comments = [];
+      if (s.remarks) comments.push(s.remarks);
+      if (s.teacher_comment) comments.push("T: " + s.teacher_comment);
+      if (s.admin_comment) comments.push("A: " + s.admin_comment);
+      var cstr = comments.join(" | ") || "";
+
+      var subName = s.subject_name || s.subject || "—";
+      var color = PIE_COLORS[i % PIE_COLORS.length];
+
+      tbRows += "<tr>"
+        + "<td><strong>" + subName + "</strong></td>"
+        + "<td style='color:#64748b;font-size:10px'>" + (s.exam || "") + "</td>"
+        + "<td class='center'>" + obt + " / " + max + "</td>"
+        + "<td class='center'>" + pct + "%</td>"
+        + "<td class='center'><span class='gb g" + g + "'>" + g + "</span></td>"
+        + "<td class='center " + sc + "'>" + stat + "</td>"
+        + "<td style='font-size:10px;color:#475569'>" + cstr + "</td>"
+        + "</tr>";
+
+      legendHTML += "<div class='legend-item'>"
+        + "<div class='legend-dot' style='background:" + color + "'></div>"
+        + "<span>" + subName + " &mdash; " + pct + "%</span>"
+        + "</div>";
+    });
+
+    /* ── Grading scale rows ─────────────────────────── */
+    var gsRows = "";
+    GRADING.forEach(function (gi) {
+      var cls = gi.status === "Pass" ? "gs-pass" : gi.status === "Moderate" ? "gs-moderate" : "gs-failed";
+      gsRows += "<tr>"
+        + "<td>" + gi.from + "%</td><td>" + gi.to + "%</td>"
+        + "<td style='font-weight:700;text-align:center'>" + gi.grade + "</td>"
+        + "<td class='" + cls + "'>" + gi.status + "</td>"
+        + "</tr>";
+    });
+
+    /* ── QR for verification ─────────────────────────── */
+    var verifyUrl = window.location.origin
+      + "/api/method/school.api.verify_result?exam="
+      + encodeURIComponent(r.exam_name || "")
+      + "&student=" + encodeURIComponent(r.student || "");
+    var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="
+      + encodeURIComponent(verifyUrl);
+
+    /* ── Assemble the full report card HTML ─────────── */
+    var html = ''
+      + '<div class="report-card">'
+
+      /* — Header — */
+      + '  <div class="card-header-wrapper">'
+      + '    <div class="header-logo-panel"><div class="header-no-logo">🏫</div></div>'
+      + '    <div class="header-info-panel">'
+      + '      <h2>' + (r.school_name || "School") + '</h2>'
+      + '      <h3>TERM EXAMINATION REPORT CARD</h3>'
+      + '      <p class="ref">Exam: ' + r.exam_name + '</p>'
+      + '    </div>'
+      + '  </div>'
+
+      /* — Meta strip — */
+      + '  <div class="card-meta">'
+      + '    <div>'
+      + '      <p><strong>Student:</strong> ' + (r.student_name || r.student || "—") + '</p>'
+      + '      <p><strong>Admission No:</strong> ' + (r.student || "—") + '</p>'
+      + '      <p><strong>Class:</strong> ' + (r.class_name || "—") + '</p>'
+      + '    </div>'
+      + '    <div class="positions-wrap">'
+      + '      <div class="position-badge">'
+      + cRank + ' / ' + totalStudents
+      + '        <span>Class Position</span>'
+      + '      </div>'
+      + '    </div>'
+      + '    <div style="text-align:right">'
+      + '      <p><strong>Academic Year:</strong> ' + (r.academic_year || "—") + '</p>'
+      + '      <p><strong>Term:</strong> ' + (r.term || "—") + '</p>'
+      + '      <p><strong>Date:</strong> ' + (r.date || "—") + '</p>'
+      + '    </div>'
+      + '  </div>'
+
+      /* — Subject table — */
+      + '  <div class="table-wrap">'
+      + '    <table class="rc-table">'
+      + '      <thead><tr>'
+      + '        <th style="width:18%">Subject</th>'
+      + '        <th style="width:10%">Exam</th>'
+      + '        <th class="center" style="width:10%">Marks</th>'
+      + '        <th class="center" style="width:7%">%</th>'
+      + '        <th class="center" style="width:7%">Grade</th>'
+      + '        <th class="center" style="width:9%">Status</th>'
+      + '        <th style="width:39%">Comments</th>'
+      + '      </tr></thead>'
+      + '      <tbody>' + tbRows + '</tbody>'
+      + '      <tfoot><tr>'
+      + '        <td colspan="2">OVERALL TOTAL</td>'
+      + '        <td class="center">' + totalObt.toFixed(1) + ' / ' + totalMax + '</td>'
+      + '        <td class="center" style="color:' + (parseFloat(overallPct) >= 50 ? "#16a34a" : "#dc2626") + '">' + overallPct + '%</td>'
+      + '        <td class="center"><span class="gb g' + overallG + '">' + overallG + '</span></td>'
+      + '        <td></td><td></td>'
+      + '      </tr></tfoot>'
+      + '    </table>'
+      + '  </div>'
+
+      /* — Analytics row — */
+      + '  <div class="analytics-wrapper">'
+      + '    <div class="chart-panel">'
+      + '      <h4>Subject Performance</h4>'
+      + '      <div class="chart-canvas-wrap"><canvas id="rc-chart" width="150" height="150"></canvas></div>'
+      + '      <div class="chart-legend">' + legendHTML + '</div>'
+      + '    </div>'
+      + '    <div class="grade-scale-panel">'
+      + '      <h4>Grading Scale</h4>'
+      + '      <table class="grade-table">'
+      + '        <thead><tr><th>From %</th><th>To %</th><th>Grade</th><th>Status</th></tr></thead>'
+      + '        <tbody>' + gsRows + '</tbody>'
+      + '      </table>'
+      + '    </div>'
+      + '  </div>'
+
+      /* — Bottom panels — */
+      + '  <div class="bottom-unified-wrapper">'
+      + '    <div class="bottom-panel">'
+      + '      <div class="grade-key">'
+      + '        <strong>Note:</strong> Grades and status reflect the school\'s grading policy.<br>'
+      + '        <strong>Pass</strong> = meets passing mark &nbsp;|&nbsp; '
+      + '        <strong>Moderate</strong> = borderline &nbsp;|&nbsp; '
+      + '        <strong>Failed</strong> = below passing mark'
+      + '      </div>'
+      + '    </div>'
+      + '    <div class="bottom-panel">'
+      + '      <div class="qr-wrap">'
+      + '        <img src="' + qrSrc + '" width="90" height="90" alt="QR Code">'
+      + '        <p>Scan to verify authenticity</p>'
+      + '      </div>'
+      + '    </div>'
+      + '  </div>'
+
+      /* — Signatures — */
+      + '  <div class="signatures-stamp">'
+      + '    <div class="sig-group">'
+      + '      <div class="sig-box"><div class="sig-line">Class Teacher</div></div>'
+      + '      <div class="sig-box"><div class="sig-line">Head Teacher</div></div>'
+      + '      <div class="sig-box"><div class="sig-line">Parent / Guardian</div></div>'
+      + '    </div>'
+      + '    <div class="stamp-placeholder">School<br>Stamp</div>'
+      + '  </div>'
+
+      /* — Footer — */
+      + '  <div class="card-footer">'
+      + '    <p>Scan QR to verify &nbsp;|&nbsp; Exam: ' + r.exam_name + '</p>'
+      + '    <p>Official school document — do not alter.</p>'
+      + '  </div>'
+
+      + '</div>'; /* end .report-card */
+
+    el("rc-container").innerHTML = html;
+    el("dv").style.display = "block";
+
+    /* ── Draw pie chart ────────────────────────────────── */
+    setTimeout(function () {
+      var canvas = el("rc-chart");
+      if (!canvas || !window.Chart) return;
+      var labels = [], values = [], colors = [];
+      subjects.forEach(function (s, i) {
+        var max = parseFloat(s.max_marks || 0);
+        var obt = parseFloat(s.marks_obtained || 0);
+        var pct = s.percentage != null ? parseFloat(s.percentage) : (max > 0 ? (obt / max) * 100 : 0);
+        labels.push(s.subject_name || s.subject || "?");
+        values.push(parseFloat(pct.toFixed(1)));
+        colors.push(PIE_COLORS[i % PIE_COLORS.length]);
+      });
+      if (labels.length) {
+        new Chart(canvas.getContext("2d"), {
+          type: "pie",
+          data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: "#fff", borderWidth: 2 }] },
+          options: {
+            responsive: false, maintainAspectRatio: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: function (ctx) { return ctx.label + ": " + ctx.parsed.toFixed(1) + "%"; } } }
+            }
+          }
+        });
+      }
+    }, 100);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     BOOTSTRAP  — fetch data, show list
+  ═══════════════════════════════════════════════════════ */
+  window.addEventListener("load", function () {
+    var params = new URLSearchParams(window.location.search);
+    var child = params.get("child") || "";
+    var qs = child ? "?student=" + encodeURIComponent(child) : "";
+
+    fetch("/api/method/school.api.get_term_exam_results" + qs, { credentials: "same-origin" })
+      .then(function (res) { return res.json(); })
+      .then(function (r) {
+        if (!r.message || !r.message.length) {
+          el("loading").innerHTML =
+            '<p style="margin-bottom:16px;">No term exam results found.</p>'
+            + '<a href="' + (window.BACK_URL || "#") + '" style="background:#1e3a5f;color:#fff;padding:10px 20px;'
+            + 'border-radius:8px;text-decoration:none;">Return to Dashboard</a>';
+          return;
+        }
+        AR = r.message;
+        el("loading").style.display = "none";
+        renderList();
+        el("lv").style.display = "block";
+      })
+      .catch(function () {
+        el("loading").innerHTML =
+          '<p style="margin-bottom:16px;">Error loading results. Please try again.</p>'
+          + '<a href="' + (window.BACK_URL || "#") + '" style="background:#1e3a5f;color:#fff;padding:10px 20px;'
+          + 'border-radius:8px;text-decoration:none;">Return to Dashboard</a>';
+      });
   });
-});
 </script>
