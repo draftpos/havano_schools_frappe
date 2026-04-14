@@ -557,66 +557,32 @@ def get_student_pdf(report_name, student_id):
 @frappe.whitelist(allow_guest=True)
 def verify_report_text(report, student=None):
 	"""
-	QR code endpoint — returns a designed HTML verification card in the browser.
+	QR code endpoint — returns a styled HTML verification card in the browser.
 	URL pattern: /api/method/school...verify_report_text?report=REPORT-001&student=STU-0001
 	"""
+	def html_response(content):
+		frappe.response["type"] = "page"
+		frappe.response["page_content"] = content
+
 	try:
 		doc = frappe.get_doc("Term Exam Report", report)
 
 		if doc.docstatus != 1:
-			html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verification Failed</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#f1f5f9; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .card { background:#fff; border-radius:12px; padding:36px 32px; max-width:420px; width:100%; box-shadow:0 4px 24px rgba(0,0,0,0.10); text-align:center; border-top:5px solid #dc2626; }
-  .icon { font-size:48px; margin-bottom:16px; }
-  h2 { font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px; }
-  p { font-size:14px; color:#64748b; line-height:1.6; }
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="icon">&#10060;</div>
-  <h2>Verification Failed</h2>
-  <p>This report has not been officially submitted or may have been revoked. Please contact the school for assistance.</p>
-</div>
-</body>
-</html>"""
-			frappe.response["type"] = "html"
-			frappe.response["html"] = html
+			html_response(_verification_card(
+				valid=False,
+				title="Invalid Report",
+				message="This report has not been officially submitted or has been cancelled.",
+				details=[]
+			))
 			return
 
-		# Resolve school name
-		school_name = "School"
-		if doc.cost_center:
-			school_name = (
-				frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
-				or doc.cost_center
-			)
+		school_name = (
+			frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
+			or doc.cost_center
+			or "School"
+		) if doc.cost_center else "School"
 
-		# Resolve school logo
-		school_logo = ""
-		try:
-			if doc.cost_center:
-				cc_doc = frappe.get_doc("Cost Center", doc.cost_center)
-				school_logo = getattr(cc_doc, "school_logo", "") or ""
-		except Exception:
-			pass
-		if not school_logo:
-			school_logo = getattr(doc, "school_logo", "") or ""
-
-		# Resolve student name
 		student_name = ""
-		admission_no = student or ""
-		student_class = doc.student_class or ""
-		section = doc.section or ""
-
 		if student:
 			sdata = frappe.db.get_value(
 				"Student", student,
@@ -630,242 +596,165 @@ def verify_report_text(report, student=None):
 					])) or sdata.full_name or student
 				)
 
-		section_part = f" | Section: {section}" if section else ""
-		report_date  = str(doc.report_date) if doc.report_date else "—"
-
-		# Build the summary line shown at top (matches the old text format)
+		section_part = f" — {doc.section}" if doc.section else ""
+		intro = ""
 		if student_name:
-			summary_line = (
+			intro = (
 				f"This is {student_name}, from {school_name}, "
-				f"in {student_class}{(', ' + section) if section else ''}. "
+				f"in {doc.student_class}{section_part}. "
 				f"This is an official report."
 			)
 		else:
-			summary_line = (
-				f"Official Term Exam Report — {school_name} | "
-				f"Class: {student_class}{section_part}"
+			intro = (
+				f"Official Term Exam Report from {school_name}, "
+				f"Class {doc.student_class}{section_part}."
 			)
 
-		logo_html = (
-			f'<img src="{school_logo}" alt="School Logo" style="max-height:64px;max-width:140px;object-fit:contain;">'
-			if school_logo else
-			'<div style="font-size:11px;color:#94a3b8;">School Logo</div>'
-		)
+		details = [
+			("Student Name",    student_name or "—"),
+			("Admission No.",   student or "—"),
+			("School",          school_name),
+			("Class",           doc.student_class or "—"),
+			("Section",         doc.section or "—"),
+			("Term",            doc.term or "—"),
+			("Academic Year",   doc.academic_year or "—"),
+			("Report Date",     str(doc.report_date) if doc.report_date else "—"),
+			("Report ID",       doc.name),
+		]
 
-		student_block = ""
-		if student_name:
-			student_block = f"""
-			<div class="info-row"><span class="label">Student Name</span><span class="value">{student_name}</span></div>
-			<div class="info-row"><span class="label">Admission No.</span><span class="value">{admission_no}</span></div>
-			"""
-		else:
-			student_block = f'<div class="info-row"><span class="label">Admission No.</span><span class="value">{admission_no or "—"}</span></div>'
+		html_response(_verification_card(
+			valid=True,
+			title="Valid",
+			message=intro,
+			details=details
+		))
 
-		html = f"""<!DOCTYPE html>
+	except frappe.DoesNotExistError:
+		html_response(_verification_card(
+			valid=False,
+			title="Not Found",
+			message="This report could not be found. It may be invalid or has been removed.",
+			details=[]
+		))
+
+
+def _verification_card(valid, title, message, details):
+	"""Returns a self-contained HTML verification card."""
+	accent      = "#16a34a" if valid else "#dc2626"
+	icon        = "✔" if valid else "✘"
+	badge_bg    = "#dcfce7" if valid else "#fee2e2"
+	badge_color = "#15803d" if valid else "#b91c1c"
+
+	rows_html = ""
+	for label, value in details:
+		if value and value != "—":
+			rows_html += f"""
+			<tr>
+				<td style="padding:9px 14px;font-weight:600;color:#475569;font-size:13px;
+				           border-bottom:1px solid #f1f5f9;width:40%;white-space:nowrap">{label}</td>
+				<td style="padding:9px 14px;color:#0f172a;font-size:13px;
+				           border-bottom:1px solid #f1f5f9">{value}</td>
+			</tr>"""
+
+	table_section = ""
+	if rows_html:
+		table_section = f"""
+		<table style="width:100%;border-collapse:collapse;margin-top:20px;
+		              border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+			<tbody>{rows_html}</tbody>
+		</table>"""
+
+	return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verification — {school_name}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Report Verification</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     * {{ margin:0; padding:0; box-sizing:border-box; }}
     body {{
-      font-family:'Inter',sans-serif;
-      background:linear-gradient(135deg,#eef2f7 0%,#dbe6f6 100%);
-      min-height:100vh; display:flex; align-items:center;
-      justify-content:center; padding:24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
     }}
-
-    .outer {{
-      width:100%; max-width:480px;
-    }}
-
-    /* ── VALID banner ─────────────────────────── */
-    .valid-banner {{
-      background:#16a34a; color:#fff;
-      border-radius:10px 10px 0 0;
-      padding:10px 20px;
-      display:flex; align-items:center; gap:10px;
-      font-size:13px; font-weight:600; letter-spacing:0.4px;
-    }}
-    .valid-banner .tick {{
-      width:26px; height:26px; background:#fff;
-      border-radius:50%; display:flex; align-items:center;
-      justify-content:center; flex-shrink:0;
-    }}
-    .valid-banner .tick svg {{ width:14px; height:14px; }}
-
-    /* ── Main card ────────────────────────────── */
     .card {{
-      background:#fff;
-      border:1px solid #cbd5e1;
-      border-top:none;
-      border-radius:0 0 12px 12px;
-      overflow:hidden;
-      box-shadow:0 8px 32px rgba(30,58,95,0.13);
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      max-width: 520px;
+      width: 100%;
+      overflow: hidden;
     }}
-
-    /* ── Card header ──────────────────────────── */
-    .card-header {{
-      background:#1e3a5f;
-      padding:18px 22px;
-      display:flex; align-items:center; gap:16px;
+    .card-top {{
+      background: {accent};
+      padding: 28px 28px 24px;
+      text-align: center;
     }}
-    .logo-box {{
-      background:#fff; border-radius:8px;
-      padding:8px 10px;
-      display:flex; align-items:center; justify-content:center;
-      min-width:70px; min-height:48px;
-      flex-shrink:0;
+    .icon-circle {{
+      width: 64px; height: 64px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      color: #fff;
+      margin-bottom: 12px;
     }}
-    .header-text h2 {{
-      color:#fff; font-size:17px; font-weight:700;
-      letter-spacing:0.5px; line-height:1.2;
+    .card-top h1 {{
+      color: #fff;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 1px;
     }}
-    .header-text p {{
-      color:#93c5fd; font-size:11px; font-weight:400;
-      margin-top:3px; letter-spacing:0.3px;
+    .card-body {{
+      padding: 24px 28px 32px;
     }}
-    .header-text .ref {{
-      color:#64a7e0; font-size:10px; margin-top:4px;
+    .badge {{
+      display: inline-block;
+      background: {badge_bg};
+      color: {badge_color};
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+      text-transform: uppercase;
     }}
-
-    /* ── Summary line ─────────────────────────── */
-    .summary-line {{
-      background:#eef6ff;
-      border-bottom:1px solid #bfdbfe;
-      padding:11px 22px;
-      font-size:12.5px; color:#1e3a5f; font-weight:500;
-      line-height:1.55;
+    .message {{
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.65;
+      background: #f8fafc;
+      border-left: 4px solid {accent};
+      border-radius: 4px;
+      padding: 12px 16px;
     }}
-
-    /* ── Student child card ───────────────────── */
-    .student-card {{
-      margin:16px 18px;
-      border:1px solid #e2e8f0;
-      border-radius:8px;
-      overflow:hidden;
+    .footer-note {{
+      margin-top: 24px;
+      font-size: 11px;
+      color: #94a3b8;
+      text-align: center;
     }}
-    .student-card-header {{
-      background:#2563eb; color:#fff;
-      padding:7px 14px; font-size:11px;
-      font-weight:600; letter-spacing:0.5px;
-      text-transform:uppercase;
-    }}
-    .info-grid {{
-      padding:4px 0;
-    }}
-    .info-row {{
-      display:flex; align-items:stretch;
-      border-bottom:1px solid #f1f5f9;
-    }}
-    .info-row:last-child {{ border-bottom:none; }}
-    .label {{
-      width:140px; flex-shrink:0;
-      background:#f8fafc;
-      padding:8px 14px;
-      font-size:11px; font-weight:600; color:#475569;
-      border-right:1px solid #e2e8f0;
-    }}
-    .value {{
-      padding:8px 14px;
-      font-size:12px; color:#0f172a; font-weight:500;
-      flex:1; word-break:break-word;
-    }}
-
-    /* ── Footer strip ─────────────────────────── */
-    .card-footer {{
-      background:#1e3a5f;
-      padding:9px 22px;
-      display:flex; justify-content:space-between; align-items:center;
-      flex-wrap:wrap; gap:6px;
-    }}
-    .card-footer p {{ color:#94a3b8; font-size:10px; margin:0; }}
-    .card-footer .official {{ color:#4ade80; font-weight:600; font-size:10px; }}
   </style>
 </head>
 <body>
-<div class="outer">
-
-  <!-- Valid banner -->
-  <div class="valid-banner">
-    <div class="tick">
-      <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 8.5L6.5 12L13 5" stroke="#16a34a" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-    VERIFIED — This is a valid official report
-  </div>
-
   <div class="card">
-
-    <!-- Header -->
-    <div class="card-header">
-      <div class="logo-box">{logo_html}</div>
-      <div class="header-text">
-        <h2>{school_name}</h2>
-        <p>TERM EXAMINATION REPORT CARD</p>
-        <p class="ref">Report Ref: {doc.name}</p>
-      </div>
+    <div class="card-top">
+      <div class="icon-circle">{icon}</div>
+      <h1>{title}</h1>
     </div>
-
-    <!-- Summary line -->
-    <div class="summary-line">{summary_line}</div>
-
-    <!-- Student child card -->
-    <div class="student-card">
-      <div class="student-card-header">Student Details</div>
-      <div class="info-grid">
-        {student_block}
-        <div class="info-row"><span class="label">School</span><span class="value">{school_name}</span></div>
-        <div class="info-row"><span class="label">Class</span><span class="value">{student_class}</span></div>
-        <div class="info-row"><span class="label">Section</span><span class="value">{section if section else "—"}</span></div>
-        <div class="info-row"><span class="label">Term</span><span class="value">{doc.term}</span></div>
-        <div class="info-row"><span class="label">Academic Year</span><span class="value">{doc.academic_year}</span></div>
-        <div class="info-row"><span class="label">Report Date</span><span class="value">{report_date}</span></div>
-        <div class="info-row"><span class="label">Report ID</span><span class="value">{doc.name}</span></div>
-      </div>
+    <div class="card-body">
+      <div class="badge">{"Verified Official Document" if valid else "Verification Failed"}</div>
+      <div class="message">{message}</div>
+      {table_section}
+      <p class="footer-note">This verification is generated automatically. Do not alter this document.</p>
     </div>
-
-    <!-- Footer -->
-    <div class="card-footer">
-      <p>Scan QR · Verify authenticity · {school_name}</p>
-      <p class="official">&#10003; Official Document</p>
-    </div>
-
   </div>
-</div>
 </body>
 </html>"""
-
-		frappe.response["type"] = "html"
-		frappe.response["html"] = html
-
-	except frappe.DoesNotExistError:
-		html = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Report Not Found</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#f1f5f9; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-  .card { background:#fff; border-radius:12px; padding:36px 32px; max-width:420px; width:100%; box-shadow:0 4px 24px rgba(0,0,0,0.10); text-align:center; border-top:5px solid #dc2626; }
-  .icon { font-size:48px; margin-bottom:16px; }
-  h2 { font-size:20px; font-weight:700; color:#dc2626; margin-bottom:8px; }
-  p { font-size:14px; color:#64748b; line-height:1.6; }
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="icon">&#10060;</div>
-  <h2>Report Not Found</h2>
-  <p>This report could not be found. It may have been removed or the QR code is invalid. Please contact the school for assistance.</p>
-</div>
-</body>
-</html>"""
-		frappe.response["type"] = "html"
-		frappe.response["html"] = html
