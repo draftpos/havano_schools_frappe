@@ -775,7 +775,7 @@ title: Term Exam Results
     el("lv").style.display = "none";
     el("rc-title").textContent = r.exam_name + "  |  " + r.academic_year;
 
-    /* ── Compute totals & rank ─────────────────────────── */
+    /* ── Compute totals ─────────────────────────────────── */
     var totalMax = 0, totalObt = 0;
     r.items.forEach(function (s) {
       totalMax += parseFloat(s.max_marks || 0);
@@ -783,12 +783,46 @@ title: Term Exam Results
     });
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct));
-    var subjCount = r.items.length;
 
-    /* class rank — position among all terms in this exam (if multiple students
-       were ever in the data).  For single-student portal just show "—". */
-    var cRank = r.class_rank || "—";
-    var totalStudents = r.total_students || "—";
+    /* ── Student identity — pull from first item row ───── */
+    var firstItem = r.items[0] || {};
+    /* API may return student_name / student_id at result level or inside items */
+    var studentName = r.student_name || firstItem.student_name || firstItem.student || "—";
+    var admissionNo = r.student || firstItem.student || firstItem.student_id || "—";
+    var className = r.class_name || firstItem.class_name || firstItem.student_class || "—";
+    var termLabel = r.term || firstItem.term || "—";
+    var dateLabel = r.date || firstItem.date || "—";
+    var academicYear = r.academic_year || firstItem.academic_year || "—";
+    var examTitle = r.exam_name || firstItem.exam_name || "—";
+    /* report_name is the Frappe docname used for the QR verify URL */
+    var reportName = r.report_name || r.name || "";
+
+    /* ── Class position — computed from all loaded results  ─
+       Among the AR array, find all exams with the same exam_name
+       and rank this student by overall% descending.             */
+    var cRank = "—", totalStudents = "—";
+    try {
+      /* Collect all result entries for this same exam across all fetched records.
+         In a single-student portal AR only has this student's results, so we
+         fall back to the server-supplied fields when available. */
+      if (r.class_rank) {
+        cRank = r.class_rank;
+        totalStudents = r.total_students || "—";
+      } else {
+        /* Build a mini leaderboard from sibling items if the API embeds them */
+        var siblings = r.siblings || [];   /* optional: [{student, total_obtained, total_max}] */
+        if (siblings.length > 0) {
+          var myPct = parseFloat(overallPct);
+          siblings.sort(function (a, b) { return (b.pct || 0) - (a.pct || 0); });
+          var pos = 1;
+          siblings.forEach(function (s) { if ((s.pct || 0) > myPct) pos++; });
+          cRank = pos;
+          totalStudents = siblings.length;
+        }
+        /* else — we genuinely don't have class-wide data; leave as "—" */
+      }
+    } catch (e) { }
+
 
     /* ── Sort subjects alphabetically ─────────────────── */
     var subjects = r.items.slice().sort(function (a, b) {
@@ -842,11 +876,17 @@ title: Term Exam Results
         + "</tr>";
     });
 
-    /* ── QR for verification ─────────────────────────── */
+    /* ── QR for verification — mirrors Jinja print format exactly ── */
+    /* The print format uses:
+         /api/method/school.school_management.doctype.term_exam_report
+             .term_exam_report.verify_student_report
+             ?report=<docname>&student=<admission_no>
+       We build the same URL so QR codes are identical to printed cards. */
     var verifyUrl = window.location.origin
-      + "/api/method/school.api.verify_result?exam="
-      + encodeURIComponent(r.exam_name || "")
-      + "&student=" + encodeURIComponent(r.student || "");
+      + "/api/method/school.school_management.doctype"
+      + ".term_exam_report.term_exam_report.verify_student_report"
+      + "?report=" + encodeURIComponent(reportName)
+      + "&student=" + encodeURIComponent(admissionNo);
     var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="
       + encodeURIComponent(verifyUrl);
 
@@ -860,16 +900,16 @@ title: Term Exam Results
       + '    <div class="header-info-panel">'
       + '      <h2>' + (r.school_name || "School") + '</h2>'
       + '      <h3>TERM EXAMINATION REPORT CARD</h3>'
-      + '      <p class="ref">Exam: ' + r.exam_name + '</p>'
+      + '      <p class="ref">Exam: ' + examTitle + (reportName ? ' &nbsp;|&nbsp; Ref: ' + reportName : '') + '</p>'
       + '    </div>'
       + '  </div>'
 
       /* — Meta strip — */
       + '  <div class="card-meta">'
       + '    <div>'
-      + '      <p><strong>Student:</strong> ' + (r.student_name || r.student || "—") + '</p>'
-      + '      <p><strong>Admission No:</strong> ' + (r.student || "—") + '</p>'
-      + '      <p><strong>Class:</strong> ' + (r.class_name || "—") + '</p>'
+      + '      <p><strong>Student:</strong> ' + studentName + '</p>'
+      + '      <p><strong>Admission No:</strong> ' + admissionNo + '</p>'
+      + '      <p><strong>Class:</strong> ' + className + '</p>'
       + '    </div>'
       + '    <div class="positions-wrap">'
       + '      <div class="position-badge">'
@@ -878,9 +918,9 @@ title: Term Exam Results
       + '      </div>'
       + '    </div>'
       + '    <div style="text-align:right">'
-      + '      <p><strong>Academic Year:</strong> ' + (r.academic_year || "—") + '</p>'
-      + '      <p><strong>Term:</strong> ' + (r.term || "—") + '</p>'
-      + '      <p><strong>Date:</strong> ' + (r.date || "—") + '</p>'
+      + '      <p><strong>Academic Year:</strong> ' + academicYear + '</p>'
+      + '      <p><strong>Term:</strong> ' + termLabel + '</p>'
+      + '      <p><strong>Date:</strong> ' + dateLabel + '</p>'
       + '    </div>'
       + '  </div>'
 
@@ -953,7 +993,7 @@ title: Term Exam Results
 
       /* — Footer — */
       + '  <div class="card-footer">'
-      + '    <p>Scan QR to verify &nbsp;|&nbsp; Exam: ' + r.exam_name + '</p>'
+      + '    <p>Scan QR to verify &nbsp;|&nbsp; Exam: ' + examTitle + (reportName ? ' &nbsp;|&nbsp; Ref: ' + reportName : '') + '</p>'
       + '    <p>Official school document — do not alter.</p>'
       + '  </div>'
 
@@ -1010,6 +1050,11 @@ title: Term Exam Results
           return;
         }
         AR = r.message;
+        /* DEV: log first result so you can verify field names from your API */
+        if (console && AR[0]) {
+          console.log("[term_exam_results] First result object:", AR[0]);
+          console.log("[term_exam_results] First item row:", AR[0].items && AR[0].items[0]);
+        }
         el("loading").style.display = "none";
         renderList();
         el("lv").style.display = "block";
