@@ -784,28 +784,42 @@ title: Term Exam Results
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct));
 
-    /* ── Student identity — from API dump:
-         result level: exam_name, report_name, term, academic_year,
-                       date, class_name, items[]
-         item level:   subject, subject_name, marks_obtained, max_marks,
-                       percentage, grade, status, remarks,
-                       teacher_comment, admin_comment
-         student_name / admission_no NOT in API → use Frappe session     */
-    var studentName = AR._studentName || "—";
-    var admissionNo = AR._admissionNo || "—";
-    var className = r.class_name || "—";   /* "Grade 3" */
-    var termLabel = r.term || "—";   /* "Term 1"  */
-    var dateLabel = r.date || "—";   /* "2026-04-13" */
-    var academicYear = r.academic_year || "—";   /* "2026"    */
-    var examTitle = r.exam_name || "—";   /* "Term 1"  */
-    var reportName = r.report_name || "—";   /* "Grad 3"  */
+    /* ── Student identity — exact field names from print format Jinja ──
+       Print format iterates doc.term_exam_results rows and uses:
+         row.student        → admission number
+         row.student_name   → full name
+         row.subject        → subject
+         row.exam           → exam name
+         row.marks_obtained → marks
+         row.max_marks      → max marks
+         row.percentage     → percentage
+         row.grade          → grade
+         row.status         → Pass/Moderate/Failed
+         row.teacher_comment, row.admin_comment
+       The portal API groups these same rows under r.items[].
+       Top-level r fields (exam_name, academic_year, class_name, date, term)
+       come from the Term Exam Report doc itself.                           */
+    var firstItem = r.items[0] || {};
+    var studentName = firstItem.student_name || "—";
+    var admissionNo = firstItem.student || "—";
+    var className = r.class_name || r.student_class || "—";
+    var termLabel = r.term || "—";
+    var dateLabel = r.date || r.report_date || "—";
+    var academicYear = r.academic_year || "—";
+    var examTitle = r.exam_name || "—";
+    var reportName = r.name || r.report_name || "";
 
-    /* ── Class position — not supplied by API; show — ── */
-    var cRank = "—", totalStudents = "—";
+    /* ── Class position — print format computes this server-side via
+       sorted_totals / class_rank dict. Mirror: if API returns class_rank
+       use it; otherwise compute rank from AR (all exams loaded for this
+       student — single student portal won't have peer data so shows —). */
+    var cRank = r.class_rank || "—";
+    var totalStudents = r.total_students || "—";
 
 
+    /* ── Sort subjects — print format sorts by 'subject' field ── */
     var subjects = r.items.slice().sort(function (a, b) {
-      return (a.subject_name || a.subject || "").localeCompare(b.subject_name || b.subject || "");
+      return (a.subject || "").localeCompare(b.subject || "");
     });
 
     /* ── Build subject rows — exact field names from print format ── */
@@ -825,8 +839,8 @@ title: Term Exam Results
       if (s.admin_comment) comments.push("A: " + s.admin_comment);
       var cstr = comments.join(" | ") || "";
 
-      var subName = s.subject_name || s.subject || "—";  /* "Accounting" */
-      var examLbl = s.subject || "";                 /* "ACC101" code */
+      var subName = s.subject || "—";   /* print format uses row.subject */
+      var examLbl = s.exam || "";    /* print format uses row.exam */
       var color = PIE_COLORS[i % PIE_COLORS.length];
 
       tbRows += "<tr>"
@@ -856,7 +870,12 @@ title: Term Exam Results
         + "</tr>";
     });
 
-    /* ── QR — same endpoint as print format, report_name = Frappe docname ── */
+    /* ── QR for verification — mirrors Jinja print format exactly ── */
+    /* The print format uses:
+         /api/method/school.school_management.doctype.term_exam_report
+             .term_exam_report.verify_student_report
+             ?report=<docname>&student=<admission_no>
+       We build the same URL so QR codes are identical to printed cards. */
     var verifyUrl = window.location.origin
       + "/api/method/school.school_management.doctype"
       + ".term_exam_report.term_exam_report.verify_student_report"
@@ -903,13 +922,13 @@ title: Term Exam Results
       + '  <div class="table-wrap">'
       + '    <table class="rc-table">'
       + '      <thead><tr>'
-      + '        <th style="width:20%">Subject</th>'
-      + '        <th style="width:10%">Code</th>'
+      + '        <th style="width:18%">Subject</th>'
+      + '        <th style="width:10%">Exam</th>'
       + '        <th class="center" style="width:10%">Marks</th>'
       + '        <th class="center" style="width:7%">%</th>'
       + '        <th class="center" style="width:7%">Grade</th>'
       + '        <th class="center" style="width:9%">Status</th>'
-      + '        <th style="width:37%">Comments</th>'
+      + '        <th style="width:39%">Comments</th>'
       + '      </tr></thead>'
       + '      <tbody>' + tbRows + '</tbody>'
       + '      <tfoot><tr>'
@@ -986,7 +1005,7 @@ title: Term Exam Results
         var max = parseFloat(s.max_marks || 0);
         var obt = parseFloat(s.marks_obtained || 0);
         var pct = s.percentage != null ? parseFloat(s.percentage) : (max > 0 ? (obt / max) * 100 : 0);
-        labels.push(s.subject_name || s.subject || "?");
+        labels.push(s.subject || "?");
         values.push(parseFloat(pct.toFixed(1)));
         colors.push(PIE_COLORS[i % PIE_COLORS.length]);
       });
@@ -1026,18 +1045,6 @@ title: Term Exam Results
         }
         AR = r.message;
         el("loading").style.display = "none";
-
-        /* ── Pull student identity from Frappe session user ──
-           The API doesn't return student_name / admission_no in the
-           result object, so we fetch the logged-in user's full_name
-           from frappe.session (already available on every portal page). */
-        var sessionName = (frappe && frappe.session && frappe.session.user) || "";
-        var sessionFullName = (frappe && frappe.boot && frappe.boot.user && frappe.boot.user.full_name) || sessionName;
-
-        /* Store on AR so showDetail can use them */
-        AR._studentName = sessionFullName || "—";
-        AR._admissionNo = sessionName || "—";
-
         renderList();
         el("lv").style.display = "block";
       })
