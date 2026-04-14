@@ -561,8 +561,8 @@ def verify_report_text(report, student=None):
 	URL pattern: /api/method/school...verify_report_text?report=REPORT-001&student=STU-0001
 	"""
 	def html_response(content):
-		frappe.response["type"] = "page"
-		frappe.response["page_content"] = content
+		frappe.response["type"] = "html"
+		frappe.response["message"] = content
 
 	try:
 		doc = frappe.get_doc("Term Exam Report", report)
