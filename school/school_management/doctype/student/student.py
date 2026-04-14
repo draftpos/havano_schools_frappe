@@ -2,6 +2,9 @@ import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
 
+# Disable password strength validation globally for this module
+frappe.local.flags.ignore_password_policy = True
+
 class Student(Document):
 
     def before_save(self):
@@ -186,15 +189,14 @@ class Student(Document):
                 title=f"Cost center permission assignment failed for {email}",
                 message=frappe.get_traceback()
             )
-            frappe.msgprint(
-                f"⚠️ Could not assign cost center permission: {str(e)}",
-                indicator="orange",
-                alert=True
-            )
 
     def _ensure_user_with_password(self, email, full_name, role, password):
         """Create user with specific password if non-strict email is enabled"""
         try:
+            # Temporarily disable password strength validation
+            original_ignore = frappe.local.flags.ignore_password_policy
+            frappe.local.flags.ignore_password_policy = True
+            
             if frappe.db.exists("User", email):
                 user = frappe.get_doc("User", email)
                 roles = [r.role for r in user.roles]
@@ -204,10 +206,12 @@ class Student(Document):
                 if not user.enabled:
                     user.enabled = 1
                 user.flags.ignore_permissions = True
+                user.flags.ignore_password_policy = True
                 user.save(ignore_permissions=True)
                 
-                # Set/update password
+                # Set/update password - this bypasses strength check
                 user.new_password = password
+                user.flags.ignore_password_policy = True
                 user.save(ignore_permissions=True)
                 
                 # Assign cost center permission
@@ -218,6 +222,9 @@ class Student(Document):
                     indicator="green",
                     alert=True
                 )
+                
+                # Restore original flag
+                frappe.local.flags.ignore_password_policy = original_ignore
                 return
 
             # Create new user
@@ -233,10 +240,12 @@ class Student(Document):
                 ]
             })
             user.flags.ignore_permissions = True
+            user.flags.ignore_password_policy = True
             user.insert(ignore_permissions=True)
             
-            # Set the password after user is created
+            # Set the password after user is created - bypasses strength check
             user.new_password = password
+            user.flags.ignore_password_policy = True
             user.save(ignore_permissions=True)
             
             # Assign cost center permission
@@ -249,8 +258,13 @@ class Student(Document):
                 indicator="green",
                 alert=True
             )
+            
+            # Restore original flag
+            frappe.local.flags.ignore_password_policy = original_ignore
 
         except Exception as e:
+            # Restore original flag in case of error
+            frappe.local.flags.ignore_password_policy = original_ignore
             frappe.log_error(
                 title=f"User creation failed for {email}",
                 message=frappe.get_traceback()
