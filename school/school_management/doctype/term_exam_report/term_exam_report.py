@@ -556,179 +556,51 @@ def get_student_pdf(report_name, student_id):
 
 @frappe.whitelist(allow_guest=True)
 def verify_report_text(report, student=None):
-	"""
-	QR code endpoint — returns a styled HTML verification card in the browser.
-	Raises a Werkzeug Response directly, bypassing Frappe's JSON wrapper.
-	"""
-	try:
-		doc = frappe.get_doc("Term Exam Report", report)
+    try:
+        doc = frappe.get_doc("Term Exam Report", report)
 
-		if doc.docstatus != 1:
-			_throw_html(_verification_card(
-				valid=False,
-				title="Invalid Report",
-				message="This report has not been officially submitted or has been cancelled.",
-				details=[]
-			))
+        # Check if submitted
+        if doc.docstatus != 1:
+            return {
+                "status": "invalid",
+                "message": "This report is not submitted or has been cancelled."
+            }
 
-		school_name = (
-			frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
-			or doc.cost_center
-			or "School"
-		) if doc.cost_center else "School"
+        school_name = (
+            frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
+            if doc.cost_center else "School"
+        ) or "School"
 
-		student_name = ""
-		if student:
-			sdata = frappe.db.get_value(
-				"Student", student,
-				["first_name", "second_name", "last_name", "full_name"],
-				as_dict=True
-			)
-			if sdata:
-				student_name = (
-					" ".join(filter(None, [
-						sdata.first_name, sdata.second_name, sdata.last_name
-					])) or sdata.full_name or student
-				)
+        student_name = ""
+        if student:
+            sdata = frappe.db.get_value(
+                "Student", student,
+                ["first_name", "second_name", "last_name", "full_name"],
+                as_dict=True
+            )
+            if sdata:
+                student_name = " ".join(filter(None, [
+                    sdata.first_name, sdata.second_name, sdata.last_name
+                ])) or sdata.full_name or student
 
-		section_part = f" — {doc.section}" if doc.section else ""
-		if student_name:
-			intro = (
-				f"This is {student_name}, from {school_name}, "
-				f"in {doc.student_class}{section_part}. "
-				f"This is an official report."
-			)
-		else:
-			intro = (
-				f"Official Term Exam Report from {school_name}, "
-				f"Class {doc.student_class}{section_part}."
-			)
+        return {
+            "status": "valid",
+            "message": "Report is valid",
+            "data": {
+                "student_name": student_name,
+                "student": student,
+                "school": school_name,
+                "class": doc.student_class,
+                "section": doc.section,
+                "term": doc.term,
+                "academic_year": doc.academic_year,
+                "report_date": doc.report_date,
+                "report_id": doc.name
+            }
+        }
 
-		details = [
-			("Student Name",  student_name or "—"),
-			("Admission No.", student or "—"),
-			("School",        school_name),
-			("Class",         doc.student_class or "—"),
-			("Section",       doc.section or "—"),
-			("Term",          doc.term or "—"),
-			("Academic Year", doc.academic_year or "—"),
-			("Report Date",   str(doc.report_date) if doc.report_date else "—"),
-			("Report ID",     doc.name),
-		]
-
-		_throw_html(_verification_card(
-			valid=True,
-			title="Valid",
-			message=intro,
-			details=details
-		))
-
-	except frappe.DoesNotExistError:
-		_throw_html(_verification_card(
-			valid=False,
-			title="Not Found",
-			message="This report could not be found. It may be invalid or has been removed.",
-			details=[]
-		))
-
-
-def _throw_html(html):
-	"""
-	Raise a Werkzeug Response as an exception.
-	Frappe's app.py catches BaseException → werkzeug Response objects are
-	WSGI callables, so raising one causes gunicorn/werkzeug to serve it directly.
-	This is the same mechanism frappe.redirect() uses internally.
-	"""
-	from werkzeug.wrappers import Response
-	raise Response(
-		html,
-		status=200,
-		mimetype="text/html; charset=utf-8"
-	)
-
-
-def _verification_card(valid, title, message, details):
-	accent      = "#16a34a" if valid else "#dc2626"
-	icon        = "&#10004;" if valid else "&#10008;"
-	badge_text  = "Verified Official Document" if valid else "Verification Failed"
-	badge_bg    = "#dcfce7" if valid else "#fee2e2"
-	badge_color = "#15803d" if valid else "#b91c1c"
-
-	rows_html = ""
-	for label, value in details:
-		if value and value != "—":
-			rows_html += (
-				f'<tr>'
-				f'<td style="padding:10px 16px;font-weight:600;color:#475569;font-size:13px;'
-				f'border-bottom:1px solid #f1f5f9;width:42%;white-space:nowrap">{label}</td>'
-				f'<td style="padding:10px 16px;color:#0f172a;font-size:13px;'
-				f'border-bottom:1px solid #f1f5f9">{value}</td>'
-				f'</tr>'
-			)
-
-	table_section = ""
-	if rows_html:
-		table_section = (
-			f'<table style="width:100%;border-collapse:collapse;margin-top:22px;'
-			f'border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">'
-			f'<tbody>{rows_html}</tbody>'
-			f'</table>'
-		)
-
-	return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Report Verification</title>
-  <style>
-    *{{margin:0;padding:0;box-sizing:border-box}}
-    body{{
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-      background:#f1f5f9;min-height:100vh;
-      display:flex;align-items:center;justify-content:center;padding:24px 16px
-    }}
-    .card{{
-      background:#fff;border-radius:16px;
-      box-shadow:0 4px 32px rgba(0,0,0,0.12);
-      max-width:500px;width:100%;overflow:hidden
-    }}
-    .card-top{{background:{accent};padding:32px 28px 26px;text-align:center}}
-    .icon-circle{{
-      width:68px;height:68px;background:rgba(255,255,255,0.2);
-      border-radius:50%;display:inline-flex;align-items:center;
-      justify-content:center;font-size:34px;color:#fff;margin-bottom:14px
-    }}
-    .card-top h1{{color:#fff;font-size:28px;font-weight:800;letter-spacing:1px}}
-    .card-body{{padding:26px 28px 32px}}
-    .badge{{
-      display:inline-block;background:{badge_bg};color:{badge_color};
-      font-size:11px;font-weight:700;padding:4px 14px;border-radius:20px;
-      letter-spacing:0.6px;margin-bottom:16px;text-transform:uppercase
-    }}
-    .message{{
-      font-size:14px;color:#334155;line-height:1.7;
-      background:#f8fafc;border-left:4px solid {accent};
-      border-radius:0 6px 6px 0;padding:13px 16px
-    }}
-    .footer-note{{margin-top:24px;font-size:11px;color:#94a3b8;text-align:center;line-height:1.6}}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="card-top">
-      <div class="icon-circle">{icon}</div>
-      <h1>{title}</h1>
-    </div>
-    <div class="card-body">
-      <div class="badge">{badge_text}</div>
-      <div class="message">{message}</div>
-      {table_section}
-      <p class="footer-note">
-        This verification is generated automatically.<br>
-        Official school document &mdash; do not alter.
-      </p>
-    </div>
-  </div>
-</body>
-</html>"""
+    except frappe.DoesNotExistError:
+        return {
+            "status": "not_found",
+            "message": "Report not found"
+        }
