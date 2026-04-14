@@ -1,10 +1,6 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
-from frappe.core.doctype.user.user import User
-
-# Disable password strength validation globally for this module
-frappe.local.flags.ignore_password_policy = True
 
 class Student(Document):
     
@@ -23,9 +19,7 @@ class Student(Document):
     def before_save(self):
         """Before save - generate dummy email if needed"""
         settings = frappe.get_single("School Settings")
-        # Generate dummy email only if non-strict email is enabled AND no portal email provided
         if settings.allow_non_strict_email and self.create_user and not self.portal_email:
-            # Use student name to generate email
             name_part = self.full_name.lower().replace(" ", ".") if self.full_name else self.name
             self.portal_email = f"{name_part}@dummy.school"
             frappe.msgprint(f"Dummy portal email generated: {self.portal_email}", indicator="blue")
@@ -57,327 +51,114 @@ class Student(Document):
         return "{}{:05d}".format(prefix, next_num)
     
     def after_insert(self):
-        """After insert - generate registration number if not set"""
-        frappe.log_error("Student Debug", f"=== AFTER INSERT CALLED for {self.name} ===")
-        
+        """After insert - generate registration number and create user"""
         if not self.student_reg_no and self.school:
             reg_no = self.generate_reg_no()
             frappe.db.set_value("Student", self.name, "student_reg_no", reg_no)
             self.student_reg_no = reg_no
-            frappe.log_error("Student Debug", f"Generated registration number: {reg_no}")
         
-        # Create user IMMEDIATELY after insert
-        self._create_all_users_and_records()
+        # Create user IMMEDIATELY
+        self.create_all_records()
     
     def on_update(self):
-        """On update - create/update all records"""
-        frappe.log_error("Student Debug", f"=== ON_UPDATE CALLED for {self.name} ===")
-        
+        """On update - create all records"""
         if self.flags.get("ignore_on_update"):
-            frappe.log_error("Student Debug", "Skipping on_update due to flag")
             return
-        
-        # Create/update all records
-        self._create_all_users_and_records()
+        self.create_all_records()
     
-    def _create_all_users_and_records(self):
-        """Central method to create all users and records"""
-        frappe.log_error("Student Debug", f"=== _create_all_users_and_records START for {self.name} ===")
-        frappe.log_error("Student Debug", f"create_user = {self.create_user}")
-        frappe.log_error("Student Debug", f"portal_email = {self.portal_email}")
-        
-        # Create/update customer
+    def create_all_records(self):
+        """Create all records including user"""
+        # Create customer
         self.create_customer()
         
-        # Create opening balance entry if needed
+        # Create portal user if checked
+        if self.create_user and self.portal_email:
+            self.create_user_account()
+        
+        # Create other records
         self.create_opening_balance_entry()
-        
-        # Create admin fee invoice if needed
         self.create_admin_fee_invoice()
-        
-        # Create registration billing if needed
         self.create_registration_billing()
-        
-        # Create portal user if create_user is checked - THIS IS CRITICAL
-        if self.create_user:
-            frappe.log_error("Student Debug", "create_user is TRUE - creating portal users")
-            if not self.portal_email:
-                frappe.log_error("Student Debug", "ERROR: No portal_email provided!")
-                frappe.throw("Please enter Portal Email address before saving.")
-            
-            self.create_student_portal_user()
-            self.create_parent_portal_users()
-        else:
-            frappe.log_error("Student Debug", "create_user is FALSE - skipping user creation")
-            frappe.msgprint("Create Portal User is not checked. No user will be created.", indicator="orange", alert=True)
-        
-        frappe.log_error("Student Debug", "=== _create_all_users_and_records END ===")
     
-    def create_student_portal_user(self):
-        """Create portal user for student - MAIN FUNCTION"""
-        frappe.log_error("Student Debug", f"=== create_student_portal_user START for {self.portal_email} ===")
-        
-        settings = frappe.get_single("School Settings")
-        frappe.log_error("Student Debug", f"allow_non_strict_email = {settings.allow_non_strict_email}")
-        frappe.log_error("Student Debug", f"has portal_password = {hasattr(self, 'portal_password') and bool(self.portal_password)}")
-        
-        # Create Student Portal User
-        if settings.allow_non_strict_email and hasattr(self, 'portal_password') and self.portal_password:
-            frappe.log_error("Student Debug", "Creating user WITH password")
-            success = self._create_user_with_password(
-                self.portal_email, 
-                self.full_name or self.first_name, 
-                "Student Portal", 
-                self.portal_password
-            )
-            if success:
-                frappe.msgprint(f"✅ Student user {self.portal_email} created with password", indicator="green", alert=True)
-                frappe.log_error("Student Debug", f"SUCCESS: User {self.portal_email} created with password")
-            else:
-                frappe.log_error("Student Debug", f"FAILED: Could not create user {self.portal_email}")
-        else:
-            frappe.log_error("Student Debug", "Creating user WITHOUT password (send invite)")
-            success = self._create_user_and_send_invite(
-                self.portal_email, 
-                self.full_name or self.first_name, 
-                "Student Portal"
-            )
-            if success:
-                frappe.msgprint(f"✅ Student user {self.portal_email} created. Invitation sent.", indicator="green", alert=True)
-                frappe.log_error("Student Debug", f"SUCCESS: User {self.portal_email} created with invite")
-            else:
-                frappe.log_error("Student Debug", f"FAILED: Could not create user {self.portal_email}")
-        
-        frappe.log_error("Student Debug", "=== create_student_portal_user END ===")
-    
-    def create_parent_portal_users(self):
-        """Create portal users for parents"""
-        parent_entries = []
-        
-        if self.father_email:
-            parent_entries.append({
-                "email": self.father_email,
-                "full_name": self.father_name or "Parent",
-                "role": "Parent"
-            })
-        
-        if self.mother_email and self.mother_email != self.father_email:
-            parent_entries.append({
-                "email": self.mother_email,
-                "full_name": self.mother_name or "Parent",
-                "role": "Parent"
-            })
-        
-        if self.guardian_email and self.guardian_email not in [self.father_email, self.mother_email]:
-            parent_entries.append({
-                "email": self.guardian_email,
-                "full_name": self.guardian_name or "Guardian",
-                "role": "Parent"
-            })
-        
-        for entry in parent_entries:
-            # Create or update Parent document
-            existing_parent = frappe.db.exists("Parent", {"portal_email": entry["email"]})
-            
-            if existing_parent:
-                parent_doc = frappe.get_doc("Parent", existing_parent)
-                already_linked = any(row.student == self.name for row in parent_doc.get("children", []))
-                if not already_linked:
-                    parent_doc.append("children", {"student": self.name})
-                    parent_doc.flags.ignore_permissions = True
-                    parent_doc.save(ignore_permissions=True)
-                    frappe.msgprint(f"Student linked to existing parent account: {entry['email']}", indicator="blue", alert=True)
-            else:
-                parent_doc = frappe.new_doc("Parent")
-                parent_doc.full_name = entry["full_name"]
-                parent_doc.portal_email = entry["email"]
-                parent_doc.flags.ignore_permissions = True
-                parent_doc.insert(ignore_permissions=True)
-                parent_doc.append("children", {"student": self.name})
-                parent_doc.save(ignore_permissions=True)
-                frappe.msgprint(f"Parent account created for: {entry['email']}", indicator="green", alert=True)
-            
-            # Create user for parent
-            self._create_user_and_send_invite(entry["email"], entry["full_name"], "Parent")
-    
-    def _create_user_with_password(self, email, full_name, role, password):
-        """Create user with specific password immediately"""
+    def create_user_account(self):
+        """SIMPLIFIED - Create user account directly"""
         try:
-            frappe.log_error("Student Debug", f"=== _create_user_with_password START for {email} ===")
-            frappe.log_error("Student Debug", f"Password provided: {password[:3]}... (length: {len(password) if password else 0})")
+            email = self.portal_email
+            first_name = self.first_name or "Student"
+            last_name = self.last_name or ""
             
-            # Check if user already exists
+            frappe.msgprint(f"Creating user: {email}", indicator="blue", alert=True)
+            
+            # Check if user exists
             if frappe.db.exists("User", email):
-                frappe.log_error("Student Debug", f"User {email} already exists, updating...")
                 user = frappe.get_doc("User", email)
-                # Add role if not present
-                roles = [r.role for r in user.roles]
-                if role not in roles:
-                    user.append("roles", {"role": role})
-                # Enable user
                 user.enabled = 1
-                user.flags.ignore_permissions = True
-                user.flags.ignore_password_policy = True
                 user.save(ignore_permissions=True)
-                
-                # Update password
-                user.new_password = password
-                user.flags.ignore_password_policy = True
-                user.save(ignore_permissions=True)
-                
-                frappe.log_error("Student Debug", f"User {email} updated successfully")
-                frappe.msgprint(f"✅ User {email} updated with new password", indicator="green", alert=True)
+                frappe.msgprint(f"User {email} already exists and enabled", indicator="green", alert=True)
             else:
-                frappe.log_error("Student Debug", f"Creating new user {email}")
                 # Create new user
                 user = frappe.get_doc({
                     "doctype": "User",
                     "email": email,
-                    "first_name": full_name.split()[0] if full_name else email.split('@')[0],
-                    "last_name": " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else "",
+                    "first_name": first_name,
+                    "last_name": last_name,
                     "enabled": 1,
                     "user_type": "Website User",
                     "send_welcome_email": 0,
-                    "roles": [{"role": role}]
+                    "roles": [{"role": "Student Portal"}]
                 })
-                user.flags.ignore_permissions = True
-                user.flags.ignore_password_policy = True
                 user.insert(ignore_permissions=True)
+                frappe.msgprint(f"User {email} created successfully", indicator="green", alert=True)
                 
-                frappe.log_error("Student Debug", f"User {email} inserted, now setting password")
-                
-                # Set password
-                user.new_password = password
-                user.flags.ignore_password_policy = True
-                user.save(ignore_permissions=True)
-                
-                frappe.log_error("Student Debug", f"User {email} created successfully")
-                frappe.msgprint(f"✅ User {email} created successfully with password", indicator="green", alert=True)
-            
-            # Assign cost center permission
-            self._assign_cost_center_permission(email)
-            
-            # Verify user can login by checking if password works
-            frappe.log_error("Student Debug", f"Verifying user {email} can login...")
-            
-            frappe.db.commit()
-            frappe.log_error("Student Debug", f"=== _create_user_with_password SUCCESS for {email} ===")
-            return True
-            
-        except Exception as e:
-            frappe.log_error(f"User creation failed for {email}", frappe.get_traceback())
-            frappe.msgprint(f"❌ Error creating user {email}: {str(e)}", indicator="red", alert=True)
-            frappe.log_error("Student Debug", f"=== _create_user_with_password FAILED for {email}: {str(e)} ===")
-            return False
-    
-    def _create_user_and_send_invite(self, email, full_name, role):
-        """Create user and send password reset invite"""
-        try:
-            frappe.log_error("Student Debug", f"=== _create_user_and_send_invite START for {email} ===")
-            
-            # Check if user already exists
-            if frappe.db.exists("User", email):
-                frappe.log_error("Student Debug", f"User {email} already exists, updating...")
-                user = frappe.get_doc("User", email)
-                # Add role if not present
-                roles = [r.role for r in user.roles]
-                if role not in roles:
-                    user.append("roles", {"role": role})
-                # Enable user
-                user.enabled = 1
-                user.flags.ignore_permissions = True
-                user.save(ignore_permissions=True)
-                
-                frappe.log_error("Student Debug", f"User {email} updated successfully")
-                frappe.msgprint(f"✅ User {email} already exists, role assigned", indicator="green", alert=True)
-            else:
-                frappe.log_error("Student Debug", f"Creating new user {email}")
-                # Create new user
-                user = frappe.get_doc({
-                    "doctype": "User",
-                    "email": email,
-                    "first_name": full_name.split()[0] if full_name else email.split('@')[0],
-                    "last_name": " ".join(full_name.split()[1:]) if full_name and len(full_name.split()) > 1 else "",
-                    "enabled": 1,
-                    "user_type": "Website User",
-                    "send_welcome_email": 0,
-                    "roles": [{"role": role}]
-                })
-                user.flags.ignore_permissions = True
-                user.insert(ignore_permissions=True)
-                
-                frappe.log_error("Student Debug", f"User {email} inserted")
-                
-                # Send password reset email
-                reset_key = user.reset_password()
-                frappe.sendmail(
-                    recipients=[email],
-                    subject="Your School Portal Access",
-                    message=f"""<p>Dear {full_name},</p>
+                # Set password if provided
+                settings = frappe.get_single("School Settings")
+                if settings.allow_non_strict_email and hasattr(self, 'portal_password') and self.portal_password:
+                    user.new_password = self.portal_password
+                    user.save(ignore_permissions=True)
+                    frappe.msgprint(f"Password set for {email}", indicator="green", alert=True)
+                else:
+                    # Send password reset link
+                    reset_key = user.reset_password()
+                    frappe.sendmail(
+                        recipients=[email],
+                        subject="Your School Portal Access",
+                        message=f"""<p>Dear {first_name},</p>
 <p>Your portal account has been created.</p>
 <p>Email: {email}</p>
-<p>Please click below to set your password:</p>
-<p><a href="{frappe.utils.get_url()}/update-password?key={reset_key}">Set Password & Login</a></p>
-<p>Regards,<br>School Administration</p>"""
-                )
-                
-                frappe.log_error("Student Debug", f"User {email} created and invite sent")
-                frappe.msgprint(f"✅ User {email} created. Invitation sent to email.", indicator="green", alert=True)
+<p>Click here to set your password: {frappe.utils.get_url()}/update-password?key={reset_key}</p>"""
+                    )
+                    frappe.msgprint(f"Password reset email sent to {email}", indicator="green", alert=True)
             
             # Assign cost center permission
-            self._assign_cost_center_permission(email)
+            if self.school:
+                self.assign_cost_center_permission(email)
             
             frappe.db.commit()
-            frappe.log_error("Student Debug", f"=== _create_user_and_send_invite SUCCESS for {email} ===")
-            return True
             
         except Exception as e:
-            frappe.log_error(f"User creation failed for {email}", frappe.get_traceback())
-            frappe.msgprint(f"❌ Error creating user {email}: {str(e)}", indicator="red", alert=True)
-            frappe.log_error("Student Debug", f"=== _create_user_and_send_invite FAILED for {email}: {str(e)} ===")
-            return False
+            frappe.log_error(f"User creation failed: {str(e)}", "Student User Creation")
+            frappe.msgprint(f"Error creating user: {str(e)}", indicator="red", alert=True)
     
-    def _assign_cost_center_permission(self, email):
-        """Assign cost center permission to user based on selected school"""
+    def assign_cost_center_permission(self, email):
+        """Assign cost center permission"""
         try:
-            if not self.school:
-                frappe.log_error("Student Debug", "No school selected, skipping cost center permission")
-                frappe.msgprint("⚠️ No school selected, skipping cost center permission", indicator="orange", alert=True)
-                return False
-            
-            frappe.log_error("Student Debug", f"Assigning cost center {self.school} to user {email}")
-            
-            # Check if user permission already exists
-            existing_permission = frappe.db.exists("User Permission", {
+            # Check if permission already exists
+            if not frappe.db.exists("User Permission", {
                 "user": email,
                 "allow": "Cost Center",
                 "for_value": self.school
-            })
-            
-            if not existing_permission:
-                # Create user permission for cost center
-                user_permission = frappe.get_doc({
+            }):
+                permission = frappe.get_doc({
                     "doctype": "User Permission",
                     "user": email,
                     "allow": "Cost Center",
                     "for_value": self.school,
                     "applicable_for": "Cost Center"
                 })
-                user_permission.flags.ignore_permissions = True
-                user_permission.insert(ignore_permissions=True)
-                
-                frappe.log_error("Student Debug", f"Cost center permission assigned to {email}")
-                frappe.msgprint(f"✅ Cost Center '{self.school}' permission assigned to {email}", indicator="green", alert=True)
-            else:
-                frappe.log_error("Student Debug", f"Cost center permission already exists for {email}")
-                frappe.msgprint(f"ℹ️ Cost Center permission already exists for {email}", indicator="blue", alert=True)
-            
-            return True
-                
+                permission.insert(ignore_permissions=True)
+                frappe.msgprint(f"Cost center permission assigned for {email}", indicator="green", alert=True)
         except Exception as e:
-            frappe.log_error(f"Cost center permission assignment failed for {email}", frappe.get_traceback())
-            frappe.msgprint(f"⚠️ Could not assign cost center permission: {str(e)}", indicator="orange", alert=True)
-            return False
+            frappe.log_error(f"Cost center permission failed: {str(e)}", "Permission Error")
     
     def create_customer(self):
         """Create or update customer"""
@@ -391,26 +172,7 @@ class Student(Document):
             if self.student_category:
                 customer_group = self.student_category
             
-            details_parts = []
-            if self.student_class:
-                details_parts.append(f"Class: {self.student_class}")
-            if self.section:
-                details_parts.append(f"Section: {self.section}")
-            if self.school:
-                details_parts.append(f"School: {self.school}")
-            if self.student_reg_no:
-                details_parts.append(f"Reg No: {self.student_reg_no}")
-            if self.student_type:
-                details_parts.append(f"Type: {self.student_type}")
-            
-            customer_details = " | ".join(details_parts)
-            
-            # Check if customer exists
-            existing = None
-            if self.student_reg_no:
-                existing = frappe.db.get_value("Customer", {"custom_student_reg_no": self.student_reg_no}, "name")
-            if not existing:
-                existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
+            existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
             
             if existing:
                 customer = frappe.get_doc("Customer", existing)
@@ -423,13 +185,6 @@ class Student(Document):
                 customer.custom_student_class = self.student_class or ""
                 customer.custom_school = self.school or ""
                 customer.custom_student_type = self.student_type or ""
-                customer.custom_gender = self.gender or ""
-                customer.customer_details = customer_details
-                customer.custom_class = self.name
-                customer.student_name = self.full_name
-                if self.student_image:
-                    customer.image = self.student_image
-                customer.flags.ignore_permissions = True
                 customer.save(ignore_permissions=True)
             else:
                 customer = frappe.get_doc({
@@ -443,20 +198,14 @@ class Student(Document):
                     "custom_student_section": self.section or "",
                     "custom_student_class": self.student_class or "",
                     "custom_school": self.school or "",
-                    "custom_student_type": self.student_type or "",
-                    "custom_gender": self.gender or "",
-                    "customer_details": customer_details,
-                    "image": self.student_image or "",
-                    "custom_class": self.name,
-                    "student_name": self.full_name
+                    "custom_student_type": self.student_type or ""
                 })
-                customer.flags.ignore_permissions = True
                 customer.insert(ignore_permissions=True)
             
-            frappe.msgprint(f"✅ Customer {self.full_name} created/updated", indicator="green", alert=True)
+            frappe.msgprint(f"Customer {self.full_name} created/updated", indicator="green", alert=True)
             
         except Exception as e:
-            frappe.log_error(f"Customer creation failed for {self.full_name}", frappe.get_traceback())
+            frappe.log_error(f"Customer creation failed: {str(e)}", "Customer Error")
     
     def create_opening_balance_entry(self):
         """Create opening balance journal entry"""
@@ -478,20 +227,11 @@ class Student(Document):
             company = frappe.defaults.get_global_default("company")
             receivable_account = frappe.db.get_value("Company", company, "default_receivable_account")
             
-            opening_account = (
-                frappe.db.get_value("Account", {
-                    "account_type": "Equity",
-                    "company": company,
-                    "is_group": 0,
-                    "account_name": ["like", "%Opening Balance%"]
-                }, "name") or
-                frappe.db.get_value("Account", {
-                    "account_type": "Temporary",
-                    "company": company,
-                    "is_group": 0
-                }, "name") or
-                "Opening Balance Equity - SS"
-            )
+            opening_account = frappe.db.get_value("Account", {
+                "account_type": "Equity",
+                "company": company,
+                "is_group": 0
+            }, "name") or "Opening Balance Equity - SS"
             
             je = frappe.get_doc({
                 "doctype": "Journal Entry",
@@ -520,10 +260,10 @@ class Student(Document):
             je.insert()
             je.submit()
             
-            frappe.msgprint(f"✅ Opening balance entry created for {self.full_name}", indicator="green", alert=True)
+            frappe.msgprint(f"Opening balance entry created for {self.full_name}", indicator="green", alert=True)
             
-        except Exception:
-            frappe.log_error(f"Opening balance JE failed for {self.full_name}", frappe.get_traceback())
+        except Exception as e:
+            frappe.log_error(f"Opening balance failed: {str(e)}", "Opening Balance Error")
     
     def create_admin_fee_invoice(self):
         """Create admin fee invoice"""
@@ -533,32 +273,35 @@ class Student(Document):
         if not self.full_name:
             return
         
-        existing_billing = frappe.db.exists("Billing", {
-            "student": self.name,
-            "fees_structure": self.admin_fees_structure,
-            "docstatus": ["!=", 2]
-        })
-        
-        if existing_billing:
-            if self.admin_fee_paid:
-                inv = frappe.db.get_value("Sales Invoice", {
-                    "customer": self.full_name,
-                    "fees_structure": self.admin_fees_structure,
-                    "docstatus": ["!=", 2]
-                }, "name")
-                if inv:
-                    self.create_admin_fee_receipting(inv)
-            return
-        
         try:
+            # Check if customer exists
             if not frappe.db.exists("Customer", {"customer_name": self.full_name}):
                 self.create_customer()
             
+            # Get fees structure
             fees_doc = frappe.get_doc("Fees Structure", self.admin_fees_structure)
             if not fees_doc.fees_items:
-                frappe.log_error("create_admin_fee_invoice", f"Fees Structure {self.admin_fees_structure} has no items")
                 return
             
+            # Check if billing already exists
+            existing_billing = frappe.db.exists("Billing", {
+                "student": self.name,
+                "fees_structure": self.admin_fees_structure,
+                "docstatus": ["!=", 2]
+            })
+            
+            if existing_billing:
+                if self.admin_fee_paid:
+                    inv = frappe.db.get_value("Sales Invoice", {
+                        "customer": self.full_name,
+                        "fees_structure": self.admin_fees_structure,
+                        "docstatus": ["!=", 2]
+                    }, "name")
+                    if inv:
+                        self.create_admin_fee_receipting(inv)
+                return
+            
+            # Create billing
             billing = frappe.new_doc("Billing")
             billing.date = frappe.utils.today()
             billing.cost_center = self.cost_center or self.school
@@ -583,19 +326,20 @@ class Student(Document):
             
             frappe.db.commit()
             
-            invoice_name = frappe.db.get_value("Sales Invoice", {
-                "customer": self.full_name,
-                "fees_structure": self.admin_fees_structure,
-                "docstatus": ["!=", 2]
-            }, "name")
+            # Create receipt if paid
+            if self.admin_fee_paid:
+                invoice_name = frappe.db.get_value("Sales Invoice", {
+                    "customer": self.full_name,
+                    "fees_structure": self.admin_fees_structure,
+                    "docstatus": ["!=", 2]
+                }, "name")
+                if invoice_name:
+                    self.create_admin_fee_receipting(invoice_name)
             
-            if self.admin_fee_paid and invoice_name:
-                self.create_admin_fee_receipting(invoice_name)
+            frappe.msgprint(f"Admin fee invoice created for {self.full_name}", indicator="green", alert=True)
             
-            frappe.msgprint(f"✅ Admin fee invoice created for {self.full_name}", indicator="green", alert=True)
-            
-        except Exception:
-            frappe.log_error(f"Admin fee billing failed for {self.full_name}", frappe.get_traceback())
+        except Exception as e:
+            frappe.log_error(f"Admin fee invoice failed: {str(e)}", "Invoice Error")
     
     def create_admin_fee_receipting(self, invoice_name):
         """Create receipt for admin fee"""
@@ -617,7 +361,6 @@ class Student(Document):
             
             account = self.account
             if not account:
-                frappe.log_error("create_admin_fee_receipting", f"No account selected on Student {self.name}")
                 return
             
             receipt = frappe.new_doc("Receipting")
@@ -639,10 +382,10 @@ class Student(Document):
             receipt.submit()
             
             frappe.db.commit()
-            frappe.msgprint(f"✅ Admin fee receipt created for {self.full_name}", indicator="green", alert=True)
+            frappe.msgprint(f"Admin fee receipt created for {self.full_name}", indicator="green", alert=True)
             
-        except Exception:
-            frappe.log_error(f"Admin fee receipting failed for {self.full_name}", frappe.get_traceback())
+        except Exception as e:
+            frappe.log_error(f"Admin fee receipting failed: {str(e)}", "Receipt Error")
     
     def create_registration_billing(self):
         """Create registration billing"""
@@ -691,7 +434,7 @@ class Student(Document):
             frappe.db.set_value("Student", self.name, "billed_on_registration", 1)
             self.billed_on_registration = 1
             
-            frappe.msgprint(f"✅ Registration billing created for {self.full_name}", indicator="green", alert=True)
+            frappe.msgprint(f"Registration billing created for {self.full_name}", indicator="green", alert=True)
             
         except Exception as e:
             frappe.log_error("Registration Billing Error", f"Student: {self.name} Error: {str(e)}")
