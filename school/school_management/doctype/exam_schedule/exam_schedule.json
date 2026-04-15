@@ -34,6 +34,13 @@
     ],
     "fields": [
         {
+            "fieldname": "title",
+            "fieldtype": "Data",
+            "label": "Exam Schedule Title",
+            "fetch_from": "exam.exam_name",
+            "reqd": 1
+        },
+        {
             "fieldname": "basic_info_section",
             "fieldtype": "Section Break",
             "label": "Basic Info"
@@ -162,13 +169,6 @@
             "fieldname": "fetch_students",
             "fieldtype": "Button",
             "label": "Fetch Students from Class/Section"
-        },
-        {
-            "fieldname": "title",
-            "fieldtype": "Data",
-            "hidden": 1,
-            "label": "Title",
-            "read_only": 1
         }
     ],
     "grid_page_length": 50,
