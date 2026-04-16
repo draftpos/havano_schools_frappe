@@ -131,7 +131,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 		pct = f"{r.percentage:.1f}%" if r.percentage else "—"
 		grade = r.grade or "—"
 		status = r.status or "—"
-		remarks = r.remarks or ""
+		teacher_comment = r.teacher_comment or ""
 		status_color = "#27ae60" if status == "Pass" else "#f59e0b" if status == "Moderate" else "#e74c3c" if status == "Failed" else "#64748b"
 
 		subject_rows_html += f"""
@@ -143,7 +143,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			<td style="text-align:center;padding:8px 10px;border-bottom:1px solid #e2e8f0">{pct}</td>
 			<td style="text-align:center;padding:8px 10px;border-bottom:1px solid #e2e8f0;font-weight:700">{grade}</td>
 			<td style="text-align:center;padding:8px 10px;border-bottom:1px solid #e2e8f0;color:{status_color};font-weight:600;font-size:12px">{status}</td>
-			<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#64748b">{remarks}</td>
+			<td style="padding:8px 10px;border-bottom:1px solid #e2e8f0;font-size:12px;color:#475569">{teacher_comment}</td>
 		</tr>"""
 
 	overall_color = "#27ae60" if overall_pct >= 50 else "#e74c3c"
@@ -188,7 +188,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 					<th style="padding:9px 10px;text-align:center">%</th>
 					<th style="padding:9px 10px;text-align:center">Grade</th>
 					<th style="padding:9px 10px;text-align:center">Status</th>
-					<th style="padding:9px 10px;text-align:left">Remarks</th>
+					<th style="padding:9px 10px;text-align:left">Teacher Comment</th>
 				</tr>
 			</thead>
 			<tbody>{subject_rows_html}</tbody>
@@ -211,6 +211,10 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			Pass ≥ passing mark &nbsp;|&nbsp; Moderate = borderline &nbsp;|&nbsp; Failed = below passing mark
 		</div>
 		{qr_html}
+	</div>
+	<div style="padding:12px 28px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin:12px 20px">
+		<strong style="color:#1e293b">Admin Comment:</strong><br>
+		<span style="color:#475569">{doc.admin_comment or 'No admin comment'}</span>
 	</div>
 	<div style="padding:16px 28px;display:flex;justify-content:space-between">
 		<div style="text-align:center;width:28%">
@@ -403,7 +407,8 @@ def fetch_results(report_name):
 					"percentage": None,
 					"grade": "",
 					"status": "",
-					"remarks": ""
+					"remarks": "",
+					"teacher_comment": ""
 				})
 				continue
 
@@ -412,7 +417,7 @@ def fetch_results(report_name):
 			score = frappe.db.get_value(
 				"Exam Schedule Item",
 				{"parent": sched.name, "student_admission_no": student.name},
-				["marks_obtained", "grade", "status"],
+				["marks_obtained", "grade", "status", "teacher_comment"],
 				as_dict=1
 			)
 
@@ -432,7 +437,8 @@ def fetch_results(report_name):
 				"percentage": pct,
 				"grade": grade,
 				"status": status,
-				"remarks": ""
+				"remarks": "",
+				"teacher_comment": score.teacher_comment if score and score.teacher_comment else ""
 			})
 
 	return {

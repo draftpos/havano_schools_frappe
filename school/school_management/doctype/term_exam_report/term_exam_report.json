@@ -1,181 +1,194 @@
 {
-    "actions": [],
-    "allow_import": 0,
-    "allow_rename": 1,
-    "autoname": "field:report_name",
-    "creation": "2024-01-01",
-    "doctype": "DocType",
-    "editable_grid": 1,
-    "engine": "InnoDB",
-    "is_submittable": 1,
-    "field_order": [
-        "report_section",
-        "report_name",
-        "academic_year",
-        "term",
-        "student_class",
-        "section",
-        "cost_center",
-        "report_date",
-        "opening_date",
-        "column_break_term",
-        "total_subjects",
-        "total_students",
-        "fetch_results",
-        "results_section",
-        "term_exam_results"
-    ],
-    "fields": [
-        {
-            "fieldname": "report_section",
-            "fieldtype": "Section Break",
-            "label": "Term Exam Report"
-        },
-        {
-            "fieldname": "report_name",
-            "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Report Name",
-            "reqd": 1
-        },
-        {
-            "fieldname": "academic_year",
-            "fieldtype": "Link",
-            "label": "Academic Year",
-            "options": "Academic Year",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "term",
-            "fieldtype": "Link",
-            "label": "Term",
-            "options": "Term",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "student_class",
-            "fieldtype": "Link",
-            "label": "Class",
-            "options": "Student Class",
-            "reqd": 1,
-            "in_list_view": 1
-        },
-        {
-            "fieldname": "section",
-            "fieldtype": "Link",
-            "label": "Section",
-            "options": "Section"
-        },
-        {
-            "fieldname": "cost_center",
-            "fieldtype": "Link",
-            "label": "School",
-            "options": "Cost Center"
-        },
-        {
-            "fieldname": "report_date",
-            "fieldtype": "Date",
-            "label": "Report Date",
-            "reqd": 1,
-            "default": "Today"
-        },
-        {
-            "fieldname": "opening_date",
-            "fieldtype": "Date",
-            "label": "School Opening Date (Optional)"
-        },
-        {
-            "fieldname": "column_break_term",
-            "fieldtype": "Column Break"
-        },
-        {
-            "fieldname": "total_subjects",
-            "fieldtype": "Int",
-            "label": "Total Subjects",
-            "read_only": 1
-        },
-        {
-            "fieldname": "total_students",
-            "fieldtype": "Int",
-            "label": "Total Students",
-            "read_only": 1
-        },
-        {
-            "fieldname": "fetch_results",
-            "fieldtype": "Button",
-            "label": "Fetch Results"
-        },
-        {
-            "fieldname": "results_section",
-            "fieldtype": "Section Break",
-            "label": "Exam Results"
-        },
-        {
-            "fieldname": "term_exam_results",
-            "fieldtype": "Table",
-            "label": "Term Exam Results",
-            "options": "Term Exam Result Item",
-            "read_only": 0
-        }
-    ],
-    "index_web_pages_for_search": 1,
-    "links": [],
-    "modified": "2026-04-13",
-    "module": "School Management",
-    "name": "Term Exam Report",
-    "naming_rule": "By \"field:report_name\"",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "create": 1,
-            "delete": 1,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "System Manager",
-            "share": 1,
-            "submit": 1,
-            "amend": 1,
-            "cancel": 1,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 0,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "School User",
-            "share": 1,
-            "submit": 1,
-            "amend": 0,
-            "cancel": 0,
-            "write": 1
-        },
-        {
-            "create": 1,
-            "delete": 0,
-            "email": 1,
-            "export": 1,
-            "print": 1,
-            "read": 1,
-            "report": 1,
-            "role": "School Administrator",
-            "share": 1,
-            "submit": 1,
-            "amend": 0,
-            "cancel": 0,
-            "write": 1
-        }
-    ],
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": [],
-    "title_field": "report_name"
+ "actions": [],
+ "allow_import": 0,
+ "allow_rename": 1,
+ "autoname": "field:report_name",
+ "creation": "2024-01-01",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "is_submittable": 1,
+ "field_order": [
+  "report_section",
+  "report_name",
+  "academic_year",
+  "term",
+  "student_class",
+  "section",
+  "cost_center",
+  "report_date",
+  "opening_date",
+  "column_break_term",
+  "total_subjects",
+  "total_students",
+  "fetch_results",
+  "results_section",
+  "term_exam_results",
+  "admin_comment_section"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_section",
+   "fieldtype": "Section Break",
+   "label": "Term Exam Report"
+  },
+  {
+   "fieldname": "report_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Report Name",
+   "reqd": 1
+  },
+  {
+   "fieldname": "academic_year",
+   "fieldtype": "Link",
+   "label": "Academic Year",
+   "options": "Academic Year",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "term",
+   "fieldtype": "Link",
+   "label": "Term",
+   "options": "Term",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "student_class",
+   "fieldtype": "Link",
+   "label": "Class",
+   "options": "Student Class",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section",
+   "fieldtype": "Link",
+   "label": "Section",
+   "options": "Section"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "label": "School",
+   "options": "Cost Center"
+  },
+  {
+   "fieldname": "report_date",
+   "fieldtype": "Date",
+   "label": "Report Date",
+   "reqd": 1,
+   "default": "Today"
+  },
+  {
+   "fieldname": "opening_date",
+   "fieldtype": "Date",
+   "label": "School Opening Date (Optional)"
+  },
+  {
+   "fieldname": "column_break_term",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_subjects",
+   "fieldtype": "Int",
+   "label": "Total Subjects",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_students",
+   "fieldtype": "Int",
+   "label": "Total Students",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fetch_results",
+   "fieldtype": "Button",
+   "label": "Fetch Results"
+  },
+  {
+   "fieldname": "results_section",
+   "fieldtype": "Section Break",
+   "label": "Exam Results"
+  },
+  {
+   "fieldname": "term_exam_results",
+   "fieldtype": "Table",
+   "label": "Term Exam Results",
+   "options": "Term Exam Result Item",
+   "read_only": 0
+  },
+  {
+   "fieldname": "admin_comment_section",
+   "fieldtype": "Section Break",
+   "label": "Admin Comment",
+   "collapsible": 1
+  },
+  {
+   "fieldname": "admin_comment",
+   "fieldtype": "Small Text",
+   "label": "Overall Admin Comment",
+   "description": "Optional overall comment from administration for this report. Will be included in printed/email reports."
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-04-13",
+ "module": "School Management",
+ "name": "Term Exam Report",
+ "naming_rule": "By \"field:report_name\"",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "submit": 1,
+   "amend": 1,
+   "cancel": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School User",
+   "share": 1,
+   "submit": 1,
+   "amend": 0,
+   "cancel": 0,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 0,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School Administrator",
+   "share": 1,
+   "submit": 1,
+   "amend": 0,
+   "cancel": 0,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "report_name"
 }
