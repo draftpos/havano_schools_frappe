@@ -15,6 +15,11 @@ frappe.ui.form.on("Receipting", {
                 }
             };
         });
+        if (frm.doc.docstatus == 1) {
+            frm.clear_table("invoice");
+            frm.refresh_field("invoice");
+            frappe.msgprint("Receipt submitted. Invoices cleared from view. Check Payment Entry: " + (frm.doc.name || ""));
+        }
     },
 
     onload: function(frm) {

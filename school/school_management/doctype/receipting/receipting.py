@@ -86,6 +86,14 @@ class Receipting(Document):
                     "outstanding_amount": new_outstanding,
                     "status": new_status
                 })
+                if new_outstanding <= 0:
+                    try:
+                        si_doc = frappe.get_doc("Sales Invoice", row.invoice_number)
+                        si_doc.cancel()
+                        frappe.msgprint(f"Sales Invoice {row.invoice_number} cancelled as fully paid.")
+                    except Exception as e:
+                        frappe.log_error(f"Failed to cancel SI {row.invoice_number}: {str(e)}")
+
 
         # Handle opening balance payments
         for row in self.invoice:
