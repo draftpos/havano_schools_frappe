@@ -24,49 +24,38 @@ class Student(Document):
                     f"Student Type must be one of: {', '.join(options)}. Got: {self.student_type}"
                 )
 
-        # Ensure password doesn't match registration number
-        if self.portal_password and self.student_reg_no and self.portal_password == self.student_reg_no:
-            frappe.throw("Portal Password cannot be the same as the Student Registration Number for security reasons.")
-
     def before_save(self):
-        """Before save - set full name and other prep logic"""
-        # (Dummy email generation removed as per manual password requirement)
-        pass
-
-    def autoname(self):
-        """Autoname - generate registration number based on school/cost center"""
-        self.name = self.generate_reg_no()
-        self.student_reg_no = self.name
+        """Before save - generate dummy email if needed"""
+        settings = frappe.get_single("School Settings")
+        if settings.allow_non_strict_email and self.create_user and not self.portal_email:
+            name_part = (
+                self.full_name.lower().replace(" ", ".") if self.full_name else self.name
+            )
+            self.portal_email = f"{name_part}@dummy.school"
+            frappe.msgprint(
+                f"Dummy portal email generated: {self.portal_email}", indicator="blue"
+            )
 
     def generate_reg_no(self):
         school_name = self.school or ""
-        # Improved prefix: First word + first letter of other words
-        # Example: "Greenwood Primary School" -> "GREENWOODPS"
-        words = school_name.replace("-", " ").split()
-        if not words:
-            prefix = "STU"
-        else:
-            first_word = "".join([c for c in words[0] if c.isalnum()]).upper()
-            others = "".join([w[0].upper() for w in words[1:] if w and w[0].isalnum()])
-            prefix = first_word + others
-        
+        prefix_raw = school_name.split(" - ")[0].strip()
+        prefix = "".join([c for c in prefix_raw if c.isalnum()]).upper()
         if not prefix:
             prefix = "STU"
 
-        # Find the next sequence number for this specific prefix
         last = frappe.db.sql(
             """
-            SELECT name FROM `tabStudent`
-            WHERE name LIKE %s
-            ORDER BY CAST(SUBSTRING(name, %s) AS UNSIGNED) DESC
+            SELECT student_reg_no FROM `tabStudent`
+            WHERE student_reg_no REGEXP %s
+            ORDER BY CAST(SUBSTRING(student_reg_no, %s) AS UNSIGNED) DESC
             LIMIT 1
             """,
-            (prefix + "%", len(prefix) + 1),
+            ("^" + prefix + "[0-9]{5}$", len(prefix) + 1),
             as_dict=True,
         )
 
-        if last and last[0].name:
-            last_no = last[0].name
+        if last and last[0].student_reg_no:
+            last_no = last[0].student_reg_no
             num_part = last_no[len(prefix):]
             try:
                 next_num = int(num_part) + 1
@@ -78,7 +67,12 @@ class Student(Document):
         return "{}{:05d}".format(prefix, next_num)
 
     def after_insert(self):
-        """After insert - complete initialization"""
+        """After insert - generate registration number if not set"""
+        if not self.student_reg_no and self.school:
+            reg_no = self.generate_reg_no()
+            frappe.db.set_value("Student", self.name, "student_reg_no", reg_no)
+            self.student_reg_no = reg_no
+
         self._create_all_users_and_records()
 
     def on_update(self):
@@ -203,9 +197,9 @@ class Student(Document):
     # ------------------------------------------------------------------
 
     def create_student_portal_user(self):
-        """Create portal user for student using manual password"""
-        if not self.portal_email or not self.portal_password:
-            frappe.throw("Both Portal Email and Portal Password are required to create a user.")
+        """Create portal user for student"""
+        settings = frappe.get_single("School Settings")
+        has_password = hasattr(self, "portal_password") and self.portal_password
 
         try:
             user, is_new = self._get_or_create_user(
@@ -214,38 +208,37 @@ class Student(Document):
                 "Student Portal",
             )
 
-            # Set password via the same code-path as User Settings → Change Password
-            self._force_set_password(self.portal_email, self.portal_password)
-
-            # Send manual portal credentials email
-            try:
+            if settings.allow_non_strict_email and has_password:
+                # Set password via the same code-path as User Settings → Change Password
+                self._force_set_password(self.portal_email, self.portal_password)
+                frappe.msgprint(
+                    f"✅ Student user {self.portal_email} "
+                    f"{'created' if is_new else 'updated'} — can log in now.",
+                    indicator="green",
+                    alert=True,
+                )
+            else:
+                # No password supplied — send a reset / welcome link
+                reset_key = user.reset_password()
                 frappe.sendmail(
                     recipients=[self.portal_email],
                     subject="Your School Portal Access",
                     message=(
                         f"<p>Dear {self.full_name or self.first_name},</p>"
-                        f"<p>Your portal account has been {'created' if is_new else 'updated'}.</p>"
-                        f"<p><b>Username:</b> {self.portal_email}</p>"
-                        f"<p><b>Password:</b> {self.portal_password}</p>"
-                        f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
-                        f"{frappe.utils.get_url('/portal-login')}</a></p>"
+                        f"<p>Your student portal account has been created.</p>"
+                        f"<p>Email: {self.portal_email}</p>"
+                        f"<p>Click below to set your password and log in:</p>"
+                        f"<p><a href=\"{frappe.utils.get_url()}"
+                        f"/update-password?key={reset_key}\">"
+                        f"Set Password &amp; Login</a></p>"
                         f"<p>Regards,<br>School Administration</p>"
                     ),
                 )
-            except Exception as e:
                 frappe.msgprint(
-                    f"⚠️ Credentials email could not be sent (Network/Auth error). "
-                    f"However, the portal user has been {'created' if is_new else 'updated'} locally.",
-                    indicator="orange",
-                    alert=True
+                    f"✅ Student user {self.portal_email} created. Invitation email sent.",
+                    indicator="green",
+                    alert=True,
                 )
-
-            frappe.msgprint(
-                f"✅ Student portal user {self.portal_email} "
-                f"{'created' if is_new else 'updated'} with manual password. Credentials email sent.",
-                indicator="green",
-                alert=True,
-            )
 
             self._assign_cost_center_permission(self.portal_email)
 

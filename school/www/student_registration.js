@@ -13,23 +13,11 @@ frappe.ready(function() {
 
     if (schoolSelect) {
         schoolSelect.addEventListener('change', function() {
-            const selectedSchool = this.value;
-
-            if (classSelect) {
-                classSelect.innerHTML = '<option value="">Select class</option>';
-                classSelect.disabled = true;
-                classSelect.value = '';
-            }
-
-            if (selectedSchool) {
-                loadClassesBySchool(selectedSchool);
-            } else {
-                if (classSelect) {
-                    classSelect.innerHTML = '<option value="">Select school first</option>';
-                    classSelect.disabled = true;
-                }
-            }
+            loadClassesBySchool(this.value);
         });
+
+        // Initial load
+        loadClassesBySchool(schoolSelect.value);
     }
 
     document.querySelectorAll('input, select').forEach(function(field) {
@@ -50,19 +38,27 @@ async function frappePost(method, params) {
         body.append(key, val);
     }
 
+    // Try to get CSRF token if available globally
+    const csrfToken = window.csrf_token || 'fetch';
+
     const response = await fetch('/api/method/' + method, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Accept': 'application/json',
-            'X-Frappe-CSRF-Token': 'fetch'
+            'X-Frappe-CSRF-Token': csrfToken
         },
         body: body.toString()
     });
 
     if (!response.ok) {
         let errText = '';
-        try { errText = await response.text(); } catch(e) {}
+        try { 
+            const errJson = await response.json();
+            errText = errJson.message || errJson.exc || 'Unknown error';
+        } catch(e) {
+            try { errText = await response.text(); } catch(e2) {}
+        }
         throw new Error('Server error ' + response.status + (errText ? ': ' + errText : ''));
     }
 
@@ -75,29 +71,30 @@ async function frappePost(method, params) {
 async function loadClassesBySchool(school) {
     const classSelect = document.getElementById('student_class');
 
-    if (!classSelect || !school) {
-        if (classSelect) {
-            classSelect.innerHTML = '<option value="">Select school first</option>';
-            classSelect.disabled = true;
-        }
-        return;
-    }
+    if (!classSelect) return;
 
     classSelect.innerHTML = '<option value="">Loading classes\u2026</option>';
     classSelect.disabled = true;
 
     try {
-        const r = await frappePost(
-            'school.www.student_registration.get_classes_by_school',
-            { school: school }
-        );
+        const method = school 
+            ? 'school.www.student_registration.get_classes_by_school' 
+            : 'school.www.student_registration.get_all_student_classes';
+        const params = school ? { school: school } : {};
+
+        let r = await frappePost(method, params);
+
+        if (!(r.message && r.message.length > 0) && school) {
+            // Fallback to all classes if school-specific search yields nothing
+            r = await frappePost('school.www.student_registration.get_all_student_classes', {});
+        }
 
         if (r.message && r.message.length > 0) {
             classSelect.innerHTML = '<option value="">Select class</option>';
             r.message.forEach(function(cls) {
                 const option = document.createElement('option');
                 option.value = cls.name;
-                option.textContent = cls.name;
+                option.textContent = cls.class_name || cls.name;
                 classSelect.appendChild(option);
             });
             classSelect.disabled = false;
@@ -138,7 +135,7 @@ function getFieldValue(fieldId) {
 // Validation
 // ---------------------------------------------------------------------------
 function validateForm() {
-    const requiredFields = ['school', 'first_name', 'last_name', 'student_type'];
+    const requiredFields = ['school', 'first_name', 'last_name', 'student_type', 'portal_email', 'portal_password'];
 
     const classSelect = document.getElementById('student_class');
     if (classSelect && !classSelect.disabled) {
@@ -313,6 +310,15 @@ async function submitRegistration() {
         previous_school_details:         getFieldValue('previous_school_details'),
         medical_history:                 getFieldValue('medical_history'),
         portal_email:                    getFieldValue('portal_email'),
+        portal_password:                 getFieldValue('portal_password'),
+        student_category:                getFieldValue('student_category'),
+        house:                           getFieldValue('house'),
+        has_opening_balance:             getFieldValue('has_opening_balance'),
+        opening_balance:                 getFieldValue('opening_balance'),
+        opening_balance_date:            getFieldValue('opening_balance_date'),
+        paying_admin_fee:                getFieldValue('paying_admin_fee'),
+        admin_fee_paid:                  getFieldValue('admin_fee_paid'),
+        admin_fees_structure:            getFieldValue('admin_fees_structure'),
         father_name:                     getFieldValue('father_name'),
         mother_name:                     getFieldValue('mother_name'),
         phone_number:                    getFieldValue('phone_number'),
@@ -328,8 +334,16 @@ async function submitRegistration() {
         guardian_email:                  getFieldValue('guardian_email'),
         guardian_occupation:             getFieldValue('guardian_occupation'),
         guardian_address:                getFieldValue('guardian_address'),
+        if_guardian_address_is_current_address: document.getElementById('if_guardian_address_is_current_address')?.checked ? 1 : 0,
         current_address:                 getFieldValue('current_address'),
+        if_permanent_address_is_current_address: document.getElementById('if_permanent_address_is_current_address')?.checked ? 1 : 0,
         permanent_address:               getFieldValue('permanent_address'),
+        category_1:                      getFieldValue('category_1'),
+        category_2:                      getFieldValue('category_2'),
+        category_3:                      getFieldValue('category_3'),
+        area:                            getFieldValue('area'),
+        territory:                       getFieldValue('territory'),
+        fees_category:                   getFieldValue('fees_category'),
         account:                         getFieldValue('account'),
         payment_method:                  getFieldValue('payment_method')
     };

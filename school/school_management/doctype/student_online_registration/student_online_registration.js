@@ -3,26 +3,48 @@ frappe.ui.form.on('Student Online Registration', {
         // Show approve/reject buttons for pending registrations
         if (frm.doc.enrollment_status === 'Pending') {
             frm.add_custom_button(__('Approve'), function() {
-                frappe.prompt([
-                    {
-                        fieldname: 'section',
-                        label: 'Select Section',
-                        fieldtype: 'Link',
-                        options: 'Section',
-                        reqd: 1,
-                        get_query: function() {
-                            return {
-                                filters: {
-                                    'cost_center': frm.doc.school
+                // Check if school has sections
+                frappe.call({
+                    method: 'frappe.client.get_count',
+                    args: {
+                        doctype: 'Section',
+                        filters: { 'cost_center': frm.doc.school }
+                    },
+                    callback: function(r) {
+                        var hasSchoolSections = r.message > 0;
+                        
+                        frappe.prompt([
+                            {
+                                fieldname: 'assign_section',
+                                label: __('Assign Section?'),
+                                fieldtype: 'Check',
+                                default: 1
+                            },
+                            {
+                                fieldname: 'section',
+                                label: __('Select Section'),
+                                fieldtype: 'Link',
+                                options: 'Section',
+                                mandatory_depends_on: 'eval:doc.assign_section==1',
+                                depends_on: 'eval:doc.assign_section==1',
+                                get_query: function() {
+                                    if (hasSchoolSections) {
+                                        return { filters: { 'cost_center': frm.doc.school } };
+                                    }
+                                    return {}; // Show all if none for this school
                                 }
-                            };
-                        }
+                            }
+                        ], function(values) {
+                            if (values.assign_section && !values.section) {
+                                frappe.msgprint(__('Please select a section or uncheck "Assign Section?" to continue.'));
+                                return;
+                            }
+                            frm.set_value('approved_section', values.section || '');
+                            frm.set_value('enrollment_status', 'Approved');
+                            frm.save();
+                        }, __('Approve Registration'), __('Approve'));
                     }
-                ], function(values) {
-                    frm.set_value('approved_section', values.section);
-                    frm.set_value('enrollment_status', 'Approved');
-                    frm.save();
-                }, __('Approve Registration'), __('Approve'));
+                });
             });
             
             frm.add_custom_button(__('Reject'), function() {

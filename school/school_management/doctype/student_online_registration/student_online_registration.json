@@ -59,6 +59,27 @@
         "payment_method",
         "enrollment_details_section",
         "enrollment_status",
+        "student_category",
+        "house",
+        "has_opening_balance",
+        "opening_balance",
+        "cost_center",
+        "opening_balance_date",
+        "paying_admin_fee",
+        "admin_fee_paid",
+        "admin_fees_structure",
+        "father_photo",
+        "mother_photo",
+        "guardian_photo",
+        "if_guardian_address_is_current_address",
+        "if_permanent_address_is_current_address",
+        "category_1",
+        "category_2",
+        "category_3",
+        "area",
+        "territory",
+        "fees_category",
+        "portal_password",
         "approval_remarks",
         "student_created",
         "created_student"
@@ -363,6 +384,121 @@
         {
             "fieldname": "column_break_ozss",
             "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "student_category",
+            "fieldtype": "Link",
+            "label": "Student Category",
+            "options": "Customer Group"
+        },
+        {
+            "fieldname": "house",
+            "fieldtype": "Link",
+            "label": "House",
+            "options": "House"
+        },
+        {
+            "fieldname": "has_opening_balance",
+            "fieldtype": "Check",
+            "label": "Has Opening Balance"
+        },
+        {
+            "fieldname": "opening_balance",
+            "fieldtype": "Currency",
+            "label": "Opening Balance"
+        },
+        {
+            "fieldname": "cost_center",
+            "fieldtype": "Link",
+            "label": "Cost Center",
+            "options": "Cost Center"
+        },
+        {
+            "fieldname": "opening_balance_date",
+            "fieldtype": "Date",
+            "label": "Opening Balance Date"
+        },
+        {
+            "fieldname": "paying_admin_fee",
+            "fieldtype": "Check",
+            "label": "Paying Admin Fee"
+        },
+        {
+            "fieldname": "admin_fee_paid",
+            "fieldtype": "Check",
+            "label": "Admin Fee Paid"
+        },
+        {
+            "fieldname": "admin_fees_structure",
+            "fieldtype": "Link",
+            "label": "Admin Fees Structure",
+            "options": "Fees Structure"
+        },
+        {
+            "fieldname": "father_photo",
+            "fieldtype": "Attach Image",
+            "label": "Father Photo"
+        },
+        {
+            "fieldname": "mother_photo",
+            "fieldtype": "Attach Image",
+            "label": "Mother Photo"
+        },
+        {
+            "fieldname": "guardian_photo",
+            "fieldtype": "Attach Image",
+            "label": "Guardian Photo"
+        },
+        {
+            "fieldname": "if_guardian_address_is_current_address",
+            "fieldtype": "Check",
+            "label": "If Guardian Address Is Current Address"
+        },
+        {
+            "fieldname": "if_permanent_address_is_current_address",
+            "fieldtype": "Check",
+            "label": "If Permanent Address Is Current Address"
+        },
+        {
+            "fieldname": "category_1",
+            "fieldtype": "Link",
+            "label": "Category 1",
+            "options": "Category 1"
+        },
+        {
+            "fieldname": "category_2",
+            "fieldtype": "Link",
+            "label": "Category 2",
+            "options": "Category 2"
+        },
+        {
+            "fieldname": "category_3",
+            "fieldtype": "Link",
+            "label": "Category 3",
+            "options": "Category 3"
+        },
+        {
+            "fieldname": "area",
+            "fieldtype": "Link",
+            "label": "Area",
+            "options": "Area"
+        },
+        {
+            "fieldname": "territory",
+            "fieldtype": "Link",
+            "label": "Territory",
+            "options": "Territory"
+        },
+        {
+            "fieldname": "fees_category",
+            "fieldtype": "Link",
+            "label": "Fees Category",
+            "options": "Fees Category"
+        },
+        {
+            "fieldname": "portal_password",
+            "fieldtype": "Password",
+            "label": "Portal Password"
         }
     ],
     "grid_page_length": 50,

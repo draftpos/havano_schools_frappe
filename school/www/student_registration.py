@@ -35,6 +35,27 @@ def get_context(context):
         religions = [{"name": "Christianity"}, {"name": "Islam"}, {"name": "Other"}]
     context.religions = religions
 
+    # Get student categories (Customer Groups)
+    context.student_categories = frappe.get_all("Customer Group", fields=["name"])
+
+    # Get houses
+    context.houses = frappe.get_all("House", fields=["name"])
+
+    # Get fees structures
+    context.fees_structures = frappe.get_all("Fees Structure", fields=["name"])
+
+    # Get categories 1, 2, 3
+    context.categories_1 = frappe.get_all("Category 1", fields=["name"])
+    context.categories_2 = frappe.get_all("Category 2", fields=["name"])
+    context.categories_3 = frappe.get_all("Category 3", fields=["name"])
+
+    # Get area and territory
+    context.areas = frappe.get_all("Area", fields=["name"])
+    context.territories = frappe.get_all("Territory", fields=["name"])
+
+    # Get fees category
+    context.fees_categories = frappe.get_all("Fees Category", fields=["name"])
+
     # Get payment accounts with fallback
     payment_accounts = frappe.get_all(
         "Account",
@@ -213,6 +234,16 @@ def submit_registration(data):
         "previous_school_details": data.get("previous_school_details"),
         "medical_history": data.get("medical_history"),
         "portal_email": data.get("portal_email"),
+        "portal_password": data.get("portal_password"),
+        "student_category": data.get("student_category"),
+        "house": data.get("house"),
+        "has_opening_balance": data.get("has_opening_balance"),
+        "opening_balance": data.get("opening_balance"),
+        "cost_center": data.get("cost_center"),
+        "opening_balance_date": data.get("opening_balance_date"),
+        "paying_admin_fee": data.get("paying_admin_fee"),
+        "admin_fee_paid": data.get("admin_fee_paid"),
+        "admin_fees_structure": data.get("admin_fees_structure"),
         "father_name": data.get("father_name"),
         "mother_name": data.get("mother_name"),
         "phone_number": data.get("phone_number"),
@@ -228,8 +259,16 @@ def submit_registration(data):
         "guardian_email": data.get("guardian_email"),
         "guardian_occupation": data.get("guardian_occupation"),
         "guardian_address": data.get("guardian_address"),
+        "if_guardian_address_is_current_address": data.get("if_guardian_address_is_current_address"),
         "current_address": data.get("current_address"),
+        "if_permanent_address_is_current_address": data.get("if_permanent_address_is_current_address"),
         "permanent_address": data.get("permanent_address"),
+        "category_1": data.get("category_1"),
+        "category_2": data.get("category_2"),
+        "category_3": data.get("category_3"),
+        "area": data.get("area"),
+        "territory": data.get("territory"),
+        "fees_category": data.get("fees_category"),
         "account": data.get("account"),
         "payment_method": data.get("payment_method"),
         "enrollment_status": "Pending"
