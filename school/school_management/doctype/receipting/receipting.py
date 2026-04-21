@@ -30,6 +30,7 @@ class Receipting(Document):
         if existing:
             frappe.msgprint('Payment Entry already exists for this receipt. Skipping.')
             return
+
         student_full_name = frappe.db.get_value("Student", self.student_name, "full_name")
         company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
         company_currency = frappe.db.get_value("Company", company, "default_currency")
@@ -55,7 +56,10 @@ class Receipting(Document):
         pe.target_exchange_rate = 1
         pe.base_paid_amount = self.total_allocated
         pe.base_received_amount = self.total_allocated
+        pe.reference_no = self.name
+        pe.reference_date = self.date or today()
 
+        total_allocated_in_refs = 0
         for row in self.invoice:
             if row.invoice_number and flt(row.allocated) > 0:
                 actual_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount")
@@ -64,16 +68,40 @@ class Receipting(Document):
                     pe.append("references", {
                         "reference_doctype": "Sales Invoice",
                         "reference_name": row.invoice_number,
-                        "allocated_amount": allocated
+                        "allocated_amount": allocated,
+                        "due_date": frappe.db.get_value("Sales Invoice", row.invoice_number, "due_date"),
+                        "total_amount": frappe.db.get_value("Sales Invoice", row.invoice_number, "grand_total"),
+                        "outstanding_amount": actual_outstanding,
                     })
+                    total_allocated_in_refs += allocated
 
+        # Ensure difference/unallocated amounts are zero so GL posts cleanly
+        pe.total_allocated_amount = total_allocated_in_refs
+        pe.unallocated_amount = 0
+        pe.write_off_amount = 0
+        pe.difference_amount = 0
+
+        # Insert without skipping validate so set_missing_values runs properly
         pe.flags.ignore_permissions = True
-        pe.flags.ignore_validate = True
         pe.flags.ignore_mandatory = True
         pe.insert(ignore_permissions=True)
-        pe.flags.ignore_validate = True
+
+        # Recalculate after insert
+        pe.run_method("set_missing_values")
+        pe.run_method("set_amounts")
+
+        # Force amounts clean before submit
+        pe.unallocated_amount = 0
+        pe.write_off_amount = 0
+        pe.difference_amount = 0
+
+        # Submit WITHOUT ignore_validate — this is critical for GL entries to post
+        pe.flags.ignore_permissions = True
         pe.flags.ignore_mandatory = True
-        pe.db_set("docstatus", 1)
+        pe.submit()
+        frappe.db.commit()
+
+        frappe.msgprint(f"Payment Entry {pe.name} created and GL entries posted successfully.")
 
         # Update invoice outstanding amounts directly
         for row in self.invoice:
@@ -93,7 +121,6 @@ class Receipting(Document):
                         frappe.msgprint(f"Sales Invoice {row.invoice_number} cancelled as fully paid.")
                     except Exception as e:
                         frappe.log_error(f"Failed to cancel SI {row.invoice_number}: {str(e)}")
-
 
         # Handle opening balance payments
         for row in self.invoice:
