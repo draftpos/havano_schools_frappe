@@ -190,6 +190,12 @@ class Student(Document):
     # Student portal user
     # ------------------------------------------------------------------
 
+
+
+    # ------------------------------------------------------------------
+    # Student portal user
+    # ------------------------------------------------------------------
+
     def create_student_portal_user(self):
         """Create portal user for student using manual password"""
         if not self.portal_email or not self.portal_password:

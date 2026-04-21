@@ -114,3 +114,10 @@ class Teacher(Document):
                 title=f"Teacher portal user creation failed for {self.portal_email}",
                 message=frappe.get_traceback()
             )
+
+    def validate(self):
+
+
+
+
+

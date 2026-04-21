@@ -28,8 +28,6 @@ frappe.ui.form.on('Student', {
                 }
             }
         });
-    },
-
     after_save: function(frm) {
         if (frm.doc.create_user && frm.doc.portal_email) {
             frappe.msgprint({
