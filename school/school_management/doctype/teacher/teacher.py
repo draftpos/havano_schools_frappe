@@ -13,11 +13,11 @@ class Teacher(Document):
             frappe.throw("Portal Password cannot be the same as your Teacher ID for security reasons.")
 
     def after_insert(self):
-        if self.create_user and self.portal_email:
+        if self.portal_email:
             self.create_teacher_user()
 
     def on_update(self):
-        if self.create_user and self.portal_email:
+        if (self.has_value_changed("portal_email") or self.has_value_changed("portal_password")) and self.portal_email:
             self.create_teacher_user()
 
     def _force_set_password(self, email, password):
@@ -43,7 +43,7 @@ class Teacher(Document):
         frappe.db.commit()
 
     def create_teacher_user(self):
-        if not self.create_user or not self.portal_email or not self.portal_password:
+        if not self.portal_email or not self.portal_password:
             return
 
         try:
@@ -86,7 +86,8 @@ class Teacher(Document):
                     subject="Your Teacher Portal Access",
                     message=(
                         f"<p>Dear {self.full_name},</p>"
-                        f"<p>Your portal account has been {'created' if is_new else 'updated'}.</p>"
+                        f"<p>Your teacher portal account has been {'created' if is_new else 'updated'}.</p>"
+                        f"<hr>"
                         f"<p><b>Username:</b> {self.portal_email}</p>"
                         f"<p><b>Password:</b> {self.portal_password}</p>"
                         f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"

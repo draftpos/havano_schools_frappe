@@ -51,7 +51,6 @@
         "father_photo",
         "mother_photo",
         "create_user_section",
-        "create_user",
         "portal_email",
         "portal_password",
         "column_break_jxle",
@@ -674,12 +673,6 @@
             "fieldname": "create_user_section",
             "fieldtype": "Section Break",
             "label": "Portal Access"
-        },
-        {
-            "default": "1",
-            "fieldname": "create_user",
-            "fieldtype": "Check",
-            "label": "Create Portal User"
         },
         {
             "fieldname": "portal_email",

@@ -86,18 +86,14 @@ class Student(Document):
         if self.flags.get("ignore_on_update"):
             return
 
-        user_fields_changed = self.has_value_changed(
-            "create_user"
-        ) or self.has_value_changed("portal_email")
+        user_fields_changed = self.has_value_changed("portal_email") or self.has_value_changed("portal_password")
 
         self.create_customer()
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if user_fields_changed and self.create_user:
-            if not self.portal_email:
-                frappe.throw("Please enter Portal Email address before saving.")
+        if user_fields_changed and self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
 
@@ -108,17 +104,9 @@ class Student(Document):
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if self.create_user:
-            if not self.portal_email:
-                frappe.throw("Please enter Portal Email address before saving.")
+        if self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
-        else:
-            frappe.msgprint(
-                "Create Portal User is not checked. No user will be created.",
-                indicator="orange",
-                alert=True,
-            )
 
     # ------------------------------------------------------------------
     # Core helper: create or update a Frappe Website User
@@ -225,6 +213,9 @@ class Student(Document):
                     message=(
                         f"<p>Dear {self.full_name or self.first_name},</p>"
                         f"<p>Your portal account has been {'created' if is_new else 'updated'}.</p>"
+                        f"<p><b>School:</b> {self.school or 'N/A'}</p>"
+                        f"<p><b>Class:</b> {self.student_class or 'N/A'}{' - Section ' + self.section if self.section else ''}</p>"
+                        f"<hr>"
                         f"<p><b>Username:</b> {self.portal_email}</p>"
                         f"<p><b>Password:</b> {self.portal_password}</p>"
                         f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
@@ -327,29 +318,35 @@ class Student(Document):
                         alert=True,
                     )
 
-                # Parents always receive a reset link (no stored password)
+                # Parents now use the same manual password as the student
                 user, is_new = self._get_or_create_user(
                     entry["email"], entry["full_name"], entry["role"]
                 )
 
-                if is_new:
-                    reset_key = user.reset_password()
+                # Force sync password to match the student's
+                if self.portal_password:
+                    self._force_set_password(entry["email"], self.portal_password)
+
+                # Send credentials email (on create or if password might have changed)
+                if is_new or self.has_value_changed("portal_password"):
                     frappe.sendmail(
                         recipients=[entry["email"]],
-                        subject="Your School Portal Access",
+                        subject="Your Parent Portal Access",
                         message=(
                             f"<p>Dear {entry['full_name']},</p>"
-                            f"<p>A portal account has been created for you.</p>"
-                            f"<p>Email: {entry['email']}</p>"
-                            f"<p>Click below to set your password:</p>"
-                            f"<p><a href=\"{frappe.utils.get_url()}"
-                            f"/update-password?key={reset_key}\">"
-                            f"Set Password &amp; Login</a></p>"
+                            f"<p>A parent portal account has been {'created' if is_new else 'updated'} for you.</p>"
+                            f"<p><b>Student:</b> {self.full_name or self.first_name}</p>"
+                            f"<p><b>School:</b> {self.school or 'N/A'}</p>"
+                            f"<hr>"
+                            f"<p><b>Username:</b> {entry['email']}</p>"
+                            f"<p><b>Password:</b> {self.portal_password}</p>"
+                            f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
+                            f"{frappe.utils.get_url('/portal-login')}</a></p>"
                             f"<p>Regards,<br>School Administration</p>"
                         ),
                     )
                     frappe.msgprint(
-                        f"✅ Parent user {entry['email']} created. Invitation sent.",
+                        f"✅ Parent user {entry['email']} synced. Credentials email sent.",
                         indicator="green",
                         alert=True,
                     )
