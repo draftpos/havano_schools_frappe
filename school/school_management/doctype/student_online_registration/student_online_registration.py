@@ -143,7 +143,7 @@ class StudentOnlineRegistration(Document):
             existing_student = frappe.db.exists("Student", {
                 "first_name": self.first_name,
                 "last_name": self.last_name,
-                "student_email": self.portal_email
+                "portal_email": self.portal_email
             })
             
             if existing_student:

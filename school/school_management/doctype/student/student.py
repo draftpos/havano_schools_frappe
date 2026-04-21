@@ -86,14 +86,14 @@ class Student(Document):
         if self.flags.get("ignore_on_update"):
             return
 
-        user_fields_changed = self.has_value_changed("portal_email") or self.has_value_changed("portal_password")
+        user_fields_changed = self.has_value_changed("portal_email") or self.has_value_changed("portal_password") or self.has_value_changed("create_user")
 
         self.create_customer()
         self.create_opening_balance_entry()
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if user_fields_changed and self.portal_email:
+        if user_fields_changed and self.create_user and self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
 
@@ -104,7 +104,7 @@ class Student(Document):
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if self.portal_email:
+        if self.create_user and self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
 
@@ -185,12 +185,6 @@ class Student(Document):
         # Step 3 — flush so the __Auth row is visible before the HTTP response
         # returns (same as frappe.db.commit() at the end of the API handler).
         frappe.db.commit()
-
-    # ------------------------------------------------------------------
-    # Student portal user
-    # ------------------------------------------------------------------
-
-
 
     # ------------------------------------------------------------------
     # Student portal user
@@ -370,19 +364,12 @@ class Student(Document):
                     alert=True,
                 )
 
-    # ------------------------------------------------------------------
-    # Permission helpers
-    # ------------------------------------------------------------------
+
 
     def _assign_cost_center_permission(self, email):
         """Assign cost center permission to user based on selected school"""
         try:
             if not self.school:
-                frappe.msgprint(
-                    "⚠️ No school selected, skipping cost center permission",
-                    indicator="orange",
-                    alert=True,
-                )
                 return False
 
             existing_permission = frappe.db.exists(
@@ -400,7 +387,6 @@ class Student(Document):
                     "user": email,
                     "allow": "Cost Center",
                     "for_value": self.school,
-                    # Blank = applies across ALL doctypes
                     "applicable_for": "",
                 })
                 user_permission.flags.ignore_permissions = True
@@ -416,19 +402,9 @@ class Student(Document):
                     indicator="blue",
                     alert=True,
                 )
-
             return True
-
         except Exception as e:
-            frappe.log_error(
-                f"Cost center permission assignment failed for {email}",
-                frappe.get_traceback(),
-            )
-            frappe.msgprint(
-                f"⚠️ Could not assign cost center permission: {str(e)}",
-                indicator="orange",
-                alert=True,
-            )
+            frappe.log_error(f"Failed to assign cost center permission: {str(e)}")
             return False
 
     # ------------------------------------------------------------------

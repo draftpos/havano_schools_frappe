@@ -28,6 +28,7 @@ frappe.ui.form.on('Student', {
                 }
             }
         });
+    },
     after_save: function(frm) {
         if (frm.doc.create_user && frm.doc.portal_email) {
             frappe.msgprint({
@@ -102,14 +103,8 @@ function handlePortalAccessFields(frm) {
     if (frm.doc.create_user) {
         frm.set_df_property("portal_email", "reqd", 1);
         frm.toggle_display("portal_email", true);
-        
-        if (frm.settings && frm.settings.allow_non_strict_email) {
-            frm.toggle_display("portal_password", true);
-            frm.set_df_property("portal_password", "reqd", 0);
-        } else {
-            frm.toggle_display("portal_password", false);
-            frm.set_df_property("portal_password", "reqd", 0);
-        }
+        frm.toggle_display("portal_password", true);
+        frm.set_df_property("portal_password", "reqd", 1);
     } else {
         frm.set_df_property("portal_email", "reqd", 0);
         frm.toggle_display("portal_email", false);

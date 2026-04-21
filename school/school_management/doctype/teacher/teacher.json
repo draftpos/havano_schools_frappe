@@ -23,6 +23,7 @@
   "academic_section",
   "qualifications",
   "portal_section",
+  "create_user",
   "portal_email",
   "portal_password",
   "column_break_5",
@@ -113,6 +114,12 @@
    "fieldname": "portal_section",
    "fieldtype": "Section Break",
    "label": "Portal Access"
+  },
+  {
+   "default": "0",
+   "fieldname": "create_user",
+   "fieldtype": "Check",
+   "label": "Create Portal User"
   },
   {
    "fieldname": "portal_email",
