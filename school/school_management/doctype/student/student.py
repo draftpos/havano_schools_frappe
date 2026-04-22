@@ -1,7 +1,7 @@
 import frappe
 from frappe.model.document import Document
 from frappe.utils import flt
-from frappe.utils.password import update_password as _update_password
+from frappe.utils.password import update_password as _update_password, get_decrypted_password
 
 
 class Student(Document):
@@ -168,12 +168,27 @@ class Student(Document):
 
     def create_student_portal_user(self):
         """Create portal user for student using manual password"""
-        if not self.portal_email or not self.portal_password:
-            frappe.throw("Both Portal Email and Portal Password are required to create a user.")
+        if not self.portal_email:
+            frappe.throw("Portal Email is required to create a user.")
 
-        # Use the plain-text password captured in before_save; fall back to
-        # the stored value only if the field did not change this save cycle.
-        plain_password = self.flags.get("plain_portal_password") or self.portal_password
+        # 1. Use the plain-text password captured in validate() / before_save()
+        # 2. Fallback: retrieve from __Auth (stored during document save)
+        # 3. Last resort: use self.portal_password (may be encrypted)
+        plain_password = self.flags.get("plain_portal_password")
+
+        if not plain_password:
+            try:
+                plain_password = get_decrypted_password(
+                    "Student", self.name, "portal_password", raise_exception=False
+                )
+            except Exception:
+                pass
+
+        if not plain_password:
+            plain_password = self.portal_password
+
+        if not plain_password:
+            frappe.throw("Portal Password is required to create a user.")
 
         try:
             user, is_new = self._get_or_create_user(
@@ -181,8 +196,9 @@ class Student(Document):
                 self.full_name or self.first_name,
                 "Student Portal",
             )
-            # Sync password via official Frappe utility
+            # Sync password via official Frappe utility and commit immediately
             _update_password(self.portal_email, plain_password, logout_all_sessions=False)
+            frappe.db.commit()
 
             # Send manual portal credentials email with requested details
             try:

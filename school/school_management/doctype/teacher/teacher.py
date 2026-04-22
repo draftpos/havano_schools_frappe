@@ -1,6 +1,6 @@
 import frappe
 from frappe.model.document import Document
-from frappe.utils.password import update_password as _update_password
+from frappe.utils.password import update_password as _update_password, get_decrypted_password
 
 class Teacher(Document):
 
@@ -30,8 +30,28 @@ class Teacher(Document):
             self.create_teacher_user()
 
     def create_teacher_user(self):
-        if not self.portal_email or not self.portal_password:
+        if not self.portal_email:
             return
+
+        # Robust plain password retrieval:
+        # 1. Flag captured in validate() / before_save() — plain text before hashing
+        # 2. Fallback: get_decrypted_password from __Auth (after document saved)
+        # 3. Last resort: self.portal_password
+        plain_password = self.flags.get("plain_portal_password")
+
+        if not plain_password:
+            try:
+                plain_password = get_decrypted_password(
+                    "Teacher", self.name, "portal_password", raise_exception=False
+                )
+            except Exception:
+                pass
+
+        if not plain_password:
+            plain_password = self.portal_password
+
+        if not plain_password:
+            return  # No password to sync, skip silently
 
         try:
             is_new = False
@@ -69,11 +89,9 @@ class Teacher(Document):
                     (self.portal_email,)
                 )
 
-            # Use plain-text password captured in before_save
-            plain_password = self.flags.get("plain_portal_password") or self.portal_password
-
-            # Set manual password via official utility
+            # Set manual password via official utility and commit immediately
             _update_password(self.portal_email, plain_password, logout_all_sessions=False)
+            frappe.db.commit()
 
             # Send manual portal credentials email
             try:
