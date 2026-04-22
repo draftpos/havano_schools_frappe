@@ -93,7 +93,9 @@ class Student(Document):
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if self.create_user and self.portal_email:
+        user_fields_changed = self.has_value_changed("portal_email") or self.has_value_changed("portal_password") or self.has_value_changed("create_user")
+
+        if user_fields_changed and self.create_user and self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
 
@@ -147,44 +149,7 @@ class Student(Document):
             user.insert(ignore_permissions=True)
             return user, True  # (doc, is_new)
 
-    # ------------------------------------------------------------------
-    # Password helper — uses the same path as "Change Password" in User Settings
-    # ------------------------------------------------------------------
 
-    def _force_set_password(self, email, password):
-        """
-        Set a user's password so they can log in immediately — identical to
-        the path used by Frappe's own "Change Password" form in User Settings.
-
-        How Frappe's Change Password works:
-          1. Calls update_password(user, new_password) in frappe.utils.password
-          2. That function hashes via passlibctx and does an INSERT … ON DUPLICATE
-             KEY UPDATE directly against __Auth
-          3. It also calls clear_sessions() / logout_all_sessions and deletes the
-             password-reset key from __Auth
-
-        We replicate steps 1-3 here so the doctype path is 100 % equivalent.
-        """
-        # Step 1 — official high-level call (hashes + writes __Auth row)
-        # logout_all_sessions=False so an admin saving the form doesn't boot
-        # any existing session for that user.
-        _update_password(email, password, logout_all_sessions=False)
-
-        # Step 2 — explicitly delete any pending reset / one-time-login key
-        # so the user is not left in a "must change password" state.
-        frappe.db.sql(
-            """
-            DELETE FROM `__Auth`
-            WHERE `doctype` = 'User'
-              AND `name`     = %s
-              AND `fieldname` IN ('reset_password_key', 'new_password')
-            """,
-            (email,),
-        )
-
-        # Step 3 — flush so the __Auth row is visible before the HTTP response
-        # returns (same as frappe.db.commit() at the end of the API handler).
-        frappe.db.commit()
 
     # ------------------------------------------------------------------
     # Student portal user
@@ -201,12 +166,33 @@ class Student(Document):
                 self.full_name or self.first_name,
                 "Student Portal",
             )
-            # Set password via the same code-path as User Settings → Change Password
-            self._force_set_password(self.portal_email, self.portal_password)
+            # Set password via the official Frappe update_password utility
+            _update_password(self.portal_email, self.portal_password, logout_all_sessions=False)
+
+            # Send manual portal credentials email with requested details
+            try:
+                frappe.sendmail(
+                    recipients=[self.portal_email],
+                    subject="Your School Portal Access",
+                    message=(
+                        f"<p>Dear {self.full_name or self.first_name},</p>"
+                        f"<p>Your portal account has been {'created' if is_new else 'updated'}.</p>"
+                        f"<p><b>School:</b> {self.school or 'N/A'}</p>"
+                        f"<p><b>Class:</b> {self.student_class or 'N/A'}{' - Section ' + self.section if self.section else ''}</p>"
+                        f"<hr>"
+                        f"<p><b>Username:</b> {self.portal_email}</p>"
+                        f"<p><b>Password:</b> {self.portal_password}</p>"
+                        f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
+                        f"{frappe.utils.get_url('/portal-login')}</a></p>"
+                        f"<p>Regards,<br>School Administration</p>"
+                    ),
+                )
+            except Exception as e:
+                frappe.log_error(f"Failed to send manual credentials email: {str(e)}", "Student Portal")
 
             frappe.msgprint(
                 f"✅ Student portal user {self.portal_email} "
-                f"{'created' if is_new else 'updated'} with manual password. Credentials synced.",
+                f"{'created' if is_new else 'updated'} with manual password. Credentials email sent.",
                 indicator="green",
                 alert=True,
             )
@@ -296,11 +282,33 @@ class Student(Document):
                     entry["email"], entry["full_name"], entry["role"]
                 )
 
-                # Force sync password to match the student's
-                if self.portal_password:
-                    self._force_set_password(entry["email"], self.portal_password)
+                # Force sync password to match the student's if changed
+                if self.portal_password and self.has_value_changed("portal_password"):
+                    _update_password(entry["email"], self.portal_password, logout_all_sessions=False)
+                    
+                    # Also send email to parents
+                    try:
+                        frappe.sendmail(
+                            recipients=[entry["email"]],
+                            subject="Your Parent Portal Access",
+                            message=(
+                                f"<p>Dear {entry['full_name']},</p>"
+                                f"<p>A parent portal account has been {'created' if is_new else 'updated'} for you.</p>"
+                                f"<p><b>Student:</b> {self.full_name or self.first_name}</p>"
+                                f"<p><b>School:</b> {self.school or 'N/A'}</p>"
+                                f"<hr>"
+                                f"<p><b>Username:</b> {entry['email']}</p>"
+                                f"<p><b>Password:</b> {self.portal_password}</p>"
+                                f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
+                                f"{frappe.utils.get_url('/portal-login')}</a></p>"
+                                f"<p>Regards,<br>School Administration</p>"
+                            ),
+                        )
+                    except Exception:
+                        pass
+
                     frappe.msgprint(
-                        f"✅ Parent user {entry['email']} synced with manual password.",
+                        f"✅ Parent user {entry['email']} synced with manual password. Email sent.",
                         indicator="green",
                         alert=True,
                     )

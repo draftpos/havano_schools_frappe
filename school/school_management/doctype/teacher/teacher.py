@@ -17,30 +17,9 @@ class Teacher(Document):
             self.create_teacher_user()
 
     def on_update(self):
-        if self.create_user and self.portal_email:
+        user_fields_changed = self.has_value_changed("portal_email") or self.has_value_changed("portal_password") or self.has_value_changed("create_user")
+        if user_fields_changed and self.create_user and self.portal_email:
             self.create_teacher_user()
-
-    def _force_set_password(self, email, password):
-        """
-        Set a user's password so they can log in immediately — identical to
-        the path used by Frappe's own "Change Password" form in User Settings.
-        """
-        # Step 1 — official high-level call (hashes + writes __Auth row)
-        _update_password(email, password, logout_all_sessions=False)
-
-        # Step 2 — explicitly delete any pending reset / one-time-login key
-        frappe.db.sql(
-            """
-            DELETE FROM `__Auth`
-            WHERE `doctype` = 'User'
-              AND `name`     = %s
-              AND `fieldname` IN ('reset_password_key', 'new_password')
-            """,
-            (email,),
-        )
-
-        # Step 3 — flush
-        frappe.db.commit()
 
     def create_teacher_user(self):
         if not self.portal_email or not self.portal_password:
@@ -76,11 +55,30 @@ class Teacher(Document):
                 user.flags.ignore_permissions = True
                 user.insert(ignore_permissions=True)
 
-            # Set manual password
-            self._force_set_password(self.portal_email, self.portal_password)
+            # Set manual password via official utility
+            _update_password(self.portal_email, self.portal_password, logout_all_sessions=False)
+
+            # Send manual portal credentials email
+            try:
+                frappe.sendmail(
+                    recipients=[self.portal_email],
+                    subject="Your Teacher Portal Access",
+                    message=(
+                        f"<p>Dear {self.full_name},</p>"
+                        f"<p>Your teacher portal account has been {'created' if is_new else 'updated'}.</p>"
+                        f"<hr>"
+                        f"<p><b>Username:</b> {self.portal_email}</p>"
+                        f"<p><b>Password:</b> {self.portal_password}</p>"
+                        f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
+                        f"{frappe.utils.get_url('/portal-login')}</a></p>"
+                        f"<p>Regards,<br>School Administration</p>"
+                    ),
+                )
+            except Exception:
+                pass
 
             frappe.msgprint(
-                f"Portal user {'created' if is_new else 'updated'} for {self.full_name} ({self.portal_email}) with manual password. Credentials synced.",
+                f"Portal user {'created' if is_new else 'updated'} for {self.full_name} ({self.portal_email}) with manual password. Credentials email sent.",
                 indicator="green",
                 alert=True
             )
