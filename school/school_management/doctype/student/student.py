@@ -28,10 +28,15 @@ class Student(Document):
         if self.portal_password and self.student_reg_no and self.portal_password == self.student_reg_no:
             frappe.throw("Portal Password cannot be the same as the Student Registration Number for security reasons.")
 
+        # Always capture the plain-text password here (validate runs before hashing).
+        # This ensures after_insert also has the correct plain password to sync.
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
+
     def before_save(self):
-        """Before save - set full name and other prep logic"""
-        # (Dummy email generation removed as per manual password requirement)
-        pass
+        """Before save — capture plain-text password before Frappe hashes it"""
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
 
     def autoname(self):
         """Autoname - generate registration number based on school/cost center"""
@@ -146,7 +151,13 @@ class Student(Document):
             })
             user.flags.ignore_permissions = True
             user.flags.ignore_password_policy = True
+            user.flags.no_welcome_mail = True
             user.insert(ignore_permissions=True)
+            # Suppress any queued welcome emails
+            frappe.db.sql(
+                "DELETE FROM `tabEmail Queue` WHERE reference_doctype='User' AND reference_name=%s",
+                (email,)
+            )
             return user, True  # (doc, is_new)
 
 
@@ -160,14 +171,18 @@ class Student(Document):
         if not self.portal_email or not self.portal_password:
             frappe.throw("Both Portal Email and Portal Password are required to create a user.")
 
+        # Use the plain-text password captured in before_save; fall back to
+        # the stored value only if the field did not change this save cycle.
+        plain_password = self.flags.get("plain_portal_password") or self.portal_password
+
         try:
             user, is_new = self._get_or_create_user(
                 self.portal_email,
                 self.full_name or self.first_name,
                 "Student Portal",
             )
-            # Set password via the official Frappe update_password utility
-            _update_password(self.portal_email, self.portal_password, logout_all_sessions=False)
+            # Sync password via official Frappe utility
+            _update_password(self.portal_email, plain_password, logout_all_sessions=False)
 
             # Send manual portal credentials email with requested details
             try:
@@ -181,7 +196,7 @@ class Student(Document):
                         f"<p><b>Class:</b> {self.student_class or 'N/A'}{' - Section ' + self.section if self.section else ''}</p>"
                         f"<hr>"
                         f"<p><b>Username:</b> {self.portal_email}</p>"
-                        f"<p><b>Password:</b> {self.portal_password}</p>"
+                        f"<p><b>Password:</b> {plain_password}</p>"
                         f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
                         f"{frappe.utils.get_url('/portal-login')}</a></p>"
                         f"<p>Regards,<br>School Administration</p>"

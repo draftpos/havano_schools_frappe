@@ -6,11 +6,19 @@ class Teacher(Document):
 
     def before_save(self):
         self.full_name = f"{self.first_name or ''} {self.last_name or ''}".strip()
+        # Always capture plain-text password before Frappe hashes it
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
+
 
     def validate(self):
         # Ensure password doesn't match name/ID
         if self.portal_password and self.name and self.portal_password == self.name:
             frappe.throw("Portal Password cannot be the same as your Teacher ID for security reasons.")
+
+        # Always capture plain-text password before Frappe hashes it
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
 
     def after_insert(self):
         if self.create_user and self.portal_email:
@@ -53,10 +61,19 @@ class Teacher(Document):
                     ]
                 })
                 user.flags.ignore_permissions = True
+                user.flags.no_welcome_mail = True
                 user.insert(ignore_permissions=True)
+                # Delete any auto-generated welcome/password emails from queue
+                frappe.db.sql(
+                    "DELETE FROM `tabEmail Queue` WHERE reference_doctype='User' AND reference_name=%s",
+                    (self.portal_email,)
+                )
+
+            # Use plain-text password captured in before_save
+            plain_password = self.flags.get("plain_portal_password") or self.portal_password
 
             # Set manual password via official utility
-            _update_password(self.portal_email, self.portal_password, logout_all_sessions=False)
+            _update_password(self.portal_email, plain_password, logout_all_sessions=False)
 
             # Send manual portal credentials email
             try:
@@ -68,7 +85,7 @@ class Teacher(Document):
                         f"<p>Your teacher portal account has been {'created' if is_new else 'updated'}.</p>"
                         f"<hr>"
                         f"<p><b>Username:</b> {self.portal_email}</p>"
-                        f"<p><b>Password:</b> {self.portal_password}</p>"
+                        f"<p><b>Password:</b> {plain_password}</p>"
                         f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
                         f"{frappe.utils.get_url('/portal-login')}</a></p>"
                         f"<p>Regards,<br>School Administration</p>"
