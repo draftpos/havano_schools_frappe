@@ -17,7 +17,7 @@ class Teacher(Document):
             self.create_teacher_user()
 
     def on_update(self):
-        if (self.has_value_changed("portal_email") or self.has_value_changed("portal_password") or self.has_value_changed("create_user")) and self.create_user and self.portal_email:
+        if self.create_user and self.portal_email:
             self.create_teacher_user()
 
     def _force_set_password(self, email, password):
@@ -78,33 +78,9 @@ class Teacher(Document):
 
             # Set manual password
             self._force_set_password(self.portal_email, self.portal_password)
-            
-            # Send manual portal credentials email
-            try:
-                frappe.sendmail(
-                    recipients=[self.portal_email],
-                    subject="Your Teacher Portal Access",
-                    message=(
-                        f"<p>Dear {self.full_name},</p>"
-                        f"<p>Your teacher portal account has been {'created' if is_new else 'updated'}.</p>"
-                        f"<hr>"
-                        f"<p><b>Username:</b> {self.portal_email}</p>"
-                        f"<p><b>Password:</b> {self.portal_password}</p>"
-                        f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
-                        f"{frappe.utils.get_url('/portal-login')}</a></p>"
-                        f"<p>Regards,<br>School Administration</p>"
-                    ),
-                )
-            except Exception:
-                frappe.msgprint(
-                    f"⚠️ Credentials email could not be sent. However, the teacher portal account has been "
-                    f"{'created' if is_new else 'updated'} locally.",
-                    indicator="orange",
-                    alert=True
-                )
 
             frappe.msgprint(
-                f"Portal user {'created' if is_new else 'updated'} for {self.full_name} ({self.portal_email}) with manual password. Credentials email sent.",
+                f"Portal user {'created' if is_new else 'updated'} for {self.full_name} ({self.portal_email}) with manual password. Credentials synced.",
                 indicator="green",
                 alert=True
             )

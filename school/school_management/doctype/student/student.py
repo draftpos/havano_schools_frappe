@@ -93,7 +93,7 @@ class Student(Document):
         self.create_admin_fee_invoice()
         self.create_registration_billing()
 
-        if user_fields_changed and self.create_user and self.portal_email:
+        if self.create_user and self.portal_email:
             self.create_student_portal_user()
             self.create_parent_portal_users()
 
@@ -201,39 +201,12 @@ class Student(Document):
                 self.full_name or self.first_name,
                 "Student Portal",
             )
-
             # Set password via the same code-path as User Settings → Change Password
             self._force_set_password(self.portal_email, self.portal_password)
 
-            # Send manual portal credentials email
-            try:
-                frappe.sendmail(
-                    recipients=[self.portal_email],
-                    subject="Your School Portal Access",
-                    message=(
-                        f"<p>Dear {self.full_name or self.first_name},</p>"
-                        f"<p>Your portal account has been {'created' if is_new else 'updated'}.</p>"
-                        f"<p><b>School:</b> {self.school or 'N/A'}</p>"
-                        f"<p><b>Class:</b> {self.student_class or 'N/A'}{' - Section ' + self.section if self.section else ''}</p>"
-                        f"<hr>"
-                        f"<p><b>Username:</b> {self.portal_email}</p>"
-                        f"<p><b>Password:</b> {self.portal_password}</p>"
-                        f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
-                        f"{frappe.utils.get_url('/portal-login')}</a></p>"
-                        f"<p>Regards,<br>School Administration</p>"
-                    ),
-                )
-            except Exception as e:
-                frappe.msgprint(
-                    f"⚠️ Credentials email could not be sent (Network/Auth error). "
-                    f"However, the portal user has been {'created' if is_new else 'updated'} locally.",
-                    indicator="orange",
-                    alert=True
-                )
-
             frappe.msgprint(
                 f"✅ Student portal user {self.portal_email} "
-                f"{'created' if is_new else 'updated'} with manual password. Credentials email sent.",
+                f"{'created' if is_new else 'updated'} with manual password. Credentials synced.",
                 indicator="green",
                 alert=True,
             )
@@ -326,27 +299,8 @@ class Student(Document):
                 # Force sync password to match the student's
                 if self.portal_password:
                     self._force_set_password(entry["email"], self.portal_password)
-
-                # Send credentials email (on create or if password might have changed)
-                if is_new or self.has_value_changed("portal_password"):
-                    frappe.sendmail(
-                        recipients=[entry["email"]],
-                        subject="Your Parent Portal Access",
-                        message=(
-                            f"<p>Dear {entry['full_name']},</p>"
-                            f"<p>A parent portal account has been {'created' if is_new else 'updated'} for you.</p>"
-                            f"<p><b>Student:</b> {self.full_name or self.first_name}</p>"
-                            f"<p><b>School:</b> {self.school or 'N/A'}</p>"
-                            f"<hr>"
-                            f"<p><b>Username:</b> {entry['email']}</p>"
-                            f"<p><b>Password:</b> {self.portal_password}</p>"
-                            f"<p>Please log in here: <a href=\"{frappe.utils.get_url('/portal-login')}\">"
-                            f"{frappe.utils.get_url('/portal-login')}</a></p>"
-                            f"<p>Regards,<br>School Administration</p>"
-                        ),
-                    )
                     frappe.msgprint(
-                        f"✅ Parent user {entry['email']} synced. Credentials email sent.",
+                        f"✅ Parent user {entry['email']} synced with manual password.",
                         indicator="green",
                         alert=True,
                     )
