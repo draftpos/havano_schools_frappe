@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.utils.password import get_decrypted_password
 
 class StudentOnlineRegistration(Document):
     
@@ -20,9 +21,18 @@ class StudentOnlineRegistration(Document):
         ).strip()
     
     def validate(self):
+        # Always capture plain-text password before Frappe hashes it
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
+
         # If approving, ensure section is selected
         if self.enrollment_status == "Approved" and not self.approved_section:
             frappe.throw(_("Please select an approved section before approving the registration"))
+
+    def before_save(self):
+        # Capture plain-text password before Frappe hashes it
+        if self.portal_password:
+            self.flags.plain_portal_password = self.portal_password
     
     def after_insert(self):
         # Auto-create student if status is Approved
@@ -156,6 +166,18 @@ class StudentOnlineRegistration(Document):
             # Generate student registration number
             student_reg_no = self.generate_student_reg_no()
             
+            # Robust plain password retrieval for the new Student record
+            plain_password = self.flags.get("plain_portal_password")
+            if not plain_password:
+                try:
+                    plain_password = get_decrypted_password(
+                        "Student Online Registration", self.name, "portal_password", raise_exception=False
+                    )
+                except Exception:
+                    pass
+            if not plain_password:
+                plain_password = self.portal_password
+
             # Create new student with ALL fields from registration
             student_dict = {
                 "doctype": "Student",
@@ -168,7 +190,8 @@ class StudentOnlineRegistration(Document):
                 "enrolled_in_section": self.approved_section,
                 "student_type": self.student_type,
                 "portal_email": self.portal_email,
-                "portal_password": self.portal_password,
+                "portal_password": plain_password, # Use the decrypted/plain password
+                "create_user": 1, # Automatically trigger portal user creation
                 "student_mobile_number": self.student_phone_number,
                 "date_of_birth": self.date_of_birth,
                 "gender": self.gender,
