@@ -9,9 +9,6 @@ frappe.ui.form.on('Student', {
             };
         });
 
-        frm.set_query("section", function() {
-            return {};
-        });
 
         // Check School Settings for non-strict email
         frappe.call({
@@ -40,10 +37,6 @@ frappe.ui.form.on('Student', {
     },
 
     student_class: function(frm) {
-        frm.set_value("section", "");
-        frm.set_query("section", function() {
-            return {};
-        });
     },
 
     admin_fee_paid: function(frm) {
