@@ -9,6 +9,11 @@ frappe.ui.form.on('Student', {
             };
         });
 
+        // Show ALL sections - no filtering by class
+        frm.set_query("section", function() {
+            return {};
+        });
+
 
         // Check School Settings for non-strict email
         frappe.call({
