@@ -1,32 +1,31 @@
 {
     "actions": [],
     "allow_rename": 1,
-    "autoname": "field:class_code",
+    "autoname": "format:{class_name}-{cost_center}",
     "creation": "2026-02-28 09:12:03.777835",
     "doctype": "DocType",
     "editable_grid": 1,
     "engine": "InnoDB",
     "field_order": [
-        "class_code",
         "class_name",
+        "cost_center",
         "column_break_1",
         "is_active"
     ],
     "fields": [
-        {
-            "fieldname": "class_code",
-            "fieldtype": "Data",
-            "in_list_view": 1,
-            "label": "Class Code",
-            "reqd": 1,
-            "unique": 1
-        },
         {
             "fieldname": "class_name",
             "fieldtype": "Data",
             "in_list_view": 1,
             "label": "Class Name",
             "reqd": 1
+        },
+        {
+            "fieldname": "cost_center",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Cost Center (School)",
+            "options": "Cost Center"
         },
         {
             "fieldname": "column_break_1",
@@ -83,9 +82,10 @@
             "permlevel": 0
         }
     ],
+    "quick_entry": 0,
     "row_format": "Dynamic",
     "rows_threshold_for_grid_search": 20,
-    "search_fields": "class_name,class_code",
+    "search_fields": "class_name",
     "show_title_field_in_link": 1,
     "sort_field": "modified",
     "sort_order": "DESC",

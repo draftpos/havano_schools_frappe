@@ -6,6 +6,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "cost_center",
   "subject",
   "class_name",
   "section"
@@ -36,6 +37,13 @@
    "in_list_view": 1,
    "label": "Section",
    "options": "Section"
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Cost Center",
+   "options": "Cost Center"
   }
  ],
  "grid_page_length": 50,

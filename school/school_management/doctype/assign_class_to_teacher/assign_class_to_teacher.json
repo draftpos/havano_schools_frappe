@@ -27,7 +27,8 @@
             "fieldname": "teacher_name",
             "fieldtype": "Data",
             "in_list_view": 1,
-            "label": "Teacher Name"
+            "label": "Teacher Name",
+            "read_only": 1
         },
         {
             "fieldname": "sb1",

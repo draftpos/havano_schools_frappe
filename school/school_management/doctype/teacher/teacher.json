@@ -2,6 +2,8 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:teacher_id",
+ "title_field": "full_name",
+ "show_title_field_in_link": 1,
  "creation": "2026-03-18 16:06:55.631688",
  "doctype": "DocType",
  "editable_grid": 1,
@@ -12,6 +14,7 @@
   "column_break_1",
   "last_name",
   "full_name",
+  "cost_center",
   "column_break_2",
   "gender",
   "date_of_birth",
@@ -59,6 +62,13 @@
    "fieldtype": "Data",
    "label": "Full Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "cost_center",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Cost Center (School)",
+   "options": "Cost Center"
   },
   {
    "fieldname": "column_break_2",

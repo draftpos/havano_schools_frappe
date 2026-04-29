@@ -9,6 +9,7 @@
     "field_order": [
         "teacher",
         "teacher_name",
+        "section",
         "sb1",
         "subjects"
     ],
@@ -27,7 +28,15 @@
             "fieldname": "teacher_name",
             "fieldtype": "Data",
             "in_list_view": 1,
-            "label": "Teacher Name"
+            "label": "Teacher Name",
+            "read_only": 1
+        },
+        {
+            "fieldname": "section",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Section",
+            "options": "Section"
         },
         {
             "fieldname": "sb1",

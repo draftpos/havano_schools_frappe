@@ -72,35 +72,37 @@ var allData = [];
 function fmt(n){return "$"+parseFloat(n||0).toFixed(2);}
 
 function loadCostCenters(){
-    frappe.call({
-        method:"frappe.client.get_list",
-        args:{doctype:"Cost Center",filters:{is_group:0},fields:["name"],limit:50},
-        callback:function(r){
-            if(r.message){
-                var sel=document.getElementById("cc-filter");
-                r.message.forEach(function(cc){
-                    var o=document.createElement("option");
-                    o.value=cc.name;o.textContent=cc.name;
-                    sel.appendChild(o);
-                });
-            }
+    fetch("/api/method/frappe.client.get_list?doctype=Cost+Center&filters=%7B%22is_group%22%3A0%7D&fields=%5B%22name%22%5D&limit=50", {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+    })
+    .then(r => r.json())
+    .then(r => {
+        if(r.message){
+            var sel=document.getElementById("cc-filter");
+            r.message.forEach(function(cc){
+                var o=document.createElement("option");
+                o.value=cc.name;o.textContent=cc.name;
+                sel.appendChild(o);
+            });
         }
     });
 }
 
 function loadClasses(){
-    frappe.call({
-        method:"frappe.client.get_list",
-        args:{doctype:"Student Class",fields:["name","class_name"],limit:50},
-        callback:function(r){
-            if(r.message){
-                var sel=document.getElementById("class-filter");
-                r.message.forEach(function(c){
-                    var o=document.createElement("option");
-                    o.value=c.name;o.textContent=c.class_name||c.name;
-                    sel.appendChild(o);
-                });
-            }
+    fetch("/api/method/frappe.client.get_list?doctype=Student+Class&fields=%5B%22name%22%2C%22class_name%22%5D&limit=50", {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+    })
+    .then(r => r.json())
+    .then(r => {
+        if(r.message){
+            var sel=document.getElementById("class-filter");
+            r.message.forEach(function(c){
+                var o=document.createElement("option");
+                o.value=c.name;o.textContent=c.class_name||c.name;
+                sel.appendChild(o);
+            });
         }
     });
 }
@@ -110,19 +112,25 @@ function loadReport(){
     document.getElementById("report-content").innerHTML="";
     document.getElementById("summary-cards").innerHTML="";
     var cc=document.getElementById("cc-filter").value;
-    var params = cc ? "?cost_center="+encodeURIComponent(cc) : "";
-    frappe.call({
-        method:"school.api.get_fees_balance"+params,
-        args: cc ? {cost_center: cc} : {},
-        callback:function(r){
-            document.getElementById("loading").style.display="none";
-            if(!r.message||!r.message.length){
-                document.getElementById("report-content").innerHTML="<div class='no-data'>No data found</div>";
-                return;
-            }
-            allData = r.message;
-            renderReport(allData);
+    var qs = cc ? "?cost_center=" + encodeURIComponent(cc) : "";
+    fetch("/api/method/school.api.get_fees_balance" + qs, {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+    })
+    .then(r => r.json())
+    .then(r => {
+        document.getElementById("loading").style.display="none";
+        if(!r.message||!r.message.length){
+            document.getElementById("report-content").innerHTML="<div class='no-data'>No data found</div>";
+            return;
         }
+        allData = r.message;
+        renderReport(allData);
+    })
+    .catch(err => {
+        console.error("Fetch error:", err);
+        document.getElementById("loading").style.display="none";
+        document.getElementById("report-content").innerHTML="<div class='no-data' style='color:red;'>Error loading report. Check console.</div>";
     });
 }
 

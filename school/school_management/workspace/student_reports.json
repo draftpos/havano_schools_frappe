@@ -13,6 +13,22 @@
    "type": "Link",
    "link": "List/Term Exam Report/List",
    "dependencies": []
+  },
+  {
+   "label": "Student Statement Control",
+   "type": "Card",
+   "icon": "icon-file-text",
+   "link": "query-report/Student Statement Control",
+   "is_query_report": true,
+   "dependencies": []
+  },
+  {
+   "label": "Student Statement Detail",
+   "type": "Card",
+   "icon": "icon-file-text",
+   "link": "query-report/Student Statement Detail",
+   "is_query_report": true,
+   "dependencies": []
   }
  ],
  "creation": "2024-01-01",

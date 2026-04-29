@@ -21,7 +21,7 @@ def get_billing_summary(student=None):
         SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
                cost_center, fees_structure
         FROM `tabSales Invoice`
-        WHERE customer_name = %s 
+WHERE customer_name = %s AND docstatus = 1
         ORDER BY posting_date DESC
     """, student.full_name, as_dict=True)
 
@@ -35,7 +35,7 @@ def get_billing_summary(student=None):
     receipts = frappe.db.sql("""
         SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
         FROM `tabReceipting` 
-        WHERE student_name = %s 
+        WHERE student_name = %s AND docstatus = 1
         ORDER BY date DESC
     """, student.name, as_dict=True)
 
@@ -99,7 +99,7 @@ def get_my_account():
 
 
 @frappe.whitelist()
-def get_portal_dashboard():
+def get_student_portal_dashboard():
     user = frappe.session.user
     if user in ("Administrator", "Guest"):
         return {"error": "Not authorized"}
@@ -647,7 +647,7 @@ def get_fees_balance():
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section", "cost_center", "school"])
+        fields=["name", "full_name", "student_class", "section", "cost_center"])
 
     if not students:
         return []
@@ -663,15 +663,15 @@ def get_fees_balance():
         SELECT
             si.customer,
             si.customer_name,
-            si.cost_center,
-            si.fees_structure,
+            MAX(si.cost_center) as cost_center,
+            MAX(si.fees_structure) as fees_structure,
             SUM(si.grand_total) as total_billed,
             SUM(si.outstanding_amount) as total_outstanding,
             SUM(si.grand_total - si.outstanding_amount) as total_paid
         FROM `tabSales Invoice` si
         WHERE si.customer IN ({placeholders})
           AND si.docstatus = 1
-        GROUP BY si.customer, si.cost_center, si.fees_structure
+        GROUP BY si.customer, si.customer_name
         ORDER BY si.customer ASC
     """.format(placeholders=placeholders), student_names, as_dict=True)
 
@@ -688,26 +688,61 @@ def get_fees_balance():
         GROUP BY jea.party
     """.format(placeholders=placeholders), student_names, as_dict=True)
 
+    receivables_map = {r.customer: r for r in receivables}
+    # Also map by customer_name if customer is an ID
+    receivables_name_map = {r.customer_name: r for r in receivables if r.customer_name}
     ob_map = {r.party: r.opening_balance for r in opening_balances}
 
     result = []
-    for row in receivables:
-        student = student_map.get(row.customer_name) or student_map.get(row.customer) or {}
-        ob = ob_map.get(row.customer, 0)
-        result.append({
-            "student_name": row.customer_name or row.customer,
-            "student_class": student.get("student_class") if isinstance(student, dict) else getattr(student, "student_class", ""),
-            "section": student.get("section") if isinstance(student, dict) else getattr(student, "section", ""),
-            "cost_center": row.cost_center or (student.get("cost_center") if isinstance(student, dict) else getattr(student, "cost_center", "")),
-            "fees_structure": row.fees_structure or "",
-            "opening_balance": float(ob or 0),
-            "total_billed": float(row.total_billed or 0),
-            "total_paid": float(row.total_paid or 0),
-            "total_outstanding": float(row.total_outstanding or 0) + float(ob or 0),
-        })
+    for s in students:
+        # Match by ID or Full Name
+        row = receivables_map.get(s.name) or receivables_name_map.get(s.full_name) or {}
+        ob = ob_map.get(s.name) or ob_map.get(s.full_name) or 0
+        
+        total_billed = float(row.get("total_billed") or 0)
+        total_paid = float(row.get("total_paid") or 0)
+        total_outstanding = float(row.get("total_outstanding") or 0) + float(ob or 0)
+
+        # Only include students who have some financial activity or balance
+        if total_billed > 0 or total_paid > 0 or total_outstanding != 0:
+            result.append({
+                "student_name": s.full_name or s.name,
+                "student_class": s.get("student_class") or "",
+                "section": s.get("section") or "",
+                "cost_center": row.get("cost_center") or s.get("cost_center") or "",
+                "fees_structure": row.get("fees_structure") or "",
+                "opening_balance": float(ob or 0),
+                "total_billed": total_billed,
+                "total_paid": total_paid,
+                "total_outstanding": total_outstanding,
+            })
 
     return result
 
+
+@frappe.whitelist()
+def get_fees_structure():
+    user = frappe.session.user
+    if not user or user == "Guest":
+        return {"error": "Not authorized"}
+    
+    # Check if Fees Structure doctype exists
+    if not frappe.db.exists("DocType", "Fees Structure"):
+        return []
+        
+    structures = frappe.get_all("Fees Structure", 
+        fields=["name", "fees_structure_code", "fees_structure_name", "cost_center"],
+        order_by="creation desc"
+    )
+
+    for fs in structures:
+        # Calculate total amount from child items
+        items = frappe.get_all("Fees Structure Item", 
+            filters={"parent": fs.name}, 
+            fields=["rate"])
+        fs["total_amount"] = sum(item.rate or 0 for item in items)
+        
+    return structures
 
 # ─────────────────────────────────────────────────────────────
 #  PARENT PORTAL APIs
@@ -807,7 +842,7 @@ def get_parent_billing_summary():
             SELECT name, posting_date, due_date, grand_total, outstanding_amount,
                    status, cost_center, fees_structure
             FROM `tabSales Invoice`
-            WHERE customer_name = %s
+            WHERE customer_name = %s AND docstatus = 1
             ORDER BY posting_date DESC
         """, student.full_name, as_dict=True)
 
@@ -821,7 +856,7 @@ def get_parent_billing_summary():
         receipts = frappe.db.sql("""
             SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
             FROM `tabReceipting`
-            WHERE student_name = %s
+            WHERE student_name = %s AND docstatus = 1
             ORDER BY date DESC
         """, student.name, as_dict=True)
 
