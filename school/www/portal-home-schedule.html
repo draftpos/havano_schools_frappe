@@ -4,13 +4,11 @@ title: Homework Schedule
 ---
 
 <script>
-// Smart back button — goes to parent portal if viewing as parent
 (function(){
   var params = new URLSearchParams(window.location.search);
   var backUrl = params.get('from') === 'parent'
     ? '/assets/school/html/parent-portal.html'
     : '/assets/school/html/student-portal.html';
-  // Update all back links on the page
   document.addEventListener('DOMContentLoaded', function(){
     document.querySelectorAll('a[href="/assets/school/html/student-portal.html"]').forEach(function(a){
       a.href = backUrl;
@@ -23,8 +21,8 @@ title: Homework Schedule
 <style>
 .sh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
 .sh h2{margin:0;}.sh p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
-.si{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;cursor:pointer;}
-.si-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.si{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;}
+.si-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
 .si-h h5{margin:0;font-size:0.95rem;}.si-h .m{font-size:0.8rem;opacity:0.85;margin-top:3px;}
 .si-b{display:none;padding:16px 18px;}
 .ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
@@ -33,20 +31,138 @@ title: Homework Schedule
 .rb{background:#fffde7;border-left:4px solid #fbbc04;padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.86rem;color:#555;margin-top:10px;}
 .bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
 .bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
-@media(max-width:600px){.ig{grid-template-columns:repeat(2,1fr);}}
+.att-link{background:#e3f2fd;color:#1e88e5;padding:4px 10px;border-radius:4px;font-size:0.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin:3px;}
+.att-link:hover{background:#bbdefb;color:#1565c0;}
+/* Result card */
+.result-card{margin-top:14px;border-radius:10px;overflow:hidden;}
+.result-card-header{padding:10px 16px;font-weight:700;font-size:0.9rem;display:flex;align-items:center;gap:8px;}
+.result-card-header.pass{background:#e8f5e9;color:#2e7d32;}
+.result-card-header.failed{background:#ffebee;color:#c62828;}
+.result-card-header.moderate{background:#fff8e1;color:#f57f17;}
+.result-card-header.default{background:#f3e5f5;color:#6a1b9a;}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;padding:12px 16px;background:#fafafa;border:1px solid #e0e0e0;border-top:none;border-radius:0 0 10px 10px;}
+.result-box{text-align:center;padding:8px;}
+.result-val{font-size:1.4rem;font-weight:800;color:#1e3a5f;}
+.result-lbl{font-size:0.7rem;color:#888;text-transform:uppercase;margin-top:2px;}
+.grade-badge{display:inline-block;background:#1e3a5f;color:white;border-radius:50%;width:48px;height:48px;line-height:48px;font-size:1.3rem;font-weight:800;text-align:center;}
+/* Submission */
+.sub-box{margin-top:14px;padding:14px 16px;border-radius:8px;border:2px dashed #e0e0e0;background:#fafafa;}
+.sub-box.submitted{border-color:#43a047;background:#f1f8e9;}
+.sub-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:600;margin-left:8px;}
+.sub-badge.submitted{background:#c8e6c9;color:#2e7d32;}
+.sub-upload-label{display:inline-block;padding:7px 16px;background:#1e3a5f;color:white;border-radius:6px;cursor:pointer;font-size:0.83rem;margin-top:8px;transition:background 0.2s;}
+.sub-upload-label:hover{background:#2e86de;}
+.sub-upload-label input{display:none;}
+.sub-btn{display:inline-block;padding:7px 18px;background:#43a047;color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.83rem;margin-top:8px;margin-left:6px;transition:background 0.2s;}
+.sub-btn:hover{background:#2e7d32;}
+.sub-btn:disabled{background:#aaa;cursor:default;}
+.sub-status-ok{color:#2e7d32;font-weight:600;font-size:0.85rem;margin-top:6px;}
+.draft-tag{display:inline-block;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:4px;padding:1px 7px;font-size:0.72rem;font-weight:600;margin-left:8px;vertical-align:middle;}
+.graded-tag{display:inline-block;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;border-radius:4px;padding:1px 7px;font-size:0.72rem;font-weight:600;margin-left:8px;vertical-align:middle;}
+@media(max-width:600px){.ig{grid-template-columns:repeat(2,1fr);}.result-grid{grid-template-columns:repeat(2,1fr);}}
 </style>
+
 <div id="loading" style="text-align:center;padding:60px;color:#888;">Loading schedule...</div>
 <div id="pc" style="display:none;">
   <div class="sh"><a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a><h2>&#128218; Homework Schedule</h2><p id="sub"></p></div>
   <div id="il"></div>
 </div>
+
 <script>
+var _isParent = new URLSearchParams(window.location.search).get('from') === 'parent';
+
 function el(id){return document.getElementById(id);}
 function fmtT(t){if(!t||t==="-")return"-";var p=t.split(":");if(p.length<2)return t;var h=parseInt(p[0]),m=p[1];return(h%12||12)+":"+m+(h>=12?" PM":" AM");}
 function tog(id){var b=el("b"+id);b.style.display=b.style.display==="block"?"none":"block";}
+
+function pct(obt, max){if(!max||!obt)return "-";return Math.round(obt/max*100)+"%";}
+
+function resultHeaderClass(status){
+  if(!status)return "default";
+  var s=status.toLowerCase();
+  if(s==="pass")return "pass";
+  if(s==="failed"||s==="fail")return "failed";
+  if(s==="moderate")return "moderate";
+  return "default";
+}
+
+function resultIcon(status){
+  if(!status)return "&#127942;";
+  var s=status.toLowerCase();
+  if(s==="pass")return "&#9989;";
+  if(s==="failed"||s==="fail")return "&#10060;";
+  if(s==="moderate")return "&#128993;";
+  return "&#127942;";
+}
+
+function uploadAndSubmit(idx, schedName) {
+  var input = el("file-input-"+idx);
+  if (!input || !input.files || !input.files[0]) {
+    alert("Please choose a file first.");
+    return;
+  }
+  var file = input.files[0];
+  var btn = el("sub-btn-"+idx);
+  var statusEl = el("sub-status-"+idx);
+  btn.disabled = true;
+  btn.textContent = "Uploading...";
+  statusEl.textContent = "";
+
+  var formData = new FormData();
+  formData.append("file", file, file.name);
+  formData.append("is_private", "1");
+  formData.append("attached_to_doctype", "Home Schedule");
+  formData.append("attached_to_name", schedName);
+
+  fetch("/api/method/upload_file", {
+    method: "POST",
+    headers: {"X-Frappe-CSRF-Token": frappe.csrf_token},
+    credentials: "same-origin",
+    body: formData
+  })
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if (!res.message || !res.message.file_url) throw new Error(res._server_messages || "Upload failed");
+    return fetch("/api/method/school.api.submit_student_assignment", {
+      method: "POST",
+      headers: {"Content-Type": "application/x-www-form-urlencoded","X-Frappe-CSRF-Token": frappe.csrf_token},
+      credentials: "same-origin",
+      body: "assignment_name="+encodeURIComponent(schedName)
+        +"&assignment_type=Home+Schedule"
+        +"&file_url="+encodeURIComponent(res.message.file_url)
+        +"&file_name="+encodeURIComponent(res.message.file_name||file.name)
+    });
+  })
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if (res.message && res.message.message === "Success") {
+      statusEl.innerHTML = '<span class="sub-status-ok">&#10003; Submitted to teacher!</span>';
+      btn.disabled = false; btn.textContent = "Submit";
+      el("chosen-"+idx).textContent = "";
+      var badge = el("sub-badge-"+idx);
+      if(badge){badge.className="sub-badge submitted";badge.textContent="Submitted";}
+    } else { throw new Error("Submission failed"); }
+  })
+  .catch(function(e){
+    statusEl.innerHTML = '<span style="color:#c62828;">&#10007; '+(e.message||"Error")+'</span>';
+    btn.disabled = false; btn.textContent = "Submit";
+  });
+}
+
+function onFileChosen(idx){
+  var input=el("file-input-"+idx);
+  if(input&&input.files&&input.files[0])
+    el("chosen-"+idx).textContent="Selected: "+input.files[0].name;
+}
+
 window.addEventListener("load", function(){
-  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_home_schedules"+_qs,{credentials:"same-origin"});})()
-  .then(function(res){return res.json();})
+  (function(){
+    var _p=new URLSearchParams(window.location.search);
+    var _c=_p.get("child")||"";
+    var _qs=_c?"?student="+encodeURIComponent(_c):"";
+    return fetch("/api/method/school.api.get_home_schedules"+_qs,{credentials:"same-origin"});
+  })()
+  .then(function(r){return r.json();})
   .then(function(r){
     if(!r.message||!r.message.length){
       el("loading").innerHTML='<div style="text-align:center;padding:40px;"><p>No schedules found.</p><a href="/assets/school/html/student-portal.html" class="btn btn-primary btn-sm">Back</a></div>';
@@ -56,19 +172,69 @@ window.addEventListener("load", function(){
     el("sub").textContent=d.length+" schedule(s)";
     var h="";
     d.forEach(function(s,i){
-      h+='<div class="si"><div class="si-h" onclick="tog('+i+')"><div><h5>'+s.homework_name+'</h5><div class="m">'+s.subject_name+' &bull; '+s.class_name+' &bull; '+s.date+'</div></div><div style="text-align:right;font-size:0.83rem;opacity:0.9;">'+fmtT(s.start_time)+'<br><small>'+s.homework_type+'</small></div></div>';
+      var isSubmitted = s.is_submitted; // teacher submitted = results available
+      var subStatus = s.submission_status || "";
+      var hasResult = isSubmitted && (s.marks_obtained !== "" && s.marks_obtained !== null && s.marks_obtained !== undefined);
+      var rStatus = s.result_status || "";
+      var rhClass = resultHeaderClass(rStatus);
+
+      // Card header
+      h+='<div class="si">';
+      h+='<div class="si-h" onclick="tog('+i+')"><div><h5>'+(s.exam_name||"-");
+      if(!isSubmitted) h+='<span class="draft-tag">Upcoming</span>';
+      if(isSubmitted && hasResult) h+='<span class="graded-tag">&#10003; Graded</span>';
+      if(subStatus) h+='<span class="sub-badge submitted" id="sub-badge-'+i+'">'+subStatus+'</span>';
+      h+='</h5><div class="m">'+s.subject_name+' &bull; '+s.class_name+' &bull; '+s.date+'</div></div>';
+      h+='<div style="text-align:right;font-size:0.83rem;opacity:0.9;">'+fmtT(s.start_time)+'</div></div>';
+
+      // Body
       h+='<div class="si-b" id="b'+i+'"><div class="ig">';
       h+='<div class="ib"><div class="ib-v">'+s.class_name+'</div><div class="ib-l">Class</div></div>';
       h+='<div class="ib"><div class="ib-v">'+s.subject_name+'</div><div class="ib-l">Subject</div></div>';
       h+='<div class="ib"><div class="ib-v">'+s.date+'</div><div class="ib-l">Date</div></div>';
-      h+='<div class="ib"><div class="ib-v">'+fmtT(s.start_time)+'</div><div class="ib-l">Start Time</div></div>';
+      h+='<div class="ib"><div class="ib-v">'+fmtT(s.start_time)+'</div><div class="ib-l">Time</div></div>';
       h+='<div class="ib"><div class="ib-v">'+(s.max_marks||"-")+'</div><div class="ib-l">Max Marks</div></div>';
       h+='<div class="ib"><div class="ib-v">'+(s.min_marks||"-")+'</div><div class="ib-l">Min Marks</div></div>';
-      h+='<div class="ib"><div class="ib-v">'+(s.total_questions||"-")+'</div><div class="ib-l">Questions</div></div>';
-      h+='<div class="ib"><div class="ib-v">'+(s.room_number||"-")+'</div><div class="ib-l">Room</div></div>';
-      h+='<div class="ib"><div class="ib-v">'+(s.number_of_students||"-")+'</div><div class="ib-l">Students</div></div>';
       h+='</div>';
-      if(s.remarks)h+='<div class="rb">&#128221; '+s.remarks+'</div>';
+
+      if(s.remarks) h+='<div class="rb">&#128221; '+s.remarks+'</div>';
+
+      // Teacher Attachments
+      if(s.attachments&&s.attachments.length>0){
+        h+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;"><strong>&#128206; Attachments from Teacher:</strong><div style="display:flex;flex-wrap:wrap;margin-top:6px;">';
+        s.attachments.forEach(function(att){h+='<a href="'+att.file_url+'" target="_blank" class="att-link">&#128206; '+att.file_name+'</a>';});
+        h+='</div></div>';
+      }
+
+      // ── RESULTS SECTION (visible once teacher submits) ──
+      if(isSubmitted){
+        h+='<div class="result-card"><div class="result-card-header '+rhClass+'">'+resultIcon(rStatus)+' Your Result'+(rStatus?' — '+rStatus:'')+'</div>';
+        h+='<div class="result-grid">';
+        h+='<div class="result-box"><div class="result-val">'+(hasResult?s.marks_obtained:"-")+'</div><div class="result-lbl">Marks Obtained</div></div>';
+        h+='<div class="result-box"><div class="result-val">'+(s.max_marks||"-")+'</div><div class="result-lbl">Out Of</div></div>';
+        h+='<div class="result-box"><div class="result-val">'+pct(s.marks_obtained,s.max_marks)+'</div><div class="result-lbl">Percentage</div></div>';
+        h+='<div class="result-box"><div class="grade-badge">'+(s.grade||"—")+'</div><div class="result-lbl">Grade</div></div>';
+        h+='</div></div>';
+      }
+
+      // ── STUDENT SUBMISSION (only if not teacher-submitted & not parent view) ──
+      if(!_isParent && !isSubmitted){
+        h+='<div class="sub-box'+(subStatus.toLowerCase()==='submitted'?' submitted':'')+'"><strong>&#128196; Your Submission</strong>';
+        if(subStatus.toLowerCase()==='submitted'){
+          h+='<div class="sub-status-ok" style="margin-top:6px;">&#10003; Already submitted. You can add more files.</div>';
+        } else {
+          h+='<div style="font-size:0.82rem;color:#666;margin-top:4px;">Upload your completed work (optional — PDF, Word, image, etc).</div>';
+        }
+        h+='<div style="margin-top:8px;">';
+        h+='<label class="sub-upload-label" for="file-input-'+i+'">&#128190; Choose File<input id="file-input-'+i+'" type="file" onchange="onFileChosen('+i+')" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.ppt,.pptx,.xls,.xlsx,.zip,.txt"></label>';
+        h+='<button class="sub-btn" id="sub-btn-'+i+'" onclick="uploadAndSubmit('+i+',\''+s.name+'\')">Submit to Teacher</button>';
+        h+='<div style="font-size:0.8rem;color:#555;margin-top:6px;" id="chosen-'+i+'"></div>';
+        h+='<div id="sub-status-'+i+'"></div>';
+        h+='</div></div>';
+      } else if(!_isParent && isSubmitted && subStatus){
+        h+='<div style="margin-top:10px;font-size:0.83rem;color:#2e7d32;"><span>&#10003; Your submission was received by the teacher.</span></div>';
+      }
+
       h+='</div></div>';
     });
     el("il").innerHTML=h;

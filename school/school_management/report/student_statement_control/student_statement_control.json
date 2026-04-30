@@ -22,16 +22,19 @@
    "role": "System Manager"
   },
   {
+   "role": "School Administrator"
+  },
+  {
+   "role": "School User"
+  },
+  {
+   "role": "Teacher"
+  },
+  {
    "role": "Accounts Manager"
   },
   {
    "role": "Accounts User"
-  },
-  {
-   "role": "Education Manager"
-  },
-  {
-   "role": "School Administrator"
   }
  ]
 }

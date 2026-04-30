@@ -4,13 +4,11 @@ title: Exam Schedule
 ---
 
 <script>
-// Smart back button — goes to parent portal if viewing as parent
 (function(){
   var params = new URLSearchParams(window.location.search);
   var backUrl = params.get('from') === 'parent'
     ? '/assets/school/html/parent-portal.html'
     : '/assets/school/html/student-portal.html';
-  // Update all back links on the page
   document.addEventListener('DOMContentLoaded', function(){
     document.querySelectorAll('a[href="/assets/school/html/student-portal.html"]').forEach(function(a){
       a.href = backUrl;
@@ -23,8 +21,8 @@ title: Exam Schedule
 <style>
 .sh{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;border-radius:12px;padding:24px;margin-bottom:24px;}
 .sh h2{margin:0;}.sh p{margin:6px 0 0 0;opacity:0.85;font-size:0.95rem;}
-.si{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;cursor:pointer;}
-.si-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;}
+.si{background:white;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);margin-bottom:14px;overflow:hidden;}
+.si-h{background:linear-gradient(135deg,#1e3a5f,#2e86de);color:white;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
 .si-h h5{margin:0;font-size:0.95rem;}.si-h .m{font-size:0.8rem;opacity:0.85;margin-top:3px;}
 .si-b{display:none;padding:16px 18px;}
 .ig{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;}
@@ -33,19 +31,30 @@ title: Exam Schedule
 .rb{background:#fffde7;border-left:4px solid #fbbc04;padding:8px 12px;border-radius:0 6px 6px 0;font-size:0.86rem;color:#555;margin-top:10px;}
 .bb{background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4);border-radius:8px;padding:6px 14px;text-decoration:none;font-size:0.83rem;display:inline-block;margin-bottom:10px;}
 .bb:hover{background:rgba(255,255,255,0.3);color:white;text-decoration:none;}
+.att-link{background:#e3f2fd;color:#1e88e5;padding:4px 10px;border-radius:4px;font-size:0.8rem;text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin:3px;}
+.att-link:hover{background:#bbdefb;color:#1565c0;}
+.draft-tag{display:inline-block;background:#fff3e0;color:#e65100;border:1px solid #ffcc80;border-radius:4px;padding:1px 7px;font-size:0.72rem;font-weight:600;margin-left:8px;vertical-align:middle;}
 @media(max-width:600px){.ig{grid-template-columns:repeat(2,1fr);}}
 </style>
+
 <div id="loading" style="text-align:center;padding:60px;color:#888;">Loading schedule...</div>
 <div id="pc" style="display:none;">
   <div class="sh"><a href="/assets/school/html/student-portal.html" class="bb">&#8592; Dashboard</a><h2>&#127979; Exam Schedule</h2><p id="sub"></p></div>
   <div id="il"></div>
 </div>
+
 <script>
 function el(id){return document.getElementById(id);}
 function fmtT(t){if(!t||t==="-")return"-";var p=t.split(":");if(p.length<2)return t;var h=parseInt(p[0]),m=p[1];return(h%12||12)+":"+m+(h>=12?" PM":" AM");}
 function tog(id){var b=el("b"+id);b.style.display=b.style.display==="block"?"none":"block";}
+
 window.addEventListener("load", function(){
-  (function(){var _p=new URLSearchParams(window.location.search);var _c=_p.get("child")||"";var _qs=_c?"?student="+encodeURIComponent(_c):"";return fetch("/api/method/school.api.get_exam_schedules"+_qs,{credentials:"same-origin"});})()
+  (function(){
+    var _p=new URLSearchParams(window.location.search);
+    var _c=_p.get("child")||"";
+    var _qs=_c?"?student="+encodeURIComponent(_c):"";
+    return fetch("/api/method/school.api.get_exam_schedules"+_qs,{credentials:"same-origin"});
+  })()
   .then(function(res){return res.json();})
   .then(function(r){
     if(!r.message||!r.message.length){
@@ -56,7 +65,11 @@ window.addEventListener("load", function(){
     el("sub").textContent=d.length+" schedule(s)";
     var h="";
     d.forEach(function(s,i){
-      h+='<div class="si"><div class="si-h" onclick="tog('+i+')"><div><h5>'+s.exam_name+'</h5><div class="m">'+s.subject_name+' &bull; '+s.class_name+' &bull; '+s.date+'</div></div><div style="text-align:right;font-size:0.83rem;opacity:0.9;">'+fmtT(s.start_time)+'<br><small>'+s.exam_type+'</small></div></div>';
+      h+='<div class="si">';
+      h+='<div class="si-h" onclick="tog('+i+')"><div><h5>'+(s.exam_name||"-");
+      h+='</h5><div class="m">'+s.subject_name+' &bull; '+s.class_name+' &bull; '+s.date+'</div></div>';
+      h+='<div style="text-align:right;font-size:0.83rem;opacity:0.9;">'+fmtT(s.start_time)+'<br><small>'+s.exam_type+'</small></div></div>';
+
       h+='<div class="si-b" id="b'+i+'"><div class="ig">';
       h+='<div class="ib"><div class="ib-v">'+s.class_name+'</div><div class="ib-l">Class</div></div>';
       h+='<div class="ib"><div class="ib-v">'+s.subject_name+'</div><div class="ib-l">Subject</div></div>';
@@ -68,7 +81,14 @@ window.addEventListener("load", function(){
       h+='<div class="ib"><div class="ib-v">'+(s.room_number||"-")+'</div><div class="ib-l">Room</div></div>';
       h+='<div class="ib"><div class="ib-v">'+(s.number_of_students||"-")+'</div><div class="ib-l">Students</div></div>';
       h+='</div>';
-      if(s.remarks)h+='<div class="rb">&#128221; '+s.remarks+'</div>';
+      if(s.remarks) h+='<div class="rb">&#128221; '+s.remarks+'</div>';
+      if(s.attachments && s.attachments.length>0){
+        h+='<div style="margin-top:12px;padding-top:12px;border-top:1px solid #eee;"><strong>&#128206; Attachments:</strong><div style="display:flex;flex-wrap:wrap;margin-top:6px;">';
+        s.attachments.forEach(function(att){
+          h+='<a href="'+att.file_url+'" target="_blank" class="att-link">&#128206; '+att.file_name+'</a>';
+        });
+        h+='</div></div>';
+      }
       h+='</div></div>';
     });
     el("il").innerHTML=h;

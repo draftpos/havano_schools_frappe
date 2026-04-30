@@ -169,11 +169,12 @@ def get_exam_schedules(student=None):
     s_class   = student.student_class or ""
     s_section = student.section or ""
     schedules = frappe.get_all("Exam Schedule",
-        filters={"student_class": s_class, "section": s_section},
+        filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
         fields=["name","title","subject","date","start_time","max_marks","min_marks",
                 "total_questions","room_number","number_of_students","exam_type"],
-        order_by="date asc") if s_class else []
+        order_by="date asc", ignore_permissions=True) if s_class else []
     marks_map = {}
+    attachments_map = {}
     if schedules:
         items = frappe.db.sql("""
             SELECT parent, marks_obtained, status
@@ -181,6 +182,17 @@ def get_exam_schedules(student=None):
             WHERE student_admission_no = %s
         """, s_reg_no, as_dict=True)
         marks_map = {i.parent: i for i in items}
+        
+        schedule_names = [s.name for s in schedules]
+        if schedule_names:
+            files = frappe.get_all("File",
+                filters={"attached_to_doctype": "Exam Schedule", "attached_to_name": ("in", schedule_names)},
+                fields=["attached_to_name", "file_url", "file_name"])
+            for f in files:
+                attachments_map.setdefault(f.attached_to_name, []).append({
+                    "file_name": f.file_name,
+                    "file_url": f.file_url
+                })
     result = []
     for s in schedules:
         sub_name = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
@@ -200,6 +212,7 @@ def get_exam_schedules(student=None):
             "marks_obtained":   item.get("marks_obtained", "") if item else "",
             "status":           item.get("status", "") if item else "",
             "remarks":          "",
+            "attachments":      attachments_map.get(s.name, []),
         })
     return result
 
@@ -219,33 +232,72 @@ def get_home_schedules(student=None):
     s_class   = student.student_class or ""
     s_section = student.section or ""
     schedules = frappe.get_all("Home Schedule",
-        filters={"student_class": s_class, "section": s_section},
-        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
-        order_by="date asc") if s_class else []
+        filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks","docstatus","remarks"],
+        order_by="date asc", ignore_permissions=True) if s_class else []
     marks_map = {}
+    attachments_map = {}
     if schedules:
         items = frappe.db.sql("""
-            SELECT parent, marks_obtained, status
+            SELECT parent, marks_obtained, status, grade
             FROM `tabHome Schedule Item`
             WHERE student_admission_no = %s
         """, s_reg_no, as_dict=True)
         marks_map = {i.parent: i for i in items}
+
+        subs = frappe.db.sql("""
+            SELECT assignment, status, name
+            FROM `tabAssignment Submission`
+            WHERE student = %s AND assignment_type = 'Home Schedule' AND docstatus < 2
+        """, student.name, as_dict=True)
+        sub_map = {s.assignment: s for s in subs}
+
+        schedule_names = [s.name for s in schedules]
+        test_names = [s.test_name for s in schedules if s.test_name]
+        
+        if schedule_names:
+            files = frappe.get_all("File",
+                filters={"attached_to_doctype": "Home Schedule", "attached_to_name": ("in", schedule_names)},
+                fields=["attached_to_name", "file_url", "file_name"])
+            for f in files:
+                attachments_map.setdefault(f.attached_to_name, []).append({
+                    "file_name": f.file_name,
+                    "file_url": f.file_url
+                })
+        if test_names:
+            files_hw = frappe.get_all("File",
+                filters={"attached_to_doctype": "Homework", "attached_to_name": ("in", test_names)},
+                fields=["attached_to_name", "file_url", "file_name"])
+            for f in files_hw:
+                attachments_map.setdefault(f.attached_to_name, []).append({
+                    "file_name": f.file_name,
+                    "file_url": f.file_url
+                })
+
     result = []
     for s in schedules:
         sub_name = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
         hw_name  = frappe.db.get_value("Homework", s.test_name, "home_name") or s.test_name or ""
         item = marks_map.get(s.name, {})
+        sub = sub_map.get(s.name) if schedules else None
         result.append({
-            "exam_name":       hw_name,
-            "subject_name":    sub_name,
-            "class_name":      s_class,
-            "date":            str(s.date) if s.date else "",
-            "start_time":      str(s.start_time) if s.start_time else "",
-            "max_marks":       s.max_marks or 0,
-            "min_marks":       s.min_marks or 0,
-            "marks_obtained":  item.get("marks_obtained","") if item else "",
-            "status":          item.get("status","") if item else "",
-            "remarks":         "",
+            "name":             s.name,
+            "exam_name":        hw_name,
+            "subject_name":     sub_name,
+            "class_name":       s_class,
+            "date":             str(s.date) if s.date else "",
+            "start_time":       str(s.start_time) if s.start_time else "",
+            "max_marks":        s.max_marks or 0,
+            "min_marks":        s.min_marks or 0,
+            "marks_obtained":   item.get("marks_obtained", "") if item else "",
+            "result_status":    item.get("status", "") if item else "",
+            "grade":            item.get("grade", "") if item else "",
+            "remarks":          s.remarks or "",
+            "docstatus":        s.docstatus,
+            "is_submitted":     s.docstatus == 1,
+            "attachments":      attachments_map.get(s.name, []) + attachments_map.get(s.test_name, []),
+            "submission_status": sub.status if sub else "",
+            "submission_id":    sub.name if sub else ""
         })
     return result
 
@@ -265,33 +317,72 @@ def get_test_schedules(student=None):
     s_class   = student.student_class or ""
     s_section = student.section or ""
     schedules = frappe.get_all("Test Schedule",
-        filters={"student_class": s_class, "section": s_section},
-        fields=["name","test_name","subject","date","start_time","max_marks","min_marks"],
-        order_by="date asc") if s_class else []
+        filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
+        fields=["name","test_name","subject","date","start_time","max_marks","min_marks","docstatus","remarks"],
+        order_by="date asc", ignore_permissions=True) if s_class else []
     marks_map = {}
+    attachments_map = {}
     if schedules:
         items = frappe.db.sql("""
-            SELECT parent, marks_obtained, status
+            SELECT parent, marks_obtained, status, grade
             FROM `tabTest Schedule Item`
             WHERE student_admission_no = %s
         """, s_reg_no, as_dict=True)
         marks_map = {i.parent: i for i in items}
+
+        subs_test = frappe.db.sql("""
+            SELECT assignment, status, name
+            FROM `tabAssignment Submission`
+            WHERE student = %s AND assignment_type = 'Test Schedule' AND docstatus < 2
+        """, student.name, as_dict=True)
+        sub_map = {s.assignment: s for s in subs_test}
+
+        schedule_names = [s.name for s in schedules]
+        test_names = [s.test_name for s in schedules if s.test_name]
+        
+        if schedule_names:
+            files = frappe.get_all("File",
+                filters={"attached_to_doctype": "Test Schedule", "attached_to_name": ("in", schedule_names)},
+                fields=["attached_to_name", "file_url", "file_name"])
+            for f in files:
+                attachments_map.setdefault(f.attached_to_name, []).append({
+                    "file_name": f.file_name,
+                    "file_url": f.file_url
+                })
+        if test_names:
+            files_test = frappe.get_all("File",
+                filters={"attached_to_doctype": "Inclass Test", "attached_to_name": ("in", test_names)},
+                fields=["attached_to_name", "file_url", "file_name"])
+            for f in files_test:
+                attachments_map.setdefault(f.attached_to_name, []).append({
+                    "file_name": f.file_name,
+                    "file_url": f.file_url
+                })
+
     result = []
     for s in schedules:
         sub_name  = frappe.db.get_value("Subject", s.subject, "subject_name") or s.subject or ""
         test_name = frappe.db.get_value("Inclass Test", s.test_name, "exam_name") or s.test_name or ""
         item = marks_map.get(s.name, {})
+        sub = sub_map.get(s.name) if schedules else None
         result.append({
-            "exam_name":       test_name,
-            "subject_name":    sub_name,
-            "class_name":      s_class,
-            "date":            str(s.date) if s.date else "",
-            "start_time":      str(s.start_time) if s.start_time else "",
-            "max_marks":       s.max_marks or 0,
-            "min_marks":       s.min_marks or 0,
-            "marks_obtained":  item.get("marks_obtained","") if item else "",
-            "status":          item.get("status","") if item else "",
-            "remarks":         "",
+            "name":             s.name,
+            "exam_name":        test_name,
+            "subject_name":     sub_name,
+            "class_name":       s_class,
+            "date":             str(s.date) if s.date else "",
+            "start_time":       str(s.start_time) if s.start_time else "",
+            "max_marks":        s.max_marks or 0,
+            "min_marks":        s.min_marks or 0,
+            "marks_obtained":   item.get("marks_obtained", "") if item else "",
+            "result_status":    item.get("status", "") if item else "",
+            "grade":            item.get("grade", "") if item else "",
+            "remarks":          s.remarks or "",
+            "docstatus":        s.docstatus,
+            "is_submitted":     s.docstatus == 1,
+            "attachments":      attachments_map.get(s.name, []) + attachments_map.get(s.test_name, []),
+            "submission_status": sub.status if sub else "",
+            "submission_id":    sub.name if sub else ""
         })
     return result
 
@@ -1504,3 +1595,39 @@ def get_teacher_balances_list():
         s["balance"] = balance_map.get(s.full_name, 0.0)
 
     return sorted(students, key=lambda x: x.get('balance', 0), reverse=True)
+
+
+@frappe.whitelist()
+def submit_student_assignment(assignment_name, assignment_type, file_url=None, file_name=None):
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"): return {"error": "Not authorized"}
+    student = frappe.db.get_value("Student", {"portal_email": user}, "name")
+    if not student: return {"error": "Student record not found"}
+    
+    existing = frappe.db.exists("Assignment Submission", {
+        "assignment": assignment_name,
+        "student": student,
+        "docstatus": ("<", 2)
+    })
+    
+    if existing:
+        doc = frappe.get_doc("Assignment Submission", existing)
+    else:
+        doc = frappe.new_doc("Assignment Submission")
+        import frappe.utils
+        doc.submission_name = frappe.utils.random_string(10)
+        doc.assignment = assignment_name
+        doc.assignment_type = assignment_type
+        doc.student = student
+        doc.status = "Submitted"
+        doc.submitted_on = frappe.utils.now()
+        
+    if file_url:
+        doc.append("student_files", {
+            "file_name": file_name or "Submission",
+            "file": file_url
+        })
+        
+    doc.save(ignore_permissions=True)
+    frappe.db.commit()
+    return {"message": "Success", "submission": doc.name}

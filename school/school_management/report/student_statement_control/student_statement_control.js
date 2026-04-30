@@ -9,36 +9,33 @@ frappe.query_reports["Student Statement Control"] = {
         {fieldname: "section", label: __("Section"), fieldtype: "Link", options: "Section"},
         {fieldname: "student_class", label: __("Class"), fieldtype: "Link", options: "Student Class"},
     ],
-
     onload(report) {
         report.page.add_inner_button(__("Bulk Download ZIP"), async () => {
-            await customer_statements_bulk_action(report, "school.school_management.api.download_student_statements_zip");
+            await cs_bulk_action(report, "school.school_management.api.download_student_statements_zip");
         });
         report.page.add_inner_button(__("Bulk Print PDF"), async () => {
-            await customer_statements_bulk_action(report, "school.school_management.api.download_student_statements_merged_pdf");
+            await cs_bulk_action(report, "school.school_management.api.download_student_statements_merged_pdf");
         });
         report.page.add_inner_button(__("Open Single Student Statement"), async () => {
-            const filters = report.get_values();
+            const f = report.get_values();
+            if (!f.customer) { frappe.msgprint(__("Select a Student filter first.")); return; }
             frappe.set_route("query-report", "Student Statement Detail", {
-                company: filters.company, customer: filters.customer,
-                from_date: filters.from_date, to_date: filters.to_date, report_date: filters.report_date,
+                company: f.company, customer: f.customer,
+                from_date: f.from_date, to_date: f.to_date, report_date: f.report_date,
             });
         });
     },
 };
-
-async function customer_statements_bulk_action(report, method) {
+async function cs_bulk_action(report, method) {
     const filters = report.get_values();
     frappe.dom.freeze(__("Preparing statements..."));
     try {
-        const countResponse = await frappe.call({
-            method: "school.school_management.api.get_batch_student_count",
-            args: { filters: filters },
-        });
-        const count = (countResponse.message || {}).count || 0;
-        const response = await frappe.call({ method: method, args: { filters: filters } });
-        const payload = response.message || {};
-        if (payload.file_url) { window.open(payload.file_url, "_blank"); }
-        else { frappe.msgprint(__("The file was generated but no download URL was returned.")); }
+        const cr = await frappe.call({method: "school.school_management.api.get_batch_student_count", args: {filters}});
+        const count = (cr.message || {}).count || 0;
+        if (!count) { frappe.msgprint(__("No students matched the selected filters.")); return; }
+        const r = await frappe.call({method, args: {filters}});
+        const p = r.message || {};
+        if (p.file_url) { window.open(p.file_url, "_blank"); }
+        else { frappe.msgprint(__("No download URL was returned.")); }
     } finally { frappe.dom.unfreeze(); }
 }
