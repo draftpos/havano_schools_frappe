@@ -1631,3 +1631,91 @@ def submit_student_assignment(assignment_name, assignment_type, file_url=None, f
     doc.save(ignore_permissions=True)
     frappe.db.commit()
     return {"message": "Success", "submission": doc.name}
+
+
+@frappe.whitelist()
+def get_student_submissions(assignment_type=None, schedule_name=None):
+    """
+    Teacher-facing API.
+    Returns all Assignment Submission records with student files.
+    - assignment_type: 'Home Schedule', 'Test Schedule', or 'Exam Schedule'
+      (if omitted, returns all types)
+    - schedule_name: filter to a specific schedule doc (optional)
+    """
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    # Verify caller is a teacher
+    is_teacher = frappe.db.exists("Teacher", {"portal_email": user}) or \
+                 frappe.db.exists("Teacher", {"email": user})
+    if not is_teacher:
+        return {"error": "Not authorized"}
+
+    filters = {"docstatus": ["<", 2]}
+    if assignment_type:
+        filters["assignment_type"] = assignment_type
+    if schedule_name:
+        filters["assignment"] = schedule_name
+
+    submissions = frappe.get_all(
+        "Assignment Submission",
+        filters=filters,
+        fields=["name", "assignment", "assignment_type", "student",
+                "status", "submitted_on", "submission_name"],
+        order_by="submitted_on desc",
+        ignore_permissions=True
+    )
+
+    result = []
+    for sub in submissions:
+        # Get student full name
+        student_name = frappe.db.get_value("Student", sub.student, "full_name") or sub.student
+
+        # Get files from child table (Submission File)
+        files = frappe.get_all(
+            "Submission File",
+            filters={"parent": sub.name},
+            fields=["file_name", "file"],
+            ignore_permissions=True
+        )
+
+        # Also check Frappe File attachments on the submission doc itself
+        frappe_files = frappe.get_all(
+            "File",
+            filters={"attached_to_doctype": "Assignment Submission", "attached_to_name": sub.name},
+            fields=["file_name", "file_url"],
+            ignore_permissions=True
+        )
+
+        all_files = [{"file_name": f.file_name, "file_url": f.file} for f in files if f.file]
+        all_files += [{"file_name": f.file_name, "file_url": f.file_url} for f in frappe_files]
+
+        # Deduplicate by file_url
+        seen = set()
+        unique_files = []
+        for f in all_files:
+            if f["file_url"] and f["file_url"] not in seen:
+                seen.add(f["file_url"])
+                unique_files.append(f)
+
+        # Get schedule label
+        schedule_label = sub.assignment or ""
+        if sub.assignment_type == "Home Schedule":
+            schedule_label = frappe.db.get_value("Home Schedule", sub.assignment, "test_name") or sub.assignment
+        elif sub.assignment_type == "Test Schedule":
+            schedule_label = frappe.db.get_value("Test Schedule", sub.assignment, "test_name") or sub.assignment
+
+        result.append({
+            "submission_id":   sub.name,
+            "assignment":      sub.assignment,
+            "schedule_label":  schedule_label,
+            "assignment_type": sub.assignment_type,
+            "student":         sub.student,
+            "student_name":    student_name,
+            "status":          sub.status or "Submitted",
+            "submitted_on":    str(sub.submitted_on) if sub.submitted_on else "",
+            "files":           unique_files
+        })
+
+    return result

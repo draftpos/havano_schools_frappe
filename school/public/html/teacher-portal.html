@@ -726,6 +726,125 @@
       display: none;
     }
 
+    /* ── Submissions Inbox ── */
+    .sub-filter-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .sub-filter-btn {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text2);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .sub-filter-btn.active, .sub-filter-btn:hover {
+      background: var(--indigo);
+      color: white;
+      border-color: var(--indigo);
+    }
+    .sub-group {
+      margin-bottom: 28px;
+    }
+    .sub-group-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sub-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all .2s;
+    }
+    .sub-card:hover {
+      border-color: var(--indigo);
+      box-shadow: 0 4px 14px rgba(99,102,241,.1);
+    }
+    .sub-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--indigo), var(--blue));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .sub-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .sub-student-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .sub-meta {
+      font-size: 12px;
+      color: var(--text3);
+      margin: 3px 0 8px;
+    }
+    .sub-files {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .sub-file-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 12px;
+      border-radius: 8px;
+      background: rgba(99,102,241,.08);
+      color: var(--indigo);
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      border: 1px solid rgba(99,102,241,.2);
+      transition: all .2s;
+    }
+    .sub-file-link:hover {
+      background: var(--indigo);
+      color: white;
+    }
+    .sub-no-files {
+      font-size: 12px;
+      color: var(--text3);
+      font-style: italic;
+    }
+    .sub-type-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 20px;
+      background: rgba(99,102,241,.1);
+      color: var(--indigo);
+      white-space: nowrap;
+    }
+    .sub-type-badge.hw { background:rgba(16,185,129,.1); color:#065f46; }
+    .sub-type-badge.test { background:rgba(245,158,11,.1); color:#92400e; }
+    .sub-type-badge.exam { background:rgba(59,130,246,.1); color:#1e40af; }
+
     @keyframes fadeUp {
       from {
         opacity: 0;
@@ -818,6 +937,10 @@
       </a>
       <a class="nav-item" href="/app/inclass-test">
         <div class="nav-icon">📋</div><span>Inclass Tests</span>
+      </a>
+      <a class="nav-item" id="nav-submissions" href="javascript:void(0)" onclick="switchView('submissions');loadSubmissions()">
+        <div class="nav-icon">📥</div><span>Student Submissions</span>
+        <span id="sub-badge" style="margin-left:auto;background:var(--rose);color:white;border-radius:99px;font-size:10px;font-weight:700;padding:2px 7px;display:none">0</span>
       </a>
     </div>
     <div class="nav-section">
@@ -1181,6 +1304,28 @@
           </div>
         </div><!-- /dashboard-view -->
 
+      <!-- ═══════════════════════════════════════
+           STUDENT SUBMISSIONS VIEW
+      ═══════════════════════════════════════ -->
+      <div id="submissions-view" class="portal-view" style="display:none">
+        <div class="sec-head" style="margin-bottom:8px">
+          <div class="sec-title"><span></span>📥 Student Submissions Inbox</div>
+          <button onclick="loadSubmissions()" class="tb-btn">🔄 Refresh</button>
+        </div>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:18px">Files submitted by students for Homework, Class Tests, and Exams.</p>
+
+        <!-- Filter bar -->
+        <div class="sub-filter-bar">
+          <button class="sub-filter-btn active" id="sfbtn-all"   onclick="filterSubs('all')">All</button>
+          <button class="sub-filter-btn"        id="sfbtn-home"  onclick="filterSubs('Home Schedule')">📚 Homework</button>
+          <button class="sub-filter-btn"        id="sfbtn-test"  onclick="filterSubs('Test Schedule')">✏️ Class Tests</button>
+          <button class="sub-filter-btn"        id="sfbtn-exam"  onclick="filterSubs('Exam Schedule')">📅 Exams</button>
+        </div>
+
+        <div id="submissions-container">
+          <div class="state-msg" style="padding:40px">Loading submissions...</div>
+        </div>
+      </div>
 
       </div><!-- /content -->
 
@@ -1349,10 +1494,132 @@
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
         if (view === 'dashboard') {
           document.querySelector('a[onclick*="dashboard"]').classList.add('active');
+        } else if (view === 'submissions') {
+          document.getElementById('nav-submissions').classList.add('active');
         }
         closeSidebar();
         window.scrollTo(0, 0);
       }
+
+      /* ─────────────────────────────────────────────
+         Student Submissions Inbox
+      ───────────────────────────────────────────── */
+      var _allSubs = [];
+      var _activeFilter = 'all';
+
+      function loadSubmissions() {
+        var container = document.getElementById('submissions-container');
+        container.innerHTML = '<div class="state-msg" style="padding:40px">Loading...</div>';
+        fetch('/api/method/school.api.get_student_submissions')
+          .then(r => r.json())
+          .then(r => {
+            _allSubs = r.message || [];
+            // Update badge
+            var badge = document.getElementById('sub-badge');
+            if (_allSubs.length > 0) {
+              badge.textContent = _allSubs.length;
+              badge.style.display = 'inline';
+            } else {
+              badge.style.display = 'none';
+            }
+            renderSubs(_allSubs, _activeFilter);
+          })
+          .catch(err => {
+            container.innerHTML = '<div class="state-msg">Could not load submissions. Check console.</div>';
+            console.error(err);
+          });
+      }
+
+      function filterSubs(type) {
+        _activeFilter = type;
+        document.querySelectorAll('.sub-filter-btn').forEach(b => b.classList.remove('active'));
+        var btnMap = { 'all': 'sfbtn-all', 'Home Schedule': 'sfbtn-home', 'Test Schedule': 'sfbtn-test', 'Exam Schedule': 'sfbtn-exam' };
+        var btn = document.getElementById(btnMap[type]);
+        if (btn) btn.classList.add('active');
+        renderSubs(_allSubs, type);
+      }
+
+      function renderSubs(subs, filter) {
+        var container = document.getElementById('submissions-container');
+        var filtered = filter === 'all' ? subs : subs.filter(s => s.assignment_type === filter);
+
+        if (!filtered.length) {
+          container.innerHTML = '<div class="state-msg" style="padding:40px">📭 No submissions found.</div>';
+          return;
+        }
+
+        // Group by assignment_type
+        var groups = {};
+        filtered.forEach(s => {
+          var grp = s.assignment_type || 'Other';
+          if (!groups[grp]) groups[grp] = [];
+          groups[grp].push(s);
+        });
+
+        var typeLabels = {
+          'Home Schedule':  '📚 Homework Submissions',
+          'Test Schedule':  '✏️ Class Test Submissions',
+          'Exam Schedule':  '📅 Exam Submissions',
+          'Other':          '📄 Other Submissions'
+        };
+        var typeBadgeClass = {
+          'Home Schedule': 'hw',
+          'Test Schedule': 'test',
+          'Exam Schedule': 'exam'
+        };
+
+        var html = '';
+        Object.keys(groups).forEach(grp => {
+          html += '<div class="sub-group">';
+          html += '<div class="sub-group-title">' + (typeLabels[grp] || grp) + ' (' + groups[grp].length + ')</div>';
+          groups[grp].forEach(s => {
+            var initial = (s.student_name || 'S').charAt(0).toUpperCase();
+            var badgeClass = typeBadgeClass[s.assignment_type] || '';
+            var ts = s.submitted_on ? s.submitted_on.split('.')[0] : '';
+            var filesHtml = '';
+            if (s.files && s.files.length > 0) {
+              s.files.forEach(f => {
+                var fname = f.file_name || f.file_url.split('/').pop();
+                filesHtml += '<a class="sub-file-link" href="' + f.file_url + '" target="_blank" download>📎 ' + fname + '</a>';
+              });
+            } else {
+              filesHtml = '<span class="sub-no-files">No file attached</span>';
+            }
+            html += '<div class="sub-card">';
+            html += '  <div class="sub-avatar">' + initial + '</div>';
+            html += '  <div class="sub-info">';
+            html += '    <div class="sub-student-name">' + (s.student_name || s.student) + '</div>';
+            html += '    <div class="sub-meta">';
+            html += '      <span class="sub-type-badge ' + badgeClass + '">' + (s.assignment_type || '') + '</span>';
+            html += '      &nbsp; Schedule: <strong>' + (s.schedule_label || s.assignment) + '</strong>';
+            if (ts) html += '      &nbsp;·&nbsp; Submitted: ' + ts;
+            html += '    </div>';
+            html += '    <div class="sub-files">' + filesHtml + '</div>';
+            html += '  </div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        });
+
+        container.innerHTML = html;
+      }
+
+      // Pre-load badge count on page load
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          fetch('/api/method/school.api.get_student_submissions')
+            .then(r => r.json())
+            .then(r => {
+              var subs = r.message || [];
+              _allSubs = subs;
+              var badge = document.getElementById('sub-badge');
+              if (subs.length > 0) {
+                badge.textContent = subs.length;
+                badge.style.display = 'inline';
+              }
+            }).catch(() => {});
+        }, 1500);
+      });
 
       /* ─────────────────────────────────────────────
          Note Operations
