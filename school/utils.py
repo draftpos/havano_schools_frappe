@@ -26,9 +26,18 @@ def redirect_to_portal():
     elif frappe.db.exists("Student", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
-    elif "School User" in roles:
+    elif "School User" in roles or "Accounts User" in roles or "Accounts Manager" in roles or "HR User" in roles or "HR Manager" in roles:
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
+    elif frappe.db.get_roles and any(r not in ["Guest", "All"] for r in roles):
+        # Any user with a real role goes to /app
+        backend_roles = [r for r in roles if r not in ["Guest", "All", "Student", "Student Portal"]]
+        if backend_roles:
+            frappe.local.response["type"] = "redirect"
+            frappe.local.response["location"] = "/app"
+        else:
+            frappe.local.response["type"] = "redirect"
+            frappe.local.response["location"] = "/assets/school/html/student-portal.html"
     else:
         # Final fallback to student portal if no specific match
         frappe.local.response["type"] = "redirect"

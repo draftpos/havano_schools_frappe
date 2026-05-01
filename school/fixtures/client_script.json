@@ -2,6 +2,28 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
+  "dt": "Student",
+  "enabled": 0,
+  "modified": "2026-04-09 07:51:30.397748",
+  "module": null,
+  "name": "student-portal-data",
+  "script": "frappe.ui.form.on(\"Student\", {\n    refresh: function(frm) {\n        // Portal data logic is handled server-side via www/student_registration.js\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "User",
+  "enabled": 1,
+  "modified": "2026-01-22 14:00:41.599821",
+  "module": "Saas Api",
+  "name": "settings user permmission",
+  "script": "frappe.ui.form.on(\"User\", {\n  refresh: function(frm) {\n    frm.can_edit_roles = true;\n\n    if (!frm.roles_editor) {\n      frm.roles_editor = new frappe.RoleEditor(\n        frm.fields_dict.roles_html.wrapper,\n        frm\n      );\n    }\n    frm.roles_editor.show();\n    frm.toggle_display([\"sb1\", \"sb3\", \"modules_access\"], true);\n\n    if (frm.is_new()) return;\n\n    frm.add_custom_button(__(\"Create Student\"), function() {\n      frappe.new_doc(\"Student\");\n    }, __(\"School\"));\n    frm.add_custom_button(__(\"Create Teacher\"), function() {\n      frappe.new_doc(\"Teacher\");\n    }, __(\"School\"));\n    frm.add_custom_button(__(\"Create Parent\"), function() {\n      frappe.new_doc(\"Parent\");\n    }, __(\"School\"));\n  }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
   "dt": "Payment Entry",
   "enabled": 1,
   "modified": "2026-03-06 07:31:05.165554",
