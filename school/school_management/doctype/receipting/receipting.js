@@ -53,21 +53,57 @@ frappe.ui.form.on("Receipting", {
             callback: function(r) {
                 if (!r.message) return;
                 frm.clear_table("invoice");
-                var total_out = 0;
                 for (var i = 0; i < r.message.length; i++) {
                     var inv = r.message[i];
                     var row = frm.add_child("invoice");
                     row.invoice_number = inv.name;
-                    row.fees_structure = inv.fees_structure;
+                    row.invoice_currency = inv.currency || "USD";
+                    row.fee_item = inv.fee_item;
                     row.outstanding = inv.outstanding_amount;
-                    row.total = inv.grand_total;
-                    total_out += (inv.outstanding_amount || 0);
+                    row.total = inv.total;
                 }
-                frm.set_value("total_outstanding", total_out);
                 frm.refresh_field("invoice");
                 calculate_totals(frm);
             }
         });
+    },
+
+    currency: function(frm) {
+        if (!frm.doc.currency) return;
+        
+        var company_currency = "USD"; // Default fallback
+        frappe.call({
+            method: "frappe.client.get_value",
+            args: {
+                doctype: "Company",
+                filters: { name: frappe.defaults.get_default("company") },
+                fieldname: "default_currency"
+            },
+            callback: function(r) {
+                if (r.message && r.message.default_currency) {
+                    company_currency = r.message.default_currency;
+                }
+                
+                if (frm.doc.currency === company_currency) {
+                    frm.set_value("exchange_rate", 1.0);
+                } else {
+                    frappe.call({
+                        method: "school.api.get_exchange_rate",
+                        args: {
+                            from_currency: company_currency,
+                            to_currency: frm.doc.currency
+                        },
+                        callback: function(r) {
+                            frm.set_value("exchange_rate", r.message || 1.0);
+                        }
+                    });
+                }
+            }
+        });
+    },
+
+    exchange_rate: function(frm) {
+        calculate_totals(frm);
     }
 });
 
@@ -84,9 +120,24 @@ function calculate_totals(frm) {
     var total_outstanding = 0;
     var total_allocated = 0;
     var rows = frm.doc.invoice || [];
+    var receipt_currency = frm.doc.currency || "USD";
+    var rate = flt(frm.doc.exchange_rate) || 1.0;
+
     for (var i = 0; i < rows.length; i++) {
-        total_outstanding += (rows[i].outstanding || 0);
-        total_allocated += (rows[i].allocated || 0);
+        var row = rows[i];
+        var inv_currency = row.invoice_currency || "USD";
+        var out = flt(row.outstanding);
+
+        if (receipt_currency !== inv_currency) {
+            if (receipt_currency === "ZWG" && inv_currency === "USD") {
+                out = out * rate;
+            } else if (receipt_currency === "USD" && inv_currency === "ZWG") {
+                out = out / rate;
+            }
+        }
+        
+        total_outstanding += out;
+        total_allocated += flt(row.allocated);
     }
     frm.set_value("total_outstanding", total_outstanding);
     frm.set_value("total_allocated", total_allocated);

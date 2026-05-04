@@ -1,5 +1,6 @@
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 @frappe.whitelist()
 def get_billing_summary(student=None):
@@ -19,9 +20,9 @@ def get_billing_summary(student=None):
 
     invoices = frappe.db.sql("""
         SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
-               cost_center, fees_structure
+               cost_center, fees_structure, currency
         FROM `tabSales Invoice`
-WHERE customer_name = %s AND docstatus = 1
+        WHERE customer_name = %s AND docstatus = 1
         ORDER BY posting_date DESC
     """, student.full_name, as_dict=True)
 
@@ -33,7 +34,7 @@ WHERE customer_name = %s AND docstatus = 1
                                       fields=["item_name", "qty", "rate", "amount"])
 
     receipts = frappe.db.sql("""
-        SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus
+        SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
         FROM `tabReceipting` 
         WHERE student_name = %s AND docstatus = 1
         ORDER BY date DESC
@@ -43,7 +44,7 @@ WHERE customer_name = %s AND docstatus = 1
         rec['date'] = str(rec['date'])
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
-                                      fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
+                                      fields=["invoice_number", "fees_structure", "outstanding", "allocated", "invoice_currency"])
 
     return {
         "student": student, 
@@ -75,13 +76,29 @@ def get_student_invoices(student):
             "docstatus": 1, 
             "outstanding_amount": [">", 0]
         },
-        fields=["name", "grand_total", "outstanding_amount", "fees_structure", "posting_date"],
+        fields=["name", "grand_total", "outstanding_amount", "fees_structure", "posting_date", "currency"],
         order_by="posting_date desc")
     
+    result = []
     for inv in invoices:
-        inv["posting_date"] = str(inv["posting_date"])
+        items = frappe.get_all("Sales Invoice Item",
+            filters={"parent": inv.name},
+            fields=["item_name", "amount"])
         
-    return invoices
+        # Calculate ratio of outstanding amount to grand total to estimate item outstanding
+        ratio = flt(inv.outstanding_amount) / flt(inv.grand_total) if inv.grand_total else 0
+        
+        for item in items:
+            result.append({
+                "name": inv.name,
+                "currency": inv.currency,
+                "fee_item": item.item_name,
+                "outstanding_amount": flt(item.amount) * ratio,
+                "total": item.amount,
+                "posting_date": str(inv.posting_date)
+            })
+        
+    return result
 
 
 @frappe.whitelist()
@@ -1719,3 +1736,11 @@ def get_student_submissions(assignment_type=None, schedule_name=None):
         })
 
     return result
+@frappe.whitelist()
+def get_exchange_rate(from_currency, to_currency):
+    try:
+        from erpnext.setup.utils import get_exchange_rate # standard erpnext v15 path
+        return get_exchange_rate(from_currency, to_currency)
+    except ImportError:
+        from frappe.utils import get_exchange_rate
+        return get_exchange_rate(from_currency, to_currency)

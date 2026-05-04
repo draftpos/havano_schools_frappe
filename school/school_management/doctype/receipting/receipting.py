@@ -10,9 +10,22 @@ class Receipting(Document):
 	def calculate_totals(self):
 		total_outstanding = 0
 		total_allocated = 0
+		receipt_currency = self.currency or "USD"
+		rate = flt(self.exchange_rate) or 1.0
+
 		for row in self.invoice:
-			total_outstanding += flt(row.outstanding)
+			inv_currency = row.invoice_currency or "USD"
+			out = flt(row.outstanding)
+
+			if receipt_currency != inv_currency:
+				if receipt_currency == "ZWG" and inv_currency == "USD":
+					out = out * rate
+				elif receipt_currency == "USD" and inv_currency == "ZWG":
+					out = out / rate
+
+			total_outstanding += out
 			total_allocated += flt(row.allocated)
+
 		self.total_outstanding = total_outstanding
 		self.total_allocated = total_allocated
 		self.total_balance = total_outstanding - total_allocated
@@ -37,9 +50,7 @@ class Receipting(Document):
 
 		paid_from = frappe.db.get_value("Company", company, "default_receivable_account")
 
-		paid_to_currency = (
-			frappe.db.get_value("Account", self.account, "account_currency") or company_currency
-		)
+		paid_to_currency = self.currency or company_currency
 		paid_from_currency = frappe.db.get_value("Account", paid_from, "account_currency") or company_currency
 
 		pe = frappe.new_doc("Payment Entry")
@@ -52,37 +63,58 @@ class Receipting(Document):
 		pe.paid_to = self.account
 		pe.paid_from_account_currency = paid_from_currency
 		pe.paid_to_account_currency = paid_to_currency
-		pe.paid_amount = self.total_allocated
-		pe.received_amount = self.total_allocated
-		pe.source_exchange_rate = 1
-		pe.target_exchange_rate = 1
-		pe.base_paid_amount = self.total_allocated
-		pe.base_received_amount = self.total_allocated
+		
+		# Receipt Currency is the "Received" currency
+		pe.received_amount = flt(self.total_allocated)
+		
+		# Convert allocated to Receivable currency (USD) for paid_amount
+		if paid_from_currency != paid_to_currency:
+			if paid_to_currency == "ZWG" and paid_from_currency == "USD":
+				pe.paid_amount = flt(self.total_allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+				pe.target_exchange_rate = flt(self.exchange_rate)
+			elif paid_to_currency == "USD" and paid_from_currency == "ZWG":
+				pe.paid_amount = flt(self.total_allocated) * flt(self.exchange_rate)
+				pe.source_exchange_rate = flt(self.exchange_rate)
+		else:
+			pe.paid_amount = flt(self.total_allocated)
+			pe.source_exchange_rate = 1.0
+			pe.target_exchange_rate = 1.0
+
 		pe.reference_no = self.name
 		pe.reference_date = self.date or today()
 
 		total_allocated_in_refs = 0
+		
+		# Group allocations by invoice
+		invoice_allocations = {}
 		for row in self.invoice:
 			if row.invoice_number and flt(row.allocated) > 0:
-				actual_outstanding = frappe.db.get_value(
-					"Sales Invoice", row.invoice_number, "outstanding_amount"
+				inv_currency = row.invoice_currency or "USD"
+				allocated_in_inv_cur = flt(row.allocated)
+				if paid_to_currency != inv_currency:
+					if paid_to_currency == "ZWG" and inv_currency == "USD":
+						allocated_in_inv_cur = flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+					elif paid_to_currency == "USD" and inv_currency == "ZWG":
+						allocated_in_inv_cur = flt(row.allocated) * flt(self.exchange_rate)
+				
+				invoice_allocations[row.invoice_number] = invoice_allocations.get(row.invoice_number, 0) + allocated_in_inv_cur
+
+		for inv_name, allocated_amount in invoice_allocations.items():
+			actual_outstanding = frappe.db.get_value("Sales Invoice", inv_name, "outstanding_amount")
+			allocated = min(allocated_amount, flt(actual_outstanding))
+			if allocated > 0:
+				pe.append(
+					"references",
+					{
+						"reference_doctype": "Sales Invoice",
+						"reference_name": inv_name,
+						"allocated_amount": allocated,
+						"due_date": frappe.db.get_value("Sales Invoice", inv_name, "due_date"),
+						"total_amount": frappe.db.get_value("Sales Invoice", inv_name, "grand_total"),
+						"outstanding_amount": actual_outstanding,
+					},
 				)
-				allocated = min(flt(row.allocated), flt(actual_outstanding))
-				if allocated > 0:
-					pe.append(
-						"references",
-						{
-							"reference_doctype": "Sales Invoice",
-							"reference_name": row.invoice_number,
-							"allocated_amount": allocated,
-							"due_date": frappe.db.get_value("Sales Invoice", row.invoice_number, "due_date"),
-							"total_amount": frappe.db.get_value(
-								"Sales Invoice", row.invoice_number, "grand_total"
-							),
-							"outstanding_amount": actual_outstanding,
-						},
-					)
-					total_allocated_in_refs += allocated
+				total_allocated_in_refs += allocated
 
 		# Ensure difference/unallocated amounts are zero so GL posts cleanly
 		pe.total_allocated_amount = total_allocated_in_refs
@@ -118,7 +150,16 @@ class Receipting(Document):
 				actual_outstanding = frappe.db.get_value(
 					"Sales Invoice", row.invoice_number, "outstanding_amount"
 				)
-				allocated = min(flt(row.allocated), flt(actual_outstanding))
+				# Convert row.allocated to invoice currency
+				inv_currency = row.invoice_currency or "USD"
+				allocated_in_inv_cur = flt(row.allocated)
+				if paid_to_currency != inv_currency:
+					if paid_to_currency == "ZWG" and inv_currency == "USD":
+						allocated_in_inv_cur = flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+					elif paid_to_currency == "USD" and inv_currency == "ZWG":
+						allocated_in_inv_cur = flt(row.allocated) * flt(self.exchange_rate)
+
+				allocated = min(allocated_in_inv_cur, flt(actual_outstanding))
 				new_outstanding = flt(actual_outstanding) - allocated
 				new_status = "Paid" if new_outstanding <= 0 else "Partly Paid"
 				frappe.db.set_value(
@@ -136,7 +177,7 @@ class Receipting(Document):
 
 		# Handle opening balance payments
 		for row in self.invoice:
-			if not row.invoice_number and row.fees_structure == "Opening Balance":
+			if not row.invoice_number and row.fee_item == "Opening Balance":
 				current_ob = frappe.db.get_value("Student", self.student_name, "opening_balance")
 				new_ob = flt(current_ob) - flt(row.allocated)
 				frappe.db.set_value("Student", self.student_name, "opening_balance", new_ob)

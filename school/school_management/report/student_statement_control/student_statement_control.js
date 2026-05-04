@@ -6,8 +6,8 @@ frappe.query_reports["Student Statement Control"] = {
         {fieldname: "to_date", label: __("To Date"), fieldtype: "Date", reqd: 1, default: frappe.datetime.get_today()},
         {fieldname: "customer", label: __("Student"), fieldtype: "Link", options: "Customer"},
         {fieldname: "customer_group", label: __("Customer Group"), fieldtype: "Link", options: "Customer Group"},
-        {fieldname: "section", label: __("Section"), fieldtype: "Link", options: "Section"},
-        {fieldname: "student_class", label: __("Class"), fieldtype: "Link", options: "Student Class"},
+        {fieldname: "section", label: __("Section"), fieldtype: "Data"},
+        {fieldname: "student_class", label: __("Class"), fieldtype: "Data"},
     ],
     onload(report) {
         report.page.add_inner_button(__("Bulk Download ZIP"), async () => {

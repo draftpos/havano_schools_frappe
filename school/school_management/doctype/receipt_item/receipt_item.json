@@ -6,7 +6,8 @@
  "engine": "InnoDB",
  "field_order": [
   "invoice_number",
-  "fees_structure",
+  "invoice_currency",
+  "fee_item",
   "outstanding",
   "allocated"
  ],
@@ -20,11 +21,18 @@
    "read_only": 1
   },
   {
-   "fieldname": "fees_structure",
+   "fieldname": "invoice_currency",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Invoice Currency",
+   "options": "Currency",
+   "read_only": 1
+  },
+  {
+   "fieldname": "fee_item",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Fees Structure",
-   "options": "Fees Structure",
+   "label": "Fee Item",
    "read_only": 1
   },
   {

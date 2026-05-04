@@ -29,18 +29,30 @@ def get_customer_dimension_fields():
     return {}
 
 def _get_fees_structure_for_customer(customer, company):
-    result = frappe.db.sql('SELECT fees_structure FROM `tabBilling` WHERE docstatus < 2 AND fees_structure IS NOT NULL AND fees_structure != %(empty)s ORDER BY date DESC LIMIT 1', {'empty': ''}, as_dict=True)
-    if result:
-        return result[0].get('fees_structure')
-    return frappe.db.get_value('Student', {'customer': customer}, 'fees_category')
+    # Billing links via tabStudent.student, not directly via customer
+    result = frappe.db.sql(
+        '''SELECT b.fees_structure
+           FROM `tabBilling` b
+           INNER JOIN `tabStudent` st ON st.name = b.student
+           WHERE b.docstatus < 2
+             AND st.customer = %(customer)s
+             AND b.fees_structure IS NOT NULL
+             AND b.fees_structure != ''
+           ORDER BY b.date DESC, b.creation DESC
+           LIMIT 1''',
+        {'customer': customer}, as_dict=True)
+    if result and result[0].get('fees_structure'):
+        return result[0]['fees_structure']
+    # Fall back to fees_category on Student
+    return frappe.db.get_value('Student', {'customer': customer}, 'fees_category') or ''
 
 def _customer_filter_sql(filters, fields=None):
     conditions = []
     values = {'company': filters.get('company'), 'report_date': filters.get('report_date'), 'from_date': filters.get('from_date'), 'to_date': filters.get('to_date'), 'customer': filters.get('customer'), 'customer_group': filters.get('customer_group'), 'section': filters.get('section'), 'student_class': filters.get('student_class')}
     if filters.get('customer'): conditions.append('c.name = %(customer)s')
     if filters.get('customer_group'): conditions.append('c.customer_group = %(customer_group)s')
-    if filters.get('section'): conditions.append('EXISTS (SELECT 1 FROM `tabStudent` st WHERE st.customer = c.name AND st.section = %(section)s)')
-    if filters.get('student_class'): conditions.append('EXISTS (SELECT 1 FROM `tabStudent` st WHERE st.customer = c.name AND st.student_class = %(student_class)s)')
+    if filters.get('section'): conditions.append('st.section = %(section)s')
+    if filters.get('student_class'): conditions.append('st.student_class = %(student_class)s')
     clause = (' AND ' + ' AND '.join(conditions)) if conditions else ''
     return clause, values
 
@@ -60,7 +72,44 @@ def _get_party_closing_balance(company, customer, to_date):
     return flt(frappe.db.sql('SELECT COALESCE(SUM(gle.debit - gle.credit), 0) FROM `tabGL Entry` gle INNER JOIN `tabAccount` acc ON acc.name = gle.account WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date <= %(to_date)s AND acc.account_type = %(at)s', {'company': company, 'customer': customer, 'to_date': to_date, 'pt': 'Customer', 'at': 'Receivable'})[0][0])
 
 def _get_statement_entries(company, customer, from_date, to_date):
-    return frappe.db.sql('SELECT gle.posting_date, gle.voucher_type, gle.voucher_no, gle.debit, gle.credit, gle.remarks, COALESCE(si.fees_structure, b.fees_structure) AS fees_structure FROM `tabGL Entry` gle INNER JOIN `tabAccount` acc ON acc.name = gle.account LEFT JOIN `tabSales Invoice` si ON si.name = gle.voucher_no AND gle.voucher_type = %(si)s LEFT JOIN `tabBilling` b ON b.name = gle.voucher_no AND gle.voucher_type = %(bill)s WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date BETWEEN %(from_date)s AND %(to_date)s AND acc.account_type = %(at)s ORDER BY gle.posting_date, gle.creation, gle.name', {'company': company, 'customer': customer, 'from_date': from_date, 'to_date': to_date, 'pt': 'Customer', 'at': 'Receivable', 'si': 'Sales Invoice', 'bill': 'Billing'}, as_dict=True)
+    return frappe.db.sql(
+        '''SELECT
+            gle.posting_date,
+            gle.voucher_type,
+            gle.voucher_no,
+            gle.debit,
+            gle.credit,
+            CASE
+                WHEN gle.remarks IS NULL OR gle.remarks = 'No Remarks' OR gle.remarks = ''
+                THEN gle.voucher_no
+                ELSE gle.remarks
+            END AS remarks,
+            COALESCE(
+                NULLIF(si.fees_structure, ''),
+                NULLIF(b.fees_structure, ''),
+                NULLIF(b.fees_category, '')
+            ) AS fees_structure
+           FROM `tabGL Entry` gle
+           INNER JOIN `tabAccount` acc
+               ON acc.name = gle.account
+           LEFT JOIN `tabSales Invoice` si
+               ON si.name = gle.voucher_no
+              AND gle.voucher_type = %(si)s
+           LEFT JOIN `tabBilling` b
+               ON b.name = gle.voucher_no
+              AND gle.voucher_type = %(bill)s
+           WHERE gle.company      = %(company)s
+             AND gle.party_type   = %(pt)s
+             AND gle.party        = %(customer)s
+             AND gle.is_cancelled = 0
+             AND gle.posting_date BETWEEN %(from_date)s AND %(to_date)s
+             AND acc.account_type = %(at)s
+           ORDER BY gle.posting_date, gle.creation, gle.name''',
+        {'company': company, 'customer': customer,
+         'from_date': from_date, 'to_date': to_date,
+         'pt': 'Customer', 'at': 'Receivable',
+         'si': 'Sales Invoice', 'bill': 'Billing'},
+        as_dict=True)
 
 def _get_formatted_address_for_linked_party(link_doctype, link_name):
     result = frappe.db.sql('SELECT a.name FROM `tabAddress` a INNER JOIN `tabDynamic Link` dl ON dl.parent = a.name WHERE dl.link_doctype = %(ld)s AND dl.link_name = %(ln)s AND a.disabled = 0 ORDER BY a.is_primary_address DESC, a.modified DESC LIMIT 1', {'ld': link_doctype, 'ln': link_name}, as_dict=True)

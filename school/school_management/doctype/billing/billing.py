@@ -133,6 +133,7 @@ class Billing(Document):
                     "posting_date": self.date or today(),
                     "due_date": self.date or today(),
                     "set_posting_time": 1,
+                    "update_stock": 0,
                     "cost_center": self.cost_center,
                     "academic_term": self.term,
                     "academic_year": self.year

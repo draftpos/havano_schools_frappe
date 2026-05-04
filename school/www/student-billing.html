@@ -46,7 +46,10 @@ title: Account Statement
 <div id="bc" style="display:none;"></div>
 
 <script>
-function fm(a){return "$"+parseFloat(a||0).toFixed(2);}
+function fm(a, c){
+  var s = (c === "ZWG" ? "ZWG " : "$");
+  return s + parseFloat(a||0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
 function sb(s){var m={"Overdue":"b-ov","Paid":"b-pd","Unpaid":"b-up","Partly Paid":"b-pp","Return":"b-dr"};return '<span class="badge '+(m[s]||"b-dr")+'">'+s+'</span>';}
 function td(id){var e=document.getElementById("dr-"+id);if(e)e.style.display=e.style.display==="table-row"?"none":"table-row";}
 
@@ -77,25 +80,25 @@ function render(d){
   h+='<h2>&#128196; Account Statement</h2>';
   h+='<p>'+(d.student&&d.student.full_name?d.student.full_name:'')+'</p></div>';
   h+='<div class="sc">';
-  h+='<div class="sc-box bl"><div class="sc-icon">&#128203;</div><div class="sc-val">'+fm(tb)+'</div><div class="sc-lbl">Total Billed</div></div>';
-  h+='<div class="sc-box gr"><div class="sc-icon">&#9989;</div><div class="sc-val">'+fm(tp)+'</div><div class="sc-lbl">Total Paid</div></div>';
-  h+='<div class="sc-box rd"><div class="sc-icon">&#9888;</div><div class="sc-val">'+fm(to)+'</div><div class="sc-lbl">Outstanding</div></div>';
+  h+='<div class="sc-box bl"><div class="sc-icon">&#128203;</div><div class="sc-val">'+fm(tb, "USD")+'</div><div class="sc-lbl">Total Billed (USD)</div></div>';
+  h+='<div class="sc-box gr"><div class="sc-icon">&#9989;</div><div class="sc-val">'+fm(tp, "USD")+'</div><div class="sc-lbl">Total Paid (USD)</div></div>';
+  h+='<div class="sc-box rd"><div class="sc-icon">&#9888;</div><div class="sc-val">'+fm(to, "USD")+'</div><div class="sc-lbl">Outstanding (USD)</div></div>';
   h+='<div class="sc-box or"><div class="sc-icon">&#128176;</div><div class="sc-val">'+rec.length+'</div><div class="sc-lbl">Receipts</div></div>';
   h+='</div>';
   // Invoices
   h+='<div class="tc"><div class="tc-head"><span>&#128196; Invoices</span><span style="font-size:.85rem;color:#888;">'+inv.length+' invoice(s)</span></div>';
   if(!inv.length){h+='<div class="nd">No invoices found</div>';}
   else{
-    h+='<table><thead><tr><th>Invoice</th><th>Date</th><th>Due Date</th><th>Fees Structure</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>';
+    h+='<table><thead><tr><th>Invoice</th><th>Date</th><th>Due Date</th><th>Fees</th><th>Total</th><th>Outstanding</th><th>Status</th></tr></thead><tbody>';
     inv.forEach(function(i){
       var id=i.name.replace(/[^a-z0-9]/gi,"");
       h+='<tr class="xr" onclick="td(\'inv'+id+'\')"><td><b>'+i.name+'</b> <small style="color:#aaa;">&#9660;</small></td>';
       h+='<td>'+i.posting_date+'</td><td>'+i.due_date+'</td><td>'+(i.fees_structure||"-")+'</td>';
-      h+='<td>'+fm(i.grand_total)+'</td><td>'+fm(i.outstanding_amount)+'</td><td>'+sb(i.status)+'</td></tr>';
+      h+='<td>'+fm(i.grand_total, i.currency)+'</td><td>'+fm(i.outstanding_amount, i.currency)+'</td><td>'+sb(i.status)+'</td></tr>';
       h+='<tr class="dr" id="dr-inv'+id+'"><td colspan="7"><div class="di">';
       if(i.items&&i.items.length){
         h+='<table><tr style="background:#f0f4ff;"><td><b>Item</b></td><td><b>Qty</b></td><td><b>Rate</b></td><td><b>Amount</b></td></tr>';
-        i.items.forEach(function(it){h+='<tr><td>'+(it.item_name||"-")+'</td><td>'+it.qty+'</td><td>'+fm(it.rate)+'</td><td>'+fm(it.amount)+'</td></tr>';});
+        i.items.forEach(function(it){h+='<tr><td>'+(it.item_name||"-")+'</td><td>'+it.qty+'</td><td>'+fm(it.rate, i.currency)+'</td><td>'+fm(it.amount, i.currency)+'</td></tr>';});
         h+='</table>';
       }else{h+='<p style="color:#aaa;margin:0;">No line items</p>';}
       h+='</div></td></tr>';
@@ -113,12 +116,12 @@ function render(d){
       var st=r.docstatus===1?"Submitted":"Draft";
       var bc=r.docstatus===1?"b-sb":"b-dr";
       h+='<tr class="xr" onclick="td(\'rec'+id+'\')"><td><b>'+r.name+'</b> <small style="color:#aaa;">&#9660;</small></td>';
-      h+='<td>'+r.date+'</td><td>'+fm(r.total_outstanding)+'</td><td>'+fm(r.total_allocated)+'</td><td>'+fm(r.total_balance)+'</td>';
+      h+='<td>'+r.date+'</td><td>'+fm(r.total_outstanding, r.currency)+'</td><td>'+fm(r.total_allocated, r.currency)+'</td><td>'+fm(r.total_balance, r.currency)+'</td>';
       h+='<td><span class="badge '+bc+'">'+st+'</span></td></tr>';
       h+='<tr class="dr" id="dr-rec'+id+'"><td colspan="6"><div class="di">';
       if(r.items&&r.items.length){
-        h+='<table><tr style="background:#f0f4ff;"><td><b>Invoice</b></td><td><b>Fees Structure</b></td><td><b>Outstanding</b></td><td><b>Allocated</b></td></tr>';
-        r.items.forEach(function(it){h+='<tr><td>'+(it.invoice_number||"-")+'</td><td>'+(it.fees_structure||"-")+'</td><td>'+fm(it.outstanding)+'</td><td>'+fm(it.allocated)+'</td></tr>';});
+        h+='<table><tr style="background:#f0f4ff;"><td><b>Invoice</b></td><td><b>Fees</b></td><td><b>Outstanding</b></td><td><b>Allocated</b></td></tr>';
+        r.items.forEach(function(it){h+='<tr><td>'+(it.invoice_number||"-")+'</td><td>'+(it.fees_structure||"-")+'</td><td>'+fm(it.outstanding, it.invoice_currency)+'</td><td>'+fm(it.allocated, r.currency)+'</td></tr>';});
         h+='</table>';
       }else{h+='<p style="color:#aaa;margin:0;">No items</p>';}
       h+='</div></td></tr>';

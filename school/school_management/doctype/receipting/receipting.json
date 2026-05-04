@@ -16,6 +16,9 @@
         "date",
         "col_break_4",
         "account",
+        "col_break_currency",
+        "currency",
+        "exchange_rate",
         "invoices_section",
         "invoice",
         "totals_section",
@@ -82,6 +85,23 @@
             "label": "Account Paid To",
             "options": "Account",
             "reqd": 1
+        },
+        {
+            "fieldname": "col_break_currency",
+            "fieldtype": "Column Break"
+        },
+        {
+            "fieldname": "currency",
+            "fieldtype": "Link",
+            "label": "Currency",
+            "options": "Currency",
+            "default": "USD"
+        },
+        {
+            "fieldname": "exchange_rate",
+            "fieldtype": "Float",
+            "label": "Exchange Rate",
+            "default": "1.0"
         },
         {
             "fieldname": "invoices_section",

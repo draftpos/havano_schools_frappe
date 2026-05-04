@@ -17,7 +17,7 @@ def execute(filters=None):
             "description": row["description"],
             "voucher_type": row["voucher_type"],
             "reference_no": row["reference_no"],
-            "fees_structure": row.get("fees_structure") or "",
+            "fees_structure": row.get("fees_structure") or context.get("fees_structure") or "",
             "debit": row["debit"],
             "credit": row["credit"],
             "running_balance": row["running_balance"],
