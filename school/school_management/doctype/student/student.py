@@ -821,22 +821,25 @@ class Student(Document):
 # ----------------------------------------------------------------------
 
 def get_permission_query_conditions(user):
-    """Teachers only see students in their assigned classes/sections"""
+    """Teachers only see students in their assigned classes/sections AND their cost center"""
     if not user:
         user = frappe.session.user
 
-    if "System Manager" in frappe.get_roles(user):
+    roles = frappe.get_roles(user)
+    if "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
         return ""
 
-    if "Teacher" not in frappe.get_roles(user):
+    if "Teacher" not in roles:
         return ""
 
-    teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
-    if not teacher_name:
-        teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
+    teacher = frappe.db.get_value("Teacher", {"portal_email": user}, ["name", "cost_center"], as_dict=True)
+    if not teacher:
+        teacher = frappe.db.get_value("Teacher", {"email": user}, ["name", "cost_center"], as_dict=True)
 
-    if not teacher_name:
+    if not teacher:
         return "1=0"
+        
+    teacher_name = teacher.name
 
     assigned = frappe.db.get_all(
         "Teacher Class Assignment Item",
@@ -862,7 +865,12 @@ def get_permission_query_conditions(user):
     if not conditions:
         return "1=0"
 
-    return "(" + " OR ".join(conditions) + ")"
+    class_condition = "(" + " OR ".join(conditions) + ")"
+    
+    if teacher.cost_center:
+        return f"({class_condition} AND `tabStudent`.`school` = {frappe.db.escape(teacher.cost_center)})"
+    else:
+        return class_condition
 
 
 # ----------------------------------------------------------------------

@@ -672,35 +672,76 @@ def get_teacher_portal_dashboard():
     for field in ["portal_email", "email"]:
         teacher = frappe.db.get_value("Teacher", {field: user},
             ["name", "teacher_id", "first_name", "last_name", "full_name",
-             "department", "date_of_joining", "email", "phone", "teacher_image"], as_dict=True)
+             "department", "date_of_joining", "email", "phone", "teacher_image", "cost_center"], as_dict=True)
         if teacher:
             break
 
     if not teacher:
         return {"error": "Teacher not found"}
+    
+    students_list = get_teacher_students_list()
+    cc = teacher.get("cost_center")
+
+    def get_count(doctype, filters=None):
+        if not filters: filters = {}
+        if cc: filters["cost_center"] = cc
+        return frappe.db.count(doctype, filters)
+
+    def get_schedule_count(doctype):
+        if not cc: return frappe.db.count(doctype)
+        return frappe.db.sql(f"""
+            SELECT COUNT(*) FROM `tab{doctype}` t
+            JOIN `tabStudent Class` sc ON sc.name = t.student_class
+            WHERE sc.cost_center = %s
+        """, (cc,))[0][0]
 
     counts = {
-        "classes": frappe.db.count("Student Class"),
-        "subjects": frappe.db.count("Subject", {"teacher": teacher.name}) if frappe.db.exists("Subject", {"teacher": teacher.name}) else frappe.db.count("Subject"),
-        "students": frappe.db.count("Student"),
-        "exam_schedules": frappe.db.count("Exam Schedule"),
-        "home_schedules": frappe.db.count("Home Schedule"),
-        "test_schedules": frappe.db.count("Test Schedule"),
-        "courses": frappe.db.count("Course"),
-        "sections": frappe.db.count("Section"),
+        "classes": get_count("Student Class"),
+        "subjects": get_count("Subject", {"teacher": teacher.name}) if frappe.db.exists("Subject", {"teacher": teacher.name}) else get_count("Subject"),
+        "students": len(students_list),
+        "exam_schedules": get_schedule_count("Exam Schedule"),
+        "home_schedules": get_schedule_count("Home Schedule"),
+        "test_schedules": get_schedule_count("Test Schedule"),
+        "courses": frappe.db.count("Course"), # Assuming Courses are shared or don't have cost_center
+        "sections": get_count("Section"),
     }
 
-    recent_exams = frappe.get_all("Exam Schedule",
-        fields=["name", "exam_name", "subject", "date", "class_name"],
-        order_by="date desc", limit=5)
+    if cc:
+        recent_exams = frappe.db.sql("""
+            SELECT t.name, t.title as exam_name, t.subject, t.date, t.student_class as class_name
+            FROM `tabExam Schedule` t
+            JOIN `tabStudent Class` sc ON sc.name = t.student_class
+            WHERE sc.cost_center = %s
+            ORDER BY t.date DESC LIMIT 5
+        """, (cc,), as_dict=True)
 
-    recent_homework = frappe.get_all("Home Schedule",
-        fields=["name", "subject", "student_class", "date"],
-        order_by="date desc", limit=5)
+        recent_homework = frappe.db.sql("""
+            SELECT t.name, t.subject, t.student_class, t.date
+            FROM `tabHome Schedule` t
+            JOIN `tabStudent Class` sc ON sc.name = t.student_class
+            WHERE sc.cost_center = %s
+            ORDER BY t.date DESC LIMIT 5
+        """, (cc,), as_dict=True)
 
-    recent_tests = frappe.get_all("Test Schedule",
-        fields=["name", "subject", "student_class", "date"],
-        order_by="date desc", limit=5)
+        recent_tests = frappe.db.sql("""
+            SELECT t.name, t.subject, t.student_class, t.date
+            FROM `tabTest Schedule` t
+            JOIN `tabStudent Class` sc ON sc.name = t.student_class
+            WHERE sc.cost_center = %s
+            ORDER BY t.date DESC LIMIT 5
+        """, (cc,), as_dict=True)
+    else:
+        recent_exams = frappe.get_all("Exam Schedule",
+            fields=["name", "title as exam_name", "subject", "date", "student_class as class_name"],
+            order_by="date desc", limit=5)
+
+        recent_homework = frappe.get_all("Home Schedule",
+            fields=["name", "subject", "student_class", "date"],
+            order_by="date desc", limit=5)
+
+        recent_tests = frappe.get_all("Test Schedule",
+            fields=["name", "subject", "student_class", "date"],
+            order_by="date desc", limit=5)
 
     return {
         "teacher": teacher,
@@ -1413,30 +1454,50 @@ def get_teacher_context():
 
         subject_names = list(set([s.subject for s in subjects_data if s.get('subject')]))
 
-        def safe_count(doctype):
-            try:
-                return frappe.db.count(doctype) if frappe.db.exists('DocType', doctype) else 0
-            except Exception:
-                return 0
+        cc = teacher.get("cost_center")
+
+        def get_count(doctype, filters=None):
+            if not filters: filters = {}
+            if cc: filters["cost_center"] = cc
+            return frappe.db.count(doctype, filters) if frappe.db.exists("DocType", doctype) else 0
+
+        def get_schedule_count(doctype):
+            if not frappe.db.exists("DocType", doctype): return 0
+            if not cc: return frappe.db.count(doctype)
+            return frappe.db.sql(f"""
+                SELECT COUNT(*) FROM `tab{doctype}` t
+                JOIN `tabStudent Class` sc ON sc.name = t.student_class
+                WHERE sc.cost_center = %s
+            """, (cc,))[0][0]
 
         counts = {
             'classes': len(class_names),
             'sections': len(sections),
             'subjects': len(subject_names),
-            'exam_schedule': safe_count('Exam Schedule'),
-            'test_schedule': safe_count('Test Schedule'),
-            'hw_schedule': safe_count('Home Schedule'),
-            'exam_results': safe_count('Exam Result'),
-            'inclass': safe_count('Inclass Test'),
-            'attendance': safe_count('Student Attendance')
+            'exam_schedule': get_schedule_count('Exam Schedule'),
+            'test_schedule': get_schedule_count('Test Schedule'),
+            'hw_schedule': get_schedule_count('Home Schedule'),
+            'exam_results': get_count('Exam Result'),
+            'inclass': get_count('Inclass Test'),
+            'attendance': get_count('Student Attendance')
         }
 
         recent_exams = []
         try:
             if frappe.db.exists('DocType', 'Exam Schedule'):
-                recent_exams = frappe.db.sql(
-                    'SELECT name, exam, student_class, subject, date FROM `tabExam Schedule` ORDER BY date ASC LIMIT 5',
-                    as_dict=True)
+                if cc:
+                    recent_exams = frappe.db.sql("""
+                        SELECT t.name, t.exam, t.student_class, t.subject, t.date 
+                        FROM `tabExam Schedule` t
+                        JOIN `tabStudent Class` sc ON sc.name = t.student_class
+                        WHERE sc.cost_center = %s
+                        ORDER BY t.date ASC LIMIT 5
+                    """, (cc,), as_dict=True)
+                else:
+                    recent_exams = frappe.db.sql(
+                        'SELECT name, exam, student_class, subject, date FROM `tabExam Schedule` ORDER BY date ASC LIMIT 5',
+                        as_dict=True)
+                
                 for ex in recent_exams:
                     ex['date'] = str(ex['date']) if ex.get('date') else ''
         except Exception as e:
@@ -1445,9 +1506,19 @@ def get_teacher_context():
         recent_hw = []
         try:
             if frappe.db.exists('DocType', 'Home Schedule'):
-                recent_hw = frappe.db.sql(
-                    'SELECT name, subject, student_class, section, date FROM `tabHome Schedule` ORDER BY creation DESC LIMIT 5',
-                    as_dict=True)
+                if cc:
+                    recent_hw = frappe.db.sql("""
+                        SELECT t.name, t.subject, t.student_class, t.section, t.date 
+                        FROM `tabHome Schedule` t
+                        JOIN `tabStudent Class` sc ON sc.name = t.student_class
+                        WHERE sc.cost_center = %s
+                        ORDER BY t.creation DESC LIMIT 5
+                    """, (cc,), as_dict=True)
+                else:
+                    recent_hw = frappe.db.sql(
+                        'SELECT name, subject, student_class, section, date FROM `tabHome Schedule` ORDER BY creation DESC LIMIT 5',
+                        as_dict=True)
+                
                 for hw in recent_hw:
                     hw['date'] = str(hw['date']) if hw.get('date') else ''
         except Exception as e:
@@ -1526,6 +1597,110 @@ def get_teacher_notes():
     return note[0].content if note else ""
 
 @frappe.whitelist()
+def get_teacher_classes_list():
+    user = frappe.session.user
+    
+    teacher_name = None
+    teacher_doc = None
+    for field in ["portal_email", "email"]:
+        tname = frappe.db.get_value("Teacher", {field: user}, "name")
+        if tname:
+            teacher_name = tname
+            teacher_doc = frappe.get_doc("Teacher", teacher_name)
+            break
+
+    if not teacher_name:
+        return []
+
+    # Get unique (class, section) assignments from both Class and Subject assignment DocTypes
+    assignments = frappe.db.sql("""
+        SELECT class_name, section, cost_center FROM `tabTeacher Class Assignment Item`
+        WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Class to Teacher` WHERE teacher = %s)
+        UNION
+        SELECT class_name, section, cost_center FROM `tabTeacher Subject Assignment Item`
+        WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Subjects to Teacher` WHERE teacher = %s)
+    """, (teacher_name, teacher_name, teacher_name, teacher_name), as_dict=True)
+
+    classes = []
+    seen = set()
+    
+    for row in assignments:
+        # Determine cost center: assignment-specific or teacher-default
+        cc = row.cost_center or (teacher_doc.cost_center if teacher_doc else None)
+        
+        # Verify class exists in this cost center (if cc is set)
+        if cc:
+            if not frappe.db.exists("Student Class", {"name": row.class_name, "cost_center": cc}):
+                continue
+        
+        key = (row.class_name, row.section)
+        if key not in seen:
+            classes.append({
+                "class_name": row.class_name,
+                "section": row.section,
+                "cost_center": cc,
+                "label": frappe.db.get_value("Student Class", row.class_name, "class_name") or row.class_name
+            })
+            seen.add(key)
+
+    return sorted(classes, key=lambda x: x.get('label', ''))
+
+
+@frappe.whitelist()
+def get_teacher_subjects_list():
+    user = frappe.session.user
+    teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+    if not teacher_name: teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
+    if not teacher_name: return []
+
+    teacher_doc = frappe.get_doc("Teacher", teacher_name)
+    cc = teacher_doc.cost_center
+
+    # Get subjects assigned to teacher or all subjects in their cost center
+    # Subject has a 'teacher' field and a 'cost_center' field
+    filters = {}
+    if cc: filters["cost_center"] = cc
+    
+    # If the subject is assigned to this teacher specifically
+    # subjects = frappe.get_all("Subject", filters={"teacher": teacher_name, "cost_center": cc}, ...)
+    
+    # Actually, let's just show all subjects in their cost center for now, or those where they are assigned.
+    # The current dashboard count uses: frappe.db.count("Subject", {"teacher": teacher.name, "cost_center": cc})
+    
+    subjects = frappe.get_all("Subject", 
+        filters={"teacher": teacher_name, "cost_center": cc} if cc else {"teacher": teacher_name},
+        fields=["name", "subject_name", "subject_code", "cost_center"])
+    
+    return subjects
+
+
+@frappe.whitelist()
+def get_teacher_sections_list():
+    user = frappe.session.user
+    teacher_name = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+    if not teacher_name: teacher_name = frappe.db.get_value("Teacher", {"email": user}, "name")
+    if not teacher_name: return []
+
+    teacher_doc = frappe.get_doc("Teacher", teacher_name)
+    cc = teacher_doc.cost_center
+
+    # Sections linked to classes assigned to teacher
+    assignments = get_teacher_classes_list()
+    sections = []
+    seen = set()
+    for row in assignments:
+        if row.get("section") and row["section"] not in seen:
+            sections.append({
+                "name": row["section"],
+                "section_name": row["section"],
+                "cost_center": row.get("cost_center")
+            })
+            seen.add(row["section"])
+    
+    return sections
+
+
+@frappe.whitelist()
 def save_teacher_note(content):
     user = frappe.session.user
     existing = frappe.get_all("Note", filters={"owner": user}, fields=["name"], limit=1)
@@ -1544,30 +1719,31 @@ def save_teacher_note(content):
 @frappe.whitelist()
 def get_teacher_students_list():
     user = frappe.session.user
-    teacher = get_teacher_name_for_user(user)
     
-    if not teacher:
-        tname = frappe.db.get_value("Teacher", {"email": user}, "name") or \
-                frappe.db.get_value("Teacher", {"portal_email": user}, "name")
-        teacher = tname
+    teacher_name = None
+    teacher_doc = None
+    for field in ["portal_email", "email"]:
+        tname = frappe.db.get_value("Teacher", {field: user}, "name")
+        if tname:
+            teacher_name = tname
+            teacher_doc = frappe.get_doc("Teacher", teacher_name)
+            break
 
-    if not teacher:
+    if not teacher_name:
         return []
 
     # Get unique (class, section) assignments from both Class and Subject assignment DocTypes
     assignments = frappe.db.sql("""
-        SELECT class_name, section FROM `tabTeacher Class Assignment Item`
+        SELECT class_name, section, cost_center FROM `tabTeacher Class Assignment Item`
         WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Class to Teacher` WHERE teacher = %s)
         UNION
-        SELECT class_name, section FROM `tabTeacher Subject Assignment Item`
+        SELECT class_name, section, cost_center FROM `tabTeacher Subject Assignment Item`
         WHERE parent = %s OR parent IN (SELECT name FROM `tabAssign Subjects to Teacher` WHERE teacher = %s)
-    """, (teacher, teacher, teacher, teacher), as_dict=True)
+    """, (teacher_name, teacher_name, teacher_name, teacher_name), as_dict=True)
 
     if not assignments:
         return []
 
-    # Build SQL filter for students matching these assignments
-    # We use a set of tuples for filtering
     students = []
     seen_students = set()
     
@@ -1576,6 +1752,11 @@ def get_teacher_students_list():
         if row.section:
             cond["section"] = row.section
         
+        # Use assignment-specific cost center or fallback to teacher's default
+        cc = row.cost_center or (teacher_doc.cost_center if teacher_doc else None)
+        if cc:
+            cond["cost_center"] = cc
+            
         found = frappe.get_all("Student", filters=cond, 
             fields=["name", "full_name", "student_class", "section", "student_image", "student_reg_no"],
             ignore_permissions=True)

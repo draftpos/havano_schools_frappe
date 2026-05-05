@@ -1,0 +1,212 @@
+---
+no_cache: 1
+title: My Sections | Teacher Portal
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Sections</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #f4f6f9;
+            --surface: #e2e8f0;
+            --surface2: #cbd5e1;
+            --border: rgba(0, 0, 0, 0.07);
+            --text: #1e40af;
+            --text2: #3b82f6;
+            --text3: #64748b;
+            --blue: #3b82f6;
+            --indigo: #6366f1;
+            --radius: 14px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 28px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title span {
+            width: 5px;
+            height: 24px;
+            background: linear-gradient(180deg, var(--indigo), var(--blue));
+            border-radius: 3px;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: var(--surface2);
+            transform: translateX(-4px);
+        }
+
+        .table-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-head {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            background: #fafbfc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            background: #f8fafc;
+            color: var(--text3);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 14px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--indigo);
+        }
+
+        .cc-badge {
+            font-size: 11px;
+            color: var(--text3);
+            background: var(--bg);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        .state-msg {
+            text-align: center;
+            padding: 40px;
+            color: var(--text3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="title"><span></span>My Sections</h1>
+            <a href="/assets/school/html/teacher-portal.html" class="back-btn">← Back to Dashboard</a>
+        </header>
+
+        <div class="table-card">
+            <div class="table-head">
+                <div class="table-title">Assigned Sections</div>
+            </div>
+            <div class="table-body">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Section</th>
+                            <th>School / Cost Center</th>
+                        </tr>
+                    </thead>
+                    <tbody id="section-list">
+                        <tr><td colspan="2" class="state-msg">Loading sections...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function() {
+            fetch('/api/method/school.api.get_teacher_sections_list')
+                .then(r => r.json())
+                .then(r => {
+                    const tbody = document.getElementById('section-list');
+                    if (r.message && r.message.length) {
+                        let html = '';
+                        r.message.forEach(s => {
+                            html += `
+                                <tr>
+                                    <td><span class="badge">${s.section_name}</span></td>
+                                    <td><span class="cc-badge">${s.cost_center || '—'}</span></td>
+                                </tr>
+                            `;
+                        });
+                        tbody.innerHTML = html;
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="2" class="state-msg">No sections assigned.</td></tr>';
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('section-list').innerHTML = 
+                        '<tr><td colspan="2" class="state-msg" style="color:red">Error loading data.</td></tr>';
+                });
+        });
+    </script>
+</body>
+</html>
