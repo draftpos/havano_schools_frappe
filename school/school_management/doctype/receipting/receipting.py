@@ -63,14 +63,16 @@ class Receipting(Document):
 		pe.paid_to = self.account
 		pe.paid_from_account_currency = paid_from_currency
 		pe.paid_to_account_currency = paid_to_currency
-		
+
 		# Receipt Currency is the "Received" currency
 		pe.received_amount = flt(self.total_allocated)
-		
+
 		# Convert allocated to Receivable currency (USD) for paid_amount
 		if paid_from_currency != paid_to_currency:
 			if paid_to_currency == "ZWG" and paid_from_currency == "USD":
-				pe.paid_amount = flt(self.total_allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+				pe.paid_amount = (
+					flt(self.total_allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+				)
 				pe.target_exchange_rate = flt(self.exchange_rate)
 			elif paid_to_currency == "USD" and paid_from_currency == "ZWG":
 				pe.paid_amount = flt(self.total_allocated) * flt(self.exchange_rate)
@@ -84,7 +86,7 @@ class Receipting(Document):
 		pe.reference_date = self.date or today()
 
 		total_allocated_in_refs = 0
-		
+
 		# Group allocations by invoice
 		invoice_allocations = {}
 		for row in self.invoice:
@@ -93,11 +95,15 @@ class Receipting(Document):
 				allocated_in_inv_cur = flt(row.allocated)
 				if paid_to_currency != inv_currency:
 					if paid_to_currency == "ZWG" and inv_currency == "USD":
-						allocated_in_inv_cur = flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+						allocated_in_inv_cur = (
+							flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+						)
 					elif paid_to_currency == "USD" and inv_currency == "ZWG":
 						allocated_in_inv_cur = flt(row.allocated) * flt(self.exchange_rate)
-				
-				invoice_allocations[row.invoice_number] = invoice_allocations.get(row.invoice_number, 0) + allocated_in_inv_cur
+
+				invoice_allocations[row.invoice_number] = (
+					invoice_allocations.get(row.invoice_number, 0) + allocated_in_inv_cur
+				)
 
 		for inv_name, allocated_amount in invoice_allocations.items():
 			actual_outstanding = frappe.db.get_value("Sales Invoice", inv_name, "outstanding_amount")
@@ -155,7 +161,9 @@ class Receipting(Document):
 				allocated_in_inv_cur = flt(row.allocated)
 				if paid_to_currency != inv_currency:
 					if paid_to_currency == "ZWG" and inv_currency == "USD":
-						allocated_in_inv_cur = flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+						allocated_in_inv_cur = (
+							flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
+						)
 					elif paid_to_currency == "USD" and inv_currency == "ZWG":
 						allocated_in_inv_cur = flt(row.allocated) * flt(self.exchange_rate)
 
@@ -173,7 +181,8 @@ class Receipting(Document):
 						si_doc.cancel()
 						frappe.msgprint(f"Sales Invoice {row.invoice_number} cancelled as fully paid.")
 					except Exception as e:
-						frappe.log_error(f"Failed to cancel SI {row.invoice_number}: {str(e)}")
+						# Use short key so error log title stays within DB column limit
+						frappe.log_error(str(e), f"Cancel SI {row.invoice_number}")
 
 		# Handle opening balance payments
 		for row in self.invoice:

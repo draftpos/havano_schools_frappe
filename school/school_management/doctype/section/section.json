@@ -1,7 +1,7 @@
 {
     "actions": [],
     "allow_rename": 1,
-    "autoname": "format:{section_name}-{cost_center}",
+    "autoname": "field:section_name",
     "creation": "2026-03-02 09:27:24.482072",
     "doctype": "DocType",
     "editable_grid": 1,
@@ -16,7 +16,8 @@
             "fieldtype": "Data",
             "in_list_view": 1,
             "label": "Section Name",
-            "reqd": 1
+            "reqd": 1,
+            "unique": 0
         },
         {
             "fieldname": "cost_center",
@@ -76,5 +77,6 @@
     "show_title_field_in_link": 1,
     "sort_field": "modified",
     "sort_order": "DESC",
-    "states": []
+    "states": [],
+    "title_field": "section_name"
 }
