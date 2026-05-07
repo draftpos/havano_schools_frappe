@@ -142,7 +142,7 @@ class Receipting(Document):
 		pe.write_off_amount = 0
 		pe.difference_amount = 0
 
-		# Submit WITHOUT ignore_validate — this is critical for GL entries to post
+		# Submit — Frappe handles GL entries + invoice outstanding updates automatically
 		pe.flags.ignore_permissions = True
 		pe.flags.ignore_mandatory = True
 		pe.submit()
@@ -150,41 +150,7 @@ class Receipting(Document):
 
 		frappe.msgprint(f"Payment Entry {pe.name} created and GL entries posted successfully.")
 
-		# Update invoice outstanding amounts directly
-		for row in self.invoice:
-			if row.invoice_number and flt(row.allocated) > 0:
-				actual_outstanding = frappe.db.get_value(
-					"Sales Invoice", row.invoice_number, "outstanding_amount"
-				)
-				# Convert row.allocated to invoice currency
-				inv_currency = row.invoice_currency or "USD"
-				allocated_in_inv_cur = flt(row.allocated)
-				if paid_to_currency != inv_currency:
-					if paid_to_currency == "ZWG" and inv_currency == "USD":
-						allocated_in_inv_cur = (
-							flt(row.allocated) / flt(self.exchange_rate) if flt(self.exchange_rate) else 0
-						)
-					elif paid_to_currency == "USD" and inv_currency == "ZWG":
-						allocated_in_inv_cur = flt(row.allocated) * flt(self.exchange_rate)
-
-				allocated = min(allocated_in_inv_cur, flt(actual_outstanding))
-				new_outstanding = flt(actual_outstanding) - allocated
-				new_status = "Paid" if new_outstanding <= 0 else "Partly Paid"
-				frappe.db.set_value(
-					"Sales Invoice",
-					row.invoice_number,
-					{"outstanding_amount": new_outstanding, "status": new_status},
-				)
-				if new_outstanding <= 0:
-					try:
-						si_doc = frappe.get_doc("Sales Invoice", row.invoice_number)
-						si_doc.cancel()
-						frappe.msgprint(f"Sales Invoice {row.invoice_number} cancelled as fully paid.")
-					except Exception as e:
-						# Use short key so error log title stays within DB column limit
-						frappe.log_error(str(e), f"Cancel SI {row.invoice_number}")
-
-		# Handle opening balance payments
+		# Handle opening balance payments ONLY — Frappe does NOT handle this automatically
 		for row in self.invoice:
 			if not row.invoice_number and row.fee_item == "Opening Balance":
 				current_ob = frappe.db.get_value("Student", self.student_name, "opening_balance")
