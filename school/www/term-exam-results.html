@@ -6,15 +6,22 @@ title: Term Exam Results
 <script>
   (function () {
     var params = new URLSearchParams(window.location.search);
+    var isAdminPopup = params.get('from') === 'admin';
     var backUrl = params.get('from') === 'parent'
       ? '/assets/school/html/parent-portal.html'
       : '/assets/school/html/student-portal.html';
     document.addEventListener('DOMContentLoaded', function () {
       document.querySelectorAll('a.bb').forEach(function (a) {
-        if (a.textContent.includes('Dashboard')) a.href = backUrl;
+        // In admin popup mode, hide all back-nav links — close is handled by the dialog
+        if (isAdminPopup) {
+          a.style.display = 'none';
+        } else if (a.textContent.includes('Dashboard')) {
+          a.href = backUrl;
+        }
       });
     });
     window.BACK_URL = backUrl;
+    window.IS_ADMIN_POPUP = isAdminPopup;
   })();
 </script>
 
@@ -709,16 +716,16 @@ title: Term Exam Results
 
   <!-- Toolbar (hidden on print) -->
   <div class="rc-toolbar">
-    <a href="#" onclick="showList();return false;" class="bb" style="margin-bottom:0;">&#8592; Back to List</a>
+    <a href="#" onclick="showList();return false;" class="bb" id="btn-back-to-list" style="margin-bottom:0;">&#8592; Back to List</a>
     <span class="tl-title" id="rc-title"></span>
     
     <!-- Admin Comment Section -->
     <div id="admin-comment-box" style="display:none; flex: 1; margin: 0 15px;">
-        <textarea id="admin-overall-comment" style="width: 100%; height: 35px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;" placeholder="Add overall admin comment..."></textarea>
+        <textarea id="admin-overall-comment" style="width: 100%; height: 35px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;" placeholder="Add admin comment for this student..."></textarea>
     </div>
     <button id="btn-save-comment" class="btn-print" style="display:none; background: #92400e; margin-right: 10px;" onclick="saveAdminComment()">Save Comment</button>
     
-    <button class="btn-print" onclick="window.print()">🖨 Print / Save PDF</button>
+    <button class="btn-print" onclick="window.print()">&#128424; Print / Save PDF</button>
   </div>
 
   <!-- Report Card container (filled by JS) -->
@@ -1119,6 +1126,7 @@ title: Term Exam Results
     var params = new URLSearchParams(window.location.search);
     var child = params.get("child") || params.get("student") || "";
     var report_id = params.get("report_name") || "";
+    var isAdminPopup = (params.get("from") === "admin");
     var qs = child ? "?student=" + encodeURIComponent(child) : "";
 
     fetch("/api/method/school.api.get_term_exam_results" + qs, { credentials: "same-origin" })
@@ -1133,33 +1141,39 @@ title: Term Exam Results
         }
         AR = r.message;
         el("loading").style.display = "none";
-        
-        // If we came from a specific report card redirect
+
         if (child) {
             CURRENT_STUDENT = child;
             CURRENT_REPORT = report_id;
-            
-            // Check if user is admin to show comment box
-            fetch("/api/method/frappe.auth.get_logged_user", { credentials: "same-origin" })
-                .then(res => res.json())
-                .then(u => {
-                    const user = u.message;
-                    // Check roles for the current user
-                    return fetch("/api/method/frappe.client.get_value", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ doctype: "User", filters: { name: user }, fieldname: "name" }) // This is a trick to trigger a call
-                    }).then(() => {
-                        // Actually we can use frappe.user_roles if available
-                        if (user === "Administrator" || (window.frappe && frappe.user_roles && (frappe.user_roles.includes("System Manager") || frappe.user_roles.includes("School Administrator")))) {
-                            el("admin-comment-box").style.display = "block";
-                            el("btn-save-comment").style.display = "block";
-                        }
+
+            // ── Admin popup mode: show comment box immediately, no role-check needed ──
+            if (isAdminPopup) {
+                el("admin-comment-box").style.display = "flex";
+                el("btn-save-comment").style.display = "inline-block";
+                // Hide back-to-list button — admin closes via the dialog
+                var btnBack = el("btn-back-to-list");
+                if (btnBack) btnBack.style.display = "none";
+            } else {
+                // Normal portal mode: check roles before showing comment box
+                fetch("/api/method/frappe.auth.get_logged_user", { credentials: "same-origin" })
+                    .then(res => res.json())
+                    .then(u => {
+                        const user = u.message;
+                        return fetch("/api/method/frappe.client.get_value", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ doctype: "User", filters: { name: user }, fieldname: "name" })
+                        }).then(() => {
+                            if (user === "Administrator" || (window.frappe && frappe.user_roles &&
+                                (frappe.user_roles.includes("System Manager") || frappe.user_roles.includes("School Administrator")))) {
+                                el("admin-comment-box").style.display = "flex";
+                                el("btn-save-comment").style.display = "inline-block";
+                            }
+                        });
                     });
-                });
+            }
 
-
-            // Auto-open the first exam result if only one or specific one
+            // Auto-open the first (only) result for this student
             showDetail(0);
         } else {
             renderList();

@@ -2,15 +2,15 @@ frappe.ui.form.on('Term Exam Report', {
 
 	// ─── Auto-update student count when class or section changes ───────────────
 
-	student_class: function(frm) {
+	student_class: function (frm) {
 		frm.trigger('update_student_count');
 	},
 
-	section: function(frm) {
+	section: function (frm) {
 		frm.trigger('update_student_count');
 	},
 
-	update_student_count: function(frm) {
+	update_student_count: function (frm) {
 		if (!frm.doc.student_class) {
 			frm.set_value('total_students', 0);
 			return;
@@ -22,7 +22,7 @@ frappe.ui.form.on('Term Exam Report', {
 				student_class: frm.doc.student_class,
 				section: frm.doc.section || ''
 			},
-			callback: function(r) {
+			callback: function (r) {
 				if (r.message !== undefined) {
 					frm.set_value('total_students', r.message.students);
 					frm.set_value('total_subjects', r.message.subjects);
@@ -33,7 +33,7 @@ frappe.ui.form.on('Term Exam Report', {
 
 	// ─── Fetch Results ─────────────────────────────────────────────────────────
 
-	fetch_results: function(frm) {
+	fetch_results: function (frm) {
 		if (!frm.doc.term || !frm.doc.student_class) {
 			frappe.msgprint(__('Please set Term and Class first.'));
 			return;
@@ -46,30 +46,32 @@ frappe.ui.form.on('Term Exam Report', {
 
 		frappe.confirm(
 			__('This will replace all existing results in the table. Continue?'),
-			function() {
+			function () {
 				frappe.show_progress(__('Fetching Results'), 0, 100, __('Fetching student marks...'));
 
 				frappe.call({
 					method: 'school.school_management.doctype.term_exam_report.term_exam_report.fetch_results',
 					args: { report_name: frm.doc.name },
-					callback: function(r) {
+					callback: function (r) {
 						frappe.hide_progress();
 						if (r.message) {
 							const data = r.message;
 							frm.clear_table('term_exam_results');
 
-							data.rows.forEach(function(row) {
+							data.rows.forEach(function (row) {
 								let child = frm.add_child('term_exam_results');
-								child.student        = row.student;
-								child.student_name   = row.student_name;
-								child.subject        = row.subject;
-								child.exam           = row.exam;
-								child.marks_obtained = row.marks_obtained;
-								child.max_marks      = row.max_marks;
-								child.percentage     = row.percentage;
-								child.grade          = row.grade;
-								child.status         = row.status;
-								child.remarks        = row.remarks;
+								child.student         = row.student;
+								child.student_name    = row.student_name;
+								child.subject         = row.subject;
+								child.exam            = row.exam;
+								child.marks_obtained  = row.marks_obtained;
+								child.max_marks       = row.max_marks;
+								child.percentage      = row.percentage;
+								child.grade           = row.grade;
+								child.status          = row.status;
+								child.remarks         = row.remarks;
+								// ── Carry teacher comment from Exam Schedule Item ──
+								child.teacher_comment = row.teacher_comment || '';
 							});
 
 							frm.set_value('total_students', data.total_students);
@@ -81,9 +83,12 @@ frappe.ui.form.on('Term Exam Report', {
 									[data.total_students, data.total_subjects, data.rows.length]),
 								__('Results Fetched')
 							);
+
+							// Rebuild the student selector dropdown after fresh fetch
+							_render_student_dropdown(frm);
 						}
 					},
-					error: function() {
+					error: function () {
 						frappe.hide_progress();
 					}
 				});
@@ -93,7 +98,7 @@ frappe.ui.form.on('Term Exam Report', {
 
 	// ─── Toolbar buttons ───────────────────────────────────────────────────────
 
-	refresh: function(frm) {
+	refresh: function (frm) {
 		if (frm.doc.__islocal) return;
 
 		// !! Change this to match your exact Print Format name in Frappe !!
@@ -101,20 +106,20 @@ frappe.ui.form.on('Term Exam Report', {
 
 		const printUrl = '/printview?'
 			+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
-			+ '&name='   + encodeURIComponent(frm.doc.name)
+			+ '&name=' + encodeURIComponent(frm.doc.name)
 			+ '&format=' + encodeURIComponent(PRINT_FORMAT)
 			+ '&no_letterhead=0';
 
 		// ── Open Report Cards ────────────────────────────────────────────────
 		// Opens the print format page — student selector bar is built into the template
-		frm.add_custom_button(__('📋 Open Report Cards'), function() {
+		frm.add_custom_button(__('📋 Open Report Cards'), function () {
 			if (!_has_results(frm)) return;
 			window.open(printUrl, '_blank');
 		}, __('Reports'));
 
 		// ── Print All Students ───────────────────────────────────────────────
 		// Opens print format then auto-triggers the template's printAll() via hash
-		frm.add_custom_button(__('🖨 Print All Students'), function() {
+		frm.add_custom_button(__('🖨 Print All Students'), function () {
 			if (!_has_results(frm)) return;
 			const win = window.open(printUrl + '#printall', '_blank');
 			if (!win) frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
@@ -123,29 +128,29 @@ frappe.ui.form.on('Term Exam Report', {
 		// ── Download All Students ────────────────────────────────────────────
 		// One tab per student — template auto-prints when #autoprint hash is present.
 		// User saves each as PDF via the browser's "Save as PDF" option.
-		frm.add_custom_button(__('⬇ Download All Students'), function() {
+		frm.add_custom_button(__('⬇ Download All Students'), function () {
 			if (!_has_results(frm)) return;
 
 			// Gather unique students from the child table
 			const studentMap = {};
-			(frm.doc.term_exam_results || []).forEach(function(row) {
+			(frm.doc.term_exam_results || []).forEach(function (row) {
 				if (row.student && !studentMap[row.student]) {
 					studentMap[row.student] = row.student_name || row.student;
 				}
 			});
 			const studentIds = Object.keys(studentMap);
-			const total      = studentIds.length;
+			const total = studentIds.length;
 
 			frappe.confirm(
 				__('This will open {0} browser print dialog(s) — one per student. '
-				 + 'In each dialog choose "Save as PDF" to download the file. '
-				 + 'Your browser must allow pop-ups. Continue?', [total]),
-				function() {
+					+ 'In each dialog choose "Save as PDF" to download the file. '
+					+ 'Your browser must allow pop-ups. Continue?', [total]),
+				function () {
 					frappe.show_progress(__('Opening Reports'), 0, total, __('Starting...'));
 
-					studentIds.forEach(function(sid, index) {
+					studentIds.forEach(function (sid, index) {
 						// Stagger tab openings so each has time to load before the next
-						setTimeout(function() {
+						setTimeout(function () {
 							frappe.show_progress(
 								__('Opening Reports'), index + 1, total,
 								__('Opening: {0}', [studentMap[sid]])
@@ -168,11 +173,11 @@ frappe.ui.form.on('Term Exam Report', {
 							}
 
 							if (index === total - 1) {
-								setTimeout(function() {
+								setTimeout(function () {
 									frappe.hide_progress();
 									frappe.msgprint(
 										__('Opened {0} print dialog(s). '
-										 + 'Use "Save as PDF" in each to save individual files.', [total]),
+											+ 'Use "Save as PDF" in each to save individual files.', [total]),
 										__('Done')
 									);
 								}, 800);
@@ -182,19 +187,22 @@ frappe.ui.form.on('Term Exam Report', {
 				}
 			);
 		}, __('Reports'));
+
+		// ── Render student selector dropdown ─────────────────────────────────
+		_render_student_dropdown(frm);
 	},
 
-	term_exam_results_add: function(frm, cdt, cdn) {
+	term_exam_results_add: function (frm, cdt, cdn) {
 		// Just a placeholder if needed
 	}
 });
 
 frappe.ui.form.on('Term Exam Result Item', {
-	admin_comment: function(frm, cdt, cdn) {
+	admin_comment: function (frm, cdt, cdn) {
 		// When admin_comment is updated in one row, update all other rows for the same student
 		let row = frappe.get_doc(cdt, cdn);
 		if (row.student && row.admin_comment) {
-			(frm.doc.term_exam_results || []).forEach(function(item) {
+			(frm.doc.term_exam_results || []).forEach(function (item) {
 				if (item.student === row.student && item.name !== row.name) {
 					frappe.model.set_value(item.doctype, item.name, 'admin_comment', row.admin_comment);
 				}
@@ -203,10 +211,10 @@ frappe.ui.form.on('Term Exam Result Item', {
 		}
 	},
 
-	form_render: function(frm, cdt, cdn) {
+	form_render: function (frm, cdt, cdn) {
 		let row = frappe.get_doc(cdt, cdn);
 		if (row.student) {
-			frm.fields_dict.term_exam_results.grid.add_custom_button(__('View Portal Results'), function() {
+			frm.fields_dict.term_exam_results.grid.add_custom_button(__('View Portal Results'), function () {
 				const student = row.student;
 				const term = frm.doc.term;
 				// Find the first exam for this student in the table
@@ -227,6 +235,109 @@ frappe.ui.form.on('Term Exam Result Item', {
 		}
 	}
 });
+
+// ─── Render student selector dropdown ────────────────────────────────────────
+function _render_student_dropdown(frm) {
+	// Build unique student map from child table rows
+	var studentMap = {};
+	(frm.doc.term_exam_results || []).forEach(function (row) {
+		if (row.student && !studentMap[row.student]) {
+			studentMap[row.student] = row.student_name || row.student;
+		}
+	});
+
+	var studentIds = Object.keys(studentMap);
+
+	var fieldWrapper = frm.fields_dict['student_selector_html'];
+	if (!fieldWrapper) return;
+
+	// Try different possible wrapper targets depending on Frappe version
+	var $wrapper = $(fieldWrapper.$wrapper || fieldWrapper.wrapper);
+
+	if (!studentIds.length) {
+		$wrapper.html(
+			'<div style="padding:10px 0;color:#94a3b8;font-size:13px;">'
+			+ '— Fetch results first to view individual student report cards —'
+			+ '</div>'
+		);
+		return;
+	}
+
+	// Build <select> options
+	var opts = '<option value="">— Select a student to view their report card —</option>';
+	studentIds.forEach(function (sid) {
+		opts += '<option value="' + sid + '">'
+			+ frappe.utils.escape_html(studentMap[sid])
+			+ ' &nbsp;(' + frappe.utils.escape_html(sid) + ')'
+			+ '</option>';
+	});
+
+	$wrapper.html(
+		'<div style="display:flex;align-items:center;gap:12px;padding:12px 0 6px;">'
+		+ '<label style="font-weight:600;color:#1e3a5f;white-space:nowrap;font-size:13px;min-width:fit-content;">'
+		+ '&#128065; View Student Report Card:'
+		+ '</label>'
+		+ '<select id="student-report-selector" style="'
+		+ 'flex:1;max-width:420px;height:36px;padding:4px 12px;'
+		+ 'border:1.5px solid #d1d5db;border-radius:6px;'
+		+ 'font-size:13px;background:#fff;cursor:pointer;color:#0f172a;'
+		+ 'box-shadow:0 1px 3px rgba(0,0,0,.06);'
+		+ '">' + opts + '</select>'
+		+ '<span style="font-size:11px;color:#64748b;">'
+		+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
+		+ '</span>'
+		+ '</div>'
+	);
+
+	// Wire up change → popup
+	$wrapper.find('#student-report-selector').on('change', function () {
+		var sid = $(this).val();
+		if (!sid) return;
+		_open_student_popup(frm, sid, studentMap[sid]);
+		// Reset dropdown back to placeholder so it can be re-selected
+		$(this).val('');
+	});
+}
+
+// ─── Open Frappe Dialog modal with embedded iframe ────────────────────────────
+function _open_student_popup(frm, studentId, studentName) {
+	var url = '/term-exam-results'
+		+ '?student=' + encodeURIComponent(studentId)
+		+ '&report_name=' + encodeURIComponent(frm.doc.name)
+		+ '&term=' + encodeURIComponent(frm.doc.term || '')
+		+ '&from=admin';
+
+	var d = new frappe.ui.Dialog({
+		title: '&#128203; Report Card — ' + (studentName || studentId),
+		size: 'extra-large',
+		fields: [
+			{
+				fieldname: 'report_iframe',
+				fieldtype: 'HTML',
+				options: '<iframe'
+					+ ' src="' + url + '"'
+					+ ' id="student-report-iframe"'
+					+ ' style="width:100%;height:75vh;border:none;border-radius:6px;display:block;"'
+					+ ' allowfullscreen'
+					+ '></iframe>'
+			}
+		],
+		primary_action_label: '&#10003; Done — Close',
+		primary_action: function () {
+			d.hide();
+			// Reload the parent doc so any saved comments are reflected in the table
+			frm.reload_doc();
+		}
+	});
+
+	d.show();
+
+	// Maximise dialog width
+	d.$wrapper.find('.modal-dialog').css({
+		'max-width': '92vw',
+		'width': '92vw'
+	});
+}
 
 // ─── Internal helper ──────────────────────────────────────────────────────────
 function _has_results(frm) {
