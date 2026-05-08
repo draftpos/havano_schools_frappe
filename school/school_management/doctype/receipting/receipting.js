@@ -68,6 +68,19 @@ frappe.ui.form.on("Receipting", {
         });
     },
 
+    account: function(frm) {
+        if (!frm.doc.account) return;
+
+        frappe.db.get_value("Account", frm.doc.account, "account_currency", function(r) {
+            if (r && r.account_currency) {
+                frm.set_value("currency", r.account_currency);
+            } else {
+                frm.set_value("currency", "USD");
+            }
+            // Setting currency will trigger the currency() handler below
+        });
+    },
+
     currency: function(frm) {
         if (!frm.doc.currency) return;
         

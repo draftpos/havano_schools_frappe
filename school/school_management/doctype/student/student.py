@@ -166,6 +166,7 @@ class Student(Document):
     # Student portal user
     # ------------------------------------------------------------------
 
+    @frappe.whitelist()
     def create_student_portal_user(self):
         """Create portal user for student using manual password"""
         if not self.portal_email:
@@ -245,6 +246,7 @@ class Student(Document):
     # Parent portal users
     # ------------------------------------------------------------------
 
+    @frappe.whitelist()
     def create_parent_portal_users(self):
         """Create portal users for parents / guardians"""
         parent_entries = []
@@ -401,9 +403,6 @@ class Student(Document):
             return False
 
     # ------------------------------------------------------------------
-    # Customer
-    # ------------------------------------------------------------------
-
     def create_customer(self):
         """Create or update customer linked to this student"""
         if not self.full_name:

@@ -1,6 +1,14 @@
 frappe.ui.form.on('Teacher', {
     refresh: function(frm) {
         handlePortalAccessFields(frm);
+
+        if (!frm.is_new()) {
+            frm.add_custom_button(__('Create Teacher User'), function() {
+                frm.call('create_teacher_user').then(r => {
+                    if (!r.exc) frm.reload_doc();
+                });
+            }, __('Portal Access'));
+        }
     },
 
     create_user: function(frm) {

@@ -26,6 +26,20 @@ frappe.ui.form.on('Student', {
                 }
             }
         });
+
+        if (!frm.is_new()) {
+            frm.add_custom_button(__('Create Student User'), function() {
+                frm.call('create_student_portal_user').then(r => {
+                    if (!r.exc) frm.reload_doc();
+                });
+            }, __('Portal Access'));
+
+            frm.add_custom_button(__('Create Parent Users'), function() {
+                frm.call('create_parent_portal_users').then(r => {
+                    if (!r.exc) frm.reload_doc();
+                });
+            }, __('Portal Access'));
+        }
     },
     after_save: function(frm) {
         if (frm.doc.create_user && frm.doc.portal_email) {

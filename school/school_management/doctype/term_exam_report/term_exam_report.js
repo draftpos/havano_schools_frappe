@@ -182,6 +182,49 @@ frappe.ui.form.on('Term Exam Report', {
 				}
 			);
 		}, __('Reports'));
+	},
+
+	term_exam_results_add: function(frm, cdt, cdn) {
+		// Just a placeholder if needed
+	}
+});
+
+frappe.ui.form.on('Term Exam Result Item', {
+	admin_comment: function(frm, cdt, cdn) {
+		// When admin_comment is updated in one row, update all other rows for the same student
+		let row = frappe.get_doc(cdt, cdn);
+		if (row.student && row.admin_comment) {
+			(frm.doc.term_exam_results || []).forEach(function(item) {
+				if (item.student === row.student && item.name !== row.name) {
+					frappe.model.set_value(item.doctype, item.name, 'admin_comment', row.admin_comment);
+				}
+			});
+			frm.refresh_field('term_exam_results');
+		}
+	},
+
+	form_render: function(frm, cdt, cdn) {
+		let row = frappe.get_doc(cdt, cdn);
+		if (row.student) {
+			frm.fields_dict.term_exam_results.grid.add_custom_button(__('View Portal Results'), function() {
+				const student = row.student;
+				const term = frm.doc.term;
+				// Find the first exam for this student in the table
+				let exam = row.exam;
+				if (!exam) {
+					const firstExamRow = (frm.doc.term_exam_results || []).find(r => r.student === student && r.exam);
+					exam = firstExamRow ? firstExamRow.exam : '';
+				}
+
+				if (!student || !term || !exam) {
+					frappe.msgprint(__('Missing Student, Term or Exam information.'));
+					return;
+				}
+
+				const url = `/term-exam-results?student=${encodeURIComponent(student)}&term=${encodeURIComponent(term)}&exam=${encodeURIComponent(exam)}&report_name=${encodeURIComponent(frm.doc.name)}`;
+				window.open(url, '_blank');
+			}, cdn);
+		}
 	}
 });
 

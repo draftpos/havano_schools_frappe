@@ -544,13 +544,12 @@ def get_homework_results(student=None):
             }]
         })
     return result
-
-
 @frappe.whitelist()
 def get_term_exam_results(student=None):
     user = frappe.session.user
-    if user in ("Administrator", "Guest"): return []
+    is_admin = "Administrator" in frappe.get_roles(user) or "School Administrator" in frappe.get_roles(user)
     
+    if user == "Guest": return []
     if not student:
         student = frappe.db.get_value("Student", {"portal_email": user},
             ["name", "full_name", "student_reg_no", "student_class", "section"], as_dict=True)

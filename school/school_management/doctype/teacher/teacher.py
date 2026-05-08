@@ -29,6 +29,7 @@ class Teacher(Document):
         if user_fields_changed and self.create_user and self.portal_email:
             self.create_teacher_user()
 
+    @frappe.whitelist()
     def create_teacher_user(self):
         if not self.portal_email:
             return
@@ -118,9 +119,52 @@ class Teacher(Document):
                 alert=True
             )
 
+            self._assign_cost_center_permission(self.portal_email)
+
         except Exception:
             frappe.log_error(
                 title=f"Teacher portal user creation failed for {self.portal_email}",
                 message=frappe.get_traceback()
             )
+
+    def _assign_cost_center_permission(self, email):
+        """Assign cost center permission to user based on selected school (cost center)"""
+        try:
+            if not self.cost_center:
+                return False
+
+            existing_permission = frappe.db.exists(
+                "User Permission",
+                {
+                    "user": email,
+                    "allow": "Cost Center",
+                    "for_value": self.cost_center,
+                },
+            )
+
+            if not existing_permission:
+                user_permission = frappe.get_doc({
+                    "doctype": "User Permission",
+                    "user": email,
+                    "allow": "Cost Center",
+                    "for_value": self.cost_center,
+                    "applicable_for": "",
+                })
+                user_permission.flags.ignore_permissions = True
+                user_permission.insert(ignore_permissions=True)
+                frappe.msgprint(
+                    f"✅ Cost Center '{self.cost_center}' permission assigned to {email}",
+                    indicator="green",
+                    alert=True,
+                )
+            else:
+                frappe.msgprint(
+                    f"ℹ️ Cost Center permission already exists for {email}",
+                    indicator="blue",
+                    alert=True,
+                )
+            return True
+        except Exception as e:
+            frappe.log_error(f"Failed to assign cost center permission: {str(e)}")
+            return False
 
