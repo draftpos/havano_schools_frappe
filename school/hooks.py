@@ -13,7 +13,6 @@ fixtures = [
         "dt": "Server Script",
         "filters": [["name", "in", [
             "Sales Order Auto Payment Entry",
-            "Create Payment Entry from Receipting",
             "Calculate Student Count",
             "Fetch Students for ID Card",
             "Fetch Students for Promote",
