@@ -1,6 +1,6 @@
 frappe.ui.form.on('Student', {
-    refresh: function(frm) {
-        frm.set_query("account", function() {
+    refresh: function (frm) {
+        frm.set_query("account", function () {
             return {
                 filters: {
                     is_group: 0,
@@ -10,7 +10,7 @@ frappe.ui.form.on('Student', {
         });
 
         // Show ALL sections - no filtering by class
-        frm.set_query("section", function() {
+        frm.set_query("section", function () {
             return {};
         });
 
@@ -19,7 +19,7 @@ frappe.ui.form.on('Student', {
         frappe.call({
             method: "frappe.client.get",
             args: { doctype: "School Settings", name: "School Settings" },
-            callback: function(r) {
+            callback: function (r) {
                 if (r.message) {
                     frm.settings = r.message;
                     handlePortalAccessFields(frm);
@@ -28,20 +28,20 @@ frappe.ui.form.on('Student', {
         });
 
         if (!frm.is_new()) {
-            frm.add_custom_button(__('Create Student User'), function() {
+            frm.add_custom_button(__('Create Student User'), function () {
                 frm.call('create_student_portal_user').then(r => {
                     if (!r.exc) frm.reload_doc();
                 });
             }, __('Portal Access'));
 
-            frm.add_custom_button(__('Create Parent Users'), function() {
+            frm.add_custom_button(__('Create Parent Users'), function () {
                 frm.call('create_parent_portal_users').then(r => {
                     if (!r.exc) frm.reload_doc();
                 });
             }, __('Portal Access'));
         }
     },
-    after_save: function(frm) {
+    after_save: function (frm) {
         if (frm.doc.create_user && frm.doc.portal_email) {
             frappe.msgprint({
                 title: __('Portal User Created'),
@@ -51,39 +51,39 @@ frappe.ui.form.on('Student', {
         }
     },
 
-    create_user: function(frm) {
+    create_user: function (frm) {
         handlePortalAccessFields(frm);
     },
 
-    student_class: function(frm) {
+    student_class: function (frm) {
     },
 
-    admin_fee_paid: function(frm) {
+    admin_fee_paid: function (frm) {
         if (frm.doc.admin_fee_paid && !frm.doc.admin_fees_structure) {
             frappe.msgprint(__("Please select an Admin Fees Structure before marking as Paid."));
             frm.set_value("admin_fee_paid", 0);
         }
     },
 
-    school: function(frm) {
+    school: function (frm) {
         if (frm.doc.has_opening_balance && frm.doc.school) {
             frm.set_value("cost_center", frm.doc.school);
         }
     },
 
-    has_opening_balance: function(frm) {
+    has_opening_balance: function (frm) {
         if (frm.doc.has_opening_balance && frm.doc.school) {
             frm.set_value("cost_center", frm.doc.school);
         }
     },
 
-    student_type: function(frm) {
+    student_type: function (frm) {
         if (!frm.doc.student_type) return;
 
         frappe.call({
             method: "frappe.client.get",
             args: { doctype: "School Settings", name: "School Settings" },
-            callback: function(r) {
+            callback: function (r) {
                 if (!r.message) return;
                 var settings = r.message;
                 frm.settings = settings;

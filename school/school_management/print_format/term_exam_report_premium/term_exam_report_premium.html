@@ -1,0 +1,934 @@
+{% set selected_student = frappe.form_dict.student %}
+{% set students = [] %}
+{% for row in doc.term_exam_results %}
+{% if row.student not in students %}
+{% if not selected_student or row.student == selected_student %}
+{% set _ = students.append(row.student) %}
+{% endif %}
+{% endif %}
+{% endfor %}
+
+{% set base_url = frappe.utils.get_url() %}
+
+{# ROBUST LOGO LOGIC #}
+{% set school_logo = doc.school_logo %}
+{% if not school_logo and doc.cost_center %}
+{% set cc_company = frappe.db.get_value("Cost Center", doc.cost_center, "company") %}
+{% if cc_company %}
+{% set school_logo = frappe.db.get_value("Company", cc_company, "company_logo") %}
+{% endif %}
+{% endif %}
+{% if not school_logo %}
+{% set school_logo = frappe.db.get_single_value("Website Settings", "app_logo") or frappe.db.get_single_value("Navbar
+Settings", "app_logo") %}
+{% endif %}
+
+{% if school_logo and not school_logo.startswith("http") %}
+{% set school_logo = base_url + school_logo %}
+{% endif %}
+
+{% set school_name = "" %}
+{% if doc.cost_center %}
+{% set cc = frappe.get_doc("Cost Center", doc.cost_center) %}
+{% set school_name = cc.cost_center_name or doc.cost_center %}
+{% endif %}
+
+{% set grading_items = [] %}
+{% set all_grades = frappe.get_all("Grading Score", limit=1, fields=["name"]) %}
+{% if all_grades %}
+{% set gs = frappe.get_doc("Grading Score", all_grades[0].name) %}
+{% for gi in gs.grading_items %}
+{% set _ = grading_items.append(gi) %}
+{% endfor %}
+{% endif %}
+
+{% set school_stamp_raw = doc.school_stamp or "" %}
+{% set school_stamp = "" %}
+{% if school_stamp_raw %}
+{% if school_stamp_raw.startswith("http") %}
+{% set school_stamp = school_stamp_raw %}
+{% else %}
+{% set school_stamp = base_url + school_stamp_raw %}
+{% endif %}
+{% endif %}
+
+{% set pie_colors =
+["#1e3a5f","#2563eb","#16a34a","#d97706","#dc2626","#7c3aed","#0891b2","#db2777","#65a30d","#ea580c","#0d9488","#9333ea"]
+%}
+
+{# RANK CALCULATION #}
+{% set student_totals = [] %}
+{% set all_students_ids = [] %}
+{% for row in doc.term_exam_results %}
+{% if row.student not in all_students_ids %}
+{% set _ = all_students_ids.append(row.student) %}
+{% endif %}
+{% endfor %}
+
+{% for sid in all_students_ids %}
+{% set tot = namespace(val=0) %}
+{% for row in doc.term_exam_results %}
+{% if row.student == sid and row.marks_obtained is not none %}
+{% set tot.val = tot.val + (row.marks_obtained or 0) %}
+{% endif %}
+{% endfor %}
+{% set _ = student_totals.append({"student": sid, "total": tot.val}) %}
+{% endfor %}
+{% set sorted_totals = student_totals | sort(attribute="total", reverse=True) %}
+{% set class_rank = {} %}
+{% for item in sorted_totals %}
+{% if item.student not in class_rank %}
+{% set _ = class_rank.update({item.student: loop.index}) %}
+{% endif %}
+{% endfor %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Term Exam Report - {{ doc.name }}</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      color: #1e293b;
+      background: #f8fafc;
+      width: 100%;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    .student-selector {
+      position: relative;
+      background: rgba(30, 58, 95, 0.97);
+      color: white;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      flex-wrap: wrap;
+    }
+
+    .student-selector label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+
+    .student-selector select {
+      flex: 1;
+      max-width: 300px;
+      padding: 8px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      font-size: 13px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .student-selector select option {
+      background: #1e3a5f;
+      color: white;
+    }
+
+    .student-selector select:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-dl {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-dl:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .btn-all {
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-all:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+
+    #print-area {
+      margin-top: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .report-card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      overflow: hidden;
+      margin-bottom: 30px;
+      width: 100%;
+      box-sizing: border-box;
+      display: block;
+      /* visible by default — JS hides non-active ones */
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+    }
+
+    .card-header-wrapper {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      width: 100%;
+      border-bottom: 2px solid #1e3a5f;
+      box-sizing: border-box;
+    }
+
+    .header-logo-panel {
+      width: 25%;
+      border-right: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: #fff;
+    }
+
+    .header-logo-panel img {
+      max-width: 100%;
+      max-height: 80px;
+      object-fit: contain;
+    }
+
+    .header-info-panel {
+      width: 75%;
+      background: #1e3a5f;
+      color: white;
+      padding: 20px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header-info-panel::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 200px;
+      height: 200px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 50%;
+    }
+
+    .header-info-panel h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .header-info-panel h3 {
+      margin: 6px 0 0;
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.8;
+      letter-spacing: 1px;
+    }
+
+    .header-info-panel .ref {
+      margin-top: 8px;
+      font-size: 10px;
+      opacity: 0.6;
+      font-weight: 500;
+    }
+
+    .card-meta {
+      background: #f8fafc;
+      padding: 15px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .card-meta p {
+      margin: 4px 0;
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .card-meta strong {
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .positions-wrap {
+      display: flex;
+      gap: 12px;
+    }
+
+    .position-badge {
+      background: #1e3a5f;
+      color: white;
+      border-radius: 8px;
+      padding: 6px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      box-shadow: 0 4px 6px -1px rgba(30, 58, 95, 0.2);
+    }
+
+    .position-badge span {
+      font-size: 10px;
+      font-weight: 500;
+      display: block;
+      opacity: 0.7;
+      margin-bottom: 2px;
+    }
+
+    .position-badge.section-pos {
+      background: #3b82f6;
+      box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2);
+    }
+
+    .table-wrap {
+      padding: 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    thead th {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      border-bottom: 2px solid #e2e8f0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    thead th.center {
+      text-align: center;
+    }
+
+    tbody td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      color: #334155;
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    /* Teacher comment cell — left-aligned, softer color, italic */
+    .teacher-comment-cell {
+      font-size: 10px;
+      color: #64748b;
+      font-style: italic;
+      text-align: left;
+      max-width: 180px;
+    }
+
+    .teacher-comment-cell.empty {
+      color: #cbd5e1;
+    }
+
+    .status-pass {
+      color: #10b981;
+      font-weight: 700;
+    }
+
+    .status-moderate {
+      color: #f59e0b;
+      font-weight: 700;
+    }
+
+    .status-failed {
+      color: #ef4444;
+      font-weight: 700;
+    }
+
+    tfoot tr td {
+      background: #f8fafc;
+      font-weight: 800;
+      padding: 12px;
+      color: #1e293b;
+      border-top: 2px solid #1e3a5f;
+      font-size: 12px;
+    }
+
+    .overall-comment-row {
+      padding: 18px 28px;
+      border-top: 1px solid #e2e8f0;
+      background: #fffef3;
+    }
+
+    .overall-comment-row h4 {
+      font-size: 11px;
+      color: #1e3a5f;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .overall-comment-row p {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.6;
+    }
+
+    .overall-comment-row p.empty {
+      color: #94a3b8;
+      font-style: italic;
+    }
+
+    .analytics-wrapper {
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+      border-top: 1px solid #e2e8f0;
+      align-items: stretch;
+    }
+
+    .chart-panel {
+      width: 40%;
+      border-right: 1px solid #e2e8f0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .chart-panel h4 {
+      font-size: 11px;
+      color: #1e3a5f;
+      font-weight: 800;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .chart-canvas-wrap {
+      width: 160px;
+      height: 160px;
+      margin-bottom: 15px;
+    }
+
+    .grade-scale-panel {
+      width: 60%;
+      padding: 20px 28px;
+    }
+
+    .grade-scale-panel h4 {
+      font-size: 11px;
+      color: #1e3a5f;
+      font-weight: 800;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .grade-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 10px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .grade-table th {
+      background: #f8fafc;
+      color: #64748b;
+      padding: 6px 10px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .grade-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .signatures-stamp {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding: 20px 28px 25px;
+      border-top: 1px solid #e2e8f0;
+    }
+
+    .sig-group {
+      display: flex;
+      gap: 40px;
+    }
+
+    .sig-box {
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .sig-line {
+      border-top: 1.5px solid #cbd5e1;
+      margin-top: 40px;
+      padding-top: 6px;
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .stamp-wrap {
+      text-align: center;
+      position: relative;
+    }
+
+    .stamp-wrap img {
+      max-width: 90px;
+      max-height: 90px;
+      object-fit: contain;
+      opacity: 0.9;
+    }
+
+    .stamp-placeholder {
+      width: 85px;
+      height: 85px;
+      border: 2px dashed #cbd5e1;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: #94a3b8;
+      text-align: center;
+      line-height: 1.4;
+      padding: 10px;
+    }
+
+    .card-footer {
+      background: #1e3a5f;
+      color: rgba(255, 255, 255, 0.6);
+      padding: 10px 28px;
+      font-size: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* ---- PRINT STYLES ---- */
+    @media print {
+      body {
+        background: white;
+      }
+
+      /* Hide the selector bar entirely during print */
+      .student-selector {
+        display: none !important;
+      }
+
+      #print-area {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+
+      /* Do NOT force display:block - respect the inline style set by JS */
+      .report-card {
+        margin: 0 !important;
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-after: always;
+      }
+
+      .report-card:last-of-type {
+        page-break-after: avoid;
+      }
+
+      /* Preserve flex layouts and colored backgrounds */
+      .card-header-wrapper,
+      .analytics-wrapper,
+      .card-meta {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+      }
+
+      .header-info-panel,
+      .card-footer,
+      .position-badge {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="student-selector" id="selectorBar">
+    <label>Student Report</label>
+    <select name="studentSelect" id="studentSelect" onchange="
+    var sid = this.value;
+    var all = document.getElementsByClassName('report-card');
+    for(var i=0;i<all.length;i++){
+      all[i].style.display = (!sid || all[i].getAttribute('data-student')===sid) ? 'block' : 'none';
+    }
+  ">
+      <option value="">-- Search Students --</option>
+      {% for sid in all_students_ids %}
+      {% set sn = namespace(name="") %}
+      {% for row in doc.term_exam_results %}
+      {% if row.student == sid and not sn.name %}{% set sn.name = row.student_name or sid %}{% endif %}
+      {% endfor %}
+      <option value="{{ sid }}">{{ sn.name }} ({{ sid }})</option>
+      {% endfor %}
+    </select>
+    <button class="btn-dl" id="btnDl" onclick="
+    var sel = document.getElementById('studentSelect');
+    if(!sel.value){ alert('Please select a student first.'); return; }
+    var all = document.getElementsByClassName('report-card');
+    for(var i=0;i<all.length;i++){
+      all[i].style.display = all[i].getAttribute('data-student')===sel.value ? 'block' : 'none';
+    }
+    window.print();
+  ">⬇ Download This Student</button>
+    <button class="btn-all" onclick="
+    document.getElementById('studentSelect').value='';
+    var all = document.getElementsByClassName('report-card');
+    for(var i=0;i<all.length;i++){ all[i].style.display='block'; }
+    window.print();
+  ">🖨 Print All Students</button>
+  </div>
+
+  <div id="print-area">
+
+    {% for student_id in students %}
+    {% set student_rows = [] %}
+    {% for row in doc.term_exam_results %}
+    {% if row.student == student_id %}{% set _ = student_rows.append(row) %}{% endif %}
+    {% endfor %}
+
+    {% set student_name = student_rows[0].student_name or student_id %}
+
+    {% set total_obtained = namespace(val=0) %}
+    {% set total_max = namespace(val=0) %}
+    {% for r in student_rows %}
+    {% if r.marks_obtained is not none %}
+    {% set total_obtained.val = total_obtained.val + (r.marks_obtained or 0) %}
+    {% set total_max.val = total_max.val + (r.max_marks or 0) %}
+    {% endif %}
+    {% endfor %}
+    {% set overall_pct = ((total_obtained.val / total_max.val) * 100) | round(1) if total_max.val else 0 %}
+    {% set total_students = all_students_ids | length %}
+    {% set c_rank = class_rank.get(student_id, "—") %}
+
+    {# UNIQUE ADMIN COMMENT PER STUDENT #}
+    {% set comment_ns = namespace(val="") %}
+    {% for r in student_rows %}
+    {% set row_comment = r.student_admin_comment or r.admin_comment or r.teacher_comment or r.remarks or r.comment or ""
+    %}
+    {% if row_comment and not comment_ns.val %}
+    {% set comment_ns.val = row_comment %}
+    {% endif %}
+    {% endfor %}
+    {% set displayed_comment = comment_ns.val or (doc.overall_admin_comment or "") %}
+
+    {% set verify_url = base_url +
+    "/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_report_text?report=" +
+    (doc.name | urlencode) + "&student=" + (student_id | urlencode) %}
+    {% set qr_url = "https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=" + (verify_url | urlencode) %}
+
+    {% set chart_labels = [] %}
+    {% set chart_values = [] %}
+    {% set chart_colors_used = [] %}
+    {% set ci = namespace(i=0) %}
+    {% for r in student_rows | sort(attribute='subject') %}
+    {% set _ = chart_labels.append(r.subject) %}
+    {% set _ = chart_values.append(r.percentage or 0) %}
+    {% set _ = chart_colors_used.append(pie_colors[ci.i % (pie_colors | length)]) %}
+    {% set ci.i = ci.i + 1 %}
+    {% endfor %}
+
+    <div class="report-card" id="card-{{ student_id }}" data-student="{{ student_id }}" style="display:none">
+
+      <div class="card-header-wrapper">
+        <div class="header-logo-panel">
+          {% if school_logo %}
+          <img src="{{ school_logo }}" alt="School Logo"
+            onerror="this.onerror=null;this.src='{{ base_url }}/assets/frappe/images/frappe-favicon.svg';">
+          {% else %}
+          <img src="{{ base_url }}/assets/frappe/images/frappe-favicon.svg" alt="Frappe Logo" style="opacity:0.3;">
+          {% endif %}
+        </div>
+        <div class="header-info-panel">
+          <h2>{{ school_name or "School Name" }}</h2>
+          <h3>ACADEMIC PERFORMANCE REPORT CARD</h3>
+          <p class="ref">System Ref: {{ doc.name }}</p>
+        </div>
+      </div>
+
+      <div class="card-meta">
+        <div>
+          <p><strong>Student Name:</strong> {{ student_name }}</p>
+          <p><strong>Admission No:</strong> {{ student_id }}</p>
+          <p><strong>Class/Group:</strong> {{ doc.student_class }}{% if doc.section %} ({{ doc.section }}){% endif %}
+          </p>
+        </div>
+        <div class="positions-wrap">
+          <div class="position-badge">
+            <span>Class Rank</span>
+            {{ c_rank }} / {{ total_students }}
+          </div>
+          {% if doc.academic_year %}
+          <div class="position-badge section-pos">
+            <span>Academic Year</span>
+            {{ doc.academic_year }}
+          </div>
+          {% endif %}
+        </div>
+        <div style="text-align:right">
+          <p><strong>Term:</strong> {{ doc.term }}</p>
+          <p><strong>Issue Date:</strong> {{ doc.report_date or '' }}</p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:22%">Subject</th>
+              <th class="center" style="width:10%">Marks</th>
+              <th class="center" style="width:10%">Max</th>
+              <th class="center" style="width:8%">%</th>
+              <th class="center" style="width:8%">Grade</th>
+              <th class="center" style="width:10%">Status</th>
+              <th style="width:32%">Teacher Comment</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in student_rows | sort(attribute='subject') %}
+            <tr>
+              <td style="font-weight:600">{{ r.subject }}</td>
+              <td class="center">{{ r.marks_obtained if r.marks_obtained is not none else '—' }}</td>
+              <td class="center">{{ r.max_marks or '—' }}</td>
+              <td class="center">{{ "%.1f" | format(r.percentage) if r.percentage else '—' }}%</td>
+              <td class="center" style="font-weight:700">{{ r.grade or '—' }}</td>
+              <td
+                class="center {% if r.status == 'Pass' %}status-pass{% elif r.status == 'Moderate' %}status-moderate{% elif r.status == 'Failed' %}status-failed{% endif %}">
+                {{ r.status or '—' }}</td>
+              {% set tc = r.teacher_comment or r.remarks or r.comment or r.student_admin_comment or r.admin_comment or
+              "" %}
+              <td class="teacher-comment-cell {% if not tc %}empty{% endif %}">
+                {{ tc if tc else "—" }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td>OVERALL PERFORMANCE</td>
+              <td class="center">{{ total_obtained.val }}</td>
+              <td class="center">{{ total_max.val }}</td>
+              <td class="center" style="color:{% if overall_pct >= 50 %}#10b981{% else %}#ef4444{% endif %}">{{
+                overall_pct }}%</td>
+              <td class="center">—</td>
+              <td class="center">—</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <div class="overall-comment-row">
+        <h4>Remarks & Observations</h4>
+        {% if displayed_comment %}
+        <p>{{ displayed_comment }}</p>
+        {% else %}
+        <p class="empty">No specific comments recorded for this term.</p>
+        {% endif %}
+      </div>
+
+      <div class="analytics-wrapper">
+        <div class="chart-panel">
+          <h4>Subject Performance</h4>
+          <div class="chart-canvas-wrap">
+            <canvas id="chart-{{ student_id }}" width="160" height="160"></canvas>
+          </div>
+        </div>
+        <div class="grade-scale-panel">
+          <h4>Grading Reference</h4>
+          {% if grading_items %}
+          <table class="grade-table">
+            <thead>
+              <tr>
+                <th>Range</th>
+                <th>Grade</th>
+                <th>Descriptor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for gi in grading_items %}
+              <tr>
+                <td>{{ gi.from_percent }}% - {{ gi.to_percent }}%</td>
+                <td style="font-weight:700">{{ gi.grade }}</td>
+                <td>{{ gi.status }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <p style="font-size:11px;color:#94a3b8;margin-top:8px">Standard grading policy applied.</p>
+          {% endif %}
+
+          <div style="margin-top: 20px; display: flex; align-items: center; gap: 20px;">
+            <img src="{{ qr_url }}" width="85" height="85" alt="Verification QR"
+              style="border: 1px solid #f1f5f9; padding: 4px; border-radius: 4px;">
+            <div style="font-size: 10px; color: #64748b; line-height: 1.4;">
+              <strong>Report Verification:</strong><br>
+              Scan this QR code to verify the authenticity of this report on the official school portal.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="signatures-stamp">
+        <div class="sig-group">
+          <div class="sig-box">
+            <div class="sig-line">Class Teacher</div>
+          </div>
+          <div class="sig-box">
+            <div class="sig-line">Principal</div>
+          </div>
+        </div>
+        <div class="stamp-wrap">
+          {% if school_stamp %}
+          <img src="{{ school_stamp }}" alt="School Stamp">
+          {% else %}
+          <div class="stamp-placeholder">School<br>Official Stamp</div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <p>Document ID: {{ doc.name }} | Student ID: {{ student_id }}</p>
+        <p>© {{ school_name or "School" }} - All Rights Reserved</p>
+      </div>
+
+    </div>
+
+    <script>
+      (function () {
+        var canvas = document.getElementById('chart-{{ student_id }}');
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        var labels = {{ chart_labels | tojson
+      }};
+      var values = {{ chart_values | tojson }};
+      var colors = {{ chart_colors_used | tojson }};
+      if (labels.length > 0) {
+        new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: labels,
+            datasets: [{
+              data: values,
+              backgroundColor: colors,
+              borderColor: '#fff',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            responsive: false,
+            maintainAspectRatio: true,
+            cutout: '65%',
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return context.label + ': ' + context.parsed.toFixed(1) + '%';
+                  }
+                }
+              }
+            }
+          }
+        });
+      }
+}) ();
+    </script>
+
+    {% endfor %}
+  </div>
+
+
+  <script>
+    /* On load: auto-select first student and show their card */
+    var _sel = document.getElementById('studentSelect');
+    if (_sel) {
+      /* Find first option that has a value (skip the "All Students" blank option) */
+      for (var _i = 0; _i < _sel.options.length; _i++) {
+        if (_sel.options[_i].value) {
+          _sel.selectedIndex = _i;
+          var _sid = _sel.options[_i].value;
+          var _all = document.getElementsByClassName('report-card');
+          for (var _j = 0; _j < _all.length; _j++) {
+            _all[_j].style.display = _all[_j].getAttribute('data-student') === _sid ? 'block' : 'none';
+          }
+          break;
+        }
+      }
+    }
+  </script>
+
+</body>
+
+</html>

@@ -71,7 +71,7 @@ def _run_export():
         frappe.log_error(str(e), "Auto Export Fixtures Failed")
 
 @frappe.whitelist(allow_guest=False)
-def get_dashboard_data(cost_center=None):
+def get_dashboard_data(cost_center=None, fee_structure=None, academic_term=None, academic_year=None, date=None, student_class=None, section=None):
     data = {}
 
     student_filters = {}
@@ -79,6 +79,33 @@ def get_dashboard_data(cost_center=None):
     if cost_center:
         student_filters['cost_center'] = cost_center
         invoice_filters['cost_center'] = cost_center
+    if fee_structure:
+        invoice_filters['fees_structure'] = fee_structure
+    meta = frappe.get_meta('Sales Invoice')
+    if academic_term:
+        if meta.has_field('academic_term'):
+            invoice_filters['academic_term'] = academic_term
+        elif meta.has_field('custom_academic_term'):
+            invoice_filters['custom_academic_term'] = academic_term
+    if academic_year:
+        if meta.has_field('academic_year'):
+            invoice_filters['academic_year'] = academic_year
+        elif meta.has_field('custom_academic_year'):
+            invoice_filters['custom_academic_year'] = academic_year
+    if date:
+        invoice_filters['posting_date'] = date
+    if student_class:
+        if meta.has_field('student_class'):
+            invoice_filters['student_class'] = student_class
+        elif meta.has_field('custom_student_class'):
+            invoice_filters['custom_student_class'] = student_class
+    if section:
+        if meta.has_field('section'):
+            invoice_filters['section'] = section
+        elif meta.has_field('custom_section'):
+            invoice_filters['custom_section'] = section
+        elif meta.has_field('custom_student_section'):
+            invoice_filters['custom_student_section'] = section
 
     try: data['students'] = frappe.db.count('Student', filters=student_filters)
     except: data['students'] = 0
@@ -89,32 +116,50 @@ def get_dashboard_data(cost_center=None):
     try: data['homework'] = frappe.db.count('Home Schedule')
     except: data['homework'] = 0
     try:
+        first_inv = frappe.get_all('Sales Invoice', limit=1)
+        if first_inv:
+            frappe.log_error(str(frappe.get_meta('Sales Invoice').fields), "Sales Invoice Fields")
         data['invoices'] = frappe.get_all('Sales Invoice',
             filters=invoice_filters,
             fields=['grand_total','outstanding_amount','status','customer','posting_date','cost_center'],
             limit=0)
-    except: data['invoices'] = []
+    except Exception as e: 
+        frappe.log_error(str(e), "Invoices Fetch Error")
+        data['invoices'] = []
     try:
-        # Opening balances now have their own Sales Invoices so no need to add separately
-        # Just return 0 to avoid double counting with invoice outstanding
         data['opening_balance_total'] = 0
         data['opening_balance_students'] = []
     except:
         data['opening_balance_total'] = 0
         data['opening_balance_students'] = []
     try:
-        student_classes = frappe.get_all('Student Class', fields=['name','class_name'], limit=20)
-        for c in student_classes:
+        all_classes = frappe.get_all('Student Class', fields=['name','class_name'], limit=100)
+        for c in all_classes:
             f = {'student_class': c['name']}
             if cost_center: f['cost_center'] = cost_center
             c['student_count'] = frappe.db.count('Student', filters=f)
-        data['classes'] = student_classes
+        data['classes'] = all_classes
     except: data['classes'] = []
     try:
         data['cost_centers'] = frappe.get_all('Cost Center',
             filters={'is_group': 0},
-            fields=['name'], limit=50)
+            fields=['name'], limit=100)
     except: data['cost_centers'] = []
+    try:
+        data['fee_structures'] = frappe.get_all('Fees Structure', fields=['name'], limit=100)
+    except: data['fee_structures'] = []
+    try:
+        data['academic_terms'] = frappe.get_all('Academic Term', fields=['name'], limit=100)
+    except: data['academic_terms'] = []
+    try:
+        data['academic_years'] = frappe.get_all('Academic Year', fields=['name'], limit=100)
+    except: data['academic_years'] = []
+    try:
+        data['sections'] = frappe.get_all('Section', fields=['name'], limit=100)
+    except: data['sections'] = []
+    try:
+        data['student_classes'] = frappe.get_all('Student Class', fields=['name'], limit=100)
+    except: data['student_classes'] = []
     try:
         data['exams_list'] = frappe.get_all('Exam Schedule',
             fields=['name','title','subject','date'], limit=6, order_by='date asc')

@@ -1035,6 +1035,10 @@ body::before {
       <div class="nav-icon">📊</div>
       <span class="nav-label">Dashboard</span>
     </a>
+    <a class="nav-item" href="/app/library" onclick="closeSidebar()" target="_top">
+      <div class="nav-icon">📖</div>
+      <span class="nav-label">Library</span>
+    </a>
     <a class="nav-item" href="/app/student" onclick="closeSidebar()" target="_top">
       <div class="nav-icon">🎓</div>
       <span class="nav-label">Students</span>
@@ -1454,11 +1458,24 @@ body::before {
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-students"></div></div>
       </div>
 
-      <div class="stat-card s-emerald">
+      <div class="stat-card s-emerald" onclick="window.location.href='fees_collected.html'">
         <div class="card-cc-wrap" onclick="event.stopPropagation()">
-          <select class="card-cc-sel" data-card="collected" onchange="onCardCCChange(this)">
-            <option value="">All</option>
-          </select>
+          <button onclick="toggleCollectedFilters()" class="card-cc-sel" style="background:var(--emerald);color:white;border:none;">⚙️ Filters</button>
+          <div id="collected-filters-menu" style="display:none; position:absolute; top:25px; right:0; background:white; padding:12px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); border:1px solid var(--border); flex-direction:column; gap:8px; z-index:20;">
+            <select id="fc-cc" class="card-cc-sel" onchange="onCollectedFilterChange()">
+              <option value="">All Cost Centers</option>
+            </select>
+            <select id="fc-fs" class="card-cc-sel" onchange="onCollectedFilterChange()">
+              <option value="">All Fee Structures</option>
+            </select>
+            <select id="fc-term" class="card-cc-sel" onchange="onCollectedFilterChange()">
+              <option value="">All Terms</option>
+            </select>
+            <select id="fc-year" class="card-cc-sel" onchange="onCollectedFilterChange()">
+              <option value="">All Years</option>
+            </select>
+            <input type="date" id="fc-date" class="card-cc-sel" onchange="onCollectedFilterChange()">
+          </div>
         </div>
         <div class="stat-icon-wrap">💰</div>
         <div class="stat-meta">Fees Collected</div>
@@ -1762,17 +1779,74 @@ async function fetchCardData(cc) {
   } catch(e) { return {}; }
 }
 
-function populateCardDropdowns(costCenters) {
-  document.querySelectorAll('.card-cc-sel').forEach(sel => {
+function populateCardDropdowns(data) {
+  // Populate existing standard cost center dropdowns
+  document.querySelectorAll('.card-cc-sel[data-card]').forEach(sel => {
     const cur = sel.value;
     while (sel.options.length > 1) sel.remove(1);
-    costCenters.forEach(cc => {
+    (data.cost_centers || []).forEach(cc => {
       const o = document.createElement('option');
       o.value = cc.name; o.textContent = cc.name;
       if (cc.name === cur) o.selected = true;
       sel.appendChild(o);
     });
   });
+
+  // Populate Fees Collected custom dropdowns
+  const populateOpts = (id, arr) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    while (sel.options.length > 1) sel.remove(1);
+    (arr || []).forEach(item => {
+      const o = document.createElement('option');
+      o.value = item.name; o.textContent = item.name;
+      if (item.name === cur) o.selected = true;
+      sel.appendChild(o);
+    });
+  };
+
+  populateOpts('fc-cc', data.cost_centers);
+  populateOpts('fc-fs', data.fee_structures);
+  populateOpts('fc-term', data.academic_terms);
+  populateOpts('fc-year', data.academic_years);
+}
+
+function toggleCollectedFilters() {
+  const m = document.getElementById('collected-filters-menu');
+  m.style.display = m.style.display === 'none' ? 'flex' : 'none';
+}
+
+async function onCollectedFilterChange() {
+  const cc = document.getElementById('fc-cc').value;
+  const fs = document.getElementById('fc-fs').value;
+  const term = document.getElementById('fc-term').value;
+  const year = document.getElementById('fc-year').value;
+  const date = document.getElementById('fc-date').value;
+
+  let query = new URLSearchParams();
+  if (cc) query.append('cost_center', cc);
+  if (fs) query.append('fee_structure', fs);
+  if (term) query.append('academic_term', term);
+  if (year) query.append('academic_year', year);
+  if (date) query.append('date', date);
+
+  const qs = query.toString();
+  const key = 'collected_' + qs;
+  let data = cardDataCache[key];
+
+  if (!data) {
+    try {
+      const r = await fetch('/api/method/school.utils.get_dashboard_data?' + qs, {
+        headers: {'Accept': 'application/json'}, credentials: 'include'
+      });
+      const d = await r.json();
+      data = d.message || {};
+      cardDataCache[key] = data;
+    } catch(e) { data = {}; }
+  }
+
+  updateCard('collected', data);
 }
 
 async function onCardCCChange(sel) {
@@ -1809,6 +1883,8 @@ async function loadDashboard() {
   initCharts();
   const data = await fetchData();
   if (!data || !Object.keys(data).length) { console.warn('No data'); return; }
+
+  populateCardDropdowns(data);
 
   $('stat-students').textContent = fmt(data.students || 0);
   $('nb-students').textContent = data.students || 0;
@@ -1887,7 +1963,7 @@ async function loadDashboard() {
   }
 
   if (data.cost_centers && data.cost_centers.length) {
-    populateCardDropdowns(data.cost_centers);
+    populateCardDropdowns(data);
     cardDataCache['__all__'] = data;
     loadSchoolOverviews(data.cost_centers);
   }

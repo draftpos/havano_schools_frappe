@@ -75,3 +75,30 @@ def get_batch_student_count(filters=None):
     parsed_filters = _parse_filters(filters)
     students = get_students_for_batch(parsed_filters)
     return {"count": len(students)}
+
+
+@frappe.whitelist()
+def get_library_books(password=None):
+    user = frappe.session.user
+    if user == "Guest":
+        frappe.throw(_("Not logged in"), frappe.AuthenticationError)
+
+    roles = frappe.get_roles(user)
+    needs_password = True
+    if "System Manager" in roles or "School Administrator" in roles or "Education Manager" in roles:
+        needs_password = False
+
+    if needs_password:
+        if not password:
+            frappe.throw(_("Password required"), frappe.AuthenticationError)
+        try:
+            from frappe.utils.password import check_password
+            check_password(user, password)
+        except frappe.AuthenticationError:
+            frappe.throw(_("Invalid password"), frappe.AuthenticationError)
+
+    books = frappe.get_all(
+        "Library",
+        fields=["name", "title", "author", "year_published", "book_file", "link", "description"]
+    )
+    return books
