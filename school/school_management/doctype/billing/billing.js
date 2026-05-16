@@ -3,6 +3,7 @@
 
 frappe.ui.form.on('Billing', {
     refresh: function(frm) {
+        frm.set_query("student", function() { return { query: "school.school_management.doctype.student.student.get_active_students" }; });
         toggle_student_filters(frm);
         frm.set_df_property('student_class', 'reqd', 0);
 
@@ -145,7 +146,10 @@ function apply_cost_center_filters(frm) {
         if (cc) f['school'] = cc;
         if (frm.doc.student_class) f['student_class'] = frm.doc.student_class;
         if (frm.doc.section) f['section'] = frm.doc.section;
-        return { filters: f };
+        return { 
+            query: "school.school_management.doctype.student.student.get_active_students",
+            filters: f 
+        };
     });
 
     frm.set_query('fees_structure', function() {

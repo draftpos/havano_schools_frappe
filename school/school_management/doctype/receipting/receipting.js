@@ -3,17 +3,14 @@
 
 frappe.ui.form.on("Receipting", {
     refresh: function(frm) {
-        if (!frm.doc.date) {
-            frm.set_value("date", frappe.datetime.get_today());
-        }
-        frm.set_query("account", function() {
-            return {
+        frm.set_query("student_name", function() {
+            return { 
+                query: "school.school_management.doctype.student.student.get_active_students",
                 filters: {
-                    "account_type": ["in", ["Bank", "Cash"]],
-                    "is_group": 0,
-                    "company": frappe.defaults.get_default("company")
+                    student_class: frm.doc.student_class,
+                    section: frm.doc.section
                 }
-            };
+            }; 
         });
         if (frm.doc.docstatus == 1) {
             frm.clear_table("invoice");

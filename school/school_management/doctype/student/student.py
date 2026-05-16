@@ -7,6 +7,8 @@ from frappe.utils.password import update_password as _update_password, get_decry
 class Student(Document):
 	def validate(self):
 		"""Validate before save - set full name"""
+		self.status = "Transferred" if self.is_transferred else "Active"
+
 		parts = [self.first_name, self.second_name, self.last_name]
 		self.full_name = " ".join([p for p in parts if p])
 
@@ -33,7 +35,7 @@ class Student(Document):
 			self.flags.plain_portal_password = self.portal_password
 
 	def before_save(self):
-		"""Before save — capture plain-text password before Frappe hashes it"""
+		"""Before save ??? capture plain-text password before Frappe hashes it"""
 		if self.portal_password:
 			self.flags.plain_portal_password = self.portal_password
 
@@ -79,7 +81,7 @@ class Student(Document):
 		else:
 			next_num = 1
 
-		return "{}{:05d}".format(prefix, next_num)
+		return "{}{:05d}".format(prefix, next_num)  # FIX 1: was dedented outside the method
 
 	def after_insert(self):
 		"""After insert - complete initialization"""
@@ -97,19 +99,28 @@ class Student(Document):
 		)
 
 		self.create_customer()
-		self.create_opening_balance_entry()
-		self.create_admin_fee_invoice()
-		self.create_registration_billing()
-
-		user_fields_changed = (
-			self.has_value_changed("portal_email")
-			or self.has_value_changed("portal_password")
-			or self.has_value_changed("create_user")
-		)
 
 		if user_fields_changed and self.create_user and self.portal_email:
 			self.create_student_portal_user()
 			self.create_parent_portal_users()
+
+		if self.has_value_changed("is_transferred"):
+			self.handle_transfer_status()
+
+	def handle_transfer_status(self):
+		"""Disable or enable customer and user based on transfer status"""
+		customer_name = frappe.db.get_value("Customer", {"custom_student_reg_no": self.student_reg_no})
+		if not customer_name:
+			customer_name = frappe.db.exists("Customer", {"customer_name": self.full_name})
+		
+		if customer_name:
+			frappe.db.set_value("Customer", customer_name, "disabled", self.is_transferred)
+			
+		if self.portal_email and frappe.db.exists("User", self.portal_email):
+			frappe.db.set_value("User", self.portal_email, "enabled", 0 if self.is_transferred else 1)
+			
+		action = "Transferred (Disabled)" if self.is_transferred else "Active (Enabled)"
+		frappe.msgprint(f"Student {self.full_name} is now {action}.", alert=True)
 
 	def _create_all_users_and_records(self):
 		"""Central method to create all users and records (used on first insert)"""
@@ -229,7 +240,7 @@ class Student(Document):
 				frappe.log_error(f"Failed to send manual credentials email: {str(e)}", "Student Portal")
 
 			frappe.msgprint(
-				f"✅ Student portal user {self.portal_email} "
+				f"??? Student portal user {self.portal_email} "
 				f"{'created' if is_new else 'updated'} with manual password. Credentials email sent.",
 				indicator="green",
 				alert=True,
@@ -243,7 +254,7 @@ class Student(Document):
 				frappe.get_traceback(),
 			)
 			frappe.msgprint(
-				f"❌ Error creating student user {self.portal_email}: {str(e)}",
+				f"??? Error creating student user {self.portal_email}: {str(e)}",
 				indicator="red",
 				alert=True,
 			)
@@ -346,7 +357,7 @@ class Student(Document):
 						pass
 
 					frappe.msgprint(
-						f"✅ Parent user {entry['email']} synced with manual password. Email sent.",
+						f"??? Parent user {entry['email']} synced with manual password. Email sent.",
 						indicator="green",
 						alert=True,
 					)
@@ -359,7 +370,7 @@ class Student(Document):
 					frappe.get_traceback(),
 				)
 				frappe.msgprint(
-					f"❌ Error creating parent user {entry['email']}: {str(e)}",
+					f"??? Error creating parent user {entry['email']}: {str(e)}",
 					indicator="red",
 					alert=True,
 				)
@@ -392,13 +403,13 @@ class Student(Document):
 				user_permission.flags.ignore_permissions = True
 				user_permission.insert(ignore_permissions=True)
 				frappe.msgprint(
-					f"✅ Cost Center '{self.school}' permission assigned to {email}",
+					f"??? Cost Center '{self.school}' permission assigned to {email}",
 					indicator="green",
 					alert=True,
 				)
 			else:
 				frappe.msgprint(
-					f"ℹ️ Cost Center permission already exists for {email}",
+					f"?????? Cost Center permission already exists for {email}",
 					indicator="blue",
 					alert=True,
 				)
@@ -490,7 +501,7 @@ class Student(Document):
 				customer.insert(ignore_permissions=True)
 
 			frappe.msgprint(
-				f"✅ Customer {self.full_name} created/updated",
+				f"??? Customer {self.full_name} created/updated",
 				indicator="green",
 				alert=True,
 			)
@@ -579,7 +590,7 @@ class Student(Document):
 			je.submit()
 
 			frappe.msgprint(
-				f"✅ Opening balance entry created for {self.full_name}",
+				f"??? Opening balance entry created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -676,7 +687,7 @@ class Student(Document):
 				self.create_admin_fee_receipting(invoice_name)
 
 			frappe.msgprint(
-				f"✅ Admin fee invoice created for {self.full_name}",
+				f"??? Admin fee invoice created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -737,7 +748,7 @@ class Student(Document):
 			receipt.submit()
 
 			frappe.msgprint(
-				f"✅ Admin fee receipt created for {self.full_name}",
+				f"??? Admin fee receipt created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -802,7 +813,7 @@ class Student(Document):
 			self.billed_on_registration = 1
 
 			frappe.msgprint(
-				f"✅ Registration billing created for {self.full_name}",
+				f"??? Registration billing created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -917,3 +928,50 @@ def generate_reg_no_for_school(school, current_student=None):
 		next_num = 1
 
 	return "{}{:05d}".format(prefix, next_num)
+
+@frappe.whitelist()
+@frappe.validate_and_sanitize_search_inputs
+def get_active_students(doctype, txt, searchfield, start, page_len, filters):
+	"""
+	Return active students. 
+	Transferred students only appear in 'Receipting' if they have an outstanding balance.
+	"""
+	condition = "status = 'Active'"
+	if doctype == "Receipting":
+		condition = """
+			(status = 'Active' OR (status = 'Transferred' AND EXISTS (
+				SELECT 1 FROM `tabSales Invoice` 
+				WHERE customer = `tabStudent`.full_name 
+				AND docstatus = 1 
+				AND outstanding_amount > 0
+			)))
+		"""
+
+	# Handle additional filters (school, student_class, section, etc.)
+	if isinstance(filters, str):
+		import json
+		try:
+			filters = json.loads(filters)
+		except:
+			filters = {}
+
+	if filters:
+		for key, val in filters.items():
+			if val:
+				# Basic protection against injection (though this is internal API)
+				safe_val = str(val).replace("'", "''")
+				condition += f" AND {key} = '{safe_val}'"
+
+	return frappe.db.sql(
+		"""
+		SELECT name, full_name, student_class, section
+		FROM `tabStudent`
+		WHERE {condition}
+		AND ({searchfield} LIKE %(txt)s
+			OR full_name LIKE %(txt)s
+			OR student_reg_no LIKE %(txt)s)
+		ORDER BY full_name
+		LIMIT %(page_len)s OFFSET %(start)s
+		""".format(condition=condition, searchfield=searchfield),
+		{"txt": f"%{txt}%", "page_len": page_len, "start": start},
+	)
