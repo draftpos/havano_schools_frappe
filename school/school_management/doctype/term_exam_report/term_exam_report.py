@@ -19,11 +19,110 @@ def generate_qr_base64(data):
 	return base64.b64encode(buf.read()).decode("utf-8")
 
 
+def get_seed_teacher_comment(percentage):
+	if percentage is None:
+		return ""
+	if percentage >= 80:
+		return "Excellent performance! Keep up the brilliant work."
+	elif percentage >= 70:
+		return "Very good progress. With a bit more effort, you can reach the top."
+	elif percentage >= 60:
+		return "Good effort. Consistent practice will bring even better results."
+	elif percentage >= 50:
+		return "Satisfactory result, but there is room for improvement."
+	else:
+		return "Needs extra support and more focus. Please put in more effort next term."
+
+
+def get_grade_and_status(percentage):
+	if percentage is None:
+		return "", ""
+	try:
+		grading_score = frappe.get_doc("Grading Score", "STD")
+		for item in grading_score.grading_items:
+			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
+				return item.grade, item.status or "Pass"
+	except Exception:
+		pass
+	
+	if percentage >= 80:
+		return "A", "Pass"
+	elif percentage >= 50:
+		return "B", "Pass"
+	else:
+		return "F", "Failed"
+
+
 class TermExamReport(Document):
 
 	def before_save(self):
-		if self.docstatus == 0:
-			self.calculate_totals()
+		self.calculate_totals()
+		self.auto_fill_grades_and_comments()
+		self.validate_exam_marks_lock()
+
+	def before_update_after_submit(self):
+		self.before_save()
+
+	def auto_fill_grades_and_comments(self):
+		for row in self.term_exam_results:
+			if row.marks_obtained is not None and row.max_marks:
+				row.percentage = round((row.marks_obtained / row.max_marks * 100), 1)
+				
+				# Auto-fill grade/status if empty
+				if not row.grade or not row.status:
+					calc_grade, calc_status = get_grade_and_status(row.percentage)
+					if not row.grade:
+						row.grade = calc_grade
+					if not row.status:
+						row.status = calc_status
+						
+				# Auto-fill teacher comment if empty
+				if not row.teacher_comment:
+					row.teacher_comment = get_seed_teacher_comment(row.percentage)
+
+	def validate_exam_marks_lock(self):
+		old_doc = self.get_doc_before_save()
+		if old_doc:
+			# Create a map of old rows by student + subject for comparison
+			old_map = {}
+			for r in old_doc.term_exam_results:
+				if r.student and r.subject:
+					old_map[(r.student, r.subject)] = r
+			
+			for row in self.term_exam_results:
+				if row.subject:
+					dept = frappe.db.get_value("Subject", row.subject, "department")
+					if dept:
+						dept_doc = frappe.get_doc("Department", dept)
+						if dept_doc.lock_exam_marks:
+							# Check if any marks/comments in this row changed
+							old_row = old_map.get((row.student, row.subject))
+							if old_row:
+								changed = (
+									row.marks_obtained != old_row.marks_obtained or
+									row.grade != old_row.grade or
+									row.status != old_row.status or
+									row.remarks != old_row.remarks or
+									row.teacher_comment != old_row.teacher_comment
+								)
+							else:
+								# It's a new row!
+								changed = True
+								
+							if changed:
+								user = frappe.session.user
+								is_admin_or_mgr = (user == "Administrator" or "System Manager" in frappe.get_roles(user))
+								teacher = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+								if not teacher:
+									teacher = frappe.db.get_value("Teacher", {"email": user}, "name")
+								
+								is_hod = (teacher and dept_doc.hod == teacher)
+								
+								if not (is_admin_or_mgr or is_hod):
+									frappe.throw(
+										f"Row {row.idx}: Editing exam marks for subject '{row.subject}' (Department '{dept}') "
+										"has been locked by the HOD."
+									)
 
 	def calculate_totals(self):
 		students = set(r.student for r in self.term_exam_results if r.student)
@@ -116,6 +215,8 @@ class TermExamReport(Document):
 
 def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b64=None):
 	"""Build full HTML report card for one student — all subjects."""
+	class_teacher_comment_val = doc.class_teacher_comment or "No comment provided."
+	principal_comment_val = doc.principal_comment or "No comment provided."
 
 	rows_sorted = sorted(rows, key=lambda r: r.subject or "")
 
@@ -212,19 +313,22 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 		</div>
 		{qr_html}
 	</div>
-	<div style="padding:12px 28px 8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;margin:12px 20px">
-		<strong style="color:#1e293b">Admin Comment:</strong><br>
-		<span style="color:#475569">{doc.admin_comment or 'No admin comment'}</span>
-	</div>
-	<div style="padding:16px 28px;display:flex;justify-content:space-between">
-		<div style="text-align:center;width:28%">
-			<div style="border-top:1px solid #334155;margin-top:36px;padding-top:5px;font-size:12px;color:#475569">Class Teacher</div>
+	<div style="padding:16px 20px;display:flex;justify-content:space-between;gap:15px;margin:10px 0">
+		<div style="text-align:center;width:32%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;box-sizing:border-box">
+			<div style="font-size:11px;color:#475569;font-style:italic;margin-bottom:15px;min-height:45px;text-align:left">
+				"{class_teacher_comment_val}"
+			</div>
+			<div style="border-top:1px solid #334155;padding-top:5px;font-size:11px;color:#475569;font-weight:700">Class Teacher</div>
 		</div>
-		<div style="text-align:center;width:28%">
-			<div style="border-top:1px solid #334155;margin-top:36px;padding-top:5px;font-size:12px;color:#475569">Head Teacher</div>
+		<div style="text-align:center;width:32%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;box-sizing:border-box">
+			<div style="font-size:11px;color:#475569;font-style:italic;margin-bottom:15px;min-height:45px;text-align:left">
+				"{principal_comment_val}"
+			</div>
+			<div style="border-top:1px solid #334155;padding-top:5px;font-size:11px;color:#475569;font-weight:700">Principal</div>
 		</div>
-		<div style="text-align:center;width:28%">
-			<div style="border-top:1px solid #334155;margin-top:36px;padding-top:5px;font-size:12px;color:#475569">Parent / Guardian</div>
+		<div style="text-align:center;width:32%;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-end">
+			<div style="min-height:45px"></div>
+			<div style="border-top:1px solid #334155;padding-top:5px;font-size:11px;color:#475569;font-weight:700">Parent / Guardian</div>
 		</div>
 	</div>
 	<div style="background:#1e3a5f;color:#cbd5e1;padding:10px 28px;font-size:11px">
@@ -424,8 +528,20 @@ def fetch_results(report_name):
 			marks = score.marks_obtained if score else None
 			max_m = sched.max_marks or None
 			pct = round((marks / max_m * 100), 1) if (marks is not None and max_m) else None
+			
 			grade = score.grade if score else ""
 			status = score.status if score else ""
+			teacher_comment = score.teacher_comment if score and score.teacher_comment else ""
+			
+			if pct is not None:
+				if not grade or not status:
+					calc_grade, calc_status = get_grade_and_status(pct)
+					if not grade:
+						grade = calc_grade
+					if not status:
+						status = calc_status
+				if not teacher_comment:
+					teacher_comment = get_seed_teacher_comment(pct)
 
 			rows.append({
 				"student": student.name,
@@ -438,7 +554,7 @@ def fetch_results(report_name):
 				"grade": grade,
 				"status": status,
 				"remarks": "",
-				"teacher_comment": score.teacher_comment if score and score.teacher_comment else ""
+				"teacher_comment": teacher_comment
 			})
 
 	return {

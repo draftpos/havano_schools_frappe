@@ -1567,6 +1567,13 @@ def get_subject_permission_query_conditions(user):
     if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
         return ""
     
+    # 1. HOD Restriction: HODs must see or read subjects under their department only
+    hod_departments = frappe.get_all("Department", filters={"hod": teacher}, pluck="name")
+    if hod_departments:
+        dept_list = ", ".join(frappe.db.escape(d) for d in hod_departments)
+        return "`tabSubject`.department IN ({})".format(dept_list)
+        
+    # 2. Standard Teacher: Can see assigned subjects only
     assigned = frappe.db.get_all("Teacher Subject Assignment Item", filters={"parent": teacher}, fields=["subject"])
     subjects = [frappe.db.escape(d.subject) for d in assigned if d.subject]
     
@@ -1924,3 +1931,138 @@ def get_exchange_rate(from_currency, to_currency):
     except ImportError:
         from frappe.utils import get_exchange_rate
         return get_exchange_rate(from_currency, to_currency)
+
+
+@frappe.whitelist()
+def get_scheme_form_options():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    # Get active teacher record
+    teacher = get_teacher_name_for_user(user)
+    if not teacher:
+        return {"error": "Teacher record not found"}
+
+    # Find departments locked by HOD
+    locked_departments = frappe.get_all("Department", filters={"lock_schemes_submission": 1}, pluck="name")
+
+    # Filter subjects: do not include subjects from locked departments
+    if locked_departments:
+        subjects = frappe.get_all("Subject",
+            filters={"department": ["not in", locked_departments]},
+            fields=["name", "subject_name", "department"])
+    else:
+        subjects = frappe.get_all("Subject", fields=["name", "subject_name", "department"])
+
+    classes = frappe.get_all("Student Class", fields=["name", "class_name"])
+    terms = frappe.get_all("Term", fields=["name"]) if frappe.db.exists("DocType", "Term") else []
+    years = frappe.get_all("Academic Year", fields=["name"]) if frappe.db.exists("DocType", "Academic Year") else []
+
+    return {
+        "teacher": teacher,
+        "subjects": subjects,
+        "classes": classes,
+        "terms": terms,
+        "years": years
+    }
+
+@frappe.whitelist()
+def get_teacher_schemes():
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    teacher = get_teacher_name_for_user(user)
+    if not teacher:
+        return {"error": "Teacher record not found"}
+
+    schemes = frappe.get_all("Scheme", filters={"teacher": teacher}, fields=["name", "teacher", "creation", "modified"])
+
+    for s in schemes:
+        s["creation"] = str(s.creation).split(".")[0]
+        s["modified"] = str(s.modified).split(".")[0]
+        s["schemes"] = frappe.get_all("Scheme Entry", filters={"parent": s.name}, fields=["*"])
+        for row in s["schemes"]:
+            row["is_locked"] = 0
+            if row.subject:
+                dept = frappe.db.get_value("Subject", row.subject, "department")
+                if dept:
+                    row["is_locked"] = frappe.db.get_value("Department", dept, "lock_schemes_submission") or 0
+    return schemes
+
+@frappe.whitelist()
+def save_teacher_scheme(scheme_name=None, schemes_data=None):
+    import json
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    teacher = get_teacher_name_for_user(user)
+    if not teacher:
+        return {"error": "Teacher record not found"}
+
+    if isinstance(schemes_data, str):
+        schemes_data = json.loads(schemes_data)
+
+    if not schemes_data:
+        return {"error": "Schemes data is empty"}
+
+    if scheme_name:
+        # Edit existing scheme
+        if not frappe.db.exists("Scheme", {"name": scheme_name, "teacher": teacher}):
+            return {"error": "Scheme not found or access denied"}
+        doc = frappe.get_doc("Scheme", scheme_name)
+        doc.schemes = [] # clear child table rows
+    else:
+        # Create new scheme
+        doc = frappe.new_doc("Scheme")
+        doc.teacher = teacher
+
+    for idx, row in enumerate(schemes_data, 1):
+        doc.append("schemes", {
+            "student_class": row.get("student_class"),
+            "subject": row.get("subject"),
+            "term": row.get("term"),
+            "academic_year": row.get("academic_year"),
+            "scheme_attachment": row.get("scheme_attachment")
+        })
+
+    try:
+        doc.save(ignore_permissions=True)
+        frappe.db.commit()
+        return {"message": "Success", "scheme_name": doc.name}
+    except frappe.ValidationError as e:
+        frappe.db.rollback()
+        return {"error": str(e)}
+    except Exception as e:
+        frappe.db.rollback()
+        return {"error": "An unexpected error occurred: " + str(e)}
+
+@frappe.whitelist()
+def delete_teacher_scheme(scheme_name):
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Not authorized"}
+
+    teacher = get_teacher_name_for_user(user)
+    if not teacher:
+        return {"error": "Teacher record not found"}
+
+    if not frappe.db.exists("Scheme", {"name": scheme_name, "teacher": teacher}):
+        return {"error": "Scheme not found or access denied"}
+
+    # Check if any row in the scheme is locked
+    doc = frappe.get_doc("Scheme", scheme_name)
+    for row in doc.schemes:
+        if row.subject:
+            dept = frappe.db.get_value("Subject", row.subject, "department")
+            if dept:
+                is_locked = frappe.db.get_value("Department", dept, "lock_schemes_submission") or 0
+                if is_locked:
+                    return {"error": f"Cannot delete Scheme because the row for subject '{row.subject}' is locked by HOD."}
+
+    frappe.delete_doc("Scheme", scheme_name, ignore_permissions=True)
+    frappe.db.commit()
+    return {"message": "Success"}
+

@@ -1,0 +1,109 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:department_name",
+ "creation": "2026-05-18 09:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "details_tab",
+  "department_name",
+  "hod",
+  "column_break_1",
+  "lock_schemes_submission",
+  "lock_exam_marks",
+  "submission_deadline",
+  "teachers_section",
+  "teachers"
+ ],
+ "fields": [
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
+  {
+   "fieldname": "department_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Department Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "hod",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Head of Department (HOD)",
+   "options": "Teacher",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "lock_schemes_submission",
+   "fieldtype": "Check",
+   "label": "Lock Schemes Submission"
+  },
+  {
+   "default": "0",
+   "fieldname": "lock_exam_marks",
+   "fieldtype": "Check",
+   "label": "Lock Exam Marks"
+  },
+  {
+   "fieldname": "submission_deadline",
+   "fieldtype": "Date",
+   "label": "Submission Deadline"
+  },
+  {
+   "fieldname": "teachers_section",
+   "fieldtype": "Section Break",
+   "label": "Teachers in Department"
+  },
+  {
+   "fieldname": "teachers",
+   "fieldtype": "Table",
+   "label": "Teachers",
+   "options": "Department Teacher"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-05-18 09:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Department",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Teacher",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

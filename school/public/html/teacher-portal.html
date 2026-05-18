@@ -904,6 +904,51 @@
         grid-template-columns: 1fr;
       }
     }
+    
+    .upload-btn-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+    }
+    .upload-btn-wrapper input[type=file] {
+      font-size: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    .upload-status {
+      font-size: 11px;
+      margin-left: 6px;
+      font-weight: 600;
+    }
+    .upload-status.uploading { color: var(--amber); }
+    .upload-status.success { color: var(--emerald); }
+    .upload-status.error { color: var(--rose); }
+    
+    .locked-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(244, 63, 94, .1);
+      color: var(--rose);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+    }
+    .active-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(16, 185, 129, .1);
+      color: var(--emerald);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 10.5px;
+      font-weight: 700;
+    }
   </style>
 </head>
 
@@ -931,6 +976,9 @@
       </a>
       <a class="nav-item" href="/student-balances">
         <div class="nav-icon">💰</div><span>Student Balances</span>
+      </a>
+      <a class="nav-item" id="nav-schemes" href="javascript:void(0)" onclick="switchView('schemes');loadSchemes()">
+        <div class="nav-icon">📅</div><span>Schemes</span>
       </a>
     </div>
     <div class="nav-section">
@@ -1330,6 +1378,120 @@
         </div>
       </div>
 
+      <!-- ═══════════════════════════════════════
+           SCHEMES PORTAL VIEW
+      ═══════════════════════════════════════ -->
+      <div id="schemes-view" class="portal-view" style="display:none">
+        
+        <!-- List Section -->
+        <div id="scheme-list-section">
+          <div class="sec-head" style="margin-bottom:18px">
+            <div class="sec-title"><span></span>📅 Schemes Management</div>
+            <button onclick="openNewSchemeForm()" class="pc-btn" style="background:var(--indigo); display:inline-flex; align-items:center; gap:6px;">
+              ➕ New Scheme Entry
+            </button>
+          </div>
+          
+          <!-- Schemes List Stats Row -->
+          <div class="cards-grid-4" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 24px;">
+            <div class="portal-card" style="padding: 16px;">
+              <div class="pc-header">
+                <div class="pc-title">Total Uploads</div>
+                <span class="pc-count" id="scheme-stat-total">0</span>
+              </div>
+              <div class="pc-desc">Overall schemes submitted</div>
+            </div>
+            <div class="portal-card" style="padding: 16px; border-left: 4px solid var(--emerald);">
+              <div class="pc-header">
+                <div class="pc-title">Unlocked (Active)</div>
+                <span class="pc-count" id="scheme-stat-active" style="color:var(--emerald)">0</span>
+              </div>
+              <div class="pc-desc">Open for edits / updates</div>
+            </div>
+            <div class="portal-card" style="padding: 16px; border-left: 4px solid var(--rose);">
+              <div class="pc-header">
+                <div class="pc-title">Locked by HOD</div>
+                <span class="pc-count" id="scheme-stat-locked" style="color:var(--rose)">0</span>
+              </div>
+              <div class="pc-desc">Finalized and locked</div>
+            </div>
+          </div>
+          
+          <!-- Data Table Wrapper -->
+          <div class="table-card">
+            <div class="table-card-head">
+              <div class="tc-title">My Schemes</div>
+              <button onclick="loadSchemes()" class="tb-btn" style="padding:4px 8px; font-size:11px;">🔄 Refresh</button>
+            </div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Scheme ID</th>
+                  <th>Created On</th>
+                  <th>Last Modified</th>
+                  <th>Entries</th>
+                  <th>Status</th>
+                  <th style="text-align:right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="schemes-list-tbody">
+                <tr>
+                  <td colspan="6" class="state-msg">Loading schemes...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Form/Edit Section -->
+        <div id="scheme-form-section" style="display:none">
+          <div class="sec-head" style="margin-bottom:12px">
+            <div class="sec-title"><span></span>📝 <span id="scheme-form-title">Create New Scheme Entry</span></div>
+            <button onclick="closeSchemeForm()" class="tb-btn">⬅️ Back to List</button>
+          </div>
+          
+          <div class="portal-card" style="margin-bottom: 20px; padding: 20px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:16px;">
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--text3); display:block; margin-bottom:6px;">Teacher ID</label>
+                <input type="text" id="scheme-form-teacher" class="tb-btn" style="width:100%; cursor:not-allowed; background:var(--bg2); color:var(--text3); border-color:var(--border);" readonly>
+              </div>
+              <div>
+                <label style="font-size:12px; font-weight:700; color:var(--text3); display:block; margin-bottom:6px;">Scheme ID</label>
+                <input type="text" id="scheme-form-name" class="tb-btn" style="width:100%; cursor:not-allowed; background:var(--bg2); color:var(--text3); border-color:var(--border);" readonly placeholder="New Scheme">
+              </div>
+            </div>
+            
+            <div class="sec-head" style="margin-top:24px; margin-bottom:10px;">
+              <div class="sec-title" style="font-size:14px;"><span></span>Scheme Rows</div>
+              <button onclick="addSchemeRow()" class="tb-btn" style="background:rgba(99,102,241,.1); color:var(--indigo); border-color:rgba(99,102,241,.2);">➕ Add Row</button>
+            </div>
+            
+            <table class="data-table" style="margin-bottom:20px;">
+              <thead>
+                <tr>
+                  <th style="width:20%">Class</th>
+                  <th style="width:25%">Subject</th>
+                  <th style="width:15%">Term</th>
+                  <th style="width:15%">Academic Year</th>
+                  <th style="width:20%">Attachment</th>
+                  <th style="width:5%; text-align:center">Action</th>
+                </tr>
+              </thead>
+              <tbody id="scheme-rows-tbody">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+            
+            <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:24px;">
+              <button onclick="closeSchemeForm()" class="tb-btn" style="padding:10px 20px;">Cancel</button>
+              <button id="scheme-save-btn" onclick="saveScheme()" class="pc-btn" style="padding:10px 24px; background:var(--indigo);">Save Scheme</button>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+
       </div><!-- /content -->
 
     </div><!-- /main -->
@@ -1492,14 +1654,12 @@
       ───────────────────────────────────────────── */
       function switchView(view) {
         document.querySelectorAll('.portal-view').forEach(v => v.style.display = 'none');
-        document.getElementById(view + '-view').style.display = 'block';
+        var viewEl = document.getElementById(view + '-view');
+        if (viewEl) viewEl.style.display = 'block';
 
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        if (view === 'dashboard') {
-          document.querySelector('a[onclick*="dashboard"]').classList.add('active');
-        } else if (view === 'submissions') {
-          document.getElementById('nav-submissions').classList.add('active');
-        }
+        var navItem = document.getElementById('nav-' + view) || document.querySelector('a[onclick*="' + view + '"]');
+        if (navItem) navItem.classList.add('active');
         closeSidebar();
         window.scrollTo(0, 0);
       }
@@ -1669,6 +1829,399 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ content: content })
         }).then(r => alert('Note saved!'));
+      }
+
+      /* ─────────────────────────────────────────────
+         Schemes portal operations
+      ───────────────────────────────────────────── */
+      var _schemeFormOptions = null;
+      var _teacherSchemes = [];
+      var _currentEditingScheme = null;
+
+      function loadSchemes() {
+        var tbody = document.getElementById('schemes-list-tbody');
+        tbody.innerHTML = '<tr><td colspan="6" class="state-msg">Loading schemes...</td></tr>';
+        
+        fetch('/api/method/school.api.get_teacher_schemes')
+          .then(r => r.json())
+          .then(r => {
+            if (r.message && !r.message.error) {
+              _teacherSchemes = r.message || [];
+              renderSchemesList();
+            } else {
+              tbody.innerHTML = '<tr><td colspan="6" class="state-msg error">Could not load schemes.</td></tr>';
+            }
+          })
+          .catch(err => {
+            tbody.innerHTML = '<tr><td colspan="6" class="state-msg error">Error loading schemes.</td></tr>';
+            console.error(err);
+          });
+      }
+
+      function renderSchemesList() {
+        var tbody = document.getElementById('schemes-list-tbody');
+        if (!_teacherSchemes.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="state-msg">📂 No schemes uploaded yet.</td></tr>';
+          document.getElementById('scheme-stat-total').textContent = '0';
+          document.getElementById('scheme-stat-active').textContent = '0';
+          document.getElementById('scheme-stat-locked').textContent = '0';
+          return;
+        }
+
+        var total = _teacherSchemes.length;
+        var active = 0;
+        var locked = 0;
+
+        var html = '';
+        _teacherSchemes.forEach(s => {
+          var isLocked = s.schemes && s.schemes.some(row => row.is_locked);
+          if (isLocked) {
+            locked++;
+          } else {
+            active++;
+          }
+
+          var statusBadge = isLocked 
+            ? '<span class="locked-badge">🔒 Locked</span>' 
+            : '<span class="active-badge">✅ Unlocked</span>';
+
+          var entriesCount = s.schemes ? s.schemes.length : 0;
+          
+          html += '<tr>'
+            + '  <td><strong>' + s.name + '</strong></td>'
+            + '  <td>' + s.creation + '</td>'
+            + '  <td>' + s.modified + '</td>'
+            + '  <td>' + entriesCount + ' rows</td>'
+            + '  <td>' + statusBadge + '</td>'
+            + '  <td style="text-align:right; display:flex; justify-content:flex-end; gap:8px;">'
+            + '    <button onclick="editScheme(\'' + s.name + '\')" class="tb-btn" style="padding:4px 8px; font-size:11px;">✏️ Edit</button>'
+            + '    <button onclick="deleteScheme(\'' + s.name + '\')" class="tb-btn" style="padding:4px 8px; font-size:11px; color:var(--rose); border-color:rgba(244,63,94,.15);">🗑️ Delete</button>'
+            + '  </td>'
+            + '</tr>';
+        });
+
+        tbody.innerHTML = html;
+        document.getElementById('scheme-stat-total').textContent = total;
+        document.getElementById('scheme-stat-active').textContent = active;
+        document.getElementById('scheme-stat-locked').textContent = locked;
+      }
+
+      function openNewSchemeForm() {
+        _currentEditingScheme = null;
+        document.getElementById('scheme-form-title').textContent = 'Create New Scheme Entry';
+        document.getElementById('scheme-form-name').value = 'New Scheme';
+        document.getElementById('scheme-rows-tbody').innerHTML = '';
+        
+        document.getElementById('scheme-list-section').style.display = 'none';
+        document.getElementById('scheme-form-section').style.display = 'block';
+        
+        loadSchemeFormOptions(function() {
+          document.getElementById('scheme-form-teacher').value = _schemeFormOptions.teacher;
+          // Start with one empty row automatically
+          addSchemeRow();
+        });
+      }
+
+      function editScheme(schemeName) {
+        var scheme = _teacherSchemes.find(s => s.name === schemeName);
+        if (!scheme) return;
+        
+        _currentEditingScheme = scheme;
+        document.getElementById('scheme-form-title').textContent = 'Edit Scheme ' + schemeName;
+        document.getElementById('scheme-form-name').value = schemeName;
+        document.getElementById('scheme-rows-tbody').innerHTML = '';
+        
+        document.getElementById('scheme-list-section').style.display = 'none';
+        document.getElementById('scheme-form-section').style.display = 'block';
+        
+        loadSchemeFormOptions(function() {
+          document.getElementById('scheme-form-teacher').value = _schemeFormOptions.teacher;
+          
+          if (scheme.schemes && scheme.schemes.length) {
+            scheme.schemes.forEach(row => {
+              addSchemeRow(row);
+            });
+          } else {
+            addSchemeRow();
+          }
+        });
+      }
+
+      function closeSchemeForm() {
+        document.getElementById('scheme-form-section').style.display = 'none';
+        document.getElementById('scheme-list-section').style.display = 'block';
+        loadSchemes();
+      }
+
+      function loadSchemeFormOptions(callback) {
+        if (_schemeFormOptions) {
+          if (callback) callback();
+          return;
+        }
+
+        fetch('/api/method/school.api.get_scheme_form_options')
+          .then(r => r.json())
+          .then(r => {
+            if (r.message && !r.message.error) {
+              _schemeFormOptions = r.message;
+              if (callback) callback();
+            } else {
+              alert('Error loading form options: ' + (r.message ? r.message.error : 'Unknown'));
+            }
+          })
+          .catch(err => {
+            alert('Failed to contact backend API.');
+            console.error(err);
+          });
+      }
+
+      var _rowCounter = 0;
+      function addSchemeRow(existingData) {
+        _rowCounter++;
+        var rowId = _rowCounter;
+        var tbody = document.getElementById('scheme-rows-tbody');
+        
+        var isLocked = existingData && existingData.is_locked;
+        
+        // Build Class Dropdown
+        var classSelect = '<select class="tb-btn row-class" style="width:100%; text-align:left;" ' + (isLocked ? 'disabled' : '') + '>';
+        classSelect += '<option value="">-- Class --</option>';
+        if (_schemeFormOptions && _schemeFormOptions.classes) {
+          _schemeFormOptions.classes.forEach(c => {
+            var selected = (existingData && existingData.student_class === c.name) ? 'selected' : '';
+            classSelect += '<option value="' + c.name + '" ' + selected + '>' + (c.class_name || c.name) + '</option>';
+          });
+        }
+        classSelect += '</select>';
+
+        // Build Subject Dropdown (if HOD locks it must not appear, already filtered in backend options!)
+        var subSelect = '<select class="tb-btn row-subject" style="width:100%; text-align:left;" ' + (isLocked ? 'disabled' : '') + '>';
+        subSelect += '<option value="">-- Subject --</option>';
+        if (_schemeFormOptions && _schemeFormOptions.subjects) {
+          _schemeFormOptions.subjects.forEach(s => {
+            var selected = (existingData && existingData.subject === s.name) ? 'selected' : '';
+            subSelect += '<option value="' + s.name + '" ' + selected + '>' + (s.subject_name || s.name) + '</option>';
+          });
+        }
+        // If existing data is a locked subject (thus excluded from options), explicitly add it back so it displays correctly
+        if (isLocked && existingData && existingData.subject) {
+          var subName = existingData.subject;
+          subSelect += '<option value="' + subName + '" selected>' + subName + '</option>';
+        }
+        subSelect += '</select>';
+
+        // Build Term Dropdown
+        var termSelect = '<select class="tb-btn row-term" style="width:100%; text-align:left;" ' + (isLocked ? 'disabled' : '') + '>';
+        termSelect += '<option value="">-- Term --</option>';
+        if (_schemeFormOptions && _schemeFormOptions.terms) {
+          _schemeFormOptions.terms.forEach(t => {
+            var selected = (existingData && existingData.term === t.name) ? 'selected' : '';
+            termSelect += '<option value="' + t.name + '" ' + selected + '>' + t.name + '</option>';
+          });
+        }
+        termSelect += '</select>';
+
+        // Build Year Dropdown
+        var yearSelect = '<select class="tb-btn row-year" style="width:100%; text-align:left;" ' + (isLocked ? 'disabled' : '') + '>';
+        yearSelect += '<option value="">-- Year --</option>';
+        if (_schemeFormOptions && _schemeFormOptions.years) {
+          _schemeFormOptions.years.forEach(y => {
+            var selected = (existingData && existingData.academic_year === y.name) ? 'selected' : '';
+            yearSelect += '<option value="' + y.name + '" ' + selected + '>' + y.name + '</option>';
+          });
+        }
+        yearSelect += '</select>';
+
+        // Attachment Cell HTML
+        var attachHtml = '';
+        if (isLocked) {
+          var attachUrl = existingData.scheme_attachment || '#';
+          var filename = attachUrl.split('/').pop();
+          attachHtml = '<a href="' + attachUrl + '" target="_blank" class="sub-file-link" style="padding:4px 8px; font-size:11px;">📎 ' + filename + '</a>';
+        } else {
+          var existingUrl = (existingData && existingData.scheme_attachment) ? existingData.scheme_attachment : '';
+          var existingName = existingUrl ? existingUrl.split('/').pop() : '';
+          
+          attachHtml = '<div class="upload-btn-wrapper">'
+            + '  <button class="tb-btn" style="padding:4px 10px; font-size:11px;">📎 Choose</button>'
+            + '  <input type="file" class="row-file-input" onchange="uploadSchemeFile(this, ' + rowId + ')" data-url="' + existingUrl + '">'
+            + '</div>'
+            + '<span id="upload-status-' + rowId + '" class="upload-status ' + (existingUrl ? 'success' : '') + '">' + (existingUrl ? 'Uploaded!' : '') + '</span>';
+        }
+
+        // Action cell (HOD locking locked badge, delete button enabled if not locked)
+        var actionHtml = '';
+        if (isLocked) {
+          actionHtml = '<span class="locked-badge" style="font-size:10px;">🔒 Locked</span>';
+        } else {
+          actionHtml = '<button onclick="removeSchemeRow(this)" class="tb-btn" style="color:var(--rose); border-color:rgba(244,63,94,.1); padding:4px 8px; font-size:11px;">🗑️</button>';
+        }
+
+        var tr = document.createElement('tr');
+        tr.id = 'scheme-row-' + rowId;
+        tr.setAttribute('data-locked', isLocked ? '1' : '0');
+        tr.innerHTML = '<td>' + classSelect + '</td>'
+          + '<td>' + subSelect + '</td>'
+          + '<td>' + termSelect + '</td>'
+          + '<td>' + yearSelect + '</td>'
+          + '<td>' + attachHtml + '</td>'
+          + '<td style="text-align:center">' + actionHtml + '</td>';
+          
+        tbody.appendChild(tr);
+      }
+
+      function removeSchemeRow(btn) {
+        var row = btn.closest('tr');
+        if (row) {
+          row.remove();
+        }
+      }
+
+      function uploadSchemeFile(inputEl, rowId) {
+        var file = inputEl.files[0];
+        if (!file) return;
+
+        var formData = new FormData();
+        formData.append('file', file);
+        formData.append('filename', file.name);
+        formData.append('is_private', 0);
+
+        var statusSpan = document.getElementById('upload-status-' + rowId);
+        statusSpan.textContent = 'Uploading...';
+        statusSpan.className = 'upload-status uploading';
+
+        fetch('/api/method/upload_file', {
+          method: 'POST',
+          body: formData
+        })
+          .then(r => r.json())
+          .then(res => {
+            if (res.message && res.message.file_url) {
+              statusSpan.textContent = 'Uploaded!';
+              statusSpan.className = 'upload-status success';
+              inputEl.setAttribute('data-url', res.message.file_url);
+            } else {
+              statusSpan.textContent = 'Failed';
+              statusSpan.className = 'upload-status error';
+              alert('Upload failed: ' + (res.exception || 'Unknown error'));
+            }
+          })
+          .catch(err => {
+            statusSpan.textContent = 'Error';
+            statusSpan.className = 'upload-status error';
+            console.error(err);
+          });
+      }
+
+      function saveScheme() {
+        var tbody = document.getElementById('scheme-rows-tbody');
+        var rows = tbody.querySelectorAll('tr');
+        
+        var schemesData = [];
+        var validationError = null;
+
+        rows.forEach((row, i) => {
+          var isRowLocked = row.getAttribute('data-locked') === '1';
+          
+          if (isRowLocked) {
+            // Keep existing values intact
+            var idx = _currentEditingScheme.schemes.findIndex((r, index) => i === index);
+            if (idx !== -1) {
+              schemesData.push(_currentEditingScheme.schemes[idx]);
+            }
+            return;
+          }
+
+          var sClass = row.querySelector('.row-class').value;
+          var sSub = row.querySelector('.row-subject').value;
+          var sTerm = row.querySelector('.row-term').value;
+          var sYear = row.querySelector('.row-year').value;
+          
+          var fileInput = row.querySelector('.row-file-input');
+          var fileUrl = fileInput ? fileInput.getAttribute('data-url') : '';
+
+          if (!sClass || !sSub || !sTerm || !sYear || !fileUrl) {
+            validationError = 'All fields (including the attachment) are required in each row. Row #' + (i + 1) + ' is incomplete.';
+          }
+
+          schemesData.push({
+            student_class: sClass,
+            subject: sSub,
+            term: sTerm,
+            academic_year: sYear,
+            scheme_attachment: fileUrl
+          });
+        });
+
+        if (validationError) {
+          alert(validationError);
+          return;
+        }
+
+        if (!schemesData.length) {
+          alert('Please add at least one scheme row to save.');
+          return;
+        }
+
+        var saveBtn = document.getElementById('scheme-save-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        var bodyData = {
+          schemes_data: JSON.stringify(schemesData)
+        };
+        if (_currentEditingScheme) {
+          bodyData.scheme_name = _currentEditingScheme.name;
+        }
+
+        fetch('/api/method/school.api.save_teacher_scheme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        })
+          .then(r => r.json())
+          .then(res => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Scheme';
+            
+            if (res.message && res.message.message === 'Success') {
+              alert('Scheme saved successfully!');
+              closeSchemeForm();
+            } else {
+              alert('Error saving scheme: ' + (res.message ? res.message.error : 'Unknown error'));
+            }
+          })
+          .catch(err => {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save Scheme';
+            alert('A network error occurred.');
+            console.error(err);
+          });
+      }
+
+      function deleteScheme(schemeName) {
+        if (!confirm('Are you sure you want to permanently delete scheme ' + schemeName + '?')) {
+          return;
+        }
+
+        fetch('/api/method/school.api.delete_teacher_scheme', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scheme_name: schemeName })
+        })
+          .then(r => r.json())
+          .then(res => {
+            if (res.message && res.message.message === 'Success') {
+              alert('Scheme deleted successfully.');
+              loadSchemes();
+            } else {
+              alert('Could not delete: ' + (res.message ? res.message.error : 'Access restricted'));
+            }
+          })
+          .catch(err => {
+            alert('A network error occurred.');
+            console.error(err);
+          });
       }
     </script>
 </body>

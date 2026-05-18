@@ -1031,9 +1031,13 @@ body::before {
 
   <div class="nav-section">
     <div class="nav-section-label">Main</div>
-    <a class="nav-item active" href="#" onclick="setActive(this);return false;">
+    <a class="nav-item active" href="#" id="nav-dashboard" onclick="setActive(this); showScreen('dashboard'); return false;">
       <div class="nav-icon">📊</div>
       <span class="nav-label">Dashboard</span>
+    </a>
+    <a class="nav-item" href="#" id="nav-exam-analysis" onclick="setActive(this); showScreen('exam-analysis'); return false;">
+      <div class="nav-icon">📈</div>
+      <span class="nav-label">Exam Analysis</span>
     </a>
     <a class="nav-item" href="/app/library" onclick="closeSidebar()" target="_top">
       <div class="nav-icon">📖</div>
@@ -1301,6 +1305,7 @@ body::before {
   </header>
 
   <div class="content">
+    <div id="screen-dashboard" class="dashboard-screen">
 
     <!-- NEW: Student Online Registration Cards - 100% width with live stats -->
     <div class="registration-cards-container" id="registration-cards-container">
@@ -1386,6 +1391,22 @@ body::before {
       <a class="action-card" href="/app/student?status=Active" target="_top">
         <div class="action-icon">👥</div>
         <div class="action-label">View Students</div>
+      </a>
+      <a class="action-card" href="/app/department" target="_top">
+        <div class="action-icon">🏢</div>
+        <div class="action-label">Departments</div>
+      </a>
+      <a class="action-card" href="/app/scheme" target="_top">
+        <div class="action-icon">📅</div>
+        <div class="action-label">Schemes</div>
+      </a>
+      <a class="action-card" href="/app/assign-subjects-to-teacher" target="_top">
+        <div class="action-icon">📚</div>
+        <div class="action-label">Assign Subjects</div>
+      </a>
+      <a class="action-card" href="/app/assign-class-to-teacher" target="_top">
+        <div class="action-icon">👨‍🏫</div>
+        <div class="action-label">Assign Classes</div>
       </a>
     </div>
 
@@ -1590,6 +1611,221 @@ body::before {
         </table>
       </div>
     </div>
+  </div><!-- screen-dashboard -->
+
+  <div id="screen-exam-analysis" class="dashboard-screen" style="display: none; padding: 24px 0 0 0;">
+    <!-- Filters Bar -->
+    <div class="filters-bar" style="
+      display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; padding: 16px;
+      background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+      box-shadow: 0 4px 20px -2px rgba(0,0,0,0.02);
+    ">
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 6px;">School</label>
+        <select id="ea-cost-center" onchange="loadExamAnalysisData()" style="
+          width: 100%; height: 38px; padding: 0 12px; border-radius: var(--radius-sm);
+          border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+          font-family: Outfit, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+        ">
+          <option value="">All Schools</option>
+        </select>
+      </div>
+      
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 6px;">Academic Year</label>
+        <select id="ea-academic-year" onchange="loadExamAnalysisData()" style="
+          width: 100%; height: 38px; padding: 0 12px; border-radius: var(--radius-sm);
+          border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+          font-family: Outfit, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+        ">
+          <option value="">All Years</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 6px;">Term</label>
+        <select id="ea-term" onchange="loadExamAnalysisData()" style="
+          width: 100%; height: 38px; padding: 0 12px; border-radius: var(--radius-sm);
+          border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+          font-family: Outfit, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+        ">
+          <option value="">All Terms</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 6px;">Class</label>
+        <select id="ea-class" onchange="loadExamAnalysisData()" style="
+          width: 100%; height: 38px; padding: 0 12px; border-radius: var(--radius-sm);
+          border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+          font-family: Outfit, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+        ">
+          <option value="">All Classes</option>
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 6px;">Subject</label>
+        <select id="ea-subject" onchange="loadExamAnalysisData()" style="
+          width: 100%; height: 38px; padding: 0 12px; border-radius: var(--radius-sm);
+          border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+          font-family: Outfit, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer;
+        ">
+          <option value="">All Subjects</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Key Metrics Row -->
+    <div class="metrics-row" style="
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 24px;
+    ">
+      <div class="metric-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      ">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 8px;">Avg Academic Score</div>
+          <div id="ea-avg-score" style="font-size: 26px; font-weight: 800; color: var(--indigo);">—</div>
+        </div>
+        <div style="font-size: 28px; background: rgba(99,102,241,0.08); width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">📈</div>
+      </div>
+
+      <div class="metric-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      ">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 8px;">Overall Pass Rate</div>
+          <div id="ea-pass-rate" style="font-size: 26px; font-weight: 800; color: var(--emerald);">—</div>
+        </div>
+        <div style="font-size: 28px; background: rgba(16,185,129,0.08); width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">🏆</div>
+      </div>
+
+      <div class="metric-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      ">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 8px;">Graded Students</div>
+          <div id="ea-total-students" style="font-size: 26px; font-weight: 800; color: var(--blue);">—</div>
+        </div>
+        <div style="font-size: 28px; background: rgba(59,130,246,0.08); width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">👥</div>
+      </div>
+
+      <div class="metric-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px; display: flex; align-items: center; justify-content: space-between;
+      ">
+        <div>
+          <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text3); margin-bottom: 8px;">Exams Graded</div>
+          <div id="ea-total-exams" style="font-size: 26px; font-weight: 800; color: var(--violet);">—</div>
+        </div>
+        <div style="font-size: 28px; background: rgba(139,92,246,0.08); width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px;">📝</div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="charts-row" style="
+      display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;
+    ">
+      <div class="chart-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px;
+      ">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px;">📊 Class Performance Comparison</div>
+        <div style="position: relative; height: 260px; width: 100%;">
+          <canvas id="eaClassChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px;
+      ">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px;">🍩 Grade Distribution</div>
+        <div style="position: relative; height: 260px; width: 100%; display: flex; align-items: center; justify-content: center;">
+          <canvas id="eaGradeChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject performance full chart -->
+    <div class="chart-card" style="
+      background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+      padding: 20px; margin-bottom: 24px;
+    ">
+      <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px;">📈 Subject-wise Average Score</div>
+      <div style="position: relative; height: 200px; width: 100%;">
+        <canvas id="eaSubjectChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="tables-row" style="
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;
+    ">
+      <div class="table-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px;
+      ">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">🌟 Academic Leaderboard (Top Students)</div>
+        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border); color: var(--text3); font-size: 11px; font-weight: 700; text-transform: uppercase;">
+              <th style="padding: 8px;">Student</th>
+              <th style="padding: 8px;">Class</th>
+              <th style="padding: 8px; text-align: right;">Average</th>
+            </tr>
+          </thead>
+          <tbody id="ea-top-table">
+            <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">Loading Leaderboard…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-card" style="
+        background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+        padding: 20px;
+      ">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">⚠️ Academic Support Intervention List</div>
+        <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border); color: var(--text3); font-size: 11px; font-weight: 700; text-transform: uppercase;">
+              <th style="padding: 8px;">Student</th>
+              <th style="padding: 8px;">Average</th>
+              <th style="padding: 8px;">Failed Subjects</th>
+            </tr>
+          </thead>
+          <tbody id="ea-support-table">
+            <tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">Loading Support List…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Subject performance table card -->
+    <div class="table-card" style="
+      background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border);
+      padding: 20px; margin-bottom: 24px;
+    ">
+      <div style="font-size: 14px; font-weight: 800; color: var(--text); margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">📚 Subject Performance Aggregates</div>
+      <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="border-bottom: 1px solid var(--border); color: var(--text3); font-size: 11px; font-weight: 700; text-transform: uppercase;">
+            <th style="padding: 10px 8px;">Subject</th>
+            <th style="padding: 10px 8px;">Assigned Teacher</th>
+            <th style="padding: 10px 8px; text-align: right;">Average Score</th>
+            <th style="padding: 10px 8px; text-align: right;">Pass Rate</th>
+            <th style="padding: 10px 8px; text-align: right;">Highest / Lowest</th>
+          </tr>
+        </thead>
+        <tbody id="ea-subject-table">
+          <tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px">Loading Subject Summaries…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
   </div>
 </div>
@@ -1968,6 +2204,9 @@ async function loadDashboard() {
     loadSchoolOverviews(data.cost_centers);
   }
   
+  // Populate Exam Analysis Filters Dropdowns
+  populateExamAnalysisDropdowns(data);
+
   // Load registration cards with live stats
   await loadRegistrationCards();
 }
@@ -2049,6 +2288,235 @@ async function loadSchoolOverviews(costCenters) {
         </div>
       </div>`;
     container.appendChild(section);
+  }
+}
+
+/* ─── EXAMINATIONS ANALYSIS ─── */
+function populateExamAnalysisDropdowns(data) {
+  const populate = (id, list, keyField, labelField) => {
+    const el = document.getElementById(id);
+    if (!el || el.options.length > 1) return;
+    list.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item[keyField];
+      opt.textContent = item[labelField || keyField];
+      el.appendChild(opt);
+    });
+  };
+  if (data.cost_centers) populate('ea-cost-center', data.cost_centers, 'name');
+  if (data.academic_years) populate('ea-academic-year', data.academic_years, 'name');
+  if (data.academic_terms) populate('ea-term', data.academic_terms, 'name');
+  if (data.student_classes) populate('ea-class', data.student_classes, 'name');
+  if (data.subjects) populate('ea-subject', data.subjects, 'name', 'subject_name');
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll('.dashboard-screen').forEach(el => {
+    el.style.display = 'none';
+  });
+  const target = $('screen-' + screenId);
+  if (target) target.style.display = 'block';
+
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.remove('active');
+  });
+  const navItem = $('nav-' + screenId);
+  if (navItem) navItem.classList.add('active');
+
+  if (screenId === 'exam-analysis') {
+    loadExamAnalysisData();
+  }
+}
+
+let eaClassChartInstance = null;
+let eaGradeChartInstance = null;
+let eaSubjectChartInstance = null;
+
+async function loadExamAnalysisData() {
+  const costCenter = $('ea-cost-center').value;
+  const academicYear = $('ea-academic-year').value;
+  const term = $('ea-term').value;
+  const studentClass = $('ea-class').value;
+  const subject = $('ea-subject').value;
+
+  try {
+    const res = await frappe.call({
+      method: 'school.utils.get_exam_analysis_data',
+      args: {
+        cost_center: costCenter,
+        academic_year: academicYear,
+        term: term,
+        student_class: studentClass,
+        subject: subject
+      }
+    });
+
+    const data = res.message || {};
+    
+    // Update counter metrics
+    $('ea-avg-score').textContent = (data.average_score || 0) + '%';
+    $('ea-pass-rate').textContent = (data.pass_rate || 0) + '%';
+    $('ea-total-students').textContent = data.total_students || 0;
+    $('ea-total-exams').textContent = data.total_exams || 0;
+
+    // ─── Class Performance Chart ───
+    const classPerf = data.class_performance || [];
+    const classLabels = classPerf.map(c => c.class_name);
+    const classAverages = classPerf.map(c => c.average);
+    const classPassRates = classPerf.map(c => c.pass_rate);
+
+    if (eaClassChartInstance) eaClassChartInstance.destroy();
+    const ctxClass = $('eaClassChart').getContext('2d');
+    eaClassChartInstance = new Chart(ctxClass, {
+      type: 'bar',
+      data: {
+        labels: classLabels.length ? classLabels : ['No Data'],
+        datasets: [
+          {
+            label: 'Avg Score (%)',
+            data: classAverages.length ? classAverages : [0],
+            backgroundColor: 'rgba(99, 102, 241, 0.75)',
+            borderColor: '#6366f1',
+            borderWidth: 1.5,
+            borderRadius: 6
+          },
+          {
+            label: 'Pass Rate (%)',
+            data: classPassRates.length ? classPassRates : [0],
+            backgroundColor: 'rgba(16, 185, 129, 0.75)',
+            borderColor: '#10b981',
+            borderWidth: 1.5,
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top', labels: { font: { family: 'Outfit', size: 11, weight: '600' } } }
+        },
+        scales: {
+          y: { min: 0, max: 100, ticks: { font: { family: 'Outfit', size: 10 } } },
+          x: { ticks: { font: { family: 'Outfit', size: 10 } } }
+        }
+      }
+    });
+
+    // ─── Grade Distribution Chart ───
+    const gradeDist = data.grade_distribution || {};
+    const gradeLabels = Object.keys(gradeDist);
+    const gradeValues = Object.values(gradeDist);
+
+    if (eaGradeChartInstance) eaGradeChartInstance.destroy();
+    const ctxGrade = $('eaGradeChart').getContext('2d');
+    eaGradeChartInstance = new Chart(ctxGrade, {
+      type: 'doughnut',
+      data: {
+        labels: gradeLabels.length ? gradeLabels : ['No Grades'],
+        datasets: [{
+          data: gradeValues.length ? gradeValues : [1],
+          backgroundColor: [
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(16, 185, 129, 0.8)',
+            'rgba(245, 158, 11, 0.8)',
+            'rgba(244, 63, 94, 0.8)',
+            'rgba(139, 92, 246, 0.8)',
+            'rgba(236, 72, 153, 0.8)'
+          ],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'right', labels: { font: { family: 'Outfit', size: 11, weight: '600' } } }
+        },
+        cutout: '60%'
+      }
+    });
+
+    // ─── Subject Average Chart ───
+    const subjectPerf = data.subject_performance || [];
+    const subLabels = subjectPerf.map(s => s.subject);
+    const subAverages = subjectPerf.map(s => s.average);
+
+    if (eaSubjectChartInstance) eaSubjectChartInstance.destroy();
+    const ctxSubject = $('eaSubjectChart').getContext('2d');
+    eaSubjectChartInstance = new Chart(ctxSubject, {
+      type: 'bar',
+      data: {
+        labels: subLabels.length ? subLabels : ['No Data'],
+        datasets: [{
+          label: 'Avg Score %',
+          data: subAverages.length ? subAverages : [0],
+          backgroundColor: 'rgba(59, 130, 246, 0.75)',
+          borderColor: '#3b82f6',
+          borderWidth: 1.5,
+          borderRadius: 6
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: { min: 0, max: 100, ticks: { font: { family: 'Outfit', size: 10 } } },
+          x: { ticks: { font: { family: 'Outfit', size: 10 } } }
+        }
+      }
+    });
+
+    // ─── Leaders Board Table ───
+    const topStudents = data.top_students || [];
+    $('ea-top-table').innerHTML = topStudents.length
+      ? topStudents.map((s, idx) => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px 8px; font-weight: 600; color: var(--text);">
+            ${idx === 0 ? '👑 ' : idx === 1 ? '🥈 ' : idx === 2 ? '🥉 ' : ''}${s.name}
+          </td>
+          <td style="padding: 10px 8px; color: var(--text2);">${s.class_name}</td>
+          <td style="padding: 10px 8px; text-align: right; font-weight: 700; color: var(--indigo);">${s.average}%</td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:24px">No students graded</td></tr>`;
+
+    // ─── Academic Support Table ───
+    const supportStudents = data.support_students || [];
+    $('ea-support-table').innerHTML = supportStudents.length
+      ? supportStudents.map(s => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px 8px; font-weight: 600; color: var(--rose);">${s.name}</td>
+          <td style="padding: 10px 8px; font-weight: 700; color: var(--text2);">${s.average}%</td>
+          <td style="padding: 10px 8px;">
+            ${s.fails && s.fails.length ? s.fails.map(f => `<span style="display:inline-block; font-size:10px; font-weight:700; background:rgba(244,63,94,0.1); color:var(--rose); padding:2px 6px; border-radius:4px; margin-right:4px; margin-bottom:4px;">${f}</span>`).join('') : '<span style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.1); color:var(--amber); padding:2px 6px; border-radius:4px;">Borderline</span>'}
+          </td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="3" style="text-align:center;color:var(--emerald);padding:24px">🎉 Excellent! No students need academic support.</td></tr>`;
+
+    // ─── Subject Aggregates Table ───
+    $('ea-subject-table').innerHTML = subjectPerf.length
+      ? subjectPerf.map(s => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 12px 10px; font-weight: 700; color: var(--text);">${s.subject}</td>
+          <td style="padding: 12px 10px; color: var(--text2);">${s.teacher}</td>
+          <td style="padding: 12px 10px; text-align: right; font-weight: 700; color: var(--indigo);">${s.average}%</td>
+          <td style="padding: 12px 10px; text-align: right; font-weight: 700; color: var(--emerald);">${s.pass_rate}%</td>
+          <td style="padding: 12px 10px; text-align: right;">
+            <span style="font-weight:700; color:var(--blue);">${s.highest}%</span>
+            <span style="color:var(--text3);"> / </span>
+            <span style="font-weight:700; color:var(--rose);">${s.lowest}%</span>
+          </td>
+        </tr>
+      `).join('')
+      : `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:24px">No subject data found</td></tr>`;
+
+  } catch (err) {
+    console.error('Error fetching exam analysis data:', err);
   }
 }
 
