@@ -9,15 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f4f6f9;
-      --bg2: #eef0f4;
-      --surface: #e2e8f0;
-      --surface2: #cbd5e1;
-      --surface3: #94a3b8;
-      --border: rgba(0, 0, 0, 0.07);
-      --text: #1e40af;
-      /* Blue text */
-      --text2: #3b82f6;
+      --bg: #ffffff;
+      --bg2: #f8fafc;
+      --surface: #ffffff;
+      --surface2: #f1f5f9;
+      --surface3: #e2e8f0;
+      --border: rgba(37,99,235,0.15);
+      --text: #0f172a;
+      --text2: #334155;
       --text3: #64748b;
       --blue: #3b82f6;
       --indigo: #6366f1;
@@ -27,6 +26,7 @@
       --amber: #f59e0b;
       --rose: #f43f5e;
       --pink: #ec4899;
+      --nerve-blue: #2563eb;
       --sidebar-w: 272px;
       --header-h: 68px;
       --radius: 14px;
@@ -46,6 +46,25 @@
       overflow-x: hidden;
     }
 
+    /* Card Common Styling — Nerve Blue Borders & White Background */
+    .portal-card, .action-card, .info-card, .table-card, .sub-card {
+      background: #ffffff !important;
+      border: 1.5px solid var(--nerve-blue) !important;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.04) !important;
+    }
+
+    .portal-card:hover, .action-card:hover, .info-card:hover, .table-card:hover, .sub-card:hover {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12) !important;
+      border-color: var(--nerve-blue) !important;
+    }
+
+    .stat-svg {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
     /* ── Sidebar ── */
     .sidebar {
       position: fixed;
@@ -53,14 +72,14 @@
       left: 0;
       width: var(--sidebar-w);
       height: 100vh;
-      background: var(--surface);
+      background: var(--bg2);
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       z-index: 200;
       overflow-y: auto;
       transition: transform .35s cubic-bezier(.4, 0, .2, 1);
-      box-shadow: 2px 0 12px rgba(0, 0, 0, .04);
+      box-shadow: 2px 0 12px rgba(0, 0, 0, .02);
     }
 
     .sidebar-logo {
@@ -150,14 +169,22 @@
     }
 
     .nav-icon {
-      width: 30px;
-      height: 30px;
-      border-radius: 7px;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 15px;
       flex-shrink: 0;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+    .nav-item:hover .nav-icon {
+      transform: scale(1.1) rotate(-3deg);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+    }
+    .nav-item.active .nav-icon {
+      transform: scale(1.05);
     }
 
     .sidebar-footer {
@@ -415,8 +442,18 @@
     }
 
     .action-icon {
-      font-size: 28px;
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      background: var(--nerve-blue) !important;
+      color: white !important;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
+    .action-card:hover .action-icon {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    .action-icon svg { stroke: white !important; fill: none; }
 
     .action-label {
       font-size: 14px;
@@ -485,12 +522,16 @@
       width: 46px;
       height: 46px;
       border-radius: 11px;
-      background: rgba(99, 102, 241, .08);
+      background: var(--nerve-blue) !important;
+      color: white !important;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
       margin-bottom: 14px;
+    }
+    .pc-icon-wrap svg {
+      stroke: white !important;
     }
 
     .pc-title {
@@ -958,7 +999,9 @@
 
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="logo-gem">🏫</div>
+      <div class="logo-gem">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M22 10v6M2 10l10-8 10 8-10 8z"/><path d="M6 12v5c3.5 2 8.5 2 12 0v-5" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
       <div class="logo-text">
         <h1>SchoolManager</h1><span>Teacher Portal</span>
       </div>
@@ -966,50 +1009,74 @@
     <div class="nav-section">
       <div class="nav-section-label">Main Navigation</div>
       <a class="nav-item" href="javascript:void(0)" onclick="switchView('dashboard')">
-        <div class="nav-icon">🏠</div><span>Dashboard</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </div><span>Dashboard</span>
       </a>
       <a class="nav-item" href="/assets/school/html/library-portal.html">
-        <div class="nav-icon">📖</div><span>Library</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+        </div><span>Library</span>
       </a>
       <a class="nav-item" href="/my-students">
-        <div class="nav-icon">👨‍🎓</div><span>My Students</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+        </div><span>My Students</span>
       </a>
       <a class="nav-item" href="/student-balances">
-        <div class="nav-icon">💰</div><span>Student Balances</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+        </div><span>Student Balances</span>
       </a>
       <a class="nav-item" id="nav-schemes" href="javascript:void(0)" onclick="switchView('schemes');loadSchemes()">
-        <div class="nav-icon">📅</div><span>Schemes</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+        </div><span>Schemes</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Results (RW)</div>
       <a class="nav-item" href="/app/exam-result">
-        <div class="nav-icon">📊</div><span>Exam Results</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
+        </div><span>Exam Results</span>
       </a>
       <a class="nav-item" href="/app/inclass-test">
-        <div class="nav-icon">📋</div><span>Inclass Tests</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#0061ff,#60efff);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-4-4zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+        </div><span>Inclass Tests</span>
       </a>
       <a class="nav-item" id="nav-submissions" href="javascript:void(0)" onclick="switchView('submissions');loadSubmissions()">
-        <div class="nav-icon">📥</div><span>Student Submissions</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#8e2de2,#4a00e0);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/></svg>
+        </div><span>Student Submissions</span>
         <span id="sub-badge" style="margin-left:auto;background:var(--rose);color:white;border-radius:99px;font-size:10px;font-weight:700;padding:2px 7px;display:none">0</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Attendance (RW)</div>
       <a class="nav-item" href="/app/student-attendance">
-        <div class="nav-icon">✅</div><span>Student Attendance</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        </div><span>Student Attendance</span>
       </a>
     </div>
     <div class="nav-section">
       <div class="nav-section-label">Setup (Read Only)</div>
       <a class="nav-item" href="/my-classes">
-        <div class="nav-icon">🏷️</div><span>My Classes</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+        </div><span>My Classes</span>
       </a>
       <a class="nav-item" href="/my-subjects">
-        <div class="nav-icon">📖</div><span>My Subjects</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#cc2b5e,#753a88);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg>
+        </div><span>My Subjects</span>
       </a>
       <a class="nav-item" href="/my-sections">
-        <div class="nav-icon">🔖</div><span>My Sections</span>
+        <div class="nav-icon" style="background:linear-gradient(135deg,#ee0979,#ff6a00);">
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>
+        </div><span>My Sections</span>
       </a>
     </div>
     <div class="sidebar-footer">
@@ -1082,22 +1149,34 @@
         </div>
         <div class="actions-grid">
           <a class="action-card" href="/app/exam-schedule/new-exam-schedule-1">
-            <div class="action-icon">📅</div>Schedule Exam
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div><div class="action-label">Schedule Exam</div>
           </a>
           <a class="action-card" href="/app/test-schedule/new-test-schedule-1">
-            <div class="action-icon">✏️</div>New Class Test
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            </div><div class="action-label">New Class Test</div>
           </a>
           <a class="action-card" href="/app/home-schedule/new-home-schedule-1">
-            <div class="action-icon">📚</div>Set Homework
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div><div class="action-label">Set Homework</div>
           </a>
           <a class="action-card" href="/app/exam-result/new-exam-result-1">
-            <div class="action-icon">📊</div>Enter Results
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            </div><div class="action-label">Enter Results</div>
           </a>
           <a class="action-card" href="/app/inclass-test/new-inclass-test-1">
-            <div class="action-icon">📋</div>Inclass Test
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div><div class="action-label">Inclass Test</div>
           </a>
           <a class="action-card" href="/app/student-attendance/new-student-attendance-1">
-            <div class="action-icon">✅</div>Take Attendance
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" width="22" height="22" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div><div class="action-label">Take Attendance</div>
           </a>
         </div>
 
@@ -1174,7 +1253,12 @@
             </div>
             <div class="cards-grid-4">
               <a class="portal-card" href="/my-classes">
-                <div class="pc-icon-wrap">🏷️</div>
+                <div class="pc-icon-wrap" style="display:flex;align-items:center;justify-content:center;">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                    <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                  </svg>
+                </div>
                 <div class="pc-header">
                   <div class="pc-title">My Classes</div><span class="pc-count" id="cc-classes">0</span>
                 </div>
@@ -1182,7 +1266,12 @@
                 <span class="pc-btn">View →</span>
               </a>
               <a class="portal-card" href="/my-subjects">
-                <div class="pc-icon-wrap">📖</div>
+                <div class="pc-icon-wrap" style="display:flex;align-items:center;justify-content:center;">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                </div>
                 <div class="pc-header">
                   <div class="pc-title">My Subjects</div><span class="pc-count" id="cc-subjects">0</span>
                 </div>
@@ -1190,7 +1279,11 @@
                 <span class="pc-btn">View →</span>
               </a>
               <a class="portal-card" href="/my-sections">
-                <div class="pc-icon-wrap">🔖</div>
+                <div class="pc-icon-wrap" style="display:flex;align-items:center;justify-content:center;">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
                 <div class="pc-header">
                   <div class="pc-title">My Sections</div><span class="pc-count" id="cc-sections">0</span>
                 </div>
@@ -1198,7 +1291,15 @@
                 <span class="pc-btn">View →</span>
               </a>
               <div class="portal-card pc-amber" style="grid-column: span 2;">
-                <div class="pc-icon-wrap">📝</div>
+                <div class="pc-icon-wrap" style="display:flex;align-items:center;justify-content:center;">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                </div>
                 <div class="pc-header">
                   <div class="pc-title">My Sticky Note</div>
                 </div>

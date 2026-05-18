@@ -36,13 +36,32 @@ class Receipting(Document):
 		self.create_payment_entry()
 
 	def create_payment_entry(self):
-		# Prevent duplicate payment entries
-		existing = frappe.get_all(
-			"Payment Entry", filters={"reference_no": self.name, "docstatus": ["!=", 2]}, limit=1
+		# Prevent duplicate/bad payment entries
+		existing_pes = frappe.get_all(
+			"Payment Entry",
+			filters={"reference_no": self.name, "docstatus": ["!=", 2]},
+			fields=["name", "received_amount", "docstatus"]
 		)
-		if existing:
-			frappe.msgprint("Payment Entry already exists for this receipt. Skipping.")
-			return
+		if existing_pes:
+			# Check if there is exactly 1 Payment Entry, and it matches the allocation amount
+			if len(existing_pes) == 1 and flt(existing_pes[0].received_amount) == flt(self.total_allocated) and existing_pes[0].docstatus == 1:
+				frappe.msgprint(f"Payment Entry {existing_pes[0].name} already exists and matches receipt. Skipping.")
+				return
+			
+			# If there are duplicates, or mismatch, or draft status, cancel and delete them all to start clean
+			frappe.msgprint("Discrepancy or duplicate found in Payment Entries for this receipt. Cleaning and recreating...")
+			for pe in existing_pes:
+				try:
+					pe_doc = frappe.get_doc("Payment Entry", pe.name)
+					pe_doc.flags.ignore_permissions = True
+					if pe_doc.docstatus == 1:
+						pe_doc.cancel()
+					pe_doc.delete()
+				except Exception as e:
+					frappe.log_error(
+						title=f"Failed to cancel/delete duplicate/bad Payment Entry {pe.name} for Receipt {self.name}",
+						message=frappe.get_traceback()
+					)
 
 		student_full_name = frappe.db.get_value("Student", self.student_name, "full_name")
 		company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
@@ -158,3 +177,79 @@ class Receipting(Document):
 				frappe.db.set_value("Student", self.student_name, "opening_balance", new_ob)
 
 		frappe.db.commit()
+
+	def verify_and_reconcile_payment_entry(self):
+		if self.docstatus != 1:
+			return {"status": "skipped", "message": "Receipting document must be submitted to reconcile."}
+
+		# Fetch all Payment Entries associated with this receipt (reference_no)
+		pes = frappe.get_all(
+			"Payment Entry",
+			filters={"reference_no": self.name, "docstatus": ["!=", 2]},
+			fields=["name", "docstatus", "received_amount"]
+		)
+
+		has_error = False
+		error_message = ""
+
+		if len(pes) > 1:
+			has_error = True
+			error_message = f"Duplicate Payment Entries found: {[pe.name for pe in pes]}"
+		elif len(pes) == 1:
+			pe = pes[0]
+			if flt(pe.received_amount) != flt(self.total_allocated):
+				has_error = True
+				error_message = f"Amount mismatch: Payment Entry received {pe.received_amount} vs Receipting allocated {self.total_allocated}"
+			elif pe.docstatus != 1:
+				has_error = True
+				error_message = f"Payment Entry {pe.name} is not submitted (draft status)."
+		else:
+			has_error = True
+			error_message = "No active Payment Entry found."
+
+		if has_error:
+			# Cancel and delete existing bad/duplicate Payment Entries
+			for pe in pes:
+				try:
+					pe_doc = frappe.get_doc("Payment Entry", pe.name)
+					pe_doc.flags.ignore_permissions = True
+					if pe_doc.docstatus == 1:
+						pe_doc.cancel()
+					pe_doc.delete()
+				except Exception as e:
+					frappe.log_error(
+						title=f"Reconcile failed to cancel/delete bad Payment Entry {pe.name} for Receipt {self.name}",
+						message=frappe.get_traceback()
+					)
+			
+			# Recreate clean Payment Entry
+			try:
+				self.create_payment_entry()
+				frappe.db.commit()
+				return {"status": "recreated", "message": f"Successfully deleted bad/duplicate Payment Entries and recreated one clean. Reason: {error_message}"}
+			except Exception as e:
+				frappe.log_error(
+					title=f"Reconcile failed to recreate Payment Entry for Receipt {self.name}",
+					message=frappe.get_traceback()
+				)
+				return {"status": "error", "message": f"Discrepancy found ({error_message}), but recreation failed: {str(e)}"}
+
+		return {"status": "ok", "message": f"Payment Entry {pes[0].name} is fully reconciled and verified."}
+
+
+@frappe.whitelist()
+def reconcile_receipt(receipt_name):
+	"""
+	Whitelisted API to verify and reconcile a specific Receipting record.
+	Validates the existence, uniqueness, correctness, and status of its Payment Entry.
+	Deletes any duplicates or bad records and recreates them clean.
+	"""
+	try:
+		doc = frappe.get_doc("Receipting", receipt_name)
+		return doc.verify_and_reconcile_payment_entry()
+	except Exception as e:
+		frappe.log_error(
+			title=f"API Reconcile Receipt {receipt_name} failed",
+			message=frappe.get_traceback()
+		)
+		return {"status": "error", "message": str(e)}

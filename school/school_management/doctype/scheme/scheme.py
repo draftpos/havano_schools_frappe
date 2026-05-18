@@ -59,33 +59,42 @@ def get_permission_query_conditions(user):
     if not user:
         user = frappe.session.user
 
+    if not hasattr(frappe.local, "scheme_perm_cache"):
+        frappe.local.scheme_perm_cache = {}
+
+    if user in frappe.local.scheme_perm_cache:
+        return frappe.local.scheme_perm_cache[user]
+
     # Administrators and System Managers have full visibility
     if user == "Administrator" or "System Manager" in frappe.get_roles(user):
-        return ""
-
-    # Find the Teacher ID associated with this user
-    teacher = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
-    if not teacher:
-        return "1=0"
-
-    # Find departments where this teacher is HOD
-    hod_departments = frappe.get_all("Department", filters={"hod": teacher}, pluck="name")
-
-    if hod_departments:
-        # HOD can view:
-        # 1. Their own schemes (where they are the teacher)
-        # 2. Schemes where at least one child table row subject belongs to their department(s)
-        subjects = frappe.get_all("Subject", filters={"department": ["in", hod_departments]}, pluck="name")
-        if subjects:
-            subject_list = ", ".join(frappe.db.escape(s) for s in subjects)
-            # Find parent scheme document names that contain any row with these subjects
-            subquery = f"SELECT parent FROM `tabScheme Entry` WHERE subject IN ({subject_list})"
-            return f"(`tabScheme`.teacher = {frappe.db.escape(teacher)} OR `tabScheme`.name IN ({subquery}))"
-        else:
-            return f"`tabScheme`.teacher = {frappe.db.escape(teacher)}"
+        condition = ""
     else:
-        # Regular teachers can only view their own schemes
-        return f"`tabScheme`.teacher = {frappe.db.escape(teacher)}"
+        # Find the Teacher ID associated with this user
+        teacher = frappe.db.get_value("Teacher", {"portal_email": user}, "name")
+        if not teacher:
+            condition = "1=0"
+        else:
+            # Find departments where this teacher is HOD
+            hod_departments = frappe.get_all("Department", filters={"hod": teacher}, pluck="name")
+
+            if hod_departments:
+                # HOD can view:
+                # 1. Their own schemes (where they are the teacher)
+                # 2. Schemes where at least one child table row subject belongs to their department(s)
+                subjects = frappe.get_all("Subject", filters={"department": ["in", hod_departments]}, pluck="name")
+                if subjects:
+                    subject_list = ", ".join(frappe.db.escape(s) for s in subjects)
+                    # Find parent scheme document names that contain any row with these subjects
+                    subquery = f"SELECT parent FROM `tabScheme Entry` WHERE subject IN ({subject_list})"
+                    condition = f"(`tabScheme`.teacher = {frappe.db.escape(teacher)} OR `tabScheme`.name IN ({subquery}))"
+                else:
+                    condition = f"`tabScheme`.teacher = {frappe.db.escape(teacher)}"
+            else:
+                # Regular teachers can only view their own schemes
+                condition = f"`tabScheme`.teacher = {frappe.db.escape(teacher)}"
+
+    frappe.local.scheme_perm_cache[user] = condition
+    return condition
 
 
 def has_permission(doc, ptype="read", user=None):

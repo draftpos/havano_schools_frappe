@@ -124,6 +124,16 @@ class Billing(Document):
             try:
                 self.ensure_customer_exists(full_name)
 
+                # Prevent duplicate Sales Invoices for this billing and customer
+                existing = frappe.get_all(
+                    "Sales Invoice",
+                    filters={"billing_reference": self.name, "customer": full_name, "docstatus": ["!=", 2]},
+                    limit=1
+                )
+                if existing:
+                    skipped += 1
+                    continue
+
                 invoice = frappe.new_doc("Sales Invoice")
                 invoice.customer = full_name
                 invoice.fees_structure = self.fees_structure

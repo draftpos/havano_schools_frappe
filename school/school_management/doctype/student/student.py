@@ -835,6 +835,12 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
+	if not hasattr(frappe.local, "student_perm_cache"):
+		frappe.local.student_perm_cache = {}
+
+	if user in frappe.local.student_perm_cache:
+		return frappe.local.student_perm_cache[user]
+
 	roles = frappe.get_roles(user)
 	if (
 		"System Manager" in roles
@@ -842,48 +848,50 @@ def get_permission_query_conditions(user):
 		or "Administrator" in roles
 		or user == "Administrator"
 	):
-		return ""
-
-	if "Teacher" not in roles:
-		return ""
-
-	teacher = frappe.db.get_value("Teacher", {"portal_email": user}, ["name", "cost_center"], as_dict=True)
-	if not teacher:
-		teacher = frappe.db.get_value("Teacher", {"email": user}, ["name", "cost_center"], as_dict=True)
-
-	if not teacher:
-		return "1=0"
-
-	teacher_name = teacher.name
-
-	assigned = frappe.db.get_all(
-		"Teacher Class Assignment Item",
-		filters={"parent": teacher_name},
-		fields=["class_name", "section"],
-	)
-
-	if not assigned:
-		return "1=0"
-
-	conditions = []
-	for row in assigned:
-		if row.class_name and row.section:
-			conditions.append(
-				f"(`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}"
-				f" AND `tabStudent`.`section` = {frappe.db.escape(row.section)})"
-			)
-		elif row.class_name:
-			conditions.append(f"`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}")
-
-	if not conditions:
-		return "1=0"
-
-	class_condition = "(" + " OR ".join(conditions) + ")"
-
-	if teacher.cost_center:
-		return f"({class_condition} AND `tabStudent`.`school` = {frappe.db.escape(teacher.cost_center)})"
+		condition = ""
+	elif "Teacher" not in roles:
+		condition = ""
 	else:
-		return class_condition
+		teacher = frappe.db.get_value("Teacher", {"portal_email": user}, ["name", "cost_center"], as_dict=True)
+		if not teacher:
+			teacher = frappe.db.get_value("Teacher", {"email": user}, ["name", "cost_center"], as_dict=True)
+
+		if not teacher:
+			condition = "1=0"
+		else:
+			teacher_name = teacher.name
+
+			assigned = frappe.db.get_all(
+				"Teacher Class Assignment Item",
+				filters={"parent": teacher_name},
+				fields=["class_name", "section"],
+			)
+
+			if not assigned:
+				condition = "1=0"
+			else:
+				conditions = []
+				for row in assigned:
+					if row.class_name and row.section:
+						conditions.append(
+							f"(`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}"
+							f" AND `tabStudent`.`section` = {frappe.db.escape(row.section)})"
+						)
+					elif row.class_name:
+						conditions.append(f"`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}")
+
+				if not conditions:
+					condition = "1=0"
+				else:
+					class_condition = "(" + " OR ".join(conditions) + ")"
+
+					if teacher.cost_center:
+						condition = f"({class_condition} AND `tabStudent`.`school` = {frappe.db.escape(teacher.cost_center)})"
+					else:
+						condition = class_condition
+
+	frappe.local.student_perm_cache[user] = condition
+	return condition
 
 
 # ----------------------------------------------------------------------

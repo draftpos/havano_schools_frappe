@@ -1542,59 +1542,94 @@ def get_teacher_name_for_user(user):
     if user in ('Administrator', 'Guest'):
         return None
         
+    if not hasattr(frappe.local, "teacher_user_cache"):
+        frappe.local.teacher_user_cache = {}
+        
+    if user in frappe.local.teacher_user_cache:
+        return frappe.local.teacher_user_cache[user]
+        
     teacher = frappe.db.get_value('Teacher', {'portal_email': user}, 'name')
     if not teacher:
         teacher = frappe.db.get_value('Teacher', {'email': user}, 'name')
+        
+    frappe.local.teacher_user_cache[user] = teacher
     return teacher
 
 def get_class_permission_query_conditions(user):
+    if not hasattr(frappe.local, "class_perm_cache"):
+        frappe.local.class_perm_cache = {}
+        
+    if user in frappe.local.class_perm_cache:
+        return frappe.local.class_perm_cache[user]
+
     teacher = get_teacher_name_for_user(user)
     roles = frappe.get_roles(user)
     if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
-        return ""
-    
-    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name"])
-    classes = [frappe.db.escape(d.class_name) for d in assigned if d.class_name]
-    
-    if not classes:
-        return "1=0"
-    
-    return "`tabStudent Class`.`name` IN ({})".format(", ".join(classes))
+        condition = ""
+    else:
+        assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["class_name"])
+        classes = [frappe.db.escape(d.class_name) for d in assigned if d.class_name]
+        
+        if not classes:
+            condition = "1=0"
+        else:
+            condition = "`tabStudent Class`.`name` IN ({})".format(", ".join(classes))
+            
+    frappe.local.class_perm_cache[user] = condition
+    return condition
 
 def get_subject_permission_query_conditions(user):
+    if not hasattr(frappe.local, "subject_perm_cache"):
+        frappe.local.subject_perm_cache = {}
+        
+    if user in frappe.local.subject_perm_cache:
+        return frappe.local.subject_perm_cache[user]
+
     teacher = get_teacher_name_for_user(user)
     roles = frappe.get_roles(user)
     if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
-        return ""
-    
-    # 1. HOD Restriction: HODs must see or read subjects under their department only
-    hod_departments = frappe.get_all("Department", filters={"hod": teacher}, pluck="name")
-    if hod_departments:
-        dept_list = ", ".join(frappe.db.escape(d) for d in hod_departments)
-        return "`tabSubject`.department IN ({})".format(dept_list)
-        
-    # 2. Standard Teacher: Can see assigned subjects only
-    assigned = frappe.db.get_all("Teacher Subject Assignment Item", filters={"parent": teacher}, fields=["subject"])
-    subjects = [frappe.db.escape(d.subject) for d in assigned if d.subject]
-    
-    if not subjects:
-        return "1=0"
-    
-    return "`tabSubject`.`name` IN ({})".format(", ".join(subjects))
+        condition = ""
+    else:
+        # 1. HOD Restriction: HODs must see or read subjects under their department only
+        hod_departments = frappe.get_all("Department", filters={"hod": teacher}, pluck="name")
+        if hod_departments:
+            dept_list = ", ".join(frappe.db.escape(d) for d in hod_departments)
+            condition = "`tabSubject`.department IN ({})".format(dept_list)
+        else:
+            # 2. Standard Teacher: Can see assigned subjects only
+            assigned = frappe.db.get_all("Teacher Subject Assignment Item", filters={"parent": teacher}, fields=["subject"])
+            subjects = [frappe.db.escape(d.subject) for d in assigned if d.subject]
+            
+            if not subjects:
+                condition = "1=0"
+            else:
+                condition = "`tabSubject`.`name` IN ({})".format(", ".join(subjects))
+                
+    frappe.local.subject_perm_cache[user] = condition
+    return condition
 
 def get_section_permission_query_conditions(user):
+    if not hasattr(frappe.local, "section_perm_cache"):
+        frappe.local.section_perm_cache = {}
+        
+    if user in frappe.local.section_perm_cache:
+        return frappe.local.section_perm_cache[user]
+
     teacher = get_teacher_name_for_user(user)
     roles = frappe.get_roles(user)
     if not teacher or "System Manager" in roles or "School User" in roles or "Administrator" in roles or user == "Administrator":
-        return ""
-    
-    assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["section"])
-    sections = [frappe.db.escape(d.section) for d in assigned if d.section]
-    
-    if not sections:
-        return "1=0"
-    
-    return "`tabSection`.`name` IN ({})".format(", ".join(sections))
+        condition = ""
+    else:
+        assigned = frappe.db.get_all("Teacher Class Assignment Item", filters={"parent": teacher}, fields=["section"])
+        sections = [frappe.db.escape(d.section) for d in assigned if d.section]
+        
+        if not sections:
+            condition = "1=0"
+        else:
+            condition = "`tabSection`.`name` IN ({})".format(", ".join(sections))
+            
+    frappe.local.section_perm_cache[user] = condition
+    return condition
 
 @frappe.whitelist()
 def get_teacher_notes():
@@ -2065,4 +2100,68 @@ def delete_teacher_scheme(scheme_name):
     frappe.delete_doc("Scheme", scheme_name, ignore_permissions=True)
     frappe.db.commit()
     return {"message": "Success"}
+
+
+@frappe.whitelist()
+def reconcile_all_submitted_receipts():
+    """
+    Background job to periodically scan and reconcile submitted Receipting records.
+    Finds missing, duplicate, mismatched, or draft Payment Entries, cancels/deletes the bad ones,
+    and recreates clean submitted ones in the background.
+    """
+    try:
+        # Optimized SQL query to isolate broken/flawed/missing entries
+        flawed_receipts = frappe.db.sql("""
+            SELECT r.name
+            FROM `tabReceipting` r
+            WHERE r.docstatus = 1 AND (
+                -- Case 1: No Payment Entry exists
+                (SELECT COUNT(*) FROM `tabPayment Entry` pe WHERE pe.reference_no = r.name AND pe.docstatus != 2) = 0
+                OR
+                -- Case 2: Duplicate Payment Entries exist
+                (SELECT COUNT(*) FROM `tabPayment Entry` pe WHERE pe.reference_no = r.name AND pe.docstatus != 2) > 1
+                OR
+                -- Case 3: Amount mismatch or draft status
+                EXISTS (
+                    SELECT 1 FROM `tabPayment Entry` pe
+                    WHERE pe.reference_no = r.name AND pe.docstatus != 2
+                    AND (pe.received_amount != r.total_allocated OR pe.docstatus = 0)
+                )
+            )
+        """, as_dict=True)
+
+        if not flawed_receipts:
+            return {"status": "ok", "message": "All receipt payments are fully synchronized and clean."}
+
+        processed = 0
+        recreated = 0
+        failed = 0
+
+        for row in flawed_receipts:
+            processed += 1
+            try:
+                doc = frappe.get_doc("Receipting", row.name)
+                res = doc.verify_and_reconcile_payment_entry()
+                if res.get("status") == "recreated":
+                    recreated += 1
+                elif res.get("status") == "error":
+                    failed += 1
+            except Exception:
+                failed += 1
+                frappe.log_error(
+                    title=f"Background reconciliation failed for Receipt {row.name}",
+                    message=frappe.get_traceback()
+                )
+
+        return {
+            "status": "completed",
+            "message": f"Processed {processed} flawed receipts. Recreated: {recreated}, Failed: {failed}."
+        }
+
+    except Exception as e:
+        frappe.log_error(
+            title="Background reconcile_all_submitted_receipts failed",
+            message=frappe.get_traceback()
+        )
+        return {"status": "error", "message": str(e)}
 

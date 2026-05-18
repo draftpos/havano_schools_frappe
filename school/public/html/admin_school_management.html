@@ -12,13 +12,13 @@
    TOKENS & RESET — OFF-WHITE LIGHT THEME
 ══════════════════════════════════════════ */
 :root {
-  --bg:        #f4f6f9;
-  --bg2:       #eef0f4;
-  --surface:   #e2e8f0;
-  --surface2:  #cbd5e1;
-  --surface3:  #94a3b8;
-  --border:    rgba(0,0,0,0.07);
-  --border2:   rgba(0,0,0,0.12);
+  --bg:        #ffffff;
+  --bg2:       #f8fafc;
+  --surface:   #ffffff;
+  --surface2:  #f1f5f9;
+  --surface3:  #cbd5e1;
+  --border:    rgba(37, 99, 235, 0.15);
+  --border2:   rgba(37, 99, 235, 0.25);
   --text:      #0f172a;
   --text2:     #475569;
   --text3:     #94a3b8;
@@ -33,6 +33,8 @@
   --amber:     #f59e0b;
   --rose:      #f43f5e;
   --pink:      #ec4899;
+
+  --nerve-blue: #2563eb;
 
   --sidebar-w: 272px;
   --header-h:  68px;
@@ -51,15 +53,34 @@ body {
   overflow-x: hidden;
 }
 
+/* Card Common Styling — Nerve Blue Borders & White Background */
+.stat-card, .action-card, .chart-card, .table-card, .reg-card {
+  background: #ffffff !important;
+  border: 1.5px solid var(--nerve-blue) !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.04) !important;
+}
+
+.stat-card:hover, .action-card:hover, .chart-card:hover, .table-card:hover, .reg-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.12) !important;
+  border-color: var(--nerve-blue) !important;
+}
+
+.stat-svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
 /* Subtle mesh background */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(99,102,241,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 30% at 60% 40%, rgba(16,185,129,0.03) 0%, transparent 50%);
+    radial-gradient(ellipse 80% 50% at 20% 0%, rgba(37,99,235,0.03) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 100%, rgba(6,182,212,0.02) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 60% 40%, rgba(16,185,129,0.02) 0%, transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
@@ -72,7 +93,7 @@ body::before {
   top: 0; left: 0;
   width: var(--sidebar-w);
   height: 100vh;
-  background: var(--surface);
+  background: var(--bg2);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -81,7 +102,7 @@ body::before {
   overflow-x: hidden;
   transition: transform 0.35s cubic-bezier(.4,0,.2,1);
   scrollbar-width: none;
-  box-shadow: 2px 0 12px rgba(0,0,0,0.04);
+  box-shadow: 2px 0 12px rgba(0,0,0,0.02);
 }
 .sidebar::-webkit-scrollbar { display: none; }
 
@@ -90,7 +111,7 @@ body::before {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 200px;
-  background: linear-gradient(180deg, rgba(99,102,241,0.04) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(37,99,235,0.02) 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -184,15 +205,18 @@ body::before {
 }
 
 .nav-icon {
-  width: 30px; height: 30px;
-  border-radius: 7px;
+  width: 34px; height: 34px;
+  border-radius: 10px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 15px;
   flex-shrink: 0;
-  transition: background 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.18);
 }
-.nav-item:hover .nav-icon { background: var(--surface3); }
-.nav-item.active .nav-icon { background: rgba(99,102,241,0.12); }
+.nav-item:hover .nav-icon {
+  transform: scale(1.1) rotate(-3deg);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+.nav-item.active .nav-icon { transform: scale(1.05); }
 
 .nav-label { flex: 1; }
 
@@ -618,11 +642,19 @@ body::before {
 .stat-icon-wrap {
   width: 42px; height: 42px;
   border-radius: 10px;
-  background: var(--sg);
-  border: 1px solid rgba(0,0,0,0.05);
+  background: var(--nerve-blue) !important;
+  color: white !important;
   display: flex; align-items: center; justify-content: center;
   font-size: 20px;
   margin-bottom: 14px;
+}
+.stat-icon-wrap svg {
+  stroke: white !important;
+  fill: none;
+}
+/* If there are any filled SVGs in stat cards, this makes them white */
+.stat-icon-wrap svg [fill]:not([fill="none"]) {
+  fill: white !important;
 }
 
 .stat-meta {
@@ -714,13 +746,20 @@ body::before {
 .action-icon {
   width: 40px; height: 40px;
   border-radius: 10px;
-  background: var(--surface2);
+  background: var(--nerve-blue) !important;
+  color: white !important;
   display: flex; align-items: center; justify-content: center;
   font-size: 19px;
   position: relative;
-  transition: background 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-.action-card:hover .action-icon { background: rgba(99,102,241,0.1); }
+.action-card:hover .action-icon {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+.action-icon svg {
+  stroke: white !important;
+}
 
 .action-label {
   font-size: 11.5px;
@@ -1022,7 +1061,9 @@ body::before {
 <!-- ═══════════ SIDEBAR ═══════════ -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
-    <div class="logo-gem">🏫</div>
+    <div class="logo-gem">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="white"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg>
+    </div>
     <div class="logo-text">
       <h1>SchoolManager</h1>
       <span>Havano Module</span>
@@ -1032,36 +1073,36 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Main</div>
     <a class="nav-item active" href="#" id="nav-dashboard" onclick="setActive(this); showScreen('dashboard'); return false;">
-      <div class="nav-icon">📊</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
       <span class="nav-label">Dashboard</span>
     </a>
     <a class="nav-item" href="#" id="nav-exam-analysis" onclick="setActive(this); showScreen('exam-analysis'); return false;">
-      <div class="nav-icon">📈</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg></div>
       <span class="nav-label">Exam Analysis</span>
     </a>
     <a class="nav-item" href="/app/library" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📖</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
       <span class="nav-label">Library</span>
     </a>
     <a class="nav-item" href="/app/student" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🎓</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
       <span class="nav-label">Students</span>
       <span class="nav-badge" id="nb-students">—</span>
     </a>
     <a class="nav-item" href="/app/billing" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">💳</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg></div>
       <span class="nav-label">Billing</span>
     </a>
     <a class="nav-item" href="/app/sales-invoice" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🧾</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#56ab2f,#a8e063);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-4-4zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div>
       <span class="nav-label">Invoices</span>
     </a>
     <a class="nav-item" href="/fees-balance" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📊</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#6a11cb,#2575fc);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg></div>
       <span class="nav-label">Fees Balance</span>
     </a>
     <a class="nav-item" href="/app/receipting" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">💰</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
       <span class="nav-label">Receipts</span>
     </a>
   </div>
@@ -1069,43 +1110,43 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Academics</div>
     <a class="nav-item" href="/app/exam" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📝</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#0061ff,#60efff);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-4-4zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div>
       <span class="nav-label">Exams</span>
     </a>
     <a class="nav-item" href="/app/exam-schedule" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📅</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg></div>
       <span class="nav-label">Exam Schedule</span>
     </a>
     <a class="nav-item" href="/app/exam-result" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📋</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#a18cd1,#fbc2eb);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg></div>
       <span class="nav-label">Exam Results</span>
     </a>
     <a class="nav-item" href="/app/class-result" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏆</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg></div>
       <span class="nav-label">Class Results</span>
     </a>
     <a class="nav-item" href="/app/inclass-test" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">✏️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
       <span class="nav-label">Inclass Test</span>
     </a>
     <a class="nav-item" href="/app/test-schedule" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🗓️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#ee0979,#ff6a00);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg></div>
       <span class="nav-label">Class Tests</span>
     </a>
     <a class="nav-item" href="/app/homework" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📚</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
       <span class="nav-label">Homework Library</span>
     </a>
     <a class="nav-item" href="/app/home-schedule" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏠</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
       <span class="nav-label">Homework Schedule</span>
     </a>
     <a class="nav-item" href="/app/course" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🎒</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#8e2de2,#4a00e0);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 6h-2.18c.07-.44.18-.86.18-1.3C18 2.1 15.9 0 13.3 0c-1.4 0-2.6.6-3.5 1.5L9 3 7.2 1.5C6.3.6 5.1 0 3.7 0 1.1 0-1 2.1-1 4.7c0 .44.11.86.18 1.3H-1v2h22V6zM4 20c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10H4v10z"/></svg></div>
       <span class="nav-label">Courses</span>
     </a>
     <a class="nav-item" href="/app/promote" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">⬆️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#56ab2f,#a8e063);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"/></svg></div>
       <span class="nav-label">Promote</span>
     </a>
   </div>
@@ -1113,19 +1154,19 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Grading</div>
     <a class="nav-item" href="/app/grade" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🅰️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg></div>
       <span class="nav-label">Grades</span>
     </a>
     <a class="nav-item" href="/app/grading-score" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🔢</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg></div>
       <span class="nav-label">Grading Scores</span>
     </a>
     <a class="nav-item" href="/app/term-exam-report" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📄</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-4-4zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg></div>
       <span class="nav-label">Term Report</span>
     </a>
     <a class="nav-item" href="/app/exam-type" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🗂️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#cc2b5e,#753a88);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
       <span class="nav-label">Exam Types</span>
     </a>
   </div>
@@ -1133,19 +1174,19 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Attendance</div>
     <a class="nav-item" href="/app/student-attendance" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">✅</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
       <span class="nav-label">Student Attendance</span>
     </a>
     <a class="nav-item" href="/app/staff-attendance" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">👔</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
       <span class="nav-label">Staff Attendance</span>
     </a>
     <a class="nav-item" href="/app/attendance-settings" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">⚙️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
       <span class="nav-label">Attendance Settings</span>
     </a>
     <a class="nav-item" href="/app/attendance-status" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📌</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
       <span class="nav-label">Attendance Status</span>
     </a>
   </div>
@@ -1153,11 +1194,11 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Fees</div>
     <a class="nav-item" href="/fees-structure" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📐</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
       <span class="nav-label">Fees Structure</span>
     </a>
     <a class="nav-item" href="/app/fees-category" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏷️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#56ab2f,#a8e063);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg></div>
       <span class="nav-label">Fees Category</span>
     </a>
   </div>
@@ -1165,35 +1206,35 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Student Info</div>
     <a class="nav-item" href="/app/student-id-card" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🪪</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-8 2.75c1.24 0 2.25 1.01 2.25 2.25s-1.01 2.25-2.25 2.25S9.75 10.24 9.75 9 10.76 6.75 12 6.75zM17 17H7v-.75c0-1.68 3.36-2.5 5-2.5s5 .82 5 2.5V17z"/></svg></div>
       <span class="nav-label">Student ID Cards</span>
     </a>
     <a class="nav-item" href="/app/section" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🔖</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#ee0979,#ff6a00);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg></div>
       <span class="nav-label">Sections</span>
     </a>
     <a class="nav-item" href="/app/hostel" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏨</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#1a1a2e,#0f3460);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg></div>
       <span class="nav-label">Hostels</span>
     </a>
     <a class="nav-item" href="/app/dorm-no" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🛏️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M7 13c1.66 0 3-1.34 3-3S8.66 7 7 7s-3 1.34-3 3 1.34 3 3 3zm12-6h-8v7H3V5H1v15h2v-3h18v3h2v-9c0-2.21-1.79-4-4-4z"/></svg></div>
       <span class="nav-label">Dorm Numbers</span>
     </a>
     <a class="nav-item" href="/app/house" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏠</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
       <span class="nav-label">Houses</span>
     </a>
     <a class="nav-item" href="/app/pickup-point" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🚌</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM12 6c2.76 0 4.9.43 6 1.01V9H6V7.01C7.1 6.43 9.24 6 12 6z"/></svg></div>
       <span class="nav-label">Pickup Points</span>
     </a>
     <a class="nav-item" href="/app/route-list" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🗺️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg></div>
       <span class="nav-label">Route List</span>
     </a>
     <a class="nav-item" href="/app/area" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📍</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div>
       <span class="nav-label">Areas</span>
     </a>
   </div>
@@ -1201,67 +1242,67 @@ body::before {
   <div class="nav-section">
     <div class="nav-section-label">Setup</div>
     <a class="nav-item" href="/app/student-class" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🏷️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#2193b0,#6dd5ed);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg></div>
       <span class="nav-label">Classes</span>
     </a>
     <a class="nav-item" href="/app/subject" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📖</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#cc2b5e,#753a88);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
       <span class="nav-label">Subjects</span>
     </a>
     <a class="nav-item" href="/app/subject-group" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📂</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#8e2de2,#4a00e0);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/></svg></div>
       <span class="nav-label">Subject Groups</span>
     </a>
     <a class="nav-item" href="/app/academic-year" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📆</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg></div>
       <span class="nav-label">Academic Year</span>
     </a>
     <a class="nav-item" href="/app/term" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🗓️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg></div>
       <span class="nav-label">Terms</span>
     </a>
     <a class="nav-item" href="/app/month" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📅</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z"/></svg></div>
       <span class="nav-label">Months</span>
     </a>
     <a class="nav-item" href="/app/homework-type" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📝</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></div>
       <span class="nav-label">Homework Types</span>
     </a>
     <a class="nav-item" href="/app/religion" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🕊️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 2a5 5 0 1 0 0 10A5 5 0 0 0 12 2zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg></div>
       <span class="nav-label">Religions</span>
     </a>
     <a class="nav-item" href="/app/room-number" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">🚪</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#56ab2f,#a8e063);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg></div>
       <span class="nav-label">Room Numbers</span>
     </a>
     <a class="nav-item" href="/app/category-1" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">1️⃣</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#f093fb,#f5576c);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
       <span class="nav-label">Category 1</span>
     </a>
     <a class="nav-item" href="/app/category-2" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">2️⃣</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#ee0979,#ff6a00);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
       <span class="nav-label">Category 2</span>
     </a>
     <a class="nav-item" href="/app/category-3" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">3️⃣</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#cc2b5e,#753a88);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
       <span class="nav-label">Category 3</span>
     </a>
     <a class="nav-item" href="/app/assign-class-to-teacher" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">👨‍🏫</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
       <span class="nav-label">Assign Classes</span>
     </a>
     <a class="nav-item" href="/app/assign-subjects-to-teacher" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">📚</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
       <span class="nav-label">Assign Subjects</span>
     </a>
     <a class="nav-item" href="/app/school-settings" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">⚙️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#fa709a,#fee140);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
       <span class="nav-label">School Settings</span>
     </a>
     <a class="nav-item" href="/app/school-settings1" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon">⚙️</div>
+      <div class="nav-icon" style="background:linear-gradient(135deg,#667eea,#764ba2);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
       <span class="nav-label">Settings 1</span>
     </a>
   </div>
@@ -1361,51 +1402,123 @@ body::before {
     </div>
     <div class="actions-grid">
       <a class="action-card" href="/app/student/new-student" target="_top">
-        <div class="action-icon">➕</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="17" y1="11" x2="23" y2="11"></line>
+          </svg>
+        </div>
         <div class="action-label">Add Student</div>
       </a>
       <a class="action-card" href="/app/billing/new-billing" target="_top">
-        <div class="action-icon">💳</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+            <line x1="1" y1="10" x2="23" y2="10"></line>
+          </svg>
+        </div>
         <div class="action-label">New Billing</div>
       </a>
       <a class="action-card" href="/app/exam-schedule/new-exam-schedule" target="_top">
-        <div class="action-icon">📝</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+          </svg>
+        </div>
         <div class="action-label">New Exam</div>
       </a>
       <a class="action-card" href="/app/home-schedule/new-home-schedule" target="_top">
-        <div class="action-icon">📚</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </div>
         <div class="action-label">Set Homework</div>
       </a>
       <a class="action-card" href="/app/test-schedule/new-test-schedule" target="_top">
-        <div class="action-icon">✏️</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </div>
         <div class="action-label">New Test</div>
       </a>
       <a class="action-card" href="/app/receipting/new-receipting" target="_top">
-        <div class="action-icon">🧾</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
         <div class="action-label">New Receipt</div>
       </a>
       <a class="action-card" href="/fees-structure" target="_top">
-        <div class="action-icon">📐</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path>
+            <path d="M22 12A10 10 0 0 0 12 2v10z"></path>
+          </svg>
+        </div>
         <div class="action-label">Fees Structure</div>
       </a>
       <a class="action-card" href="/app/student?status=Active" target="_top">
-        <div class="action-icon">👥</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+        </div>
         <div class="action-label">View Students</div>
       </a>
       <a class="action-card" href="/app/department" target="_top">
-        <div class="action-icon">🏢</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+            <line x1="9" y1="22" x2="9" y2="16"></line>
+            <line x1="15" y1="22" x2="15" y2="16"></line>
+            <line x1="9" y1="16" x2="15" y2="16"></line>
+          </svg>
+        </div>
         <div class="action-label">Departments</div>
       </a>
       <a class="action-card" href="/app/scheme" target="_top">
-        <div class="action-icon">📅</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ec4899" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
         <div class="action-label">Schemes</div>
       </a>
       <a class="action-card" href="/app/assign-subjects-to-teacher" target="_top">
-        <div class="action-icon">📚</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#8b5cf6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+        </div>
         <div class="action-label">Assign Subjects</div>
       </a>
       <a class="action-card" href="/app/assign-class-to-teacher" target="_top">
-        <div class="action-icon">👨‍🏫</div>
+        <div class="action-icon">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#06b6d4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+          </svg>
+        </div>
         <div class="action-label">Assign Classes</div>
       </a>
     </div>
@@ -1473,7 +1586,18 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">🎓</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-students" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6366f1"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-students)" d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+            <path fill="url(#grad-students)" opacity="0.7" d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Total Students</div>
         <div class="stat-value" id="stat-students">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-students"></div></div>
@@ -1481,7 +1605,12 @@ body::before {
 
       <div class="stat-card s-emerald" onclick="window.location.href='fees_collected.html'">
         <div class="card-cc-wrap" onclick="event.stopPropagation()">
-          <button onclick="toggleCollectedFilters()" class="card-cc-sel" style="background:var(--emerald);color:white;border:none;">⚙️ Filters</button>
+          <button onclick="toggleCollectedFilters()" class="card-cc-sel" style="background:var(--emerald);color:white;border:none;display:inline-flex;align-items:center;gap:4px;">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            Filters
+          </button>
           <div id="collected-filters-menu" style="display:none; position:absolute; top:25px; right:0; background:white; padding:12px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); border:1px solid var(--border); flex-direction:column; gap:8px; z-index:20;">
             <select id="fc-cc" class="card-cc-sel" onchange="onCollectedFilterChange()">
               <option value="">All Cost Centers</option>
@@ -1498,7 +1627,17 @@ body::before {
             <input type="date" id="fc-date" class="card-cc-sel" onchange="onCollectedFilterChange()">
           </div>
         </div>
-        <div class="stat-icon-wrap">💰</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-fees" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#10b981"/>
+                <stop offset="100%" stop-color="#059669"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-fees)" d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Fees Collected</div>
         <div class="stat-value" id="stat-collected">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-collected"></div></div>
@@ -1510,7 +1649,17 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">⚠️</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-outstanding" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f43f5e"/>
+                <stop offset="100%" stop-color="#e11d48"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-outstanding)" d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Outstanding</div>
         <div class="stat-value" id="stat-outstanding">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-outstanding"></div></div>
@@ -1522,7 +1671,17 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">📝</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-exams" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#d97706"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-exams)" d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Exams Scheduled</div>
         <div class="stat-value" id="stat-exams">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:60%"></div></div>
@@ -1534,7 +1693,17 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">✏️</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-tests" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#2563eb"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-tests)" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Class Tests</div>
         <div class="stat-value" id="stat-tests">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:45%"></div></div>
@@ -1546,7 +1715,17 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">📚</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-homework" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#06b6d4"/>
+                <stop offset="100%" stop-color="#0891b2"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-homework)" d="M12 11.55C9.64 9.35 6.48 8 3 8v11c3.48 0 6.64 1.35 9 3.55 2.36-2.2 5.52-3.55 9-3.55V8c-3.48 0-6.64 1.35-9 3.55zM12 8c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Homework Sets</div>
         <div class="stat-value" id="stat-homework">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:35%"></div></div>
@@ -1558,7 +1737,17 @@ body::before {
             <option value="">All</option>
           </select>
         </div>
-        <div class="stat-icon-wrap">🧾</div>
+        <div class="stat-icon-wrap">
+          <svg class="stat-svg" viewBox="0 0 24 24">
+            <defs>
+              <linearGradient id="grad-invoices" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#7c3aed"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#grad-invoices)" d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 5v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2z"/>
+          </svg>
+        </div>
         <div class="stat-meta">Total Invoices</div>
         <div class="stat-value" id="stat-invoices">—</div>
         <div class="stat-bar"><div class="stat-bar-fill" style="width:70%"></div></div>
@@ -2245,43 +2434,109 @@ async function loadSchoolOverviews(costCenters) {
     section.className = 'school-overview-section';
     section.innerHTML = `
       <div class="school-sec-head">
-        <div class="school-sec-icon">🏫</div>
+        <div class="school-sec-icon" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:rgba(37,99,235,0.08);border:1px solid rgba(37,99,235,0.1);">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
         <div class="school-sec-title">${cc.name}</div>
         <div class="school-sec-sub">${data.students || 0} students &nbsp;•&nbsp; ${invoices.length} invoices</div>
       </div>
       <div class="school-stats-grid">
         <div class="stat-card ${color}" onclick="window.top.location.href='/app/student?cost_center=${encodeURIComponent(cc.name)}'">
-          <div class="stat-icon-wrap">🎓</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-students-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#3b82f6"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-students-cc-${i})" d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/>
+              <path fill="url(#grad-students-cc-${i})" opacity="0.7" d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Students</div>
           <div class="stat-value">${fmt(data.students || 0)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:80%"></div></div>
         </div>
         <div class="stat-card s-emerald">
-          <div class="stat-icon-wrap">💰</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-fees-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981"/>
+                  <stop offset="100%" stop-color="#059669"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-fees-cc-${i})" d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Fees Collected</div>
           <div class="stat-value">${fmtMoney(collected)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:${collected+outstanding>0?Math.round(collected/(collected+outstanding)*100):0}%"></div></div>
         </div>
         <div class="stat-card s-rose">
-          <div class="stat-icon-wrap">⚠️</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-outstanding-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f43f5e"/>
+                  <stop offset="100%" stop-color="#e11d48"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-outstanding-cc-${i})" d="M12 2L1 21h22L12 2zm1 14h-2v-2h2v2zm0-4h-2V8h2v4z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Outstanding</div>
           <div class="stat-value">${fmtMoney(outstanding)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:${collected+outstanding>0?Math.round(outstanding/(collected+outstanding)*100):0}%"></div></div>
         </div>
         <div class="stat-card s-amber">
-          <div class="stat-icon-wrap">🧾</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-invoices-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#f59e0b"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-invoices-cc-${i})" d="M18 17H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V7h12v2zM3 5v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.11 0-2 .9-2 2z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Total Invoices</div>
           <div class="stat-value">${fmt(invoices.length)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:70%"></div></div>
         </div>
         <div class="stat-card s-blue">
-          <div class="stat-icon-wrap">✅</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-paid-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3b82f6"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-paid-cc-${i})" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Paid Invoices</div>
           <div class="stat-value">${fmt(paid)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:${invoices.length>0?Math.round(paid/invoices.length*100):0}%"></div></div>
         </div>
         <div class="stat-card s-violet">
-          <div class="stat-icon-wrap">⏳</div>
+          <div class="stat-icon-wrap">
+            <svg class="stat-svg" viewBox="0 0 24 24">
+              <defs>
+                <linearGradient id="grad-unpaid-cc-${i}" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#7c3aed"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#grad-unpaid-cc-${i})" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+            </svg>
+          </div>
           <div class="stat-meta">Unpaid Invoices</div>
           <div class="stat-value">${fmt(unpaid)}</div>
           <div class="stat-bar"><div class="stat-bar-fill" style="width:${invoices.length>0?Math.round(unpaid/invoices.length*100):0}%"></div></div>

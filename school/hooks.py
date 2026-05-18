@@ -87,3 +87,11 @@ has_permission = {
     "Scheme": "school.school_management.doctype.scheme.scheme.has_permission",
     "Subject": "school.school_management.doctype.subject.subject.has_permission"
 }
+
+scheduler_events = {
+    "cron": {
+        "*/5 * * * *": [
+            "school.api.reconcile_all_submitted_receipts"
+        ]
+    }
+}
