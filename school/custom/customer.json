@@ -1,12 +1,14 @@
 {
  "custom_fields": [
   {
+   "dt": "Customer",
    "fieldname": "custom_student_reg_no",
    "fieldtype": "Data",
    "label": "Student Registration Number",
    "insert_after": "customer_name"
   },
   {
+   "dt": "Customer",
    "fieldname": "custom_student_type",
    "fieldtype": "Select",
    "label": "Student Type",
