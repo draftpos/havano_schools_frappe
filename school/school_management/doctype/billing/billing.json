@@ -11,7 +11,7 @@
         "date",
         "cost_center",
         "col_break_1",
-        "project",
+        "category_1",
         "term",
         "col_break_2",
         "year",
@@ -24,7 +24,7 @@
         "number_of_students",
         "total_amount",
         "other_filtering_section",
-        "category_1",
+        "project",
         "category_2",
         "category_3",
         "col_break_of_1",
@@ -68,10 +68,10 @@
             "fieldtype": "Column Break"
         },
         {
-            "fieldname": "project",
+            "fieldname": "category_1",
             "fieldtype": "Link",
-            "label": "Project",
-            "options": "Project"
+            "label": "Category 1",
+            "options": "Category 1"
         },
         {
             "fieldname": "term",
@@ -145,10 +145,10 @@
             "label": "Other Filtering"
         },
         {
-            "fieldname": "category_1",
+            "fieldname": "project",
             "fieldtype": "Link",
-            "label": "Category 1",
-            "options": "Category 1"
+            "label": "Project",
+            "options": "Project"
         },
         {
             "fieldname": "category_2",
