@@ -53,6 +53,12 @@ title: Fees Balance Report
         </select>
     </div>
     <div>
+        <label>Section</label>
+        <select id="section-filter">
+            <option value="">All Sections</option>
+        </select>
+    </div>
+    <div>
         <label>Search Student</label>
         <input type="text" id="search-filter" placeholder="Type name..."/>
     </div>
@@ -107,6 +113,24 @@ function loadClasses(){
     });
 }
 
+function loadSections(){
+    fetch("/api/method/frappe.client.get_list?doctype=Section&fields=%5B%22name%22%5D&limit=50", {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+    })
+    .then(r => r.json())
+    .then(r => {
+        if(r.message){
+            var sel=document.getElementById("section-filter");
+            r.message.forEach(function(s){
+                var o=document.createElement("option");
+                o.value=s.name;o.textContent=s.name;
+                sel.appendChild(o);
+            });
+        }
+    });
+}
+
 function loadReport(){
     document.getElementById("loading").style.display="block";
     document.getElementById("report-content").innerHTML="";
@@ -136,12 +160,14 @@ function loadReport(){
 
 function renderReport(data){
     var classFilter = document.getElementById("class-filter").value;
+    var sectionFilter = document.getElementById("section-filter").value;
     var search = document.getElementById("search-filter").value.toLowerCase();
 
     var filtered = data.filter(function(row){
         var matchClass = !classFilter || row.student_class === classFilter;
+        var matchSection = !sectionFilter || row.section === sectionFilter;
         var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
-        return matchClass && matchSearch;
+        return matchClass && matchSection && matchSearch;
     });
 
     // Summary
@@ -196,11 +222,13 @@ function renderReport(data){
 function exportCSV(){
     if(!allData.length){alert("No data to export");return;}
     var classFilter = document.getElementById("class-filter").value;
+    var sectionFilter = document.getElementById("section-filter").value;
     var search = document.getElementById("search-filter").value.toLowerCase();
     var filtered = allData.filter(function(row){
         var matchClass = !classFilter || row.student_class === classFilter;
+        var matchSection = !sectionFilter || row.section === sectionFilter;
         var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
-        return matchClass && matchSearch;
+        return matchClass && matchSection && matchSearch;
     });
     var rows = [["Student","Class","Section","Cost Centre","Fees Structure","Opening Balance","Total Billed","Total Paid","Outstanding"]];
     filtered.forEach(function(r){
@@ -224,8 +252,12 @@ document.getElementById("search-filter").addEventListener("keyup",function(){
 document.getElementById("class-filter").addEventListener("change",function(){
     if(allData.length) renderReport(allData);
 });
+document.getElementById("section-filter").addEventListener("change",function(){
+    if(allData.length) renderReport(allData);
+});
 
 loadCostCenters();
 loadClasses();
+loadSections();
 loadReport();
 </script>
