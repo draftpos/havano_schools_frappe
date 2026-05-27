@@ -12,7 +12,6 @@ fixtures = [
     {
         "dt": "Server Script",
         "filters": [["name", "in", [
-            "Sales Order Auto Payment Entry",
             "Calculate Student Count",
             "Fetch Students for ID Card",
             "Fetch Students for Promote",

@@ -36,20 +36,50 @@ class Receipting(Document):
 		self.create_payment_entry()
 
 	def create_payment_entry(self):
-		# Prevent duplicate/bad payment entries
+		# Guard 1: Check if a PE already exists for THIS receipt
 		existing_pes = frappe.get_all(
 			"Payment Entry",
 			filters={"reference_no": self.name, "docstatus": ["!=", 2]},
 			fields=["name", "received_amount", "docstatus"]
 		)
 		if existing_pes:
-			# Check if there is exactly 1 Payment Entry, and it matches the allocation amount
 			if len(existing_pes) == 1 and flt(existing_pes[0].received_amount) == flt(self.total_allocated) and existing_pes[0].docstatus == 1:
 				frappe.msgprint(f"Payment Entry {existing_pes[0].name} already exists and matches receipt. Skipping.")
 				return
-			
-			# If there are duplicates, or mismatch, or draft status, cancel and delete them all to start clean
-			frappe.msgprint("Discrepancy or duplicate found in Payment Entries for this receipt. Cleaning and recreating...")
+
+		# Guard 2: Check if any invoice in this receipt is already fully paid
+		# by a Payment Entry from a DIFFERENT receipt
+		for row in self.invoice:
+			if not row.invoice_number or flt(row.allocated) <= 0:
+				continue
+			sinv_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount")
+			if flt(sinv_outstanding) <= 0:
+				frappe.throw(
+					f"Invoice {row.invoice_number} is already fully paid (outstanding = {sinv_outstanding}). "
+					f"Cannot create a duplicate payment. Please cancel this receipt."
+				)
+
+			# Also check for any submitted PE referencing this invoice from a different receipt
+			conflicting = frappe.db.sql("""
+				SELECT pe.name, pe.reference_no
+				FROM `tabPayment Entry` pe
+				JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
+				WHERE per.reference_name = %s
+				AND per.reference_doctype = 'Sales Invoice'
+				AND pe.docstatus = 1
+				AND pe.reference_no != %s
+			""", (row.invoice_number, self.name), as_dict=True)
+
+			if conflicting:
+				conflict_names = ", ".join([f"{c.name} (from {c.reference_no})" for c in conflicting])
+				frappe.throw(
+					f"Invoice {row.invoice_number} already has a submitted Payment Entry from another receipt: "
+					f"{conflict_names}. Cannot create duplicate payment."
+				)
+
+		# If duplicates or mismatches exist for THIS receipt, clean them first
+		if existing_pes:
+			frappe.msgprint("Discrepancy found in Payment Entries for this receipt. Cleaning and recreating...")
 			for pe in existing_pes:
 				try:
 					pe_doc = frappe.get_doc("Payment Entry", pe.name)
@@ -57,9 +87,9 @@ class Receipting(Document):
 					if pe_doc.docstatus == 1:
 						pe_doc.cancel()
 					pe_doc.delete()
-				except Exception as e:
+				except Exception:
 					frappe.log_error(
-						title=f"Failed to cancel/delete duplicate/bad Payment Entry {pe.name} for Receipt {self.name}",
+						title=f"Failed to cancel/delete PE {pe.name} for Receipt {self.name}",
 						message=frappe.get_traceback()
 					)
 
@@ -181,6 +211,26 @@ class Receipting(Document):
 	def verify_and_reconcile_payment_entry(self):
 		if self.docstatus != 1:
 			return {"status": "skipped", "message": "Receipting document must be submitted to reconcile."}
+
+		# Safety check: do not recreate if the invoice is already paid by another receipt
+		for row in self.invoice:
+			if not row.get("invoice_number") or flt(row.get("allocated", 0)) <= 0:
+				continue
+			conflicting = frappe.db.sql("""
+				SELECT pe.name, pe.reference_no
+				FROM `tabPayment Entry` pe
+				JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
+				WHERE per.reference_name = %s
+				AND per.reference_doctype = 'Sales Invoice'
+				AND pe.docstatus = 1
+				AND pe.reference_no != %s
+			""", (row.invoice_number, self.name), as_dict=True)
+
+			if conflicting:
+				return {
+					"status": "skipped",
+					"message": f"Invoice {row.invoice_number} already paid by {conflicting[0].reference_no}. Skipping reconciliation to prevent duplicate."
+				}
 
 		# Fetch all Payment Entries associated with this receipt (reference_no)
 		pes = frappe.get_all(

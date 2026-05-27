@@ -41,6 +41,12 @@ title: Fees Balance Report
 
 <div class="filter-bar">
     <div>
+        <label>Term</label>
+        <select id="term-filter">
+            <option value="">All Terms</option>
+        </select>
+    </div>
+    <div>
         <label>Cost Centre / School</label>
         <select id="cc-filter">
             <option value="">All Schools</option>
@@ -48,15 +54,13 @@ title: Fees Balance Report
     </div>
     <div>
         <label>Class</label>
-        <select id="class-filter">
-            <option value="">All Classes</option>
-        </select>
+        <input type="text" id="class-filter" list="class-list" placeholder="All Classes" autocomplete="off" />
+        <datalist id="class-list"></datalist>
     </div>
     <div>
         <label>Section</label>
-        <select id="section-filter">
-            <option value="">All Sections</option>
-        </select>
+        <input type="text" id="section-filter" list="section-list" placeholder="All Sections" autocomplete="off" />
+        <datalist id="section-list"></datalist>
     </div>
     <div>
         <label>Search Student</label>
@@ -96,39 +100,67 @@ function loadCostCenters(){
 }
 
 function loadClasses(){
-    fetch("/api/method/frappe.client.get_list?doctype=Student+Class&fields=%5B%22name%22%2C%22class_name%22%5D&limit=50", {
+    var cc = document.getElementById("cc-filter").value;
+    var qs = cc ? "&filters=%7B%22cost_center%22%3A%22" + encodeURIComponent(cc) + "%22%7D" : "";
+    fetch("/api/method/frappe.client.get_list?doctype=Student+Class&fields=%5B%22name%22%2C%22class_name%22%5D&limit=0" + qs, {
         headers: { "Accept": "application/json" },
         credentials: "include"
     })
     .then(r => r.json())
     .then(r => {
         if(r.message){
-            var sel=document.getElementById("class-filter");
+            var dl=document.getElementById("class-list");
+            dl.innerHTML = "";
             r.message.forEach(function(c){
                 var o=document.createElement("option");
-                o.value=c.name;o.textContent=c.class_name||c.name;
-                sel.appendChild(o);
+                o.value=c.name;
+                if(c.class_name && c.class_name !== c.name) o.textContent=c.class_name;
+                dl.appendChild(o);
             });
         }
     });
 }
 
 function loadSections(){
-    fetch("/api/method/frappe.client.get_list?doctype=Section&fields=%5B%22name%22%5D&limit=50", {
+    var cc = document.getElementById("cc-filter").value;
+    var qs = cc ? "&filters=%7B%22cost_center%22%3A%22" + encodeURIComponent(cc) + "%22%7D" : "";
+    fetch("/api/method/frappe.client.get_list?doctype=Section&fields=%5B%22name%22%5D&limit=0" + qs, {
         headers: { "Accept": "application/json" },
         credentials: "include"
     })
     .then(r => r.json())
     .then(r => {
         if(r.message){
-            var sel=document.getElementById("section-filter");
+            var dl=document.getElementById("section-list");
+            dl.innerHTML = "";
             r.message.forEach(function(s){
                 var o=document.createElement("option");
-                o.value=s.name;o.textContent=s.name;
-                sel.appendChild(o);
+                o.value=s.name;
+                dl.appendChild(o);
             });
         }
     });
+}
+
+function loadTermsAndReport(){
+    fetch("/api/method/frappe.client.get_list?doctype=Term&fields=%5B%22name%22%2C%22is_active%22%5D&limit=50", {
+        headers: { "Accept": "application/json" },
+        credentials: "include"
+    })
+    .then(r => r.json())
+    .then(r => {
+        if(r.message){
+            var sel=document.getElementById("term-filter");
+            r.message.forEach(function(t){
+                var o=document.createElement("option");
+                o.value=t.name;o.textContent=t.name;
+                if(t.is_active===1) o.selected = true;
+                sel.appendChild(o);
+            });
+        }
+        loadReport();
+    })
+    .catch(() => loadReport());
 }
 
 function loadReport(){
@@ -136,8 +168,11 @@ function loadReport(){
     document.getElementById("report-content").innerHTML="";
     document.getElementById("summary-cards").innerHTML="";
     var cc=document.getElementById("cc-filter").value;
-    var qs = cc ? "?cost_center=" + encodeURIComponent(cc) : "";
-    fetch("/api/method/school.api.get_fees_balance" + qs, {
+    var term=document.getElementById("term-filter") ? document.getElementById("term-filter").value : "";
+    var qs = new URLSearchParams();
+    if(cc) qs.append("cost_center", cc);
+    if(term) qs.append("academic_term", term);
+    fetch("/api/method/school.api.get_fees_balance?" + qs.toString(), {
         headers: { "Accept": "application/json" },
         credentials: "include"
     })
@@ -255,9 +290,20 @@ document.getElementById("class-filter").addEventListener("change",function(){
 document.getElementById("section-filter").addEventListener("change",function(){
     if(allData.length) renderReport(allData);
 });
+document.getElementById("term-filter").addEventListener("change",function(){
+    loadReport();
+});
+document.getElementById("cc-filter").addEventListener("change",function(){
+    loadClasses();
+    loadSections();
+    // Reset selections when cost center changes
+    document.getElementById("class-filter").value = "";
+    document.getElementById("section-filter").value = "";
+    loadReport();
+});
 
 loadCostCenters();
 loadClasses();
 loadSections();
-loadReport();
+loadTermsAndReport();
 </script>

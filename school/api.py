@@ -789,6 +789,8 @@ def get_fees_balance():
         return {"error": "Not authorized"}
 
     cost_center = frappe.form_dict.get("cost_center") or None
+    academic_term = frappe.form_dict.get("academic_term") or None
+    
     student_filters = {}
     if cost_center:
         student_filters["cost_center"] = cost_center
@@ -806,6 +808,10 @@ def get_fees_balance():
     if not student_names:
         return []
 
+    term_condition = ""
+    if academic_term:
+        term_condition = " AND si.academic_term = " + frappe.db.escape(academic_term)
+
     placeholders = ", ".join(["%s"] * len(student_names))
     receivables = frappe.db.sql("""
         SELECT
@@ -819,9 +825,10 @@ def get_fees_balance():
         FROM `tabSales Invoice` si
         WHERE si.customer IN ({placeholders})
           AND si.docstatus = 1
+          {term_condition}
         GROUP BY si.customer, si.customer_name
         ORDER BY si.customer ASC
-    """.format(placeholders=placeholders), student_names, as_dict=True)
+    """.format(placeholders=placeholders, term_condition=term_condition), student_names, as_dict=True)
 
     opening_balances = frappe.db.sql("""
         SELECT
@@ -2114,18 +2121,23 @@ def reconcile_all_submitted_receipts():
         flawed_receipts = frappe.db.sql("""
             SELECT r.name
             FROM `tabReceipting` r
-            WHERE r.docstatus = 1 AND (
-                -- Case 1: No Payment Entry exists
-                (SELECT COUNT(*) FROM `tabPayment Entry` pe WHERE pe.reference_no = r.name AND pe.docstatus != 2) = 0
+            WHERE r.docstatus = 1 
+              AND r.modified < DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+              AND (
+                -- Case 1: No submitted Payment Entry exists
+                (SELECT COUNT(*) FROM `tabPayment Entry` pe 
+                 WHERE pe.reference_no = r.name AND pe.docstatus = 1) = 0
                 OR
-                -- Case 2: Duplicate Payment Entries exist
-                (SELECT COUNT(*) FROM `tabPayment Entry` pe WHERE pe.reference_no = r.name AND pe.docstatus != 2) > 1
+                -- Case 2: More than one submitted Payment Entry exists
+                (SELECT COUNT(*) FROM `tabPayment Entry` pe 
+                 WHERE pe.reference_no = r.name AND pe.docstatus = 1) > 1
                 OR
-                -- Case 3: Amount mismatch or draft status
+                -- Case 3: Amount mismatch on submitted PE only (removed draft check)
                 EXISTS (
                     SELECT 1 FROM `tabPayment Entry` pe
-                    WHERE pe.reference_no = r.name AND pe.docstatus != 2
-                    AND (pe.received_amount != r.total_allocated OR pe.docstatus = 0)
+                    WHERE pe.reference_no = r.name 
+                    AND pe.docstatus = 1
+                    AND pe.received_amount != r.total_allocated
                 )
             )
         """, as_dict=True)

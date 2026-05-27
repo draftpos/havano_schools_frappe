@@ -150,6 +150,21 @@ def get_dashboard_data(cost_center=None, fee_structure=None, academic_term=None,
     except:
         try: data['academic_terms'] = frappe.get_all('Academic Term', fields=['name'], limit=100)
         except: data['academic_terms'] = []
+
+    # Detect current active term (using is_active)
+    current_term = None
+    try:
+        active_terms = frappe.get_all('Term', filters={'is_active': 1}, fields=['name'], limit=1)
+        if active_terms:
+            current_term = active_terms[0]['name']
+    except:
+        try:
+            active_terms = frappe.get_all('Academic Term', filters={'is_active': 1}, fields=['name'], limit=1)
+            if active_terms:
+                current_term = active_terms[0]['name']
+        except:
+            current_term = None
+    data['current_term'] = current_term
     try:
         data['academic_years'] = frappe.get_all('Academic Year', fields=['name'], limit=100)
     except: data['academic_years'] = []

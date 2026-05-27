@@ -1640,6 +1640,7 @@ body::before {
         </div>
         <div class="stat-meta">Fees Collected</div>
         <div class="stat-value" id="stat-collected">—</div>
+        <div id="collected-term-label" style="font-size:10px;color:var(--emerald);font-weight:600;margin-top:4px;opacity:0.85;"></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-collected"></div></div>
       </div>
 
@@ -1662,6 +1663,7 @@ body::before {
         </div>
         <div class="stat-meta">Outstanding</div>
         <div class="stat-value" id="stat-outstanding">—</div>
+        <div id="outstanding-term-label" style="font-size:10px;color:var(--rose);font-weight:600;margin-top:4px;opacity:0.85;"></div>
         <div class="stat-bar"><div class="stat-bar-fill" id="bar-outstanding"></div></div>
       </div>
 
@@ -2392,7 +2394,52 @@ async function loadDashboard() {
     cardDataCache['__all__'] = data;
     loadSchoolOverviews(data.cost_centers);
   }
-  
+
+  // ── Auto-select current term and reload fees cards ──
+  if (data.current_term) {
+    const termSel = document.getElementById('fc-term');
+    if (termSel) {
+      // Ensure the option exists (dropdowns may have been populated above)
+      let found = false;
+      for (let opt of termSel.options) {
+        if (opt.value === data.current_term) { opt.selected = true; found = true; break; }
+      }
+      if (!found) {
+        // Add and select it if not already there
+        const o = document.createElement('option');
+        o.value = data.current_term; o.textContent = data.current_term; o.selected = true;
+        termSel.appendChild(o);
+      }
+      // Show term badge on the cards
+      const lbl = '📅 ' + data.current_term;
+      const cl = document.getElementById('collected-term-label');
+      const ol = document.getElementById('outstanding-term-label');
+      if (cl) cl.textContent = lbl;
+      if (ol) ol.textContent = lbl;
+      // Reload fees cards filtered by the current term
+      await onCollectedFilterChange();
+      // Also update outstanding card with same term filter
+      const cc = document.getElementById('fc-cc').value;
+      const fs = document.getElementById('fc-fs').value;
+      const year = document.getElementById('fc-year').value;
+      const date = document.getElementById('fc-date').value;
+      let query = new URLSearchParams();
+      if (cc) query.append('cost_center', cc);
+      if (fs) query.append('fee_structure', fs);
+      query.append('academic_term', data.current_term);
+      if (year) query.append('academic_year', year);
+      if (date) query.append('date', date);
+      try {
+        const r2 = await fetch('/api/method/school.utils.get_dashboard_data?' + query.toString(), {
+          headers: {'Accept': 'application/json'}, credentials: 'include'
+        });
+        const d2 = await r2.json();
+        const termData = d2.message || {};
+        updateCard('outstanding', termData);
+      } catch(e) {}
+    }
+  }
+
   // Populate Exam Analysis Filters Dropdowns
   populateExamAnalysisDropdowns(data);
 
