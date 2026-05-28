@@ -54,9 +54,10 @@
   },
   {
    "fieldname": "book_number",
-   "fieldtype": "Autocomplete",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Book Number",
+   "options": "\n",
    "reqd": 1
   },
   {
@@ -79,7 +80,7 @@
   }
  ],
  "links": [],
- "modified": "2026-05-28 12:00:00.000000",
+ "modified": "2026-05-28 13:45:00.000000",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Book Issue",
