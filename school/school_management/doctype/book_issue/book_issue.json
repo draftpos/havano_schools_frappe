@@ -1,0 +1,121 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "format:ISSUE-{YYYY}-{####}",
+ "creation": "2026-05-28 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "date",
+  "librarian",
+  "column_break_1",
+  "student",
+  "book_title",
+  "book_number",
+  "column_break_2",
+  "return_date",
+  "status"
+ ],
+ "fields": [
+  {
+   "default": "Today",
+   "fieldname": "date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "default": "Administrator",
+   "fieldname": "librarian",
+   "fieldtype": "Link",
+   "label": "Librarian",
+   "options": "User"
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "student",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Student",
+   "options": "Student",
+   "reqd": 1
+  },
+  {
+   "fieldname": "book_title",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Book Title",
+   "options": "Books",
+   "reqd": 1
+  },
+  {
+   "fieldname": "book_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Book Number",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_2",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "return_date",
+   "fieldtype": "Date",
+   "label": "Return Date",
+   "in_list_view": 1
+  },
+  {
+   "default": "Pending Return",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Pending Return\nReturned\nOverdue\nLost"
+  }
+ ],
+ "links": [],
+ "modified": "2026-05-28 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "Book Issue",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "School User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "student,book_title,status",
+ "title_field": "student",
+ "show_name_in_global_search": 1,
+ "show_title_field_in_link": 1,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

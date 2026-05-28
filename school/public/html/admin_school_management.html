@@ -1080,10 +1080,18 @@ body::before {
       <div class="nav-icon" style="background:linear-gradient(135deg,#f7971e,#ffd200);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg></div>
       <span class="nav-label">Exam Analysis</span>
     </a>
-    <a class="nav-item" href="/app/library" onclick="closeSidebar()" target="_top">
-      <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
-      <span class="nav-label">Library</span>
-    </a>
+    <div class="nav-group">
+      <a class="nav-item" href="#" onclick="const submenu = this.nextElementSibling; const icon = this.querySelector('.chevron-icon'); if (submenu.style.display === 'none') { submenu.style.display = 'flex'; icon.style.transform = 'rotate(180deg)'; } else { submenu.style.display = 'none'; icon.style.transform = 'rotate(0deg)'; } return false;">
+        <div class="nav-icon" style="background:linear-gradient(135deg,#11998e,#38ef7d);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM6 4h5v8l-2.5-1.5L6 12V4z"/></svg></div>
+        <span class="nav-label">Library</span>
+        <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.2s;"><path d="M6 9l6 6 6-6"/></svg>
+      </a>
+      <div class="nav-submenu" style="display: none; padding-left: 50px; flex-direction: column; gap: 2px; margin-bottom: 5px;">
+        <a class="nav-item" href="/app/library" onclick="closeSidebar()" target="_top" style="padding: 7px 10px; font-size: 12.5px; margin-bottom: 0;">E-Library</a>
+        <a class="nav-item" href="/app/books" onclick="closeSidebar()" target="_top" style="padding: 7px 10px; font-size: 12.5px; margin-bottom: 0;">Books</a>
+        <a class="nav-item" href="/app/book-issue" onclick="closeSidebar()" target="_top" style="padding: 7px 10px; font-size: 12.5px; margin-bottom: 0;">Book Issue</a>
+      </div>
+    </div>
     <a class="nav-item" href="/app/student" onclick="closeSidebar()" target="_top">
       <div class="nav-icon" style="background:linear-gradient(135deg,#4facfe,#00f2fe);"><svg viewBox="0 0 24 24" width="17" height="17" fill="white"><path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3zM5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/></svg></div>
       <span class="nav-label">Students</span>

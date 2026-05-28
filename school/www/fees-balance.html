@@ -194,13 +194,16 @@ function loadReport(){
 }
 
 function renderReport(data){
-    var classFilter = document.getElementById("class-filter").value;
-    var sectionFilter = document.getElementById("section-filter").value;
-    var search = document.getElementById("search-filter").value.toLowerCase();
+    var classFilter = document.getElementById("class-filter").value.toLowerCase().trim();
+    var sectionFilter = document.getElementById("section-filter").value.toLowerCase().trim();
+    var search = document.getElementById("search-filter").value.toLowerCase().trim();
 
     var filtered = data.filter(function(row){
-        var matchClass = !classFilter || row.student_class === classFilter;
-        var matchSection = !sectionFilter || row.section === sectionFilter;
+        var rClass = (row.student_class||"").toLowerCase();
+        var rSec = (row.section||"").toLowerCase();
+        
+        var matchClass = !classFilter || rClass === classFilter || rClass.includes(classFilter);
+        var matchSection = !sectionFilter || rSec === sectionFilter || rSec.includes(sectionFilter);
         var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
         return matchClass && matchSection && matchSearch;
     });
@@ -256,12 +259,15 @@ function renderReport(data){
 
 function exportCSV(){
     if(!allData.length){alert("No data to export");return;}
-    var classFilter = document.getElementById("class-filter").value;
-    var sectionFilter = document.getElementById("section-filter").value;
-    var search = document.getElementById("search-filter").value.toLowerCase();
+    var classFilter = document.getElementById("class-filter").value.toLowerCase().trim();
+    var sectionFilter = document.getElementById("section-filter").value.toLowerCase().trim();
+    var search = document.getElementById("search-filter").value.toLowerCase().trim();
     var filtered = allData.filter(function(row){
-        var matchClass = !classFilter || row.student_class === classFilter;
-        var matchSection = !sectionFilter || row.section === sectionFilter;
+        var rClass = (row.student_class||"").toLowerCase();
+        var rSec = (row.section||"").toLowerCase();
+        
+        var matchClass = !classFilter || rClass === classFilter || rClass.includes(classFilter);
+        var matchSection = !sectionFilter || rSec === sectionFilter || rSec.includes(sectionFilter);
         var matchSearch = !search || (row.student_name||"").toLowerCase().includes(search);
         return matchClass && matchSection && matchSearch;
     });

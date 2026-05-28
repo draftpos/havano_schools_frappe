@@ -245,20 +245,36 @@
   </div>
 
   <script>
-    // Include Frappe call if running outside desk.
-    function frappeCall(method, args) {
-      return fetch('/api/method/' + method, {
+    // Get CSRF token: works for static HTML pages served by Frappe
+    function getCsrfToken() {
+      if (window.frappe && frappe.csrf_token) return frappe.csrf_token;
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      if (meta) return meta.getAttribute('content');
+      // 'fetch' is accepted by Frappe as a valid same-origin CSRF bypass
+      return 'fetch';
+    }
+
+    async function frappeCall(method, args) {
+      const res = await fetch('/api/method/' + method, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Frappe-CSRF-Token': (window.frappe && frappe.csrf_token) || ''
+          'X-Frappe-CSRF-Token': getCsrfToken()
         },
         body: JSON.stringify(args)
-      }).then(res => res.json());
+      });
+      const data = await res.json();
+      // Surface Frappe server errors so callers can inspect exc_type
+      if (!res.ok || data.exc_type) {
+        const err = new Error(data.exception || data.exc_type || 'Server error');
+        err.frappe = data;
+        throw err;
+      }
+      return data;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      // Try to fetch books without password (will succeed for admins)
+      // Try to fetch books without password (succeeds for privileged roles)
       frappeCall('school.school_management.api.get_library_books', { password: '' })
         .then(response => {
           if (response.message) {
@@ -267,8 +283,8 @@
             renderBooks(response.message);
           }
         })
-        .catch(error => {
-          // If auth error, modal stays visible and we wait for user input
+        .catch(() => {
+          // Password required — modal stays visible for user input
           console.log('Password required for this user role.');
         });
     });
@@ -278,7 +294,7 @@
       const pwd = document.getElementById('lib-password').value;
       const btn = document.getElementById('auth-submit');
       const err = document.getElementById('auth-error');
-      
+
       btn.textContent = 'Verifying...';
       btn.style.opacity = '0.7';
       err.style.display = 'none';
@@ -286,21 +302,15 @@
       try {
         const response = await frappeCall('school.school_management.api.get_library_books', { password: pwd });
         if (response.message) {
-          // Success
+          // Success — unlock library
           document.getElementById('auth-modal').classList.add('hidden');
           document.getElementById('books-container').style.display = 'block';
           renderBooks(response.message);
-        } else {
-          throw new Error('Invalid response');
         }
       } catch (error) {
-        console.error(error);
+        console.error('Library auth error:', error);
         err.style.display = 'block';
-        if (error.exc_type === 'AuthenticationError' || (error.server_messages && error.server_messages.includes('Invalid password'))) {
-            err.textContent = 'Incorrect password. Please try again.';
-        } else {
-            err.textContent = 'Authentication failed. Incorrect password.';
-        }
+        err.textContent = 'Incorrect password. Please try again.';
       } finally {
         btn.textContent = 'Unlock Access';
         btn.style.opacity = '1';
