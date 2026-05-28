@@ -54,7 +54,7 @@
   },
   {
    "fieldname": "book_number",
-   "fieldtype": "Data",
+   "fieldtype": "Autocomplete",
    "in_list_view": 1,
    "label": "Book Number",
    "reqd": 1
