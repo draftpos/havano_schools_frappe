@@ -59,24 +59,6 @@ class Receipting(Document):
 					f"Cannot create a duplicate payment. Please cancel this receipt."
 				)
 
-			# Also check for any submitted PE referencing this invoice from a different receipt
-			conflicting = frappe.db.sql("""
-				SELECT pe.name, pe.reference_no
-				FROM `tabPayment Entry` pe
-				JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
-				WHERE per.reference_name = %s
-				AND per.reference_doctype = 'Sales Invoice'
-				AND pe.docstatus = 1
-				AND pe.reference_no != %s
-			""", (row.invoice_number, self.name), as_dict=True)
-
-			if conflicting:
-				conflict_names = ", ".join([f"{c.name} (from {c.reference_no})" for c in conflicting])
-				frappe.throw(
-					f"Invoice {row.invoice_number} already has a submitted Payment Entry from another receipt: "
-					f"{conflict_names}. Cannot create duplicate payment."
-				)
-
 		# If duplicates or mismatches exist for THIS receipt, clean them first
 		if existing_pes:
 			frappe.msgprint("Discrepancy found in Payment Entries for this receipt. Cleaning and recreating...")
@@ -212,24 +194,16 @@ class Receipting(Document):
 		if self.docstatus != 1:
 			return {"status": "skipped", "message": "Receipting document must be submitted to reconcile."}
 
-		# Safety check: do not recreate if the invoice is already paid by another receipt
+		# Safety check: do not recreate if the invoice is already fully paid
 		for row in self.invoice:
 			if not row.get("invoice_number") or flt(row.get("allocated", 0)) <= 0:
 				continue
-			conflicting = frappe.db.sql("""
-				SELECT pe.name, pe.reference_no
-				FROM `tabPayment Entry` pe
-				JOIN `tabPayment Entry Reference` per ON per.parent = pe.name
-				WHERE per.reference_name = %s
-				AND per.reference_doctype = 'Sales Invoice'
-				AND pe.docstatus = 1
-				AND pe.reference_no != %s
-			""", (row.invoice_number, self.name), as_dict=True)
-
-			if conflicting:
+			
+			sinv_outstanding = frappe.db.get_value("Sales Invoice", row.invoice_number, "outstanding_amount")
+			if flt(sinv_outstanding) <= 0:
 				return {
 					"status": "skipped",
-					"message": f"Invoice {row.invoice_number} already paid by {conflicting[0].reference_no}. Skipping reconciliation to prevent duplicate."
+					"message": f"Invoice {row.invoice_number} is fully paid. Skipping reconciliation to prevent duplicate."
 				}
 
 		# Fetch all Payment Entries associated with this receipt (reference_no)

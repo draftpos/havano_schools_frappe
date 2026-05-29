@@ -985,7 +985,6 @@ def generate_reg_no_for_school(school, current_student=None):
 # so transferred students are automatically excluded from dropdowns.
 # ---------------------------------------------------------------------------
 @frappe.whitelist()
-@frappe.validate_and_sanitize_search_input
 def get_active_students(doctype, txt, searchfield, start, page_len, filters):
 	"""Return students who are either active (not transferred) OR have outstanding balances."""
 	return frappe.db.sql(
