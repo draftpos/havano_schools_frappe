@@ -74,7 +74,7 @@ def _run_export():
 def get_dashboard_data(cost_center=None, fee_structure=None, academic_term=None, academic_year=None, date=None, student_class=None, section=None):
     data = {}
 
-    student_filters = {'status': 'Active'}
+    student_filters = {'transfer_status': 'Active'}
     invoice_filters = {'docstatus': 1}
     if cost_center:
         student_filters['cost_center'] = cost_center
@@ -132,7 +132,7 @@ def get_dashboard_data(cost_center=None, fee_structure=None, academic_term=None,
     try:
         all_classes = frappe.get_all('Student Class', fields=['name','class_name'], limit=100)
         for c in all_classes:
-            f = {'student_class': c['name'], 'status': 'Active'}
+            f = {'student_class': c['name'], 'transfer_status': 'Active'}
             if cost_center: f['cost_center'] = cost_center
             c['student_count'] = frappe.db.count('Student', filters=f)
         data['classes'] = all_classes
