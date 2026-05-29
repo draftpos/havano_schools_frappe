@@ -1,16 +1,19 @@
+# Reload triggered
 import frappe
+
 from frappe.model.document import Document
 from frappe.utils import flt
 from frappe.utils.password import update_password as _update_password, get_decrypted_password
-
+from frappe import _
 
 class Student(Document):
 	def validate(self):
 		"""Validate before save - set full name"""
-		self.status = "Transferred" if self.is_transferred else "Active"
-
 		parts = [self.first_name, self.second_name, self.last_name]
-		self.full_name = " ".join([p for p in parts if p])
+		self.full_name = " ".join([p for p in parts if p]).strip()
+
+		# Duplicate prevention
+		self.check_duplicate()
 
 		# Validate student type
 		if self.student_type:
@@ -34,8 +37,27 @@ class Student(Document):
 		if self.portal_password:
 			self.flags.plain_portal_password = self.portal_password
 
+	def check_duplicate(self):
+		"""Prevent creating duplicate students with same name and DOB."""
+		if not self.first_name or not self.last_name or not self.date_of_birth:
+			return
+
+		filters = {
+			"first_name": self.first_name,
+			"last_name": self.last_name,
+			"date_of_birth": self.date_of_birth
+		}
+		
+		existing_student = frappe.db.get_value("Student", filters, "name")
+		if existing_student and existing_student != self.name:
+			frappe.throw(
+				_("Student record already exists with ID: {0}. To avoid duplicates, you cannot save another student with the same Name and Date of Birth.")
+				.format(frappe.bold(existing_student)),
+				frappe.DuplicateEntryError
+			)
+
 	def before_save(self):
-		"""Before save ??? capture plain-text password before Frappe hashes it"""
+		"""Before save — capture plain-text password before Frappe hashes it"""
 		if self.portal_password:
 			self.flags.plain_portal_password = self.portal_password
 
@@ -62,11 +84,11 @@ class Student(Document):
 		# Find the next sequence number for this specific prefix
 		last = frappe.db.sql(
 			"""
-            SELECT name FROM `tabStudent`
-            WHERE name LIKE %s
-            ORDER BY CAST(SUBSTRING(name, %s) AS UNSIGNED) DESC
-            LIMIT 1
-            """,
+			SELECT name FROM `tabStudent`
+			WHERE name LIKE %s
+			ORDER BY CAST(SUBSTRING(name, %s) AS UNSIGNED) DESC
+			LIMIT 1
+			""",
 			(prefix + "%", len(prefix) + 1),
 			as_dict=True,
 		)
@@ -81,11 +103,15 @@ class Student(Document):
 		else:
 			next_num = 1
 
-		return "{}{:05d}".format(prefix, next_num)  # FIX 1: was dedented outside the method
+		return "{}{:05d}".format(prefix, next_num)
 
 	def after_insert(self):
 		"""After insert - complete initialization"""
-		self._create_all_users_and_records()
+		if not self.flags.get("initialized"):
+			self._create_all_users_and_records()
+			self.flags.initialized = True
+
+
 
 	def on_update(self):
 		"""On update - only re-run user creation when relevant fields change"""
@@ -104,23 +130,26 @@ class Student(Document):
 			self.create_student_portal_user()
 			self.create_parent_portal_users()
 
-		if self.has_value_changed("is_transferred"):
+		if self.has_value_changed("transfer_status"):
 			self.handle_transfer_status()
 
 	def handle_transfer_status(self):
 		"""Disable or enable customer and user based on transfer status"""
+		is_transferred = self.transfer_status == "Transferred"
+
 		customer_name = frappe.db.get_value("Customer", {"custom_student_reg_no": self.student_reg_no})
 		if not customer_name:
 			customer_name = frappe.db.exists("Customer", {"customer_name": self.full_name})
 		
 		if customer_name:
-			frappe.db.set_value("Customer", customer_name, "disabled", self.is_transferred)
+			frappe.db.set_value("Customer", customer_name, "disabled", 1 if is_transferred else 0)
 			
 		if self.portal_email and frappe.db.exists("User", self.portal_email):
-			frappe.db.set_value("User", self.portal_email, "enabled", 0 if self.is_transferred else 1)
+			frappe.db.set_value("User", self.portal_email, "enabled", 0 if is_transferred else 1)
 			
-		action = "Transferred (Disabled)" if self.is_transferred else "Active (Enabled)"
+		action = "Transferred (Disabled)" if is_transferred else f"{self.transfer_status} (Enabled)"
 		frappe.msgprint(f"Student {self.full_name} is now {action}.", alert=True)
+
 
 	def _create_all_users_and_records(self):
 		"""Central method to create all users and records (used on first insert)"""
@@ -231,7 +260,7 @@ class Student(Document):
 						f"<hr>"
 						f"<p><b>Username:</b> {self.portal_email}</p>"
 						f"<p><b>Password:</b> {plain_password}</p>"
-						f'<p>Please log in here: <a href="{frappe.utils.get_url("/portal-login")}">'
+						f'<p>Please log in here: <a href=\"{frappe.utils.get_url("/portal-login")}\">'
 						f"{frappe.utils.get_url('/portal-login')}</a></p>"
 						f"<p>Regards,<br>School Administration</p>"
 					),
@@ -240,7 +269,7 @@ class Student(Document):
 				frappe.log_error(f"Failed to send manual credentials email: {str(e)}", "Student Portal")
 
 			frappe.msgprint(
-				f"??? Student portal user {self.portal_email} "
+				f"✅ Student portal user {self.portal_email} "
 				f"{'created' if is_new else 'updated'} with manual password. Credentials email sent.",
 				indicator="green",
 				alert=True,
@@ -254,7 +283,7 @@ class Student(Document):
 				frappe.get_traceback(),
 			)
 			frappe.msgprint(
-				f"??? Error creating student user {self.portal_email}: {str(e)}",
+				f"❌ Error creating student user {self.portal_email}: {str(e)}",
 				indicator="red",
 				alert=True,
 			)
@@ -348,7 +377,7 @@ class Student(Document):
 								f"<hr>"
 								f"<p><b>Username:</b> {entry['email']}</p>"
 								f"<p><b>Password:</b> {self.portal_password}</p>"
-								f'<p>Please log in here: <a href="{frappe.utils.get_url("/portal-login")}">'
+								f'<p>Please log in here: <a href=\"{frappe.utils.get_url("/portal-login")}\">'
 								f"{frappe.utils.get_url('/portal-login')}</a></p>"
 								f"<p>Regards,<br>School Administration</p>"
 							),
@@ -357,7 +386,7 @@ class Student(Document):
 						pass
 
 					frappe.msgprint(
-						f"??? Parent user {entry['email']} synced with manual password. Email sent.",
+						f"✅ Parent user {entry['email']} synced with manual password. Email sent.",
 						indicator="green",
 						alert=True,
 					)
@@ -370,7 +399,7 @@ class Student(Document):
 					frappe.get_traceback(),
 				)
 				frappe.msgprint(
-					f"??? Error creating parent user {entry['email']}: {str(e)}",
+					f"❌ Error creating parent user {entry['email']}: {str(e)}",
 					indicator="red",
 					alert=True,
 				)
@@ -403,13 +432,13 @@ class Student(Document):
 				user_permission.flags.ignore_permissions = True
 				user_permission.insert(ignore_permissions=True)
 				frappe.msgprint(
-					f"??? Cost Center '{self.school}' permission assigned to {email}",
+					f"✅ Cost Center '{self.school}' permission assigned to {email}",
 					indicator="green",
 					alert=True,
 				)
 			else:
 				frappe.msgprint(
-					f"?????? Cost Center permission already exists for {email}",
+					f"ℹ️ Cost Center permission already exists for {email}",
 					indicator="blue",
 					alert=True,
 				)
@@ -501,7 +530,7 @@ class Student(Document):
 				customer.insert(ignore_permissions=True)
 
 			frappe.msgprint(
-				f"??? Customer {self.full_name} created/updated",
+				f"✅ Customer {self.full_name} created/updated",
 				indicator="green",
 				alert=True,
 			)
@@ -590,7 +619,7 @@ class Student(Document):
 			je.submit()
 
 			frappe.msgprint(
-				f"??? Opening balance entry created for {self.full_name}",
+				f"✅ Opening balance entry created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -622,6 +651,7 @@ class Student(Document):
 		)
 
 		if existing_billing:
+			# If billing exists, we still might need to create a receipt if it was paid but receipting failed
 			if self.admin_fee_paid:
 				inv = frappe.db.get_value(
 					"Sales Invoice",
@@ -662,6 +692,7 @@ class Student(Document):
 					{
 						"item_code": item.item_code,
 						"item_name": item.item_name,
+						"description": item.item_name or item.item_code or "Admin Fee",
 						"qty": 1,
 						"rate": item.rate or 0,
 						"amount": flt(item.rate or 0),
@@ -687,7 +718,7 @@ class Student(Document):
 				self.create_admin_fee_receipting(invoice_name)
 
 			frappe.msgprint(
-				f"??? Admin fee invoice created for {self.full_name}",
+				f"✅ Admin fee invoice created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -748,7 +779,7 @@ class Student(Document):
 			receipt.submit()
 
 			frappe.msgprint(
-				f"??? Admin fee receipt created for {self.full_name}",
+				f"✅ Admin fee receipt created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -775,12 +806,27 @@ class Student(Document):
 				return
 
 			fees_structure = None
-			for row in settings.get("registration_billing", []):
+			registration_billing = settings.get("registration_billing") or []
+			for row in registration_billing:
 				if row.status == self.student_type:
 					fees_structure = row.billing
 					break
 
 			if not fees_structure:
+				return
+
+			# Additional safety: Check if a Billing record already exists for this student and this fees structure
+			existing_billing = frappe.db.exists(
+				"Billing",
+				{
+					"student": self.name,
+					"fees_structure": fees_structure,
+					"docstatus": ["!=", 2],
+				},
+			)
+			if existing_billing:
+				frappe.db.set_value("Student", self.name, "billed_on_registration", 1)
+				self.billed_on_registration = 1
 				return
 
 			billing = frappe.new_doc("Billing")
@@ -791,13 +837,15 @@ class Student(Document):
 			billing.fees_structure = fees_structure
 
 			fs_doc = frappe.get_doc("Fees Structure", fees_structure)
-			if fs_doc.get("fees_items"):
-				for item in fs_doc.get("fees_items", []):
+			fees_items = fs_doc.get("fees_items") or []
+			if fees_items:
+				for item in fees_items:
 					billing.append(
 						"items",
 						{
 							"item_code": item.item_code,
 							"item_name": item.item_name,
+							"description": item.item_name or item.item_code or "Registration Fee",
 							"qty": 1,
 							"rate": item.rate or 0,
 							"amount": flt(item.rate or 0),
@@ -813,7 +861,7 @@ class Student(Document):
 			self.billed_on_registration = 1
 
 			frappe.msgprint(
-				f"??? Registration billing created for {self.full_name}",
+				f"✅ Registration billing created for {self.full_name}",
 				indicator="green",
 				alert=True,
 			)
@@ -835,12 +883,6 @@ def get_permission_query_conditions(user):
 	if not user:
 		user = frappe.session.user
 
-	if not hasattr(frappe.local, "student_perm_cache"):
-		frappe.local.student_perm_cache = {}
-
-	if user in frappe.local.student_perm_cache:
-		return frappe.local.student_perm_cache[user]
-
 	roles = frappe.get_roles(user)
 	if (
 		"System Manager" in roles
@@ -848,50 +890,48 @@ def get_permission_query_conditions(user):
 		or "Administrator" in roles
 		or user == "Administrator"
 	):
-		condition = ""
-	elif "Teacher" not in roles:
-		condition = ""
-	else:
-		teacher = frappe.db.get_value("Teacher", {"portal_email": user}, ["name", "cost_center"], as_dict=True)
-		if not teacher:
-			teacher = frappe.db.get_value("Teacher", {"email": user}, ["name", "cost_center"], as_dict=True)
+		return ""
 
-		if not teacher:
-			condition = "1=0"
-		else:
-			teacher_name = teacher.name
+	if "Teacher" not in roles:
+		return ""
 
-			assigned = frappe.db.get_all(
-				"Teacher Class Assignment Item",
-				filters={"parent": teacher_name},
-				fields=["class_name", "section"],
+	teacher = frappe.db.get_value("Teacher", {"portal_email": user}, ["name", "cost_center"], as_dict=True)
+	if not teacher:
+		teacher = frappe.db.get_value("Teacher", {"email": user}, ["name", "cost_center"], as_dict=True)
+
+	if not teacher:
+		return "1=0"
+
+	teacher_name = teacher.name
+
+	assigned = frappe.db.get_all(
+		"Teacher Class Assignment Item",
+		filters={"parent": teacher_name},
+		fields=["class_name", "section"],
+	)
+
+	if not assigned:
+		return "1=0"
+
+	conditions = []
+	for row in assigned:
+		if row.class_name and row.section:
+			conditions.append(
+				f"(`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}"
+				f" AND `tabStudent`.`section` = {frappe.db.escape(row.section)})"
 			)
+		elif row.class_name:
+			conditions.append(f"`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}")
 
-			if not assigned:
-				condition = "1=0"
-			else:
-				conditions = []
-				for row in assigned:
-					if row.class_name and row.section:
-						conditions.append(
-							f"(`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}"
-							f" AND `tabStudent`.`section` = {frappe.db.escape(row.section)})"
-						)
-					elif row.class_name:
-						conditions.append(f"`tabStudent`.`student_class` = {frappe.db.escape(row.class_name)}")
+	if not conditions:
+		return "1=0"
 
-				if not conditions:
-					condition = "1=0"
-				else:
-					class_condition = "(" + " OR ".join(conditions) + ")"
+	class_condition = "(" + " OR ".join(conditions) + ")"
 
-					if teacher.cost_center:
-						condition = f"({class_condition} AND `tabStudent`.`school` = {frappe.db.escape(teacher.cost_center)})"
-					else:
-						condition = class_condition
-
-	frappe.local.student_perm_cache[user] = condition
-	return condition
+	if teacher.cost_center:
+		return f"({class_condition} AND `tabStudent`.`school` = {frappe.db.escape(teacher.cost_center)})"
+	else:
+		return class_condition
 
 
 # ----------------------------------------------------------------------
@@ -915,15 +955,16 @@ def generate_reg_no_for_school(school, current_student=None):
 
 	last = frappe.db.sql(
 		f"""
-        SELECT student_reg_no FROM `tabStudent`
-        WHERE student_reg_no REGEXP %s
-        {exclude_clause}
-        ORDER BY CAST(SUBSTRING(student_reg_no, %s) AS UNSIGNED) DESC
-        LIMIT 1
-        """,
+		SELECT student_reg_no FROM `tabStudent`
+		WHERE student_reg_no REGEXP %s
+		{exclude_clause}
+		ORDER BY CAST(SUBSTRING(student_reg_no, %s) AS UNSIGNED) DESC
+		LIMIT 1
+		""",
 		params,
 		as_dict=True,
 	)
+
 
 	if last and last[0].student_reg_no:
 		last_no = last[0].student_reg_no
@@ -937,49 +978,35 @@ def generate_reg_no_for_school(school, current_student=None):
 
 	return "{}{:05d}".format(prefix, next_num)
 
+
+# ---------------------------------------------------------------------------
+# Whitelisted query: returns only Active (non-transferred) students.
+# Use this as the get_query source on any DocType's "student" link field
+# so transferred students are automatically excluded from dropdowns.
+# ---------------------------------------------------------------------------
 @frappe.whitelist()
-@frappe.validate_and_sanitize_search_inputs
+@frappe.validate_and_sanitize_search_input
 def get_active_students(doctype, txt, searchfield, start, page_len, filters):
-	"""
-	Return active students. 
-	Transferred students only appear in 'Receipting' if they have an outstanding balance.
-	"""
-	condition = "status = 'Active'"
-	if doctype == "Receipting":
-		condition = """
-			(status = 'Active' OR (status = 'Transferred' AND EXISTS (
+	"""Return students who are either active (not transferred) OR have outstanding balances."""
+	return frappe.db.sql(
+		"""
+		SELECT name, full_name, student_class, section
+		FROM `tabStudent`
+		WHERE 
+			(transfer_status != 'Transferred'
+			OR (transfer_status = 'Transferred' AND EXISTS (
 				SELECT 1 FROM `tabSales Invoice` 
 				WHERE customer = `tabStudent`.full_name 
 				AND docstatus = 1 
 				AND outstanding_amount > 0
 			)))
-		"""
-
-	# Handle additional filters (school, student_class, section, etc.)
-	if isinstance(filters, str):
-		import json
-		try:
-			filters = json.loads(filters)
-		except:
-			filters = {}
-
-	if filters:
-		for key, val in filters.items():
-			if val:
-				# Basic protection against injection (though this is internal API)
-				safe_val = str(val).replace("'", "''")
-				condition += f" AND {key} = '{safe_val}'"
-
-	return frappe.db.sql(
-		"""
-		SELECT name, full_name, student_class, section
-		FROM `tabStudent`
-		WHERE {condition}
 		AND ({searchfield} LIKE %(txt)s
 			OR full_name LIKE %(txt)s
 			OR student_reg_no LIKE %(txt)s)
 		ORDER BY full_name
 		LIMIT %(page_len)s OFFSET %(start)s
-		""".format(condition=condition, searchfield=searchfield),
+		""".format(searchfield=searchfield),
 		{"txt": f"%{txt}%", "page_len": page_len, "start": start},
 	)
+
+
