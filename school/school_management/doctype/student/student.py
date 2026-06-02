@@ -141,13 +141,14 @@ class Student(Document):
 		if not customer_name:
 			customer_name = frappe.db.exists("Customer", {"customer_name": self.full_name})
 		
+		is_transferred = self.transfer_status in ("Transferred", "Inactive")
 		if customer_name:
 			frappe.db.set_value("Customer", customer_name, "disabled", 1 if is_transferred else 0)
 			
 		if self.portal_email and frappe.db.exists("User", self.portal_email):
 			frappe.db.set_value("User", self.portal_email, "enabled", 0 if is_transferred else 1)
 			
-		action = "Transferred (Disabled)" if is_transferred else f"{self.transfer_status} (Enabled)"
+		action = f"{self.transfer_status} (Disabled)" if is_transferred else f"{self.transfer_status} (Enabled)"
 		frappe.msgprint(f"Student {self.full_name} is now {action}.", alert=True)
 
 
