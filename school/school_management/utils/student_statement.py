@@ -87,7 +87,22 @@ def _get_statement_entries(company, customer, from_date, to_date):
             COALESCE(
                 NULLIF(si.fees_structure, ''),
                 NULLIF(b.fees_structure, ''),
-                NULLIF(b.fees_category, '')
+                NULLIF(b.fees_category, ''),
+                (SELECT si_inner.fees_structure 
+                 FROM `tabPayment Entry Reference` per 
+                 JOIN `tabSales Invoice` si_inner ON si_inner.name = per.reference_name 
+                 WHERE per.parent = gle.voucher_no AND per.reference_doctype = 'Sales Invoice' 
+                 LIMIT 1),
+                (SELECT COALESCE(NULLIF(b_inner.fees_structure, ''), NULLIF(b_inner.fees_category, ''))
+                 FROM `tabPayment Entry Reference` per 
+                 JOIN `tabBilling` b_inner ON b_inner.name = per.reference_name 
+                 WHERE per.parent = gle.voucher_no AND per.reference_doctype = 'Billing' 
+                 LIMIT 1),
+                (SELECT si_inner.fees_structure 
+                 FROM `tabJournal Entry Account` jea 
+                 JOIN `tabSales Invoice` si_inner ON si_inner.name = jea.reference_name 
+                 WHERE jea.parent = gle.voucher_no AND jea.reference_type = 'Sales Invoice' AND jea.party = gle.party
+                 LIMIT 1)
             ) AS fees_structure
            FROM `tabGL Entry` gle
            INNER JOIN `tabAccount` acc
