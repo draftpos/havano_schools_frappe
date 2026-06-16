@@ -797,22 +797,22 @@ def get_fees_balance():
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section", "cost_center"])
+        fields=["name", "full_name", "student_class", "section", "cost_center", "customer"])
 
     if not students:
         return []
 
-    student_names = [s.full_name for s in students if s.full_name]
-    student_map = {s.full_name: s for s in students}
+    customer_ids = [s.full_name for s in students if s.full_name]
+    student_map = {s.full_name: s for s in students if s.full_name}
 
-    if not student_names:
+    if not customer_ids:
         return []
 
     term_condition = ""
     if academic_term:
         term_condition = " AND si.academic_term = " + frappe.db.escape(academic_term)
 
-    placeholders = ", ".join(["%s"] * len(student_names))
+    placeholders = ", ".join(["%s"] * len(customer_ids))
     receivables = frappe.db.sql("""
         SELECT
             si.customer,
@@ -821,14 +821,21 @@ def get_fees_balance():
             MAX(si.fees_structure) as fees_structure,
             SUM(si.grand_total) as total_billed,
             SUM(si.outstanding_amount) as total_outstanding,
-            SUM(si.grand_total - si.outstanding_amount) as total_paid
+            COALESCE((
+                SELECT SUM(gle.credit)
+                FROM `tabGL Entry` gle
+                WHERE gle.party = si.customer
+                  AND gle.party_type = 'Customer'
+                  AND gle.voucher_type = 'Payment Entry'
+                  AND gle.is_cancelled = 0
+            ), 0) as total_paid
         FROM `tabSales Invoice` si
         WHERE si.customer IN ({placeholders})
           AND si.docstatus = 1
           {term_condition}
         GROUP BY si.customer, si.customer_name
         ORDER BY si.customer ASC
-    """.format(placeholders=placeholders, term_condition=term_condition), student_names, as_dict=True)
+    """.format(placeholders=placeholders, term_condition=term_condition), customer_ids, as_dict=True)
 
     opening_balances = frappe.db.sql("""
         SELECT
@@ -841,7 +848,7 @@ def get_fees_balance():
           AND jea.party IN ({placeholders})
           AND je.docstatus = 1
         GROUP BY jea.party
-    """.format(placeholders=placeholders), student_names, as_dict=True)
+    """.format(placeholders=placeholders), customer_ids, as_dict=True)
 
     receivables_map = {r.customer: r for r in receivables}
     # Also map by customer_name if customer is an ID
@@ -851,12 +858,12 @@ def get_fees_balance():
     result = []
     for s in students:
         # Match by ID or Full Name
-        row = receivables_map.get(s.name) or receivables_name_map.get(s.full_name) or {}
-        ob = ob_map.get(s.name) or ob_map.get(s.full_name) or 0
+        row = receivables_map.get(s.full_name) or receivables_name_map.get(s.full_name) or {}
+        ob = ob_map.get(s.full_name) or ob_map.get(s.name) or 0
         
         total_billed = float(row.get("total_billed") or 0)
         total_paid = float(row.get("total_paid") or 0)
-        total_outstanding = float(row.get("total_outstanding") or 0) + float(ob or 0)
+        total_outstanding = float(row.get("total_billed") or 0) - float(row.get("total_paid") or 0) + float(ob or 0)
 
         # Only include students who have some financial activity or balance
         if total_billed > 0 or total_paid > 0 or total_outstanding != 0:
