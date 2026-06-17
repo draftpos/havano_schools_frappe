@@ -66,10 +66,10 @@ def _get_currency(company):
     return frappe.get_cached_value('Company', company, 'default_currency') or frappe.defaults.get_global_default('currency')
 
 def _get_party_opening_balance(company, customer, from_date):
-    return flt(frappe.db.sql('SELECT COALESCE(SUM(gle.debit - gle.credit), 0) FROM `tabGL Entry` gle INNER JOIN `tabAccount` acc ON acc.name = gle.account WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date < %(from_date)s AND acc.account_type = %(at)s', {'company': company, 'customer': customer, 'from_date': from_date, 'pt': 'Customer', 'at': 'Receivable'})[0][0])
+    return flt(frappe.db.sql('SELECT COALESCE(SUM(gle.debit - gle.credit), 0) FROM `tabGL Entry` gle WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date < %(from_date)s', {'company': company, 'customer': customer, 'from_date': from_date, 'pt': 'Customer'})[0][0])
 
 def _get_party_closing_balance(company, customer, to_date):
-    return flt(frappe.db.sql('SELECT COALESCE(SUM(gle.debit - gle.credit), 0) FROM `tabGL Entry` gle INNER JOIN `tabAccount` acc ON acc.name = gle.account WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date <= %(to_date)s AND acc.account_type = %(at)s', {'company': company, 'customer': customer, 'to_date': to_date, 'pt': 'Customer', 'at': 'Receivable'})[0][0])
+    return flt(frappe.db.sql('SELECT COALESCE(SUM(gle.debit - gle.credit), 0) FROM `tabGL Entry` gle WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.party = %(customer)s AND gle.is_cancelled = 0 AND gle.posting_date <= %(to_date)s', {'company': company, 'customer': customer, 'to_date': to_date, 'pt': 'Customer'})[0][0])
 
 def _get_statement_entries(company, customer, from_date, to_date):
     return frappe.db.sql(
@@ -105,8 +105,6 @@ def _get_statement_entries(company, customer, from_date, to_date):
                  LIMIT 1)
             ) AS fees_structure
            FROM `tabGL Entry` gle
-           INNER JOIN `tabAccount` acc
-               ON acc.name = gle.account
            LEFT JOIN `tabSales Invoice` si
                ON si.name = gle.voucher_no
               AND gle.voucher_type = %(si)s
@@ -118,11 +116,10 @@ def _get_statement_entries(company, customer, from_date, to_date):
              AND gle.party        = %(customer)s
              AND gle.is_cancelled = 0
              AND gle.posting_date BETWEEN %(from_date)s AND %(to_date)s
-             AND acc.account_type = %(at)s
            ORDER BY gle.posting_date, gle.creation, gle.name''',
         {'company': company, 'customer': customer,
          'from_date': from_date, 'to_date': to_date,
-         'pt': 'Customer', 'at': 'Receivable',
+         'pt': 'Customer',
          'si': 'Sales Invoice', 'bill': 'Billing'},
         as_dict=True)
 
@@ -221,8 +218,7 @@ def render_batch_pdf_file(filters):
 def get_statement_summary_rows(filters):
     filters = validate_filters(filters)
     clause, values = _customer_filter_sql(filters)
-    sql = 'SELECT gle.party AS customer, c.customer_name, c.customer_group, st.section, st.student_class, st.fees_category AS fees_structure, COALESCE(SUM(gle.debit - gle.credit), 0) AS outstanding FROM `tabGL Entry` gle INNER JOIN `tabAccount` acc ON acc.name = gle.account AND acc.account_type = %(at)s AND acc.company = %(company)s INNER JOIN `tabCustomer` c ON c.name = gle.party LEFT JOIN `tabStudent` st ON st.customer = gle.party WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.is_cancelled = 0 AND gle.posting_date <= %(report_date)s ' + clause + ' GROUP BY gle.party, c.customer_name, c.customer_group, st.section, st.student_class, st.fees_category HAVING ABS(COALESCE(SUM(gle.debit - gle.credit), 0)) > 0.0001 ORDER BY c.customer_group, st.section, st.student_class, c.customer_name'
-    values['at'] = 'Receivable'
+    sql = 'SELECT gle.party AS customer, c.customer_name, c.customer_group, st.section, st.student_class, st.fees_category AS fees_structure, COALESCE(SUM(gle.debit - gle.credit), 0) AS outstanding FROM `tabGL Entry` gle INNER JOIN `tabCustomer` c ON c.name = gle.party LEFT JOIN `tabStudent` st ON st.customer = gle.party WHERE gle.company = %(company)s AND gle.party_type = %(pt)s AND gle.is_cancelled = 0 AND gle.posting_date <= %(report_date)s ' + clause + ' GROUP BY gle.party, c.customer_name, c.customer_group, st.section, st.student_class, st.fees_category HAVING ABS(COALESCE(SUM(gle.debit - gle.credit), 0)) > 0.0001 ORDER BY c.customer_group, st.section, st.student_class, c.customer_name'
     values['pt'] = 'Customer'
     return frappe.db.sql(sql, values, as_dict=True)
 

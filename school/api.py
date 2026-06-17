@@ -44,7 +44,7 @@ def get_billing_summary(student=None):
         rec['date'] = str(rec['date'])
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
-                                      fields=["invoice_number", "fees_structure", "outstanding", "allocated", "invoice_currency"])
+                                      fields=["invoice_number", "fee_item", "outstanding", "allocated", "invoice_currency"])
 
     return {
         "student": student, 
@@ -85,18 +85,45 @@ def get_student_invoices(student):
             filters={"parent": inv.name},
             fields=["item_name", "amount"])
         
-        # Calculate ratio of outstanding amount to grand total to estimate item outstanding
-        ratio = flt(inv.outstanding_amount) / flt(inv.grand_total) if inv.grand_total else 0
-        
         for item in items:
-            result.append({
-                "name": inv.name,
-                "currency": inv.currency,
-                "fee_item": item.item_name,
-                "outstanding_amount": flt(item.amount) * ratio,
-                "total": item.amount,
-                "posting_date": str(inv.posting_date)
-            })
+            # Calculate total allocated to this specific fee item from submitted receipts
+            receipt_items = frappe.db.sql("""
+                SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                FROM `tabReceipt Item` ri
+                JOIN `tabReceipting` r ON r.name = ri.parent
+                WHERE ri.invoice_number = %s 
+                  AND ri.fee_item = %s 
+                  AND r.docstatus = 1
+            """, (inv.name, item.item_name), as_dict=True)
+            
+            allocated_amount_in_inv_currency = 0
+            inv_curr = inv.currency or "USD"
+            
+            for ri in receipt_items:
+                alloc = flt(ri.allocated)
+                rec_curr = ri.receipt_currency or "USD"
+                exch_rate = flt(ri.exchange_rate) or 1.0
+                
+                if rec_curr != inv_curr:
+                    if rec_curr == "ZWG" and inv_curr == "USD":
+                        alloc = alloc / exch_rate if exch_rate else 0
+                    elif rec_curr == "USD" and inv_curr == "ZWG":
+                        alloc = alloc * exch_rate
+                
+                allocated_amount_in_inv_currency += alloc
+            
+            item_outstanding = flt(item.amount) - allocated_amount_in_inv_currency
+            item_outstanding = round(item_outstanding, 2)
+            
+            if item_outstanding > 0.01:
+                result.append({
+                    "name": inv.name,
+                    "currency": inv.currency,
+                    "fee_item": item.item_name,
+                    "outstanding_amount": item_outstanding,
+                    "total": item.amount,
+                    "posting_date": str(inv.posting_date)
+                })
         
     return result
 
