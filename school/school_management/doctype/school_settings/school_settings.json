@@ -11,7 +11,8 @@
         "fee_structure_defaults_section",
         "fee_structure_defaults",
         "portal_settings",
-        "allow_non_strict_email"
+        "allow_non_strict_email",
+        "allow_reference_on_receipts"
     ],
     "fields": [
         {
@@ -48,6 +49,13 @@
             "fieldname": "allow_non_strict_email",
             "fieldtype": "Check",
             "label": "Allow Non-Strict Email"
+        },
+        {
+            "default": "0",
+            "description": "Show an optional Reference column in Receipting items.",
+            "fieldname": "allow_reference_on_receipts",
+            "fieldtype": "Check",
+            "label": "Allow Reference on Receipts"
         }
     ],
     "grid_page_length": 50,

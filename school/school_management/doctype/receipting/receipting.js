@@ -3,6 +3,11 @@
 
 frappe.ui.form.on("Receipting", {
     refresh: function(frm) {
+        frappe.db.get_single_value("School Settings", "allow_reference_on_receipts").then(value => {
+            var is_allowed = (value == 1 || value == true);
+            frm.fields_dict['invoice'].grid.set_column_disp('reference', is_allowed);
+        });
+
         frm.set_query("student_name", function() {
             return { 
                 query: "school.school_management.doctype.student.student.get_active_students",

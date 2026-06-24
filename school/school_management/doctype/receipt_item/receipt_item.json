@@ -9,7 +9,8 @@
   "invoice_currency",
   "fee_item",
   "outstanding",
-  "allocated"
+  "allocated",
+  "reference"
  ],
  "fields": [
   {
@@ -47,6 +48,12 @@
    "fieldtype": "Float",
    "in_list_view": 1,
    "label": "Allocated"
+  },
+  {
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Reference"
   }
  ],
  "istable": 1,
