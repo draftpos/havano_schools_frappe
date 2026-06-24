@@ -13,17 +13,6 @@
  {
   "docstatus": 0,
   "doctype": "Client Script",
-  "dt": "User",
-  "enabled": 1,
-  "modified": "2026-01-22 14:00:41.599821",
-  "module": "Saas Api",
-  "name": "settings user permmission",
-  "script": "frappe.ui.form.on(\"User\", {\n  refresh: function(frm) {\n    frm.can_edit_roles = true;\n\n    if (!frm.roles_editor) {\n      frm.roles_editor = new frappe.RoleEditor(\n        frm.fields_dict.roles_html.wrapper,\n        frm\n      );\n    }\n    frm.roles_editor.show();\n    frm.toggle_display([\"sb1\", \"sb3\", \"modules_access\"], true);\n\n    if (frm.is_new()) return;\n\n    frm.add_custom_button(__(\"Create Student\"), function() {\n      frappe.new_doc(\"Student\");\n    }, __(\"School\"));\n    frm.add_custom_button(__(\"Create Teacher\"), function() {\n      frappe.new_doc(\"Teacher\");\n    }, __(\"School\"));\n    frm.add_custom_button(__(\"Create Parent\"), function() {\n      frappe.new_doc(\"Parent\");\n    }, __(\"School\"));\n  }\n});",
-  "view": "Form"
- },
- {
-  "docstatus": 0,
-  "doctype": "Client Script",
   "dt": "Payment Entry",
   "enabled": 1,
   "modified": "2026-03-06 07:31:05.165554",
@@ -140,6 +129,39 @@
   "module": "School Management",
   "name": "Test Schedule - Auto Grade",
   "script": "frappe.ui.form.on('Test Schedule Item', {\n    marks_obtained(frm, cdt, cdn) {\n        calculate_grade(frm, cdt, cdn);\n    }\n});\n\nfunction calculate_grade(frm, cdt, cdn) {\n    let row = locals[cdt][cdn];\n    if (frm.doc.max_marks && row.marks_obtained != null) {\n        let perc = (flt(row.marks_obtained) / flt(frm.doc.max_marks)) * 100;\n        frappe.db.get_doc('Grading Score', 'STD').then(r => {\n            let items = r.message.grading_items || [];\n            let match = items.find(item => \n                perc >= item.from_percent && \n                (!item.to_percent || perc <= item.to_percent)\n            );\n            frappe.model.set_value(cdt, cdn, 'grade', match ? match.grade : '');\n            frm.refresh_field('test_items');\n        });\n    }\n}",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "User",
+  "enabled": 1,
+  "modified": "2026-01-22 14:00:41.599821",
+  "module": "Saas Api",
+  "name": "settings user permmission",
+  "script": "frappe.ui.form.on(\"User\", {\n  refresh: function(frm) {\n    frm.can_edit_roles = true;\n\n    if (!frm.roles_editor) {\n      frm.roles_editor = new frappe.RoleEditor(\n        frm.fields_dict.roles_html.wrapper,\n        frm\n      );\n    }\n    frm.roles_editor.show();\n    frm.toggle_display([\"sb1\", \"sb3\", \"modules_access\"], true);\n\n    if (frm.is_new()) return;\n\n    frm.add_custom_button(__(\"Create LearnflowStudent\"), function() {\n      frappe.new_doc(\"LearnflowStudent\");\n    }, __(\"Learnflow\"));\n    frm.add_custom_button(__(\"Create LearnflowTeacher\"), function() {\n      frappe.new_doc(\"LearnflowTeacher\");\n    }, __(\"Learnflow\"));\n    frm.add_custom_button(__(\"Create LearnflowParent\"), function() {\n      frappe.new_doc(\"LearnflowParent\");\n    }, __(\"Learnflow\"));\n  }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Payment Entry",
+  "enabled": 1,
+  "modified": "2026-03-06 07:31:05.165554",
+  "module": null,
+  "name": "Payment Entry - Auto Fill LearnflowStudent Info",
+  "script": "\nfrappe.ui.form.on('Payment Entry', {\n    party: function(frm) {\n        if (!frm.doc.party) {\n            frm.set_value('learnflow_student_class', '');\n            frm.set_value('learnflow_student_learnflow_section', '');\n            frm.set_value('learnflow_student_category', '');\n            return;\n        }\n        frappe.db.get_value('Learnflow Student',\n            {'full_name': frm.doc.party},\n            ['learnflow_student_class', 'learnflow_section', 'learnflow_student_category'],\n            function(learnflow_student) {\n                if (learnflow_student) {\n                    frm.set_value('learnflow_student_class', learnflow_student.learnflow_student_class || '');\n                    frm.set_value('learnflow_student_learnflow_section', learnflow_student.learnflow_section || '');\n                    frm.set_value('learnflow_student_category', learnflow_student.learnflow_student_category || '');\n                }\n            }\n        );\n    },\n    learnflow_fees_structure: function(frm) {\n        if (!frm.doc.learnflow_fees_structure) {\n            frm.set_value('learnflow_academic_year', '');\n            frm.set_value('academic_learnflow_term', '');\n            return;\n        }\n        frappe.db.get_value('Learnflow Fees Structure',\n            frm.doc.learnflow_fees_structure,\n            ['year', 'learnflow_term'],\n            function(fs) {\n                if (fs) {\n                    frm.set_value('learnflow_academic_year', fs.year || '');\n                    frm.set_value('academic_learnflow_term', fs.learnflow_term || '');\n                }\n            }\n        );\n    }\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Invoice",
+  "enabled": 1,
+  "modified": "2026-03-05 20:52:40.251750",
+  "module": null,
+  "name": "Sales Invoice - Auto Fill LearnflowStudent Info",
+  "script": "\nfrappe.ui.form.on('Sales Invoice', {\n    customer: function(frm) {\n        if (!frm.doc.customer) {\n            frm.set_value('learnflow_student_class', '');\n            frm.set_value('learnflow_student_learnflow_section', '');\n            frm.set_value('learnflow_student_category', '');\n            return;\n        }\n        frappe.db.get_value('Learnflow Student',\n            {'full_name': frm.doc.customer},\n            ['learnflow_student_class', 'learnflow_section', 'learnflow_student_category'],\n            function(learnflow_student) {\n                if (learnflow_student) {\n                    frm.set_value('learnflow_student_class', learnflow_student.learnflow_student_class || '');\n                    frm.set_value('learnflow_student_learnflow_section', learnflow_student.learnflow_section || '');\n                    frm.set_value('learnflow_student_category', learnflow_student.learnflow_student_category || '');\n                }\n            }\n        );\n    },\n    learnflow_fees_structure: function(frm) {\n        if (!frm.doc.learnflow_fees_structure) {\n            frm.set_value('learnflow_academic_year', '');\n            frm.set_value('academic_learnflow_term', '');\n            return;\n        }\n        frappe.db.get_value('Learnflow Fees Structure',\n            frm.doc.learnflow_fees_structure,\n            ['year', 'learnflow_term'],\n            function(fs) {\n                if (fs) {\n                    frm.set_value('learnflow_academic_year', fs.year || '');\n                    frm.set_value('academic_learnflow_term', fs.learnflow_term || '');\n                }\n            }\n        );\n    }\n});",
   "view": "Form"
  },
  {

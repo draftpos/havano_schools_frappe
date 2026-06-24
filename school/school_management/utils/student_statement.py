@@ -103,7 +103,26 @@ def _get_statement_entries(company, customer, from_date, to_date):
                  JOIN `tabSales Invoice` si_inner ON si_inner.name = jea.reference_name 
                  WHERE jea.parent = gle.voucher_no AND jea.reference_type = 'Sales Invoice' AND jea.party = gle.party
                  LIMIT 1)
-            ) AS fees_structure
+            ) AS fees_structure,
+            CASE gle.voucher_type
+                WHEN 'Sales Invoice' THEN (
+                    SELECT GROUP_CONCAT(DISTINCT sii.item_name SEPARATOR ', ')
+                    FROM `tabSales Invoice Item` sii 
+                    WHERE sii.parent = gle.voucher_no
+                )
+                WHEN 'Billing' THEN (
+                    SELECT GROUP_CONCAT(DISTINCT bi.item_name SEPARATOR ', ')
+                    FROM `tabBilling Item` bi 
+                    WHERE bi.parent = gle.voucher_no
+                )
+                WHEN 'Payment Entry' THEN (
+                    SELECT GROUP_CONCAT(DISTINCT ri.fee_item SEPARATOR ', ')
+                    FROM `tabReceipt Item` ri 
+                    JOIN `tabPayment Entry` pe ON pe.reference_no = ri.parent 
+                    WHERE pe.name = gle.voucher_no AND ri.allocated > 0
+                )
+                ELSE ''
+            END AS sub_fees_structures
            FROM `tabGL Entry` gle
            LEFT JOIN `tabSales Invoice` si
                ON si.name = gle.voucher_no
@@ -152,7 +171,8 @@ def build_statement_rows(filters, customer):
         debit = flt(entry.get('debit'))
         credit = flt(entry.get('credit'))
         running_balance += debit - credit
-        rows.append({'posting_date': entry.get('posting_date'), 'display_date': formatdate(entry.get('posting_date')), 'voucher_type': entry.get('voucher_type'), 'voucher_no': entry.get('voucher_no'), 'reference_no': entry.get('voucher_no') or '', 'description': entry.get('remarks') or entry.get('voucher_type') or '', 'fees_structure': entry.get('fees_structure') or '', 'debit': debit, 'credit': credit, 'running_balance': running_balance, 'is_opening': 0, 'is_closing': 0})
+        sub_fees_structures = entry.get('sub_fees_structures') or ''
+        rows.append({'posting_date': entry.get('posting_date'), 'display_date': formatdate(entry.get('posting_date')), 'voucher_type': entry.get('voucher_type'), 'voucher_no': entry.get('voucher_no'), 'reference_no': entry.get('voucher_no') or '', 'description': entry.get('remarks') or entry.get('voucher_type') or '', 'fees_structure': entry.get('fees_structure') or '', 'sub_fees_structures': sub_fees_structures, 'debit': debit, 'credit': credit, 'running_balance': running_balance, 'is_opening': 0, 'is_closing': 0})
     closing_balance = _get_party_closing_balance(company, customer, to_date)
     rows.append({'posting_date': to_date, 'display_date': formatdate(to_date), 'voucher_type': '', 'voucher_no': '', 'reference_no': '', 'description': 'Balance c/d', 'debit': closing_balance if closing_balance > 0 else 0, 'credit': abs(closing_balance) if closing_balance < 0 else 0, 'running_balance': closing_balance, 'is_opening': 0, 'is_closing': 1})
     return rows, opening_balance, closing_balance

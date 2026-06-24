@@ -154,13 +154,14 @@
         <thead>
             <tr>
                 <th style="width: 9%;">Date</th>
-                <th style="width: 22%;">Description</th>
-                <th style="width: 12%;">Type</th>
-                <th style="width: 14%;">Ref No.</th>
-                <th style="width: 14%;">Fees Structure</th>
-                <th class="num" style="width: 10%;">Dr</th>
-                <th class="num" style="width: 10%;">Cr</th>
-                <th class="num" style="width: 11%;">Balance</th>
+                <th style="width: 18%;">Description</th>
+                <th style="width: 10%;">Type</th>
+                <th style="width: 11%;">Ref No.</th>
+                <th style="width: 12%;">Fees Structure</th>
+                <th style="width: 14%;">Sub Fees</th>
+                <th class="num" style="width: 8%;">Dr</th>
+                <th class="num" style="width: 8%;">Cr</th>
+                <th class="num" style="width: 10%;">Balance</th>
             </tr>
         </thead>
         <tbody>
@@ -171,6 +172,7 @@
                 <td>{{ row.voucher_type or "" }}</td>
                 <td>{{ row.reference_no or "" }}</td>
                 <td style="font-size:10px;color:#1d4ed8;">{% if row.fees_structure %}{{ row.fees_structure }}{% elif row.description not in ["Balance b/d", "Balance c/d"] %}{{ fs_display }}{% endif %}</td>
+                <td style="font-size:10px;color:#047857;">{{ row.sub_fees_structures or "" }}</td>
                 <td class="num">{{ frappe.format(row.debit or 0, {"fieldtype": "Currency", "options": currency}) }}</td>
                 <td class="num">{{ frappe.format(row.credit or 0, {"fieldtype": "Currency", "options": currency}) }}</td>
                 <td class="num">{{ frappe.format(row.running_balance or 0, {"fieldtype": "Currency", "options": currency}) }}</td>
