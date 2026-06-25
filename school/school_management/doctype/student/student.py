@@ -137,9 +137,7 @@ class Student(Document):
 		"""Disable or enable customer and user based on transfer status"""
 		is_transferred = self.transfer_status == "Transferred"
 
-		customer_name = frappe.db.get_value("Customer", {"custom_student_reg_no": self.student_reg_no})
-		if not customer_name:
-			customer_name = frappe.db.exists("Customer", {"customer_name": self.full_name})
+		customer_name = frappe.db.exists("Customer", {"customer_name": self.full_name})
 		
 		is_transferred = self.transfer_status in ("Transferred", "Inactive")
 		if customer_name:
@@ -477,15 +475,7 @@ class Student(Document):
 
 			customer_details = " | ".join(details_parts)
 
-			existing = None
-			if self.student_reg_no:
-				existing = frappe.db.get_value(
-					"Customer",
-					{"custom_student_reg_no": self.student_reg_no},
-					"name",
-				)
-			if not existing:
-				existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
+			existing = frappe.db.exists("Customer", {"customer_name": self.full_name})
 
 			if existing:
 				customer = frappe.get_doc("Customer", existing)
@@ -493,15 +483,7 @@ class Student(Document):
 				customer.customer_group = customer_group
 				customer.territory = territory
 				customer.mobile_no = self.phone_number or customer.mobile_no
-				customer.custom_student_reg_no = self.student_reg_no or ""
-				customer.custom_student_section = self.section or ""
-				customer.custom_student_class = self.student_class or ""
-				customer.custom_school = self.school or ""
-				customer.custom_student_type = self.student_type or ""
-				customer.custom_gender = self.gender or ""
 				customer.customer_details = customer_details
-				customer.custom_class = self.name
-				customer.student_name = self.full_name
 				if self.student_image:
 					customer.image = self.student_image
 				customer.flags.ignore_permissions = True
@@ -515,16 +497,8 @@ class Student(Document):
 						"customer_group": customer_group,
 						"territory": territory,
 						"mobile_no": self.phone_number or "",
-						"custom_student_reg_no": self.student_reg_no or "",
-						"custom_student_section": self.section or "",
-						"custom_student_class": self.student_class or "",
-						"custom_school": self.school or "",
-						"custom_student_type": self.student_type or "",
-						"custom_gender": self.gender or "",
 						"customer_details": customer_details,
 						"image": self.student_image or "",
-						"custom_class": self.name,
-						"student_name": self.full_name,
 					}
 				)
 				customer.flags.ignore_permissions = True
