@@ -30,6 +30,37 @@ class Receipting(Document):
 		self.total_allocated = total_allocated
 		self.total_balance = total_outstanding - total_allocated
 
+	def on_cancel(self):
+		self.cancel_payment_entries()
+
+	def cancel_payment_entries(self):
+		pes = frappe.get_all(
+			"Payment Entry",
+			filters={"reference_no": self.name, "docstatus": 1},
+			fields=["name"]
+		)
+		if not pes:
+			frappe.msgprint(f"No active Payment Entry found for Receipt {self.name}. Nothing to cancel.")
+		else:
+			for pe in pes:
+				try:
+					pe_doc = frappe.get_doc("Payment Entry", pe.name)
+					pe_doc.flags.ignore_permissions = True
+					pe_doc.cancel()
+					frappe.msgprint(f"Payment Entry {pe.name} cancelled. Invoice outstanding restored.")
+				except Exception:
+					frappe.log_error(
+						title=f"Failed to cancel PE {pe.name} for Receipt {self.name}",
+						message=frappe.get_traceback()
+					)
+					frappe.throw(f"Could not cancel Payment Entry {pe.name}. Cancel it manually first.")
+		for row in self.invoice:
+			if not row.invoice_number and row.fee_item == "Opening Balance":
+				current_ob = frappe.db.get_value("Student", self.student_name, "opening_balance")
+				new_ob = flt(current_ob) + flt(row.allocated)
+				frappe.db.set_value("Student", self.student_name, "opening_balance", new_ob)
+		frappe.db.commit()
+
 	def on_submit(self):
 		if flt(self.total_allocated) <= 0:
 			frappe.throw("Allocation amount must be greater than 0.")
@@ -277,3 +308,32 @@ def reconcile_receipt(receipt_name):
 			message=frappe.get_traceback()
 		)
 		return {"status": "error", "message": str(e)}
+
+
+@frappe.whitelist()
+def backfill_cancelled_receipts():
+	cancelled = frappe.get_all("Receipting", filters={"docstatus": 2}, fields=["name"])
+	fixed, skipped, errors = [], [], []
+	for r in cancelled:
+		pes = frappe.get_all("Payment Entry",
+			filters={"reference_no": r.name, "docstatus": 1}, fields=["name"])
+		if not pes:
+			skipped.append(r.name)
+			continue
+		for pe in pes:
+			try:
+				pe_doc = frappe.get_doc("Payment Entry", pe.name)
+				pe_doc.flags.ignore_permissions = True
+				pe_doc.cancel()
+				frappe.db.commit()
+				fixed.append(f"{r.name} -> {pe.name}")
+			except Exception:
+				frappe.log_error(
+					title=f"Backfill: failed to cancel PE {pe.name} for Receipt {r.name}",
+					message=frappe.get_traceback()
+				)
+				errors.append(f"{r.name} -> {pe.name}")
+	print(f"DONE. Fixed: {len(fixed)}, Skipped: {len(skipped)}, Errors: {len(errors)}")
+	for x in fixed: print(f"  FIXED: {x}")
+	for x in errors: print(f"  ERROR: {x}")
+	return {"fixed": fixed, "skipped": skipped, "errors": errors}
