@@ -125,6 +125,51 @@ def get_student_invoices(student):
                     "posting_date": str(inv.posting_date)
                 })
         
+    try:
+        from erpnext.accounts.party import get_outstanding_invoices
+        outstandings = get_outstanding_invoices("Customer", customer, account=None)
+        for out in outstandings:
+            if out.get("voucher_type") == "Journal Entry":
+                je_name = out.get("voucher_no")
+                
+                draft_allocations = frappe.db.sql("""
+                    SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                    FROM `tabReceipt Item` ri
+                    JOIN `tabReceipting` r ON r.name = ri.parent
+                    WHERE ri.invoice_number = %s 
+                      AND r.docstatus = 0
+                """, (je_name,), as_dict=True)
+
+                allocated_in_draft = 0
+                inv_curr = out.get("currency") or "USD"
+                for ri in draft_allocations:
+                    alloc = flt(ri.allocated)
+                    rec_curr = ri.receipt_currency or "USD"
+                    exch_rate = flt(ri.exchange_rate) or 1.0
+                    
+                    if rec_curr != inv_curr:
+                        if rec_curr == "ZWG" and inv_curr == "USD":
+                            alloc = alloc / exch_rate if exch_rate else 0
+                        elif rec_curr == "USD" and inv_curr == "ZWG":
+                            alloc = alloc * exch_rate
+                    
+                    allocated_in_draft += alloc
+                
+                item_outstanding = flt(out.get("outstanding_amount")) - allocated_in_draft
+                item_outstanding = round(item_outstanding, 2)
+                
+                if item_outstanding > 0.01:
+                    result.append({
+                        "name": "", # Leave empty so receipting.py treats it as a standard Opening Balance
+                        "currency": out.get("currency"),
+                        "fee_item": "Opening Balance",
+                        "outstanding_amount": item_outstanding,
+                        "total": out.get("invoice_amount") or out.get("outstanding_amount"),
+                        "posting_date": str(out.get("posting_date"))
+                    })
+    except Exception as e:
+        frappe.log_error(title="Failed to fetch JVs for receipting", message=frappe.get_traceback())
+
     return result
 
 

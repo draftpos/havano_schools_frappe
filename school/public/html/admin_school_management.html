@@ -2650,18 +2650,19 @@ async function loadExamAnalysisData() {
   const subject = $('ea-subject').value;
 
   try {
-    const res = await frappe.call({
-      method: 'school.utils.get_exam_analysis_data',
-      args: {
-        cost_center: costCenter,
-        academic_year: academicYear,
-        term: term,
-        student_class: studentClass,
-        subject: subject
-      }
-    });
+    let query = new URLSearchParams();
+    if (costCenter) query.append('cost_center', costCenter);
+    if (academicYear) query.append('academic_year', academicYear);
+    if (term) query.append('term', term);
+    if (studentClass) query.append('student_class', studentClass);
+    if (subject) query.append('subject', subject);
 
-    const data = res.message || {};
+    const r = await fetch('/api/method/school.utils.get_exam_analysis_data?' + query.toString(), {
+      headers: {'Accept': 'application/json'},
+      credentials: 'include'
+    });
+    const d = await r.json();
+    const data = d.message || {};
     
     // Update counter metrics
     $('ea-avg-score').textContent = (data.average_score || 0) + '%';
