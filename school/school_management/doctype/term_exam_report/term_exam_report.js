@@ -101,11 +101,11 @@ frappe.ui.form.on('Term Exam Report', {
 	refresh: function (frm) {
 		if (frm.doc.__islocal) return;
 
-		// Make comment fields read-only in the grid
-		if (frm.fields_dict.term_exam_results && frm.fields_dict.term_exam_results.grid) {
-			frm.fields_dict.term_exam_results.grid.update_docfield_property('teacher_comment', 'read_only', 1);
-			frm.fields_dict.term_exam_results.grid.update_docfield_property('admin_comment', 'read_only', 1);
-		}
+		// Removed read-only enforcement so teacher_comment can be edited in grid
+		// if (frm.fields_dict.term_exam_results && frm.fields_dict.term_exam_results.grid) {
+		// 	frm.fields_dict.term_exam_results.grid.update_docfield_property('teacher_comment', 'read_only', 1);
+		// 	frm.fields_dict.term_exam_results.grid.update_docfield_property('admin_comment', 'read_only', 1);
+		// }
 
 		// !! Change this to match your exact Print Format name in Frappe !!
 		const PRINT_FORMAT = 'Term Exam Report Card';
