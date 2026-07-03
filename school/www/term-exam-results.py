@@ -14,9 +14,8 @@ def get_context(context):
 	else:
 		context.show_sidebar = True
 		context.website_sidebar = "Student Portal"
+	grading_items = []
 
-	grading_items = []
-	grading_items = []
 	try:
 		# Use get_all on the child table directly with ignore_permissions to safely fetch data
 		items = frappe.get_all("Grading Score Item", 
@@ -26,6 +25,8 @@ def get_context(context):
 			ignore_permissions=True
 		)
 		
+		frappe.log_error("Portal Grading Debug 1", f"Items for STD: {items}")
+
 		if not items:
 			# Fallback to the latest Grading Score if STD is empty
 			latest_parent = frappe.get_all("Grading Score", order_by="modified desc", limit=1, ignore_permissions=True)
@@ -36,16 +37,29 @@ def get_context(context):
 					order_by="from_percent desc",
 					ignore_permissions=True
 				)
+			frappe.log_error("Portal Grading Debug 2", f"Fallback items: {items}")
 
 		if items:
 			for item in items:
 				grading_items.append({
-					"from_percent": item.get("from_percent"),
-					"to_percent": item.get("to_percent"),
-					"grade": item.get("grade"),
-					"status": item.get("status")
+					"from_percent": item.get("from_percent", 0),
+					"to_percent": item.get("to_percent", 100),
+					"grade": item.get("grade", ""),
+					"status": item.get("status", "")
 				})
+		
+		frappe.log_error("Portal Grading Debug 3", f"Final grading_items length: {len(grading_items)}")
+
 	except Exception as e:
 		frappe.log_error("Portal Grading Fetch Error", str(e))
+
+	# Forcibly inject a debug row to ensure Jinja loop works
+	if not grading_items:
+		grading_items.append({
+			"from_percent": 0,
+			"to_percent": 100,
+			"grade": "HARDCODED_TEST",
+			"status": "Pass"
+		})
 
 	context.grading_items = grading_items
