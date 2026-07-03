@@ -1128,6 +1128,9 @@ title: Term Exam Results
     var report_id = params.get("report_name") || "";
     var isAdminPopup = (params.get("from") === "admin");
     var qs = child ? "?student=" + encodeURIComponent(child) : "";
+    if (report_id) {
+        qs += (qs ? "&" : "?") + "report_name=" + encodeURIComponent(report_id);
+    }
 
     fetch("/api/method/school.api.get_term_exam_results" + qs, { credentials: "same-origin" })
       .then(function (res) { return res.json(); })

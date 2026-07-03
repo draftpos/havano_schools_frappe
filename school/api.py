@@ -622,7 +622,7 @@ def get_homework_results(student=None):
         })
     return result
 @frappe.whitelist()
-def get_term_exam_results(student=None):
+def get_term_exam_results(student=None, report_name=None):
     user = frappe.session.user
     is_admin = "Administrator" in frappe.get_roles(user) or "School Administrator" in frappe.get_roles(user)
     
@@ -641,12 +641,20 @@ def get_term_exam_results(student=None):
     s_section = student.section or ""
 
     # Get term reports
-    reports = frappe.db.sql("""
-        SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-        FROM `tabTerm Exam Report`
-        WHERE student_class = %s AND docstatus = 1
-        ORDER BY report_date DESC
-    """, s_class, as_dict=True) if s_class else []
+    if report_name:
+        reports = frappe.db.sql("""
+            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+            FROM `tabTerm Exam Report`
+            WHERE name = %s
+            ORDER BY report_date DESC
+        """, report_name, as_dict=True)
+    else:
+        reports = frappe.db.sql("""
+            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+            FROM `tabTerm Exam Report`
+            WHERE student_class = %s AND docstatus = 1
+            ORDER BY report_date DESC
+        """, s_class, as_dict=True) if s_class else []
 
     result = []
     for report in reports:
