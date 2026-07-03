@@ -27,10 +27,9 @@
   {
    "columns": 2,
    "fieldname": "grade",
-   "fieldtype": "Link",
+   "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Grade",
-   "options": "Grade"
+   "label": "Grade"
   },
   {
    "fieldname": "status",
