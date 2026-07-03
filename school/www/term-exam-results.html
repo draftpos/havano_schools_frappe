@@ -761,8 +761,19 @@ title: Term Exam Results
 
   // Grading scale — can be extended from API if available
   var GRADING = [
-    {% if grading_items %}
-      {% for gi in grading_items %}
+    {% set items = frappe.get_all("Grading Score Item", fields=["parent", "from_percent", "to_percent", "grade", "status"], order_by="from_percent desc") %}
+    {% set filtered_items = [] %}
+    {% for i in items %}
+      {% if i.parent != "STD" %}
+        {% set _ = filtered_items.append(i) %}
+      {% endif %}
+    {% endfor %}
+    {% if not filtered_items %}
+      {% set filtered_items = items %}
+    {% endif %}
+
+    {% if filtered_items %}
+      {% for gi in filtered_items %}
         { from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
       {% endfor %}
     {% else %}
