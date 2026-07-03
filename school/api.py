@@ -126,11 +126,15 @@ def get_student_invoices(student):
                 })
         
     try:
-        from erpnext.accounts.party import get_outstanding_invoices
-        outstandings = get_outstanding_invoices("Customer", customer, account=None)
-        for out in outstandings:
-            if out.get("voucher_type") == "Journal Entry":
-                je_name = out.get("voucher_no")
+        from erpnext.accounts.party import get_outstanding_invoices, get_party_account
+        company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
+        account = get_party_account("Customer", customer, company)
+        
+        if account:
+            outstandings = get_outstanding_invoices("Customer", customer, account=[account])
+            for out in outstandings:
+                if out.get("voucher_type") == "Journal Entry":
+                    je_name = out.get("voucher_no")
                 
                 draft_allocations = frappe.db.sql("""
                     SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
