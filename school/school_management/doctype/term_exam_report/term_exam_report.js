@@ -299,44 +299,17 @@ function _render_student_dropdown(frm) {
 	});
 }
 
-// ─── Open Frappe Dialog modal with embedded iframe ────────────────────────────
+// ─── Open Frappe Print Format in new window ─────────────────────────────────
 function _open_student_popup(frm, studentId, studentName) {
-	var url = '/term-exam-results'
-		+ '?student=' + encodeURIComponent(studentId)
-		+ '&report_name=' + encodeURIComponent(frm.doc.name)
-		+ '&term=' + encodeURIComponent(frm.doc.term || '')
-		+ '&from=admin';
+	const PRINT_FORMAT = 'Term Exam Report Card'; // Or Term Exam Report Premium if that's the one they use
+	const printUrl = '/printview?'
+		+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
+		+ '&name=' + encodeURIComponent(frm.doc.name)
+		+ '&format=' + encodeURIComponent(PRINT_FORMAT)
+		+ '&no_letterhead=0'
+		+ '&student_filter=' + encodeURIComponent(studentId);
 
-	var d = new frappe.ui.Dialog({
-		title: '&#128203; Report Card — ' + (studentName || studentId),
-		size: 'extra-large',
-		fields: [
-			{
-				fieldname: 'report_iframe',
-				fieldtype: 'HTML',
-				options: '<iframe'
-					+ ' src="' + url + '"'
-					+ ' id="student-report-iframe"'
-					+ ' style="width:100%;height:75vh;border:none;border-radius:6px;display:block;"'
-					+ ' allowfullscreen'
-					+ '></iframe>'
-			}
-		],
-		primary_action_label: '&#10003; Done — Close',
-		primary_action: function () {
-			d.hide();
-			// Reload the parent doc so any saved comments are reflected in the table
-			frm.reload_doc();
-		}
-	});
-
-	d.show();
-
-	// Maximise dialog width
-	d.$wrapper.find('.modal-dialog').css({
-		'max-width': '92vw',
-		'width': '92vw'
-	});
+	window.open(printUrl, '_blank');
 }
 
 // ─── Internal helper ──────────────────────────────────────────────────────────

@@ -719,7 +719,8 @@ Settings", "app_logo") %}
       <div class="card-meta">
         <div>
           <p><strong>Student Name:</strong> {{ student_name }}</p>
-          <p><strong>Admission No:</strong> {{ student_id }}</p>
+          {% set student_reg_no = frappe.db.get_value("Student", student_id, "student_reg_no") or student_id %}
+          <p><strong>Admission No:</strong> {{ student_reg_no }}</p>
           <p><strong>Class/Group:</strong> {{ doc.student_class }}{% if doc.section %} ({{ doc.section }}){% endif %}
           </p>
         </div>
