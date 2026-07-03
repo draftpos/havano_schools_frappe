@@ -928,11 +928,21 @@ title: Term Exam Results
     var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="
       + encodeURIComponent(verifyUrl);
 
+    /* ── Fetch Logo from Settings via Jinja ── */
+    var schoolLogo = '{{ frappe.db.get_single_value("Website Settings", "app_logo") or "" }}';
+    if (!schoolLogo) {
+        // Fallback to first company logo if Website Settings logo is missing
+        {% set company_logo = frappe.db.get_value("Company", {"name": ["!=", ""]}, "company_logo") %}
+        schoolLogo = '{{ company_logo or "" }}';
+    }
+
+    var logoHtml = schoolLogo ? '<img src="' + schoolLogo + '" alt="School Logo">' : '<div class="header-no-logo">🏫</div>';
+
     /* ── Assemble HTML ── */
     var html = ''
       + '<div class="report-card">'
       + '  <div class="card-header-wrapper">'
-      + '    <div class="header-logo-panel"><div class="header-no-logo">🏫</div></div>'
+      + '    <div class="header-logo-panel">' + logoHtml + '</div>'
       + '    <div class="header-info-panel">'
       + '      <h2>' + (r.school_name || "School") + '</h2>'
       + '      <h3>TERM EXAMINATION REPORT CARD</h3>'
