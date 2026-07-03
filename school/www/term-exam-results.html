@@ -841,7 +841,7 @@ title: Term Exam Results
        come from the Term Exam Report doc itself.                           */
     var firstItem = r.items[0] || {};
     var studentName = firstItem.student_name || "—";
-    var admissionNo = firstItem.student || "—";
+    var admissionNo = firstItem.student_reg_no || firstItem.student || "—";
     var className = r.class_name || r.student_class || "—";
     var termLabel = r.term || "—";
     var dateLabel = r.date || r.report_date || "—";

@@ -679,6 +679,7 @@ def get_term_exam_results(student=None, report_name=None):
                 item["student_name"] = student.full_name or s_name
             if "student" not in item or not item["student"]:
                 item["student"] = student.student_reg_no or s_name
+            item["student_reg_no"] = student.student_reg_no or s_name
 
         # Get school name from cost center
         school_name = ""
