@@ -829,20 +829,7 @@ title: Term Exam Results
     var overallG = G(parseFloat(overallPct));
 
     /* ── Student identity — exact field names from print format Jinja ──
-       Print format iterates doc.term_exam_results rows and uses:
-         row.student        → admission number
-         row.student_name   → full name
-         row.subject        → subject
-         row.exam           → exam name
-         row.marks_obtained → marks
-         row.max_marks      → max marks
-         row.percentage     → percentage
-         row.grade          → grade
-         row.status         → Pass/Moderate/Failed
-         row.teacher_comment, row.admin_comment
-       The portal API groups these same rows under r.items[].
-       Top-level r fields (exam_name, academic_year, class_name, date, term)
-       come from the Term Exam Report doc itself.                           */
+    /* ── Student identity ── */
     var firstItem = r.items[0] || {};
     var studentName = firstItem.student_name || "—";
     var admissionNo = firstItem.student_reg_no || firstItem.student || "—";
@@ -853,26 +840,23 @@ title: Term Exam Results
     var examTitle = r.exam_name || "—";
     var reportName = r.name || r.report_name || "";
 
-    /* ── Class position — print format computes this server-side via
-       sorted_totals / class_rank dict. Mirror: if API returns class_rank
-       use it; otherwise compute rank from AR (all exams loaded for this
-       student — single student portal won't have peer data so shows —). */
     var cRank = r.class_rank || "—";
     var totalStudents = r.total_students || "—";
 
-    // Set existing admin comment in textarea if present
+    // Set existing admin/teacher comments in textareas if present
     if (el("admin-overall-comment")) {
         el("admin-overall-comment").value = firstItem.admin_comment || "";
     }
+    if (el("teacher-overall-comment")) {
+        el("teacher-overall-comment").value = firstItem.teacher_comment || "";
+    }
 
-
-
-    /* ── Sort subjects — print format sorts by 'subject' field ── */
+    /* ── Sort subjects ── */
     var subjects = r.items.slice().sort(function (a, b) {
       return (a.subject || "").localeCompare(b.subject || "");
     });
 
-    /* ── Build subject rows — exact field names from print format ── */
+    /* ── Build subject rows ── */
     var tbRows = "", legendHTML = "";
     subjects.forEach(function (s, i) {
       var max = parseFloat(s.max_marks || 0);
@@ -882,15 +866,14 @@ title: Term Exam Results
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       var g = s.grade || G(parseFloat(pct));
       var stat = s.status || (parseFloat(pct) >= 60 ? "Pass" : parseFloat(pct) >= 50 ? "Moderate" : "Failed");
-      var sc = stat === "Pass" ? "status-pass" : stat === "Moderate" ? "status-moderate" : "status-failed";
       var comments = [];
       if (s.remarks) comments.push(s.remarks);
       if (s.teacher_comment) comments.push("T: " + s.teacher_comment);
       if (s.admin_comment) comments.push("A: " + s.admin_comment);
       var cstr = comments.join(" | ") || "";
 
-      var subName = s.subject || "—";   /* print format uses row.subject */
-      var examLbl = s.exam || "";    /* print format uses row.exam */
+      var subName = s.subject || "—";
+      var examLbl = s.exam || "";
       var color = PIE_COLORS[i % PIE_COLORS.length];
 
       tbRows += "<tr>"
@@ -918,12 +901,7 @@ title: Term Exam Results
         + "</tr>";
     });
 
-    /* ── QR for verification — mirrors Jinja print format exactly ── */
-    /* The print format uses:
-         /api/method/school.school_management.doctype.term_exam_report
-             .term_exam_report.verify_student_report
-             ?report=<docname>&student=<admission_no>
-       We build the same URL so QR codes are identical to printed cards. */
+    /* ── QR for verification ── */
     var verifyUrl = window.location.origin
       + "/api/method/school.school_management.doctype"
       + ".term_exam_report.term_exam_report.verify_student_report"
@@ -932,11 +910,9 @@ title: Term Exam Results
     var qrSrc = "https://api.qrserver.com/v1/create-qr-code/?size=90x90&data="
       + encodeURIComponent(verifyUrl);
 
-    /* ── Assemble the full report card HTML ─────────── */
+    /* ── Assemble HTML ── */
     var html = ''
       + '<div class="report-card">'
-
-      /* — Header — */
       + '  <div class="card-header-wrapper">'
       + '    <div class="header-logo-panel"><div class="header-no-logo">🏫</div></div>'
       + '    <div class="header-info-panel">'
@@ -945,8 +921,6 @@ title: Term Exam Results
       + '      <p class="ref">Exam: ' + examTitle + (reportName ? ' &nbsp;|&nbsp; Ref: ' + reportName : '') + '</p>'
       + '    </div>'
       + '  </div>'
-
-      /* — Meta strip — */
       + '  <div class="card-meta">'
       + '    <div>'
       + '      <p><strong>Student:</strong> ' + studentName + '</p>'
@@ -965,8 +939,6 @@ title: Term Exam Results
       + '      <p><strong>Date:</strong> ' + dateLabel + '</p>'
       + '    </div>'
       + '  </div>'
-
-      /* — Subject table — */
       + '  <div class="table-wrap">'
       + '    <table class="rc-table">'
       + '      <thead><tr>'
@@ -985,8 +957,6 @@ title: Term Exam Results
       + '      </tr></tfoot>'
       + '    </table>'
       + '  </div>'
-
-      /* — Analytics row — */
       + '  <div class="analytics-wrapper">'
       + '    <div class="chart-panel">'
       + '      <h4>Subject Performance</h4>'
@@ -1001,8 +971,6 @@ title: Term Exam Results
       + '      </table>'
       + '    </div>'
       + '  </div>'
-
-      /* — Bottom panels — */
       + '  <div class="bottom-unified-wrapper">'
       + '    <div class="bottom-panel">'
       + '      <div class="grade-key">'
@@ -1019,8 +987,6 @@ title: Term Exam Results
       + '      </div>'
       + '    </div>'
       + '  </div>'
-
-      /* — Signatures — */
       + '  <div class="signatures-stamp">'
       + '    <div class="sig-group">'
       + '      <div class="sig-box"><div class="sig-line">Class Teacher</div></div>'
@@ -1029,14 +995,11 @@ title: Term Exam Results
       + '    </div>'
       + '    <div class="stamp-placeholder">School<br>Stamp</div>'
       + '  </div>'
-
-      /* — Footer — */
       + '  <div class="card-footer">'
       + '    <p>Scan QR to verify &nbsp;|&nbsp; Exam: ' + examTitle + (reportName ? ' &nbsp;|&nbsp; Ref: ' + reportName : '') + '</p>'
       + '    <p>Official school document — do not alter.</p>'
       + '  </div>'
-
-      + '</div>'; /* end .report-card */
+      + '</div>';
 
     el("rc-container").innerHTML = html;
     el("dv").style.display = "block";

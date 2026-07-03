@@ -345,53 +345,6 @@ function _open_student_popup(frm, studentId, studentName) {
 		title: '📝 Manage Comments & View Report — ' + (studentName || studentId),
 		size: 'extra-large',
 		fields: [
-			{ fieldtype: 'Column Break', fieldname: 'col_1' },
-			{
-				fieldname: 'teacher_comment',
-				fieldtype: 'Data',
-				label: 'Class Teacher Comment',
-				default: teacher_comment
-			},
-			{ fieldtype: 'Column Break', fieldname: 'col_2' },
-			{
-				fieldname: 'admin_comment',
-				fieldtype: 'Data',
-				label: 'Principal / Admin Comment',
-				default: admin_comment
-			},
-			{ fieldtype: 'Section Break', fieldname: 'sec_1' },
-			{
-				fieldname: 'save_comments_btn',
-				fieldtype: 'Button',
-				label: 'Save Comments & Update Preview',
-				click: function() {
-					let vals = d.get_values();
-					let updated = false;
-					(frm.doc.term_exam_results || []).forEach(r => {
-						if (r.student === studentId) {
-							frappe.model.set_value(r.doctype, r.name, 'teacher_comment', vals.teacher_comment);
-							frappe.model.set_value(r.doctype, r.name, 'admin_comment', vals.admin_comment);
-							updated = true;
-						}
-					});
-					if (updated) {
-						frappe.dom.freeze(__('Saving...'));
-						frm.save().then(() => {
-							frappe.dom.unfreeze();
-							frappe.show_alert({message: __('Comments saved!'), indicator: 'green'});
-							// Reload iframe to reflect new comments
-							d.$wrapper.find('#student-report-iframe').attr('src', popupUrl);
-						}).catch(() => {
-							frappe.dom.unfreeze();
-						});
-					}
-				}
-			},
-			{
-				fieldname: 'html_divider',
-				fieldtype: 'HTML',
-				options: '<hr style="margin-top:5px; margin-bottom:15px;">'
-			},
 			{
 				fieldname: 'report_iframe',
 				fieldtype: 'HTML',
