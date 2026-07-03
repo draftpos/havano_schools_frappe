@@ -893,9 +893,7 @@ title: Term Exam Results
         + "<td><strong>" + subName + "</strong></td>"
         + "<td style='color:#64748b;font-size:10px'>" + examLbl + "</td>"
         + "<td class='center'>" + obt + " / " + max + "</td>"
-        + "<td class='center'>" + pct + "%</td>"
         + "<td class='center'><span class='gb g" + g + "'>" + g + "</span></td>"
-        + "<td class='center " + sc + "'>" + stat + "</td>"
         + "<td style='font-size:10px;color:#475569'>" + cstr + "</td>"
         + "</tr>";
 
@@ -968,21 +966,18 @@ title: Term Exam Results
       + '  <div class="table-wrap">'
       + '    <table class="rc-table">'
       + '      <thead><tr>'
-      + '        <th style="width:18%">Subject</th>'
-      + '        <th style="width:10%">Exam</th>'
-      + '        <th class="center" style="width:10%">Marks</th>'
-      + '        <th class="center" style="width:7%">%</th>'
-      + '        <th class="center" style="width:7%">Grade</th>'
-      + '        <th class="center" style="width:9%">Status</th>'
-      + '        <th style="width:39%">Comments</th>'
+      + '        <th style="width:20%">Subject</th>'
+      + '        <th style="width:12%">Exam</th>'
+      + '        <th class="center" style="width:12%">Marks</th>'
+      + '        <th class="center" style="width:10%">Grade</th>'
+      + '        <th style="width:46%">Comments</th>'
       + '      </tr></thead>'
       + '      <tbody>' + tbRows + '</tbody>'
       + '      <tfoot><tr>'
       + '        <td colspan="2">OVERALL TOTAL</td>'
       + '        <td class="center">' + totalObt.toFixed(1) + ' / ' + totalMax + '</td>'
-      + '        <td class="center" style="color:' + (parseFloat(overallPct) >= 50 ? "#16a34a" : "#dc2626") + '">' + overallPct + '%</td>'
       + '        <td class="center"><span class="gb g' + overallG + '">' + overallG + '</span></td>'
-      + '        <td></td><td></td>'
+      + '        <td></td>'
       + '      </tr></tfoot>'
       + '    </table>'
       + '  </div>'
