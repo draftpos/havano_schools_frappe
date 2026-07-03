@@ -244,20 +244,16 @@ frappe.ui.form.on('Term Exam Result Item', {
 
 // ─── Render student selector dropdown ────────────────────────────────────────
 function _render_student_dropdown(frm) {
-	// Build unique student map from child table rows
-	var studentMap = {};
+	// Build unique student list from child table rows
+	var studentIds = [];
 	(frm.doc.term_exam_results || []).forEach(function (row) {
-		if (row.student && !studentMap[row.student]) {
-			studentMap[row.student] = row.student_name || row.student;
+		if (row.student && !studentIds.includes(row.student)) {
+			studentIds.push(row.student);
 		}
 	});
 
-	var studentIds = Object.keys(studentMap);
-
 	var fieldWrapper = frm.fields_dict['student_selector_html'];
 	if (!fieldWrapper) return;
-
-	// Try different possible wrapper targets depending on Frappe version
 	var $wrapper = $(fieldWrapper.$wrapper || fieldWrapper.wrapper);
 
 	if (!studentIds.length) {
@@ -269,38 +265,65 @@ function _render_student_dropdown(frm) {
 		return;
 	}
 
-	// Build <select> options
-	var opts = '<option value="">— Select a student to view their report card —</option>';
-	studentIds.forEach(function (sid) {
-		opts += '<option value="' + sid + '">'
-			+ frappe.utils.escape_html(studentMap[sid])
-			+ ' &nbsp;(' + frappe.utils.escape_html(sid) + ')'
-			+ '</option>';
-	});
+	// Fetch student names from database to guarantee actual names
+	frappe.call({
+		method: 'frappe.client.get_list',
+		args: {
+			doctype: 'Student',
+			filters: { name: ['in', studentIds] },
+			fields: ['name', 'full_name']
+		},
+		callback: function (r) {
+			var studentMap = {};
+			if (r.message) {
+				r.message.forEach(s => {
+					studentMap[s.name] = s.full_name || s.name;
+				});
+			}
+			// Fallback for any missing
+			studentIds.forEach(id => {
+				if (!studentMap[id]) studentMap[id] = id;
+			});
 
-	$wrapper.html(
-		'<div style="display:flex;align-items:center;gap:12px;padding:12px 0 6px;">'
-		+ '<label style="font-weight:600;color:#1e3a5f;white-space:nowrap;font-size:13px;min-width:fit-content;">'
-		+ '&#128065; View Student Report Card:'
-		+ '</label>'
-		+ '<select id="student-report-selector" style="'
-		+ 'flex:1;max-width:420px;height:36px;padding:4px 12px;'
-		+ 'border:1.5px solid #d1d5db;border-radius:6px;'
-		+ 'font-size:13px;background:#fff;cursor:pointer;color:#0f172a;'
-		+ 'box-shadow:0 1px 3px rgba(0,0,0,.06);'
-		+ '">' + opts + '</select>'
-		+ '<span style="font-size:11px;color:#64748b;">'
-		+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
-		+ '</div>'
-	);
+			var opts = '<option value="">— Select a student to view their report card —</option>';
+			// Sort alphabetically by name
+			studentIds.sort(function(a, b) {
+				return studentMap[a].localeCompare(studentMap[b]);
+			});
 
-	// Wire up change → popup
-	$wrapper.find('#student-report-selector').on('change', function () {
-		var sid = $(this).val();
-		if (!sid) return;
-		_open_student_popup(frm, sid, studentMap[sid]);
-		// Reset dropdown back to placeholder so it can be re-selected
-		$(this).val('');
+			studentIds.forEach(function (sid) {
+				opts += '<option value="' + sid + '">'
+					+ frappe.utils.escape_html(studentMap[sid])
+					+ ' &nbsp;(' + frappe.utils.escape_html(sid) + ')'
+					+ '</option>';
+			});
+
+			$wrapper.html(
+				'<div style="display:flex;align-items:center;gap:12px;padding:12px 0 6px;">'
+				+ '<label style="font-weight:600;color:#1e3a5f;white-space:nowrap;font-size:13px;min-width:fit-content;">'
+				+ '&#128065; View Student Report Card:'
+				+ '</label>'
+				+ '<select id="student-report-selector" style="'
+				+ 'flex:1;max-width:420px;height:36px;padding:4px 12px;'
+				+ 'border:1.5px solid #d1d5db;border-radius:6px;'
+				+ 'font-size:13px;background:#fff;cursor:pointer;color:#0f172a;'
+				+ 'box-shadow:0 1px 3px rgba(0,0,0,.06);'
+				+ '">' + opts + '</select>'
+				+ '<span style="font-size:11px;color:#64748b;">'
+				+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
+				+ '</span>'
+				+ '</div>'
+			);
+
+			// Wire up change → popup
+			$wrapper.find('#student-report-selector').on('change', function () {
+				var sid = $(this).val();
+				if (!sid) return;
+				_open_student_popup(frm, sid, studentMap[sid]);
+				// Reset dropdown back to placeholder so it can be re-selected
+				$(this).val('');
+			});
+		}
 	});
 }
 
@@ -323,18 +346,21 @@ function _open_student_popup(frm, studentId, studentName) {
 		title: '📝 Manage Comments & View Report — ' + (studentName || studentId),
 		size: 'extra-large',
 		fields: [
+			{ fieldtype: 'Column Break', fieldname: 'col_1' },
 			{
 				fieldname: 'teacher_comment',
 				fieldtype: 'Small Text',
 				label: 'Class Teacher Comment',
 				default: teacher_comment
 			},
+			{ fieldtype: 'Column Break', fieldname: 'col_2' },
 			{
 				fieldname: 'admin_comment',
 				fieldtype: 'Small Text',
 				label: 'Principal / Admin Comment',
 				default: admin_comment
 			},
+			{ fieldtype: 'Section Break', fieldname: 'sec_1' },
 			{
 				fieldname: 'save_comments_btn',
 				fieldtype: 'Button',
