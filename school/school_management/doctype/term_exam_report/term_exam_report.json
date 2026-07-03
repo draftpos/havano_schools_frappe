@@ -128,26 +128,6 @@
             "fieldname": "student_selector_html",
             "fieldtype": "HTML",
             "label": "View Student Report Card"
-        },
-        {
-            "fieldname": "comments_section",
-            "fieldtype": "Section Break",
-            "label": "Overall Comments",
-            "hidden": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "class_teacher_comment",
-            "fieldtype": "Small Text",
-            "label": "Class Teacher Comment",
-            "hidden": 1
-        },
-        {
-            "allow_on_submit": 1,
-            "fieldname": "principal_comment",
-            "fieldtype": "Small Text",
-            "label": "Principal Comment",
-            "hidden": 1
         }
     ],
     "index_web_pages_for_search": 1,
