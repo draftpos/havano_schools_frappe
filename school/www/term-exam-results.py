@@ -17,27 +17,21 @@ def get_context(context):
 	grading_items = []
 
 	try:
-		# Use get_all on the child table directly with ignore_permissions to safely fetch data
+		# Fetch all Grading Score Items across the system, ignoring STD if it exists since they want standalone
 		items = frappe.get_all("Grading Score Item", 
-			filters={"parent": "STD"}, 
+			filters=[["parent", "!=", "STD"]], 
 			fields=["from_percent", "to_percent", "grade", "status"],
 			order_by="from_percent desc",
 			ignore_permissions=True
 		)
 		
-		frappe.log_error("Portal Grading Debug 1", f"Items for STD: {items}")
-
+		# If they literally deleted STD and all others are empty, just fetch everything
 		if not items:
-			# Fallback to the latest Grading Score if STD is empty
-			latest_parent = frappe.get_all("Grading Score", order_by="modified desc", limit=1, ignore_permissions=True)
-			if latest_parent:
-				items = frappe.get_all("Grading Score Item",
-					filters={"parent": latest_parent[0].name},
-					fields=["from_percent", "to_percent", "grade", "status"],
-					order_by="from_percent desc",
-					ignore_permissions=True
-				)
-			frappe.log_error("Portal Grading Debug 2", f"Fallback items: {items}")
+			items = frappe.get_all("Grading Score Item", 
+				fields=["from_percent", "to_percent", "grade", "status"],
+				order_by="from_percent desc",
+				ignore_permissions=True
+			)
 
 		if items:
 			for item in items:
@@ -52,14 +46,5 @@ def get_context(context):
 
 	except Exception as e:
 		frappe.log_error("Portal Grading Fetch Error", str(e))
-
-	# Forcibly inject a debug row to ensure Jinja loop works
-	if not grading_items:
-		grading_items.append({
-			"from_percent": 0,
-			"to_percent": 100,
-			"grade": "HARDCODED_TEST",
-			"status": "Pass"
-		})
 
 	context.grading_items = grading_items

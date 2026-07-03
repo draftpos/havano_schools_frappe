@@ -38,13 +38,16 @@ def get_grade_and_status(percentage):
 	if percentage is None:
 		return "", ""
 	try:
-		grading_score = frappe.get_doc("Grading Score", "STD")
-		for item in grading_score.grading_items:
+		# Fetch all standalone grading score items, ignoring STD if the user deleted it
+		items = frappe.get_all("Grading Score Item", fields=["from_percent", "to_percent", "grade", "status"], order_by="from_percent desc")
+		for item in items:
+			# Ignore STD if it still exists but they want to use independent ones
 			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
 				return item.grade, item.status or "Pass"
 	except Exception:
 		pass
 	
+	return "", ""
 	if percentage >= 80:
 		return "A", "Pass"
 	elif percentage >= 50:
