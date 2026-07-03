@@ -671,16 +671,15 @@ Settings", "app_logo") %}
     {% set total_students = all_students_ids | length %}
     {% set c_rank = class_rank.get(student_id, "—") %}
 
-    {# UNIQUE ADMIN COMMENT PER STUDENT #}
-    {% set comment_ns = namespace(val="") %}
+    {# UNIQUE TEACHER AND ADMIN COMMENTS PER STUDENT #}
+    {% set t_comment_ns = namespace(val="") %}
+    {% set a_comment_ns = namespace(val="") %}
     {% for r in student_rows %}
-    {% set row_comment = r.student_admin_comment or r.admin_comment or r.teacher_comment or r.remarks or r.comment or ""
-    %}
-    {% if row_comment and not comment_ns.val %}
-    {% set comment_ns.val = row_comment %}
-    {% endif %}
+      {% if r.teacher_comment and not t_comment_ns.val %}{% set t_comment_ns.val = r.teacher_comment %}{% endif %}
+      {% if r.admin_comment and not a_comment_ns.val %}{% set a_comment_ns.val = r.admin_comment %}{% endif %}
     {% endfor %}
-    {% set displayed_comment = comment_ns.val or (doc.overall_admin_comment or "") %}
+    {% set teacher_comment = t_comment_ns.val %}
+    {% set admin_comment = a_comment_ns.val or doc.overall_admin_comment %}
 
     {% set verify_url = base_url +
     "/api/method/school.school_management.doctype.term_exam_report.term_exam_report.verify_report_text?report=" +
@@ -789,13 +788,23 @@ Settings", "app_logo") %}
         </table>
       </div>
 
-      <div class="overall-comment-row">
-        <h4>Remarks & Observations</h4>
-        {% if displayed_comment %}
-        <p>{{ displayed_comment }}</p>
-        {% else %}
-        <p class="empty">No specific comments recorded for this term.</p>
-        {% endif %}
+      <div class="overall-comment-row" style="display: flex; flex-direction: column; gap: 10px;">
+        <div>
+          <h4>Class Teacher Remarks</h4>
+          {% if teacher_comment %}
+          <p>{{ teacher_comment }}</p>
+          {% else %}
+          <p class="empty">No specific comments recorded.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h4>Principal / Admin Remarks</h4>
+          {% if admin_comment %}
+          <p>{{ admin_comment }}</p>
+          {% else %}
+          <p class="empty">No specific comments recorded.</p>
+          {% endif %}
+        </div>
       </div>
 
       <div class="analytics-wrapper">

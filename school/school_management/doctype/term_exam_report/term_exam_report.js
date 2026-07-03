@@ -101,6 +101,12 @@ frappe.ui.form.on('Term Exam Report', {
 	refresh: function (frm) {
 		if (frm.doc.__islocal) return;
 
+		// Make comment fields read-only in the grid
+		if (frm.fields_dict.term_exam_results && frm.fields_dict.term_exam_results.grid) {
+			frm.fields_dict.term_exam_results.grid.update_docfield_property('teacher_comment', 'read_only', 1);
+			frm.fields_dict.term_exam_results.grid.update_docfield_property('admin_comment', 'read_only', 1);
+		}
+
 		// !! Change this to match your exact Print Format name in Frappe !!
 		const PRINT_FORMAT = 'Term Exam Report Card';
 
@@ -285,7 +291,6 @@ function _render_student_dropdown(frm) {
 		+ '">' + opts + '</select>'
 		+ '<span style="font-size:11px;color:#64748b;">'
 		+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
-		+ '</span>'
 		+ '</div>'
 	);
 
@@ -299,9 +304,14 @@ function _render_student_dropdown(frm) {
 	});
 }
 
-// ─── Open Frappe Print Format in new window ─────────────────────────────────
+// ─── Open Frappe Dialog modal with embedded Print Format & Comment Fields ───
 function _open_student_popup(frm, studentId, studentName) {
-	const PRINT_FORMAT = 'Term Exam Report Card'; // Or Term Exam Report Premium if that's the one they use
+	// Extract existing comments for this student
+	let row = (frm.doc.term_exam_results || []).find(r => r.student === studentId);
+	let teacher_comment = row ? (row.teacher_comment || '') : '';
+	let admin_comment = row ? (row.admin_comment || '') : '';
+
+	const PRINT_FORMAT = 'Term Exam Report Card'; 
 	const printUrl = '/printview?'
 		+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
 		+ '&name=' + encodeURIComponent(frm.doc.name)
@@ -309,7 +319,73 @@ function _open_student_popup(frm, studentId, studentName) {
 		+ '&no_letterhead=0'
 		+ '&student_filter=' + encodeURIComponent(studentId);
 
-	window.open(printUrl, '_blank');
+	var d = new frappe.ui.Dialog({
+		title: '📝 Manage Comments & View Report — ' + (studentName || studentId),
+		size: 'extra-large',
+		fields: [
+			{
+				fieldname: 'teacher_comment',
+				fieldtype: 'Small Text',
+				label: 'Class Teacher Comment',
+				default: teacher_comment
+			},
+			{
+				fieldname: 'admin_comment',
+				fieldtype: 'Small Text',
+				label: 'Principal / Admin Comment',
+				default: admin_comment
+			},
+			{
+				fieldname: 'save_comments_btn',
+				fieldtype: 'Button',
+				label: 'Save Comments & Update Preview',
+				click: function() {
+					let vals = d.get_values();
+					let updated = false;
+					(frm.doc.term_exam_results || []).forEach(r => {
+						if (r.student === studentId) {
+							frappe.model.set_value(r.doctype, r.name, 'teacher_comment', vals.teacher_comment);
+							frappe.model.set_value(r.doctype, r.name, 'admin_comment', vals.admin_comment);
+							updated = true;
+						}
+					});
+					if (updated) {
+						frappe.dom.freeze(__('Saving...'));
+						frm.save().then(() => {
+							frappe.dom.unfreeze();
+							frappe.show_alert({message: __('Comments saved!'), indicator: 'green'});
+							// Reload iframe to reflect new comments
+							d.$wrapper.find('#student-report-iframe').attr('src', printUrl);
+						}).catch(() => {
+							frappe.dom.unfreeze();
+						});
+					}
+				}
+			},
+			{
+				fieldname: 'html_divider',
+				fieldtype: 'HTML',
+				options: '<hr style="margin-top:5px; margin-bottom:15px;">'
+			},
+			{
+				fieldname: 'report_iframe',
+				fieldtype: 'HTML',
+				options: '<iframe src="' + printUrl + '" id="student-report-iframe" style="width:100%;height:65vh;border:1px solid #d1d5db;border-radius:6px;display:block;" allowfullscreen></iframe>'
+			}
+		],
+		primary_action_label: '&#10003; Done — Close',
+		primary_action: function () {
+			d.hide();
+		}
+	});
+
+	d.show();
+
+	// Maximise dialog width
+	d.$wrapper.find('.modal-dialog').css({
+		'max-width': '92vw',
+		'width': '92vw'
+	});
 }
 
 // ─── Internal helper ──────────────────────────────────────────────────────────
