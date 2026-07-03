@@ -126,7 +126,8 @@ def get_student_invoices(student):
                 })
         
     try:
-        from erpnext.accounts.party import get_outstanding_invoices, get_party_account
+        from erpnext.accounts.utils import get_outstanding_invoices
+        from erpnext.accounts.party import get_party_account
         company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
         account = get_party_account("Customer", customer, company)
         
