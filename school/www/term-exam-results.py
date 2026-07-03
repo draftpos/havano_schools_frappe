@@ -11,3 +11,20 @@ def get_context(context):
 	context.no_cache = 1
 	context.show_sidebar = True
 	context.website_sidebar = "Student Portal"
+
+	grading_items = []
+	try:
+		scale_name = frappe.get_all("Grading Score", limit=1, fields=["name"])
+		if scale_name:
+			gs = frappe.get_doc("Grading Score", scale_name[0].name)
+			for item in gs.grading_items:
+				grading_items.append({
+					"from_percent": item.from_percent,
+					"to_percent": item.to_percent,
+					"grade": item.grade,
+					"status": item.status
+				})
+	except Exception:
+		pass
+
+	context.grading_items = grading_items
