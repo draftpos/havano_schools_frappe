@@ -746,13 +746,17 @@ title: Term Exam Results
 
   function el(id) { return document.getElementById(id); }
 
-  function G(pct) {
+  function G_obj(pct) {
     for (var i = 0; i < GRADING.length; i++) {
       if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
-        return GRADING[i].grade;
+        return GRADING[i];
       }
     }
-    return "";
+    return { grade: "", status: "" };
+  }
+
+  function G(pct) {
+    return G_obj(pct).grade;
   }
 
   // Grading scale — can be extended from API if available
@@ -864,8 +868,11 @@ title: Term Exam Results
       var pct = s.percentage != null
         ? parseFloat(s.percentage).toFixed(1)
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
-      var g = s.grade || G(parseFloat(pct));
-      var stat = s.status || (parseFloat(pct) >= 60 ? "Pass" : parseFloat(pct) >= 50 ? "Moderate" : "Failed");
+      
+      var dynamicScale = G_obj(parseFloat(pct));
+      var g = dynamicScale.grade;
+      var stat = dynamicScale.status;
+
       var comments = [];
       if (s.remarks) comments.push(s.remarks);
       if (s.teacher_comment) comments.push("T: " + s.teacher_comment);
