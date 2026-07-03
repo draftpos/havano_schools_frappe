@@ -747,8 +747,12 @@ title: Term Exam Results
   function el(id) { return document.getElementById(id); }
 
   function G(pct) {
-    if (pct >= 75) return "A"; if (pct >= 60) return "B"; if (pct >= 50) return "C";
-    if (pct >= 40) return "D"; return "E";
+    for (var i = 0; i < GRADING.length; i++) {
+      if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
+        return GRADING[i].grade;
+      }
+    }
+    return "";
   }
 
   // Grading scale — can be extended from API if available
@@ -969,7 +973,7 @@ title: Term Exam Results
       + '        <th style="width:20%">Subject</th>'
       + '        <th style="width:12%">Exam</th>'
       + '        <th class="center" style="width:12%">Marks</th>'
-      + '        <th class="center" style="width:10%">Grade</th>'
+      + '        <th class="center" style="width:10%">Grading Score</th>'
       + '        <th style="width:46%">Comments</th>'
       + '      </tr></thead>'
       + '      <tbody>' + tbRows + '</tbody>'
@@ -992,7 +996,7 @@ title: Term Exam Results
       + '    <div class="grade-scale-panel">'
       + '      <h4>Grading Scale</h4>'
       + '      <table class="grade-table">'
-      + '        <thead><tr><th>From %</th><th>To %</th><th>Grade</th><th>Status</th></tr></thead>'
+      + '        <thead><tr><th>From %</th><th>To %</th><th>Grading Score</th><th>Status</th></tr></thead>'
       + '        <tbody>' + gsRows + '</tbody>'
       + '      </table>'
       + '    </div>'
