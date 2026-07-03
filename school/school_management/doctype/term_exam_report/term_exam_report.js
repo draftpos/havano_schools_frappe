@@ -334,13 +334,12 @@ function _open_student_popup(frm, studentId, studentName) {
 	let teacher_comment = row ? (row.teacher_comment || '') : '';
 	let admin_comment = row ? (row.admin_comment || '') : '';
 
-	const PRINT_FORMAT = 'Term Exam Report Card'; 
-	const printUrl = '/printview?'
-		+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
-		+ '&name=' + encodeURIComponent(frm.doc.name)
-		+ '&format=' + encodeURIComponent(PRINT_FORMAT)
-		+ '&no_letterhead=0'
-		+ '&student_filter=' + encodeURIComponent(studentId);
+	// Use the well-designed custom portal page for the popup report
+	var popupUrl = '/term-exam-results'
+		+ '?student=' + encodeURIComponent(studentId)
+		+ '&report_name=' + encodeURIComponent(frm.doc.name)
+		+ '&term=' + encodeURIComponent(frm.doc.term || '')
+		+ '&from=admin';
 
 	var d = new frappe.ui.Dialog({
 		title: '📝 Manage Comments & View Report — ' + (studentName || studentId),
@@ -349,14 +348,14 @@ function _open_student_popup(frm, studentId, studentName) {
 			{ fieldtype: 'Column Break', fieldname: 'col_1' },
 			{
 				fieldname: 'teacher_comment',
-				fieldtype: 'Small Text',
+				fieldtype: 'Data',
 				label: 'Class Teacher Comment',
 				default: teacher_comment
 			},
 			{ fieldtype: 'Column Break', fieldname: 'col_2' },
 			{
 				fieldname: 'admin_comment',
-				fieldtype: 'Small Text',
+				fieldtype: 'Data',
 				label: 'Principal / Admin Comment',
 				default: admin_comment
 			},
@@ -381,7 +380,7 @@ function _open_student_popup(frm, studentId, studentName) {
 							frappe.dom.unfreeze();
 							frappe.show_alert({message: __('Comments saved!'), indicator: 'green'});
 							// Reload iframe to reflect new comments
-							d.$wrapper.find('#student-report-iframe').attr('src', printUrl);
+							d.$wrapper.find('#student-report-iframe').attr('src', popupUrl);
 						}).catch(() => {
 							frappe.dom.unfreeze();
 						});
@@ -396,7 +395,7 @@ function _open_student_popup(frm, studentId, studentName) {
 			{
 				fieldname: 'report_iframe',
 				fieldtype: 'HTML',
-				options: '<iframe src="' + printUrl + '" id="student-report-iframe" style="width:100%;height:65vh;border:1px solid #d1d5db;border-radius:6px;display:block;" allowfullscreen></iframe>'
+				options: '<iframe src="' + popupUrl + '" id="student-report-iframe" style="width:100%;height:65vh;border:1px solid #d1d5db;border-radius:6px;display:block;" allowfullscreen></iframe>'
 			}
 		],
 		primary_action_label: '&#10003; Done — Close',
