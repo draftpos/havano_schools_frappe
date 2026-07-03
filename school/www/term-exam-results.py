@@ -17,7 +17,9 @@ def get_context(context):
 
 	grading_items = []
 	try:
-		# Try to fetch 'STD' first to match backend term_exam_report.py grading logic
+		# Must ignore permissions because portal users (Students) do not have read access to Grading Score
+		frappe.flags.ignore_permissions = True
+		
 		if frappe.db.exists("Grading Score", "STD"):
 			gs = frappe.get_doc("Grading Score", "STD")
 		else:
@@ -27,7 +29,7 @@ def get_context(context):
 				gs = frappe.get_doc("Grading Score", scale_name[0].name)
 			else:
 				gs = None
-		
+				
 		if gs:
 			for item in gs.grading_items:
 				grading_items.append({
@@ -38,5 +40,7 @@ def get_context(context):
 				})
 	except Exception:
 		pass
+	finally:
+		frappe.flags.ignore_permissions = False
 
 	context.grading_items = grading_items
