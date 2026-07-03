@@ -17,30 +17,34 @@ def get_context(context):
 
 	grading_items = []
 	try:
-		# Must ignore permissions because portal users (Students) do not have read access to Grading Score
-		frappe.flags.ignore_permissions = True
+		# Direct SQL fetch to bypass any frappe.get_doc permission errors for portal users
+		items = frappe.db.sql("""
+			SELECT from_percent, to_percent, grade, status 
+			FROM `tabGrading Score Item`
+			WHERE parent = 'STD'
+			ORDER BY from_percent DESC
+		""", as_dict=True)
 		
-		if frappe.db.exists("Grading Score", "STD"):
-			gs = frappe.get_doc("Grading Score", "STD")
-		else:
-			# Fallback to the most recently modified grading score
-			scale_name = frappe.get_all("Grading Score", limit=1, order_by="modified desc", fields=["name"])
-			if scale_name:
-				gs = frappe.get_doc("Grading Score", scale_name[0].name)
-			else:
-				gs = None
-				
-		if gs:
-			for item in gs.grading_items:
+		if not items:
+			# Fallback to the latest Grading Score if STD is empty
+			latest_parent = frappe.db.sql("SELECT name FROM `tabGrading Score` ORDER BY modified DESC LIMIT 1")
+			if latest_parent and latest_parent[0][0]:
+				items = frappe.db.sql("""
+					SELECT from_percent, to_percent, grade, status 
+					FROM `tabGrading Score Item`
+					WHERE parent = %s
+					ORDER BY from_percent DESC
+				""", (latest_parent[0][0],), as_dict=True)
+
+		if items:
+			for item in items:
 				grading_items.append({
 					"from_percent": item.from_percent,
 					"to_percent": item.to_percent,
 					"grade": item.grade,
 					"status": item.status
 				})
-	except Exception:
-		pass
-	finally:
-		frappe.flags.ignore_permissions = False
+	except Exception as e:
+		frappe.log_error("Portal Grading Fetch Error", str(e))
 
 	context.grading_items = grading_items
