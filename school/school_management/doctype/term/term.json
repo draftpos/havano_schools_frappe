@@ -11,6 +11,8 @@
         "term_name",
         "year",
         "column_break_1",
+        "start_date",
+        "end_date",
         "is_active"
     ],
     "fields": [
@@ -45,6 +47,16 @@
             "fieldtype": "Link",
             "label": "Year",
             "options": "Academic Year"
+        },
+        {
+            "fieldname": "start_date",
+            "fieldtype": "Date",
+            "label": "Start Date"
+        },
+        {
+            "fieldname": "end_date",
+            "fieldtype": "Date",
+            "label": "End Date"
         }
     ],
     "grid_page_length": 50,

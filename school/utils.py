@@ -2,6 +2,22 @@ import frappe
 import subprocess
 import os
 
+def extend_bootinfo(bootinfo):
+    active_term = frappe.db.get_value("Term", {"is_active": 1}, "name")
+    today = frappe.utils.today()
+    
+    if not active_term:
+        active_term = frappe.db.get_value("Term", {"start_date": ["<=", today], "end_date": [">=", today]}, "name")
+        if active_term:
+            frappe.db.set_value("Term", active_term, "is_active", 1)
+            
+    if not active_term:
+        bootinfo.missing_active_term = True
+    else:
+        # ensure global default is set
+        if frappe.db.get_default("term") != active_term:
+            frappe.db.set_default("term", active_term)
+
 def redirect_to_portal():
     user = frappe.session.user
     if not user or user == "Guest":

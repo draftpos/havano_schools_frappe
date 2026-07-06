@@ -56,6 +56,13 @@ def get_grade_and_status(percentage):
 		return "F", "Failed"
 
 
+def is_alevel(class_name):
+	if not class_name:
+		return False
+	cn = class_name.lower()
+	return any(k in cn for k in ["form 5", "form 6", "lower 6", "upper 6", "l6", "u6"])
+
+
 class TermExamReport(Document):
 
 	def before_save(self):
@@ -67,6 +74,14 @@ class TermExamReport(Document):
 		self.before_save()
 
 	def auto_fill_grades_and_comments(self):
+		is_al = is_alevel(self.student_class)
+		grade_points = {}
+		if is_al:
+			settings = frappe.get_single("School Settings")
+			if hasattr(settings, "a_level_grade_points"):
+				for row in settings.a_level_grade_points:
+					grade_points[row.grade] = row.points
+
 		for row in self.term_exam_results:
 			if row.marks_obtained is not None and row.max_marks:
 				row.percentage = round((row.marks_obtained / row.max_marks * 100), 1)
@@ -78,6 +93,11 @@ class TermExamReport(Document):
 						row.grade = calc_grade
 					if not row.status:
 						row.status = calc_status
+						
+				if is_al and row.grade:
+					row.points = grade_points.get(row.grade, 0.0)
+				else:
+					row.points = 0.0
 						
 				# Auto-fill teacher comment if empty
 				if not row.teacher_comment:
@@ -221,6 +241,10 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 	class_teacher_comment_val = doc.class_teacher_comment or "No comment provided."
 	principal_comment_val = doc.principal_comment or "No comment provided."
 
+	settings = frappe.get_single("School Settings")
+	theme_color = settings.report_theme_color or "#1e3a5f"
+	hide_avg = settings.hide_overall_average
+
 	rows_sorted = sorted(rows, key=lambda r: r.subject or "")
 
 	marked = [r for r in rows_sorted if r.marks_obtained is not None and r.marks_obtained != ""]
@@ -251,6 +275,22 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 		</tr>"""
 
 	overall_color = "#27ae60" if overall_pct >= 50 else "#e74c3c"
+	
+	footer_html = ""
+	if not hide_avg:
+		footer_html = f"""
+			<tfoot>
+				<tr style="background:#eef2f7;font-weight:700">
+					<td colspan="2" style="padding:9px 10px">OVERALL TOTAL</td>
+					<td style="text-align:center;padding:9px 10px">{total_obtained}</td>
+					<td style="text-align:center;padding:9px 10px">{total_max}</td>
+					<td style="text-align:center;padding:9px 10px;color:{overall_color}">{overall_pct}%</td>
+					<td style="text-align:center;padding:9px 10px">—</td>
+					<td style="text-align:center;padding:9px 10px"></td>
+					<td></td>
+				</tr>
+			</tfoot>"""
+
 	verification_url = doc.get_verification_url()
 
 	qr_html = ""
@@ -264,8 +304,8 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 	opening_row = f"<p style='margin:2px 0'><strong>School Opens:</strong> {doc.opening_date}</p>" if doc.opening_date else ""
 
 	return f"""
-<div style="font-family:Arial,sans-serif;max-width:750px;margin:auto;border:2px solid #1e3a5f;border-radius:8px;overflow:hidden">
-	<div style="background:#1e3a5f;color:white;padding:18px 28px;text-align:center">
+<div style="font-family:Arial,sans-serif;max-width:750px;margin:auto;border:2px solid {theme_color};border-radius:8px;overflow:hidden">
+	<div style="background:{theme_color};color:white;padding:18px 28px;text-align:center">
 		<h2 style="margin:0;font-size:22px;letter-spacing:1px">{school_name or 'School'}</h2>
 		<h3 style="margin:6px 0 0;font-size:13px;font-weight:400;opacity:0.85">TERM EXAMINATION REPORT CARD</h3>
 	</div>
@@ -284,7 +324,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 	<div style="padding:0 20px">
 		<table style="width:100%;border-collapse:collapse;font-size:13px;margin:14px 0">
 			<thead>
-				<tr style="background:#1e3a5f;color:white">
+				<tr style="background:{theme_color};color:white">
 					<th style="padding:9px 10px;text-align:left">Subject</th>
 					<th style="padding:9px 10px;text-align:left">Exam</th>
 					<th style="padding:9px 10px;text-align:center">Marks</th>
@@ -296,17 +336,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 				</tr>
 			</thead>
 			<tbody>{subject_rows_html}</tbody>
-			<tfoot>
-				<tr style="background:#eef2f7;font-weight:700">
-					<td colspan="2" style="padding:9px 10px">OVERALL TOTAL</td>
-					<td style="text-align:center;padding:9px 10px">{total_obtained}</td>
-					<td style="text-align:center;padding:9px 10px">{total_max}</td>
-					<td style="text-align:center;padding:9px 10px;color:{overall_color}">{overall_pct}%</td>
-					<td style="text-align:center;padding:9px 10px">—</td>
-					<td style="text-align:center;padding:9px 10px"></td>
-					<td></td>
-				</tr>
-			</tfoot>
+			{footer_html}
 		</table>
 	</div>
 	<div style="padding:8px 20px 12px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
@@ -334,7 +364,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 			<div style="border-top:1px solid #334155;padding-top:5px;font-size:11px;color:#475569;font-weight:700">Parent / Guardian</div>
 		</div>
 	</div>
-	<div style="background:#1e3a5f;color:#cbd5e1;padding:10px 28px;font-size:11px">
+	<div style="background:{theme_color};color:#cbd5e1;padding:10px 28px;font-size:11px">
 		{opening_row}
 		<p style="margin:2px 0">Verify at: <a href="{verification_url}" style="color:#93c5fd">{verification_url}</a></p>
 		<p style="margin:2px 0">Report ID: {doc.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
@@ -428,6 +458,14 @@ def fetch_results(report_name):
 
 	if not doc.term or not doc.student_class:
 		frappe.throw(_("Please set Term and Class before fetching results."))
+
+	is_al = is_alevel(doc.student_class)
+	grade_points = {}
+	if is_al:
+		settings = frappe.get_single("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for r in settings.a_level_grade_points:
+				grade_points[r.grade] = r.points
 
 	class_section_filters = {"class": doc.student_class}
 	if doc.section:
@@ -546,6 +584,10 @@ def fetch_results(report_name):
 				if not teacher_comment:
 					teacher_comment = get_seed_teacher_comment(pct)
 
+			points = 0.0
+			if is_al and grade:
+				points = grade_points.get(grade, 0.0)
+
 			rows.append({
 				"student": student.name,
 				"student_name": student_name,
@@ -554,6 +596,7 @@ def fetch_results(report_name):
 				"marks_obtained": marks,
 				"max_marks": max_m,
 				"percentage": pct,
+				"points": points,
 				"grade": grade,
 				"status": status,
 				"remarks": "",
@@ -729,3 +772,72 @@ def verify_report_text(report, student=None):
             "status": "not_found",
             "message": "Report not found"
         }
+
+@frappe.whitelist()
+def get_top_students_html(report_name, limit):
+	doc = frappe.get_doc("Term Exam Report", report_name)
+	
+	is_al = is_alevel(doc.student_class)
+	
+	student_totals = defaultdict(lambda: {"marks": 0.0, "max_marks": 0.0, "points": 0.0, "name": ""})
+	
+	for row in doc.term_exam_results:
+		if row.student:
+			student_totals[row.student]["name"] = row.student_name or row.student
+			if row.marks_obtained is not None:
+				student_totals[row.student]["marks"] += row.marks_obtained
+			if row.max_marks:
+				student_totals[row.student]["max_marks"] += row.max_marks
+			if hasattr(row, 'points') and row.points:
+				student_totals[row.student]["points"] += row.points
+				
+	# Calculate percentage
+	for student, totals in student_totals.items():
+		if totals["max_marks"] > 0:
+			totals["percentage"] = round((totals["marks"] / totals["max_marks"]) * 100, 1)
+		else:
+			totals["percentage"] = 0.0
+			
+	# Sort
+	sorted_students = []
+	for student, totals in student_totals.items():
+		sorted_students.append({
+			"student": student,
+			"name": totals["name"],
+			"marks": totals["marks"],
+			"max_marks": totals["max_marks"],
+			"percentage": totals["percentage"],
+			"points": totals["points"]
+		})
+		
+	if is_al:
+		sorted_students.sort(key=lambda x: (x["points"], x["marks"]), reverse=True)
+	else:
+		sorted_students.sort(key=lambda x: x["marks"], reverse=True)
+		
+	if limit != "All":
+		try:
+			limit = int(limit)
+			sorted_students = sorted_students[:limit]
+		except ValueError:
+			pass
+			
+	# Build HTML
+	html = "<table class='table table-bordered table-hover' style='margin-top: 15px;'><thead><tr><th>Rank</th><th>Student Name</th>"
+	if is_al:
+		html += "<th>Total Points</th><th>Total Marks</th>"
+	else:
+		html += "<th>Total Marks</th><th>Percentage</th>"
+	html += "</tr></thead><tbody>"
+	
+	for idx, s in enumerate(sorted_students):
+		rank = idx + 1
+		html += f"<tr><td>{rank}</td><td>{s['name']}</td>"
+		if is_al:
+			html += f"<td><strong>{s['points']}</strong></td><td>{s['marks']} / {s['max_marks']}</td>"
+		else:
+			html += f"<td><strong>{s['marks']} / {s['max_marks']}</strong></td><td>{s['percentage']}%</td>"
+		html += "</tr>"
+		
+	html += "</tbody></table>"
+	return html

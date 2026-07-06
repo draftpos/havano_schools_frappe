@@ -69,6 +69,7 @@ doc_events = {
     }
 }
 on_login = "school.utils.redirect_to_portal"
+extend_bootinfo = "school.utils.extend_bootinfo"
 app_include_js = [
     '/assets/school/js/school_redirect.js'
 ]

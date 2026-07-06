@@ -131,6 +131,12 @@ frappe.ui.form.on('Term Exam Report', {
 			if (!win) frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
 		}, __('Reports'));
 
+		// ── View Top Students ────────────────────────────────────────────────
+		frm.add_custom_button(__('🏆 View Top Students'), function () {
+			if (!_has_results(frm)) return;
+			_open_top_students_popup(frm);
+		}, __('Reports'));
+
 		// ── Download All Students ────────────────────────────────────────────
 		// One tab per student — template auto-prints when #autoprint hash is present.
 		// User saves each as PDF via the browser's "Save as PDF" option.
@@ -373,4 +379,52 @@ function _has_results(frm) {
 		return false;
 	}
 	return true;
+}
+
+// ─── Top Students Report Popup ──────────────────────────────────────────────
+function _open_top_students_popup(frm) {
+	var d = new frappe.ui.Dialog({
+		title: '🏆 Top Students Report',
+		size: 'large',
+		fields: [
+			{
+				label: 'Show Top',
+				fieldname: 'top_limit',
+				fieldtype: 'Select',
+				options: '10\n20\n30\nAll',
+				default: '10',
+				onchange: function() {
+					render_top_students();
+				}
+			},
+			{
+				fieldname: 'report_html',
+				fieldtype: 'HTML'
+			}
+		],
+		primary_action_label: 'Close',
+		primary_action: function () {
+			d.hide();
+		}
+	});
+
+	function render_top_students() {
+		let limit = d.get_value('top_limit');
+		d.fields_dict.report_html.$wrapper.html('<div class="text-center text-muted" style="padding: 20px;">Fetching...</div>');
+		frappe.call({
+			method: 'school.school_management.doctype.term_exam_report.term_exam_report.get_top_students_html',
+			args: {
+				report_name: frm.doc.name,
+				limit: limit
+			},
+			callback: function(r) {
+				if (r.message) {
+					d.fields_dict.report_html.$wrapper.html(r.message);
+				}
+			}
+		});
+	}
+
+	d.show();
+	render_top_students();
 }

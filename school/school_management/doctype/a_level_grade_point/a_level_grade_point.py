@@ -1,9 +1,9 @@
-# Copyright (c) 2026, Ashley and contributors
+# Copyright (c) 2026, Havano and contributors
 # For license information, please see license.txt
 
 # import frappe
 from frappe.model.document import Document
 
 
-class Grade(Document):
+class ALevelGradePoint(Document):
 	pass

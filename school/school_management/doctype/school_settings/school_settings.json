@@ -1,111 +1,132 @@
 {
-    "actions": [],
-    "allow_rename": 1,
-    "creation": "2026-03-23 15:53:57.488423",
-    "doctype": "DocType",
-    "editable_grid": 1,
-    "engine": "InnoDB",
-    "field_order": [
-        "online_enrollment_section",
-        "allow_online_enrollment",
-        "fee_structure_defaults_section",
-        "fee_structure_defaults",
-        "portal_settings",
-        "allow_non_strict_email",
-        "allow_reference_on_receipts"
-    ],
-    "fields": [
-        {
-            "fieldname": "online_enrollment_section",
-            "fieldtype": "Section Break",
-            "label": "Online Enrollment Settings"
-        },
-        {
-            "default": "0",
-            "description": "Enable or disable online student registration",
-            "fieldname": "allow_online_enrollment",
-            "fieldtype": "Check",
-            "label": "Allow Online Enrollment"
-        },
-        {
-            "fieldname": "fee_structure_defaults_section",
-            "fieldtype": "Section Break",
-            "label": "Fee Structure Defaults"
-        },
-        {
-            "fieldname": "fee_structure_defaults",
-            "fieldtype": "Table",
-            "label": "Fee Structure Defaults",
-            "options": "Fee Structure Defaults"
-        },
-        {
-            "fieldname": "portal_settings",
-            "fieldtype": "Section Break",
-            "label": "Portal Access"
-        },
-        {
-            "default": "0",
-            "description": "Allow non-strict email validation. When enabled: auto-generates dummy emails (stu_<name>@dummy.school) for students without portal email, and shows password field in Student doctype under Portal Email",
-            "fieldname": "allow_non_strict_email",
-            "fieldtype": "Check",
-            "label": "Allow Non-Strict Email"
-        },
-        {
-            "default": "0",
-            "description": "Show an optional Reference column in Receipting items.",
-            "fieldname": "allow_reference_on_receipts",
-            "fieldtype": "Check",
-            "label": "Allow Reference on Receipts"
-        }
-    ],
-    "grid_page_length": 50,
-    "index_web_pages_for_search": 1,
-    "issingle": 1,
-    "links": [],
-    "modified": "2026-03-23 17:37:11.587493",
-    "modified_by": "Administrator",
-    "module": "School Management",
-    "name": "School Settings",
-    "owner": "Administrator",
-    "permissions": [
-        {
-            "role": "System Manager",
-            "read": 1,
-            "write": 1,
-            "create": 1,
-            "delete": 1,
-            "submit": 0,
-            "cancel": 0,
-            "amend": 0,
-            "report": 1,
-            "export": 1,
-            "import": 0,
-            "share": 1,
-            "print": 1,
-            "email": 1,
-            "permlevel": 0
-        },
-        {
-            "role": "School User",
-            "read": 1,
-            "write": 1,
-            "create": 1,
-            "delete": 1,
-            "submit": 0,
-            "cancel": 0,
-            "amend": 0,
-            "report": 1,
-            "export": 1,
-            "import": 0,
-            "share": 1,
-            "print": 1,
-            "email": 1,
-            "permlevel": 0
-        }
-    ],
-    "row_format": "Dynamic",
-    "rows_threshold_for_grid_search": 20,
-    "sort_field": "modified",
-    "sort_order": "DESC",
-    "states": []
+ "actions": [],
+ "allow_rename": 1,
+ "creation": "2026-03-23 15:53:57.488423",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "online_enrollment_section",
+  "allow_online_enrollment",
+  "fee_structure_defaults_section",
+  "fee_structure_defaults",
+  "portal_settings",
+  "allow_non_strict_email",
+  "allow_reference_on_receipts",
+  "a_level_settings_section",
+  "a_level_grade_points",
+  "report_card_settings_section",
+  "report_theme_color",
+  "hide_overall_average"
+ ],
+ "fields": [
+  {
+   "fieldname": "online_enrollment_section",
+   "fieldtype": "Section Break",
+   "label": "Online Enrollment Settings"
+  },
+  {
+   "default": "0",
+   "description": "Enable or disable online student registration",
+   "fieldname": "allow_online_enrollment",
+   "fieldtype": "Check",
+   "label": "Allow Online Enrollment"
+  },
+  {
+   "fieldname": "fee_structure_defaults_section",
+   "fieldtype": "Section Break",
+   "label": "Fee Structure Defaults"
+  },
+  {
+   "fieldname": "fee_structure_defaults",
+   "fieldtype": "Table",
+   "label": "Fee Structure Defaults",
+   "options": "Fee Structure Defaults"
+  },
+  {
+   "fieldname": "portal_settings",
+   "fieldtype": "Section Break",
+   "label": "Portal Access"
+  },
+  {
+   "default": "0",
+   "description": "Allow non-strict email validation. When enabled: auto-generates dummy emails (stu_&lt;name&gt;@dummy.school) for students without portal email, and shows password field in Student doctype under Portal Email",
+   "fieldname": "allow_non_strict_email",
+   "fieldtype": "Check",
+   "label": "Allow Non-Strict Email"
+  },
+  {
+   "default": "0",
+   "description": "Show an optional Reference column in Receipting items.",
+   "fieldname": "allow_reference_on_receipts",
+   "fieldtype": "Check",
+   "label": "Allow Reference on Receipts"
+  },
+  {
+   "fieldname": "a_level_settings_section",
+   "fieldtype": "Section Break",
+   "label": "A-Level Grading Points"
+  },
+  {
+   "fieldname": "a_level_grade_points",
+   "fieldtype": "Table",
+   "label": "A-Level Grade Points Mapping",
+   "options": "A Level Grade Point"
+  },
+  {
+   "fieldname": "report_card_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Report Card Settings"
+  },
+  {
+   "default": "#1e3a5f",
+   "description": "Primary color for the term exam report. Default is Blue (#1e3a5f). You can select Grey or any other color.",
+   "fieldname": "report_theme_color",
+   "fieldtype": "Color",
+   "label": "Report Theme Color"
+  },
+  {
+   "default": "0",
+   "description": "Check this to hide the overall total marks and average percentage row on the student report card.",
+   "fieldname": "hide_overall_average",
+   "fieldtype": "Check",
+   "label": "Hide Overall Average & Total"
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-07-06 16:47:51.537510",
+ "modified_by": "Administrator",
+ "module": "School Management",
+ "name": "School Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "School User",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
 }

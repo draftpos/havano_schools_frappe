@@ -143,6 +143,20 @@
         // Teacher home button (slight delay to let frappe.session populate)
         setTimeout(checkAndInjectForTeacher, 1200);
 
+        // Check for missing term
+        setTimeout(function() {
+            if (frappe.boot && frappe.boot.missing_active_term && frappe.session && frappe.session.user !== "Guest") {
+                var userRoles = frappe.user.get_roles();
+                if (userRoles.includes("System Manager") || userRoles.includes("Administrator") || userRoles.includes("School User")) {
+                    frappe.msgprint({
+                        title: __('Missing Active Term'),
+                        indicator: 'orange',
+                        message: __('There is no active term set for today. Please go to the <a href="/app/term">Term</a> list and set the current term.')
+                    });
+                }
+            }
+        }, 1500);
+
         // Re-run on every route change (SPA navigation)
         if (typeof frappe !== 'undefined' && frappe.router) {
             frappe.router.on('change', function () {
