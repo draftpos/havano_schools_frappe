@@ -51,10 +51,6 @@ fixtures = [
     {
         "dt": "Custom DocPerm",
         "filters": [["role", "in", ["School User", "Student Portal", "Teacher"]]]
-    },
-    {
-        "dt": "DocType",
-        "filters": [["name", "in", ["HA POS Settings", "Ha User Mapping"]]]
     }
 ]
 doc_events = {
