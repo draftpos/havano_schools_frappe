@@ -134,9 +134,10 @@ def get_student_invoices(student):
         if account:
             outstandings = get_outstanding_invoices("Customer", customer, account=[account])
             for out in outstandings:
-                if out.get("voucher_type") == "Journal Entry":
-                    je_name = out.get("voucher_no")
-                
+                if out.get("voucher_type") != "Journal Entry":
+                    continue
+                je_name = out.get("voucher_no")
+
                 draft_allocations = frappe.db.sql("""
                     SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
                     FROM `tabReceipt Item` ri
