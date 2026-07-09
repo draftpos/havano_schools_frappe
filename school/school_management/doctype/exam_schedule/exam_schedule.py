@@ -6,8 +6,29 @@ from frappe.model.document import Document
 from frappe import _
 class ExamSchedule(Document):
 	def validate(self):
+		self.validate_duplicate_schedule()
 		self.calculate_grades()
 		self.validate_exam_marks_lock()
+
+	def validate_duplicate_schedule(self):
+		if self.term and self.exam and self.student_class and self.subject:
+			filters = {
+				"term": self.term,
+				"exam": self.exam,
+				"student_class": self.student_class,
+				"subject": self.subject,
+				"name": ["!=", self.name] if self.name else ["!=", ""]
+			}
+			if self.section:
+				filters["section"] = self.section
+			else:
+				filters["section"] = ["in", ["", None]]
+				
+			existing = frappe.db.exists("Exam Schedule", filters)
+			if existing:
+				frappe.throw(_("An Exam Schedule already exists for Subject '{0}' in Class '{1}' for the '{2}' exam.").format(
+					self.subject, self.student_class, self.exam
+				))
 
 	def validate_exam_marks_lock(self):
 		if self.subject:
