@@ -17,7 +17,9 @@
   "a_level_grade_points",
   "report_card_settings_section",
   "report_theme_color",
-  "hide_overall_average"
+  "hide_overall_average",
+  "id_card_settings_section",
+  "ministry_logo"
  ],
  "fields": [
   {
@@ -91,6 +93,16 @@
    "fieldname": "hide_overall_average",
    "fieldtype": "Check",
    "label": "Hide Overall Average & Total"
+  },
+  {
+   "fieldname": "id_card_settings_section",
+   "fieldtype": "Section Break",
+   "label": "ID Card Settings"
+  },
+  {
+   "fieldname": "ministry_logo",
+   "fieldtype": "Attach Image",
+   "label": "Ministry Logo"
   }
  ],
  "grid_page_length": 50,
