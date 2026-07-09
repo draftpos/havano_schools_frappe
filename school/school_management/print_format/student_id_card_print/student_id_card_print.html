@@ -1,7 +1,7 @@
 {% set school_name = doc.get_school_display_name() if doc.get_school_display_name else doc.school_name %}
 
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap');
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -34,188 +34,259 @@
         position: relative;
         box-shadow: 0 4px 16px rgba(0,0,0,0.22);
         font-size: 7pt;
+        background: #ffffff;
     }
 
     /* ═══════════════════════════════════════════════
        FRONT FACE
     ═══════════════════════════════════════════════ */
     .card-front {
-        background: #ffffff;
-        border: 2px solid #003087;
         display: flex;
         flex-direction: column;
+        position: relative;
+        border: 1px solid #ddd;
     }
 
-    /* Header band (white background) */
-    .card-header {
-        background: #ffffff;
-        color: #003087;
-        display: flex;
-        align-items: flex-start;
-        padding: 4px 6px;
-        gap: 5px;
-        min-height: 22mm;
-        border-bottom: 2px solid #003087;
+    /* Background graphics */
+    .bg-top-banner {
+        position: absolute;
+        top: 0;
+        left: 27%;
+        width: 53%;
+        height: 12.5mm;
+        background: #042566;
+        z-index: 1;
+        transform: skewX(-20deg);
+        border-bottom: 0.5mm solid #c39a3f;
     }
 
-    .card-header .logo {
-        width: 17mm;
-        height: 19mm;
-        object-fit: contain;
-        flex-shrink: 0;
-        background: #fff;
+    .bg-left-wave {
+        position: absolute;
+        top: 15mm;
+        left: -15mm;
+        width: 45mm;
+        height: 25mm;
+        background: #042566;
+        border-radius: 50%;
+        border-top: 1.2mm solid #c39a3f;
+        z-index: 0;
+        transform: rotate(-15deg);
     }
 
-    .card-header .logo-placeholder {
-        width: 17mm;
-        height: 19mm;
-        background: rgba(0, 48, 135, 0.05);
-        border: 1px dashed #003087;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 5pt;
-        color: #003087;
-        text-align: center;
-        line-height: 1.2;
-    }
-
-    .card-header .school-info {
-        flex: 1;
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-top: 1px;
-    }
-
-    .card-header .school-name {
-        background: #003087;
-        color: #ffffff;
-        font-family: 'Oswald', sans-serif;
-        font-size: 8.5pt;
-        font-weight: 700;
-        letter-spacing: 0.5px;
-        line-height: 1.2;
-        text-transform: uppercase;
-        padding: 2px 4px;
-        width: 100%;
-        margin-bottom: 2px;
-    }
-
-    .card-header .ministry-line {
-        font-size: 6.5pt;
-        font-weight: 600;
-        color: #003087;
-        line-height: 1.2;
-    }
-
-    .card-header .tel-line {
-        font-size: 6.5pt;
-        font-weight: 700;
-        color: #003087;
-        margin-top: 1px;
-    }
-
-    .card-header .coat-of-arms {
-        width: 17mm;
-        height: 19mm;
-        object-fit: contain;
-        flex-shrink: 0;
-    }
-
-    /* STUDENT label ribbon */
-    .student-ribbon {
-        background: transparent;
-        text-align: center;
-        padding: 4px 0 0px 0;
-    }
-
-    .student-ribbon span {
-        font-family: 'Oswald', sans-serif;
-        font-size: 16pt;
-        font-weight: 700;
-        color: #003087;
-        letter-spacing: 0.5px;
-    }
-
-    /* Body area */
-    .card-body {
-        display: flex;
-        flex: 1;
-        padding: 4px 6px;
-        gap: 4px;
-    }
-
-    .card-details {
-        flex: 1;
-    }
-
-    .detail-row {
-        display: flex;
-        gap: 4px;
-        margin-bottom: 2.5px;
-        align-items: baseline;
-    }
-
-    .detail-label {
-        font-weight: 700;
-        color: #003087;
-        min-width: 22mm;
-        font-size: 6.5pt;
-        flex-shrink: 0;
-    }
-
-    .detail-value {
-        color: #111;
-        font-size: 6.5pt;
-        font-weight: 600;
-    }
-
-    .photo-box {
-        width: 18mm;
-        flex-shrink: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        padding-top: 2px;
-    }
-
-    .photo-box img {
-        width: 17mm;
-        height: 20mm;
-        object-fit: cover;
-        border: 1.5px solid #003087;
-        border-radius: 2px;
-    }
-
-    .photo-placeholder {
-        width: 17mm;
-        height: 20mm;
-        border: 1.5px dashed #003087;
-        border-radius: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #aaa;
-        font-size: 5pt;
-        text-align: center;
-        background: #f7f9ff;
+    .bg-bottom-wave {
+        position: absolute;
+        bottom: -15mm;
+        left: -10%;
+        width: 120%;
+        height: 23mm;
+        background: #042566;
+        border-radius: 50% 50% 0 0;
+        border-top: 1.2mm solid #c39a3f;
+        z-index: 0;
     }
 
     .watermark-logo {
         position: absolute;
-        top: 60%;
-        left: 45%;
+        top: 55%;
+        left: 50%;
         transform: translate(-50%, -50%);
-        width: 35mm;
-        height: 35mm;
+        width: 32mm;
+        height: 32mm;
         object-fit: contain;
         opacity: 0.12;
-        z-index: 0;
+        z-index: 1;
         pointer-events: none;
+    }
+
+    /* Content Layer */
+    .card-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Header */
+    .front-header {
+        display: flex;
+        width: 100%;
+        height: 17mm;
+        align-items: flex-start;
+        padding-top: 2mm;
+    }
+
+    .logo-container {
+        width: 25mm;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-left: 1mm;
+    }
+    .logo-container img {
+        width: 19mm;
+        height: 19mm;
+        object-fit: contain;
+        background: #fff;
+        border-radius: 4px;
+    }
+
+    .header-text {
+        flex: 1;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+    }
+
+    .header-text .school-name {
+        color: #ffffff;
+        font-family: 'Oswald', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 700;
+        line-height: 1.1;
+        text-transform: uppercase;
+        margin-top: 1mm;
+        letter-spacing: 0.2px;
+    }
+
+    .header-text .ministry-line {
+        color: #042566;
+        font-weight: 700;
+        font-size: 5.5pt;
+        margin-top: 2.5mm;
+    }
+
+    .header-text .tell-line {
+        color: #042566;
+        font-weight: 700;
+        font-size: 5.5pt;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        margin-top: 1mm;
+    }
+    
+    .phone-icon-box {
+        background: #042566;
+        color: white;
+        border-radius: 50%;
+        width: 3.5mm;
+        height: 3.5mm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3pt;
+    }
+
+    .coat-container {
+        width: 22mm;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-right: 2mm;
+    }
+    .coat-container img {
+        width: 16mm;
+        height: 16mm;
+        object-fit: contain;
+    }
+
+    /* Student Pill */
+    .student-pill-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        margin-top: 1.5mm;
+        margin-bottom: 2mm;
+    }
+    .student-pill {
+        background: #042566;
+        color: #fff;
+        font-family: 'Oswald', sans-serif;
+        font-size: 10pt;
+        font-weight: 700;
+        padding: 0.5mm 8mm;
+        border-radius: 4mm;
+        letter-spacing: 1px;
+    }
+
+    /* Main Body */
+    .front-body {
+        display: flex;
+        padding: 0 4mm;
+        flex: 1;
+        gap: 2mm;
+    }
+
+    .details-table {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5mm;
+        padding-left: 2mm;
+    }
+
+    .detail-row {
+        display: flex;
+        align-items: center;
+    }
+
+    .detail-icon {
+        width: 4.5mm;
+        height: 4.5mm;
+        background: #042566;
+        border-radius: 1mm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 2mm;
+    }
+    .detail-icon svg {
+        width: 2.5mm;
+        height: 2.5mm;
+        fill: #fff;
+    }
+
+    .detail-label {
+        font-weight: 700;
+        color: #000;
+        font-size: 6.5pt;
+        width: 10mm;
+    }
+
+    .detail-separator {
+        font-weight: 400;
+        color: #000;
+        margin: 0 1.5mm;
+        font-size: 7pt;
+    }
+
+    .detail-value {
+        font-weight: 700;
+        color: #000;
+        font-size: 6.5pt;
+    }
+
+    .photo-container {
+        width: 23mm;
+        height: 27mm;
+        border: 1.5px solid #042566;
+        border-radius: 2mm;
+        overflow: hidden;
+        background: #fff;
+        padding: 1px;
+        margin-right: 2mm;
+    }
+
+    .photo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 1.5mm;
     }
 
     /* ═══════════════════════════════════════════════
@@ -223,13 +294,12 @@
     ═══════════════════════════════════════════════ */
     .card-back {
         background: #ffffff;
-        border: 2px solid #003087;
+        border: 2px solid #042566;
         display: flex;
         flex-direction: column;
     }
-
     .card-back .back-header {
-        background: #003087;
+        background: #042566;
         color: #fff;
         text-align: center;
         padding: 3px 6px;
@@ -237,7 +307,6 @@
         font-size: 8pt;
         letter-spacing: 0.5px;
     }
-
     .card-back .back-body {
         display: flex;
         flex: 1;
@@ -245,11 +314,9 @@
         gap: 8px;
         align-items: stretch;
     }
-
-    /* Stamp area */
     .stamp-area {
         flex: 1;
-        border: 1.5px dashed #003087;
+        border: 1.5px dashed #042566;
         border-radius: 50%;
         width: 22mm;
         height: 22mm;
@@ -263,8 +330,6 @@
         flex-shrink: 0;
         align-self: center;
     }
-
-    /* Signature area */
     .signature-section {
         flex: 1;
         display: flex;
@@ -273,19 +338,16 @@
         gap: 6px;
         padding-bottom: 4px;
     }
-
     .sig-block {
         display: flex;
         flex-direction: column;
         gap: 2px;
     }
-
     .sig-line {
         border-bottom: 1px solid #333;
         height: 8mm;
         width: 100%;
     }
-
     .sig-label {
         font-size: 5.5pt;
         color: #333;
@@ -294,10 +356,8 @@
         text-transform: uppercase;
         letter-spacing: 0.3px;
     }
-
-    /* Footer bar */
     .card-back .back-footer {
-        background: #003087;
+        background: #042566;
         color: #ffd700;
         text-align: center;
         padding: 2px 6px;
@@ -305,8 +365,6 @@
         font-weight: 600;
         letter-spacing: 0.3px;
     }
-
-    /* ── CARD LABEL ─── */
     .card-face-label {
         font-size: 6pt;
         color: #888;
@@ -315,13 +373,28 @@
         letter-spacing: 1px;
     }
 
-    /* ── PRINT RULES ─── */
     @media print {
         body { background: white; padding: 5mm; }
-        .id-card { box-shadow: none; }
+        .id-card { box-shadow: none; border-color: #042566 !important; }
         .card-face-label { display: none; }
     }
 </style>
+
+<!-- SVG Icons -->
+<svg style="display:none;">
+    <symbol id="icon-user" viewBox="0 0 24 24">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24">
+        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/>
+    </symbol>
+    <symbol id="icon-sex" viewBox="0 0 24 24">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v4h-2zm0 6h2v2h-2z"/>
+    </symbol>
+    <symbol id="icon-id" viewBox="0 0 24 24">
+        <path d="M4 6h16v12H4zM2 6c0-1.1.9-2 2-2h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6zm9 3c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 4.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM6 14v1h6v-1c0-1-2-1.5-3-1.5s-3 .5-3 1.5z"/>
+    </symbol>
+</svg>
 
 <div class="id-cards-wrapper">
 {% for row in doc.students %}
@@ -332,128 +405,129 @@
     <div class="card-face-label">FRONT</div>
     <div class="id-card card-front">
 
-        {% set ministry_logo = frappe.db.get_single_value("School Settings", "ministry_logo") %}
+        <!-- Background Elements -->
+        <div class="bg-top-banner"></div>
+        <div class="bg-left-wave"></div>
+        <div class="bg-bottom-wave"></div>
         
+        {% set ministry_logo = frappe.db.get_single_value("School Settings", "ministry_logo") %}
         {# Watermark Logo #}
-        {% if ministry_logo %}
-            <img class="watermark-logo" src="{{ ministry_logo }}" alt="">
-        {% else %}
-            <img class="watermark-logo" src="/assets/school_management/images/zimbabwe_coat_of_arms.png" alt="">
-        {% endif %}
+        <img class="watermark-logo" src="{{ ministry_logo if ministry_logo else '/assets/school_management/images/zimbabwe_coat_of_arms.png' }}" alt="">
 
-        <div class="card-header" style="position: relative; z-index: 2;">
-            {# School Logo - uses helper method #}
-            {% set logo = doc.get_school_logo() %}
-            {% if logo %}
-                <img class="logo" src="{{ logo }}" alt="School Logo">
-            {% else %}
-                <div class="logo-placeholder">SCHOOL<br>LOGO</div>
-            {% endif %}
+        <!-- Content Elements -->
+        <div class="card-content">
+            <div class="front-header">
+                <div class="logo-container">
+                    {% set logo = doc.get_school_logo() %}
+                    {% if logo %}
+                        <img src="{{ logo }}" alt="School Logo">
+                    {% else %}
+                        <div style="font-size:4pt; text-align:center;">SCHOOL<br>LOGO</div>
+                    {% endif %}
+                </div>
+                
+                <div class="header-text">
+                    <div class="school-name">
+                        {{ school_name }}
+                    </div>
+                    <div style="color: #c39a3f; font-size: 5pt; line-height: 0.5; margin-bottom: 1.5mm;">&#9733;</div>
+                    <div class="ministry-line">Ministry of Primary &amp; Secondary Education</div>
+                    <div class="tell-line">
+                        <div class="phone-icon-box"><svg viewBox="0 0 24 24" style="width:2.5mm; height:2.5mm; fill:#fff;"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div>
+                        TELL: {{ doc.telephone }}
+                    </div>
+                </div>
 
-            <div class="school-info">
-                <div class="school-name">{{ school_name }}</div>
-                <div class="ministry-line">Ministry of Primary &amp; Secondary Education</div>
-                <div class="tel-line">Tell: {{ doc.telephone }}</div>
+                <div class="coat-container">
+                    <img src="{{ ministry_logo if ministry_logo else '/assets/school_management/images/zimbabwe_coat_of_arms.png' }}" alt="Ministry Logo">
+                </div>
             </div>
 
-            {# Ministry Logo #}
-            {% if ministry_logo %}
-                <img class="coat-of-arms" src="{{ ministry_logo }}" alt="Ministry Logo">
-            {% else %}
-                <img class="coat-of-arms"
-                     src="/assets/school_management/images/zimbabwe_coat_of_arms.png"
-                     alt="Zimbabwe Coat of Arms"
-                     onerror="this.style.display='none'">
-            {% endif %}
+            <div class="student-pill-container">
+                <div class="student-pill">STUDENT</div>
+            </div>
+
+            <div class="front-body">
+                <div class="details-table">
+                    <div class="detail-row">
+                        <div class="detail-icon"><svg><use href="#icon-user"></use></svg></div>
+                        <span class="detail-label">NAME</span>
+                        <span class="detail-separator">|</span>
+                        <span class="detail-value">{{ (row.full_name or student_rec.full_name or "") | upper }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-icon"><svg><use href="#icon-calendar"></use></svg></div>
+                        <span class="detail-label">D.O.B</span>
+                        <span class="detail-separator">|</span>
+                        <span class="detail-value">
+                            {% set dob = row.date_of_birth or student_rec.date_of_birth %}
+                            {% if dob %}
+                                {{ frappe.utils.formatdate(dob, "dd/MM/yyyy") }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-icon"><svg><use href="#icon-sex"></use></svg></div>
+                        <span class="detail-label">SEX</span>
+                        <span class="detail-separator">|</span>
+                        <span class="detail-value">{{ (row.sex or student_rec.gender or "") | upper }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-icon"><svg><use href="#icon-id"></use></svg></div>
+                        <span class="detail-label">BC/ID</span>
+                        <span class="detail-separator">|</span>
+                        <span class="detail-value">{{ row.student_id or row.student_reg_no or student_rec.name or "" }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-icon"><svg><use href="#icon-calendar"></use></svg></div>
+                        <span class="detail-label">VALID</span>
+                        <span class="detail-separator">|</span>
+                        <span class="detail-value">
+                            {% set v_from = row.valid_from or frappe.utils.today() %}
+                            {% set v_until = row.valid_until or frappe.utils.add_months(v_from, 48) %}
+                            {{ frappe.utils.formatdate(v_from, "dd/MM/yyyy") }} &ndash; {{ frappe.utils.formatdate(v_until, "dd/MM/yyyy") }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="photo-container">
+                    {% set photo = row.passport_image or student_rec.student_image %}
+                    {% if photo %}
+                        <img src="{{ photo }}" alt="Student Photo">
+                    {% else %}
+                        <div style="font-size:5pt; text-align:center; padding-top:10mm; color:#aaa;">PHOTO</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-
-        <div class="student-ribbon" style="position: relative; z-index: 2;"><span>Student</span></div>
-
-        <div class="card-body" style="position: relative; z-index: 2;">
-            <div class="card-details">
-                <div class="detail-row">
-                    <span class="detail-label">Name:</span>
-                    <span class="detail-value">{{ (row.full_name or student_rec.full_name or "") | upper }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">BC/ID:</span>
-                    <span class="detail-value">{{ row.student_id or row.student_reg_no or student_rec.name or "" }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">D.O.B:</span>
-                    <span class="detail-value">
-                        {% set dob = row.date_of_birth or student_rec.date_of_birth %}
-                        {% if dob %}
-                            {{ frappe.utils.formatdate(dob, "dd/MM/yyyy") }}
-                        {% endif %}
-                    </span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">SEX</span>
-                    <span class="detail-value">{{ (row.sex or student_rec.gender or "") | upper }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Valid:</span>
-                    <span class="detail-value">
-                        {% set v_from = row.valid_from or frappe.utils.today() %}
-                        {% set v_until = row.valid_until or frappe.utils.add_months(v_from, 48) %}
-                        {{ frappe.utils.formatdate(v_from, "yyyy") }}-{{ frappe.utils.formatdate(v_until, "yyyy") }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="photo-box">
-                {% set photo = row.passport_image or student_rec.student_image %}
-                {% if photo %}
-                    <img src="{{ photo }}" alt="Student Photo">
-                {% else %}
-                    <div class="photo-placeholder">PHOTO</div>
-                {% endif %}
-            </div>
-        </div>
-
     </div>{# end card-front #}
 
     {# ─── BACK ──────────────────────────────────── #}
     <div class="card-face-label">BACK</div>
     <div class="id-card card-back">
-
         <div class="back-header">{{ school_name | upper }} &mdash; STUDENT ID</div>
-
         <div class="back-body">
-
-            {# Circular stamp area #}
-            <div class="stamp-area">
-                SCHOOL<br>STAMP
-            </div>
-
-            {# Signature and QR area #}
+            <div class="stamp-area">SCHOOL<br>STAMP</div>
             <div class="signature-section">
-                {# Digital Verification QR Code #}
                 {% set verify_url = frappe.utils.get_url('/verify-student?id=' + (row.student_reg_no or student_rec.name)) %}
                 <div style="text-align: center; margin-bottom: 2px;">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ verify_url | urlencode }}" 
-                         style="width: 14mm; height: 14mm; border: 1px solid #003087; padding: 1px; border-radius: 2px;">
-                    <div style="font-size: 4pt; color: #003087; font-weight: 700; margin-top: 1px;">SCAN TO VERIFY</div>
+                         style="width: 14mm; height: 14mm; border: 1px solid #042566; padding: 1px; border-radius: 2px;">
+                    <div style="font-size: 4pt; color: #042566; font-weight: 700; margin-top: 1px;">SCAN TO VERIFY</div>
                 </div>
-
                 <div class="sig-block">
                     <div class="sig-line"></div>
                     <div class="sig-label">Director's Signature</div>
                 </div>
-
                 <div class="sig-block" style="margin-top:4px;">
                     <div class="sig-line"></div>
                     <div class="sig-label">Student's Signature</div>
                 </div>
             </div>
-
         </div>
-
         <div class="back-footer">
             If found, please return to {{ school_name }} &bull; Tell: {{ doc.telephone }}
         </div>
-
     </div>{# end card-back #}
 
 </div>{# end card-pair #}
