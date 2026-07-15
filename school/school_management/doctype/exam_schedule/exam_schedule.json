@@ -125,6 +125,7 @@
             "options": "Room Number"
         },
         {
+            "default": "100",
             "fieldname": "max_marks",
             "fieldtype": "Float",
             "label": "Max Marks"

@@ -101,6 +101,7 @@
             "fetch_from": "test_name.max_marks_percent",
             "fieldname": "max_marks",
             "fieldtype": "Float",
+            "default": "100",
             "label": "Max Marks"
         },
         {
