@@ -800,9 +800,20 @@ def get_top_students_html(report_name, limit):
 	subject_max_marks = {}
 	subject_champions = defaultdict(list)
 	
+	student_names_cache = {}
+	
 	for row in doc.term_exam_results:
 		if row.student:
-			student_totals[row.student]["name"] = row.student_name or row.student
+			if row.student not in student_names_cache:
+				s_doc = frappe.db.get_value("Student", row.student, ["student_name", "first_name", "last_name"], as_dict=True)
+				if s_doc:
+					full_name = f"{s_doc.get('first_name') or ''} {s_doc.get('last_name') or ''}".strip()
+					student_names_cache[row.student] = full_name or s_doc.get("student_name") or row.student_name or row.student
+				else:
+					student_names_cache[row.student] = row.student_name or row.student
+					
+			student_totals[row.student]["name"] = student_names_cache[row.student]
+			
 			if row.marks_obtained is not None:
 				student_totals[row.student]["marks"] += row.marks_obtained
 			if row.max_marks:
