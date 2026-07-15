@@ -137,6 +137,41 @@ frappe.ui.form.on('Term Exam Report', {
 			_open_top_students_popup(frm);
 		}, __('Reports'));
 
+		// ── Import XML ───────────────────────────────────────────────────────
+		frm.add_custom_button(__('Import XML'), function () {
+			var d = new frappe.ui.Dialog({
+				title: 'Import Results from XML',
+				fields: [
+					{
+						label: 'XML File',
+						fieldname: 'xml_file',
+						fieldtype: 'Attach',
+						reqd: 1
+					}
+				],
+				primary_action_label: 'Import',
+				primary_action: function(values) {
+					d.hide();
+					frappe.call({
+						method: 'school.school_management.doctype.term_exam_report.term_exam_report.import_results_from_xml',
+						args: {
+							report_name: frm.doc.name,
+							file_url: values.xml_file
+						},
+						freeze: true,
+						freeze_message: "Importing Results...",
+						callback: function(r) {
+							if (!r.exc) {
+								frappe.msgprint("Results imported successfully.");
+								frm.reload_doc();
+							}
+						}
+					});
+				}
+			});
+			d.show();
+		}, __('Reports'));
+
 		// ── Download All Students ────────────────────────────────────────────
 		// One tab per student — template auto-prints when #autoprint hash is present.
 		// User saves each as PDF via the browser's "Save as PDF" option.

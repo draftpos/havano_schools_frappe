@@ -6,6 +6,7 @@ from collections import defaultdict
 import qrcode
 import io
 import base64
+import xml.etree.ElementTree as ET
 
 
 def generate_qr_base64(data):
@@ -42,25 +43,26 @@ def is_primary_or_ecd(class_name):
 
 def get_grade_and_status(percentage, class_name=None):
 	if percentage is None:
-		return "", ""
+		return "", "", 0
 	
 	use_unit = is_primary_or_ecd(class_name)
 	
 	try:
-		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
+		fields = ["from_percent", "to_percent", "grade", "unit", "status", "points"]
 		parentfield = "unit_grading_items" if use_unit else "grading_items"
 		
 		items = frappe.get_all("Grading Score Item", filters={"parentfield": parentfield}, fields=fields, order_by="from_percent desc")
 			
 		for item in items:
 			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
+				pts = item.get("points", 0) or 0
 				if use_unit and item.get("unit"):
-					return item.unit, item.status or "Pass"
-				return item.grade, item.status or "Pass"
+					return item.unit, item.status or "Pass", pts
+				return item.grade, item.status or "Pass", pts
 	except Exception:
 		pass
 	
-	return "", ""
+	return "", "", 0
 
 
 def is_alevel(class_name):
@@ -95,7 +97,7 @@ class TermExamReport(Document):
 				
 				# Auto-fill grade/status if empty
 				if not row.grade or not row.status:
-					calc_grade, calc_status = get_grade_and_status(row.percentage, self.student_class)
+					calc_grade, calc_status, _ = get_grade_and_status(row.percentage, self.student_class)
 					if not row.grade:
 						row.grade = calc_grade
 					if not row.status:
@@ -583,7 +585,7 @@ def fetch_results(report_name):
 			
 			if pct is not None:
 				if not grade or not status:
-					calc_grade, calc_status = get_grade_and_status(pct, doc.student_class)
+					calc_grade, calc_status, _ = get_grade_and_status(pct, doc.student_class)
 					if not grade:
 						grade = calc_grade
 					if not status:
@@ -957,3 +959,70 @@ def download_top_students_pdf(report_name, limit):
 	frappe.local.response.filename = f"Top_Students_{report_name.replace(' ', '_')}.pdf"
 	frappe.local.response.filecontent = frappe.utils.pdf.get_pdf(pdf_html)
 	frappe.local.response.type = "download"
+
+@frappe.whitelist()
+def import_results_from_xml(report_name, file_url):
+	import os
+	
+	file_doc = frappe.get_doc("File", {"file_url": file_url})
+	file_path = file_doc.get_full_path()
+	
+	if not os.path.exists(file_path):
+		frappe.throw(_("File not found: {0}").format(file_url))
+		
+	tree = ET.parse(file_path)
+	root = tree.getroot()
+	
+	doc = frappe.get_doc("Term Exam Report", report_name)
+	
+	class_name = doc.student_class
+	
+	for result in root.findall('Result'):
+		student_id = result.find('StudentID').text if result.find('StudentID') is not None else None
+		subject = result.find('Subject').text if result.find('Subject') is not None else None
+		marks_str = result.find('Marks').text if result.find('Marks') is not None else None
+		max_marks_str = result.find('MaxMarks').text if result.find('MaxMarks') is not None else "100"
+		
+		if not student_id or not subject:
+			continue
+			
+		marks = float(marks_str) if marks_str else 0.0
+		max_marks = float(max_marks_str) if max_marks_str else 100.0
+		
+		if not frappe.db.exists("Student", student_id):
+			continue
+		if not frappe.db.exists("Subject", subject):
+			continue
+			
+		percentage = 0.0
+		if max_marks > 0:
+			percentage = round((marks / max_marks) * 100, 1)
+			
+		grade, status, points = get_grade_and_status(percentage, class_name)
+		
+		existing_row = None
+		for row in doc.term_exam_results:
+			if row.student == student_id and row.subject == subject:
+				existing_row = row
+				break
+				
+		if existing_row:
+			existing_row.marks_obtained = marks
+			existing_row.max_marks = max_marks
+			existing_row.percentage = percentage
+			existing_row.grade = grade
+			existing_row.status = status
+			existing_row.points = points
+		else:
+			new_row = doc.append("term_exam_results", {})
+			new_row.student = student_id
+			new_row.subject = subject
+			new_row.marks_obtained = marks
+			new_row.max_marks = max_marks
+			new_row.percentage = percentage
+			new_row.grade = grade
+			new_row.status = status
+			new_row.points = points
+			
+	doc.save()
+	frappe.db.commit()
