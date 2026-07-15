@@ -805,10 +805,10 @@ def get_top_students_html(report_name, limit):
 	for row in doc.term_exam_results:
 		if row.student:
 			if row.student not in student_names_cache:
-				s_doc = frappe.db.get_value("Student", row.student, ["student_name", "first_name", "last_name"], as_dict=True)
+				s_doc = frappe.db.get_value("Student", row.student, ["first_name", "last_name", "title"], as_dict=True)
 				if s_doc:
-					full_name = f"{s_doc.get('first_name') or ''} {s_doc.get('last_name') or ''}".strip()
-					student_names_cache[row.student] = full_name or s_doc.get("student_name") or row.student_name or row.student
+					full_name = s_doc.get('title') or f"{s_doc.get('first_name') or ''} {s_doc.get('last_name') or ''}".strip()
+					student_names_cache[row.student] = full_name or row.student_name or row.student
 				else:
 					student_names_cache[row.student] = row.student_name or row.student
 					
