@@ -723,7 +723,7 @@ title: Term Exam Results
     <div id="admin-comment-box" style="display:none; flex: 1; margin: 0 15px;">
         <textarea id="admin-overall-comment" style="width: 100%; height: 35px; padding: 5px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 11px;" placeholder="Add admin comment for this student..."></textarea>
     </div>
-    <button id="btn-save-comment" class="btn-print" style="display:none; background: #92400e; margin-right: 10px;" onclick="saveAdminComment()">Save Comment</button>
+    <button id="btn-save-comment" class="btn-print" style="display:none; background: #92400e; margin-right: 10px;" onclick="saveAdminComment()">Save Changes</button>
     
     <button class="btn-print" onclick="window.print()">&#128424; Print / Save PDF</button>
   </div>
@@ -746,22 +746,45 @@ title: Term Exam Results
 
   function el(id) { return document.getElementById(id); }
 
-  function G_obj(pct) {
+  function G_obj(pct, className) {
+    var isPrimary = false;
+    if (className) {
+        var cnl = className.toLowerCase();
+        isPrimary = cnl.includes("primary") || cnl.includes("ecd") || cnl.includes("grade") || cnl.includes("nursery");
+    }
+    var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
+
     for (var i = 0; i < GRADING.length; i++) {
+      if (GRADING[i].parentfield !== targetParentField) continue;
+      
       if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
-        return GRADING[i];
+        var g = GRADING[i];
+        if (isPrimary && g.unit) {
+            return { grade: g.unit, status: g.status };
+        } else {
+            return { grade: g.grade, status: g.status };
+        }
       }
     }
+    
+    // Fallback if no matching item found in targetParentField
+    for (var i = 0; i < GRADING.length; i++) {
+      if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
+        var g = GRADING[i];
+        return { grade: g.unit || g.grade, status: g.status };
+      }
+    }
+
     return { grade: "", status: "" };
   }
 
-  function G(pct) {
-    return G_obj(pct).grade;
+  function G(pct, className) {
+    return G_obj(pct, className).grade;
   }
 
   // Grading scale — can be extended from API if available
   var GRADING = [
-    {% set items = frappe.get_all("Grading Score Item", fields=["parent", "from_percent", "to_percent", "grade", "status"], order_by="from_percent desc") %}
+    {% set items = frappe.get_all("Grading Score Item", fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"], order_by="from_percent desc") %}
     {% set filtered_items = [] %}
     {% for i in items %}
       {% if i.parent != "STD" %}
@@ -774,7 +797,7 @@ title: Term Exam Results
 
     {% if filtered_items %}
       {% for gi in filtered_items %}
-        { from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
+        { parentfield: "{{ gi.parentfield }}", from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", unit: "{{ gi.unit or '' }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
       {% endfor %}
     {% else %}
       { from: 75, to: 100, grade: "A", status: "Pass" },
@@ -803,7 +826,7 @@ title: Term Exam Results
         subjCount++;
       });
       var pct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
-      var g = G(parseFloat(pct));
+      var g = G(parseFloat(pct), result.class_name);
       var pass = parseFloat(pct) >= 50;
       var sc = pass ? "color:#16a34a;font-weight:600" : "color:#dc2626;font-weight:600";
 
@@ -841,7 +864,7 @@ title: Term Exam Results
       totalObt += parseFloat(s.marks_obtained || 0);
     });
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
-    var overallG = G(parseFloat(overallPct));
+    var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
 
     /* ── Student identity — exact field names from print format Jinja ──
     /* ── Student identity ── */
@@ -880,7 +903,7 @@ title: Term Exam Results
         ? parseFloat(s.percentage).toFixed(1)
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       
-      var dynamicScale = G_obj(parseFloat(pct));
+      var dynamicScale = G_obj(parseFloat(pct), className);
       var g = dynamicScale.grade;
       var stat = dynamicScale.status;
 
@@ -894,10 +917,14 @@ title: Term Exam Results
       var examLbl = s.exam || "";
       var color = PIE_COLORS[i % PIE_COLORS.length];
 
+      var obtField = window.IS_ADMIN_POPUP 
+        ? "<input type='number' step='any' class='edit-mark-input' data-subject='" + subName.replace(/'/g, "&#39;") + "' value='" + obt + "' style='width:50px;text-align:center;border:1px solid #cbd5e1;border-radius:4px;padding:2px;'/>" 
+        : obt;
+
       tbRows += "<tr>"
         + "<td><strong>" + subName + "</strong></td>"
         + "<td style='color:#64748b;font-size:10px'>" + examLbl + "</td>"
-        + "<td class='center'>" + obt + " / " + max + "</td>"
+        + "<td class='center'>" + obtField + " / " + max + "</td>"
         + "<td class='center'><span class='gb g" + g + "'>" + g + "</span></td>"
         + "<td style='font-size:10px;color:#475569'>" + cstr + "</td>"
         + "</tr>";
@@ -1086,10 +1113,21 @@ title: Term Exam Results
     .then(r => {
         var doc = r.message;
         var updated = false;
+        
+        var markInputs = document.querySelectorAll(".edit-mark-input");
+        var marksMap = {};
+        markInputs.forEach(function(inp) {
+            var val = parseFloat(inp.value);
+            marksMap[inp.getAttribute("data-subject")] = isNaN(val) ? 0 : val;
+        });
+
         if (doc && doc.term_exam_results) {
             doc.term_exam_results.forEach(row => {
                 if (row.student === CURRENT_STUDENT) {
                     row.admin_comment = comment;
+                    if (marksMap.hasOwnProperty(row.subject)) {
+                        row.marks_obtained = marksMap[row.subject];
+                    }
                     updated = true;
                 }
             });
@@ -1106,15 +1144,16 @@ title: Term Exam Results
     })
     .then(res => res.json())
     .then(r => {
-        el("btn-save-comment").textContent = "Save Comment";
+        el("btn-save-comment").textContent = "Save Changes";
         el("btn-save-comment").disabled = false;
-        alert("Comment saved successfully!");
+        alert("Changes saved successfully!");
+        window.location.reload();
     })
     .catch(err => {
         console.error(err);
-        el("btn-save-comment").textContent = "Save Comment";
+        el("btn-save-comment").textContent = "Save Changes";
         el("btn-save-comment").disabled = false;
-        alert("Error saving comment: " + err.message);
+        alert("Error saving changes: " + err.message);
     });
   }
 

@@ -34,26 +34,33 @@ def get_seed_teacher_comment(percentage):
 		return "Needs extra support and more focus. Please put in more effort next term."
 
 
-def get_grade_and_status(percentage):
+def is_primary_or_ecd(class_name):
+	if not class_name:
+		return False
+	cn = class_name.lower()
+	return any(k in cn for k in ["primary", "ecd", "grade", "nursery"])
+
+def get_grade_and_status(percentage, class_name=None):
 	if percentage is None:
 		return "", ""
+	
+	use_unit = is_primary_or_ecd(class_name)
+	
 	try:
-		# Fetch all standalone grading score items, ignoring STD if the user deleted it
-		items = frappe.get_all("Grading Score Item", fields=["from_percent", "to_percent", "grade", "status"], order_by="from_percent desc")
+		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
+		parentfield = "unit_grading_items" if use_unit else "grading_items"
+		
+		items = frappe.get_all("Grading Score Item", filters={"parentfield": parentfield}, fields=fields, order_by="from_percent desc")
+			
 		for item in items:
-			# Ignore STD if it still exists but they want to use independent ones
 			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
+				if use_unit and item.get("unit"):
+					return item.unit, item.status or "Pass"
 				return item.grade, item.status or "Pass"
 	except Exception:
 		pass
 	
 	return "", ""
-	if percentage >= 80:
-		return "A", "Pass"
-	elif percentage >= 50:
-		return "B", "Pass"
-	else:
-		return "F", "Failed"
 
 
 def is_alevel(class_name):
@@ -88,7 +95,7 @@ class TermExamReport(Document):
 				
 				# Auto-fill grade/status if empty
 				if not row.grade or not row.status:
-					calc_grade, calc_status = get_grade_and_status(row.percentage)
+					calc_grade, calc_status = get_grade_and_status(row.percentage, self.student_class)
 					if not row.grade:
 						row.grade = calc_grade
 					if not row.status:
@@ -576,7 +583,7 @@ def fetch_results(report_name):
 			
 			if pct is not None:
 				if not grade or not status:
-					calc_grade, calc_status = get_grade_and_status(pct)
+					calc_grade, calc_status = get_grade_and_status(pct, doc.student_class)
 					if not grade:
 						grade = calc_grade
 					if not status:
@@ -777,9 +784,21 @@ def verify_report_text(report, student=None):
 def get_top_students_html(report_name, limit):
 	doc = frappe.get_doc("Term Exam Report", report_name)
 	
+	is_primary = is_primary_or_ecd(doc.student_class)
 	is_al = is_alevel(doc.student_class)
+	is_ol = not is_primary and not is_al
 	
-	student_totals = defaultdict(lambda: {"marks": 0.0, "max_marks": 0.0, "points": 0.0, "name": ""})
+	student_totals = defaultdict(lambda: {
+		"marks": 0.0, 
+		"max_marks": 0.0, 
+		"points": 0.0, 
+		"units": 0, 
+		"grade_counts": defaultdict(int), 
+		"name": ""
+	})
+	
+	subject_max_marks = {}
+	subject_champions = defaultdict(list)
 	
 	for row in doc.term_exam_results:
 		if row.student:
@@ -791,31 +810,67 @@ def get_top_students_html(report_name, limit):
 			if hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
-	# Calculate percentage
+			if row.grade:
+				grade_str = str(row.grade).upper().strip()
+				student_totals[row.student]["grade_counts"][grade_str] += 1
+				
+				# If primary, try to sum the unit
+				if is_primary:
+					try:
+						student_totals[row.student]["units"] += int(float(row.grade))
+					except ValueError:
+						pass
+						
+			# Track highest mark per subject
+			if row.subject and row.marks_obtained is not None:
+				current_max = subject_max_marks.get(row.subject, -1)
+				if row.marks_obtained > current_max:
+					subject_max_marks[row.subject] = row.marks_obtained
+					subject_champions[row.subject] = [student_totals[row.student]["name"]]
+				elif row.marks_obtained == current_max and current_max >= 0:
+					if student_totals[row.student]["name"] not in subject_champions[row.subject]:
+						subject_champions[row.subject].append(student_totals[row.student]["name"])
+					
+	# Prepare sorted students list
+	sorted_students = []
 	for student, totals in student_totals.items():
 		if totals["max_marks"] > 0:
 			totals["percentage"] = round((totals["marks"] / totals["max_marks"]) * 100, 1)
 		else:
 			totals["percentage"] = 0.0
 			
-	# Sort
-	sorted_students = []
-	for student, totals in student_totals.items():
 		sorted_students.append({
 			"student": student,
 			"name": totals["name"],
 			"marks": totals["marks"],
 			"max_marks": totals["max_marks"],
 			"percentage": totals["percentage"],
-			"points": totals["points"]
+			"points": totals["points"],
+			"units": totals["units"],
+			"grade_counts": totals["grade_counts"]
 		})
 		
-	if is_al:
-		sorted_students.sort(key=lambda x: (x["points"], x["marks"]), reverse=True)
-	else:
-		sorted_students.sort(key=lambda x: x["marks"], reverse=True)
+	# Sorting logic based on class level
+	if is_primary:
+		# Primary: Lowest units is best
+		sorted_students = [s for s in sorted_students if s["max_marks"] > 0 and s["units"] > 0]
+		sorted_students.sort(key=lambda x: x["units"])
 		
-	if limit != "All":
+	elif is_al:
+		# A-Level: 10 or more points
+		sorted_students = [s for s in sorted_students if s["points"] >= 10]
+		sorted_students.sort(key=lambda x: x["points"], reverse=True)
+		
+	else:
+		# O-Level: Sort by A, B, C counts
+		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
+		sorted_students.sort(key=lambda x: (
+			x["grade_counts"].get("A", 0), 
+			x["grade_counts"].get("B", 0), 
+			x["grade_counts"].get("C", 0)
+		), reverse=True)
+		
+	if limit != "All" and not is_al:
 		try:
 			limit = int(limit)
 			sorted_students = sorted_students[:limit]
@@ -823,21 +878,43 @@ def get_top_students_html(report_name, limit):
 			pass
 			
 	# Build HTML
-	html = "<table class='table table-bordered table-hover' style='margin-top: 15px;'><thead><tr><th>Rank</th><th>Student Name</th>"
-	if is_al:
-		html += "<th>Total Points</th><th>Total Marks</th>"
+	html = "<div id='top-students-print-area'>"
+	
+	html += "<table class='table table-bordered table-hover' style='margin-top: 15px;'><thead><tr><th>Rank</th><th>Student Name</th>"
+	if is_primary:
+		html += "<th>Total Units</th>"
+	elif is_al:
+		html += "<th>Total Points</th>"
 	else:
-		html += "<th>Total Marks</th><th>Percentage</th>"
+		html += "<th>Passing Grades (A,B,C)</th>"
 	html += "</tr></thead><tbody>"
 	
 	for idx, s in enumerate(sorted_students):
 		rank = idx + 1
 		html += f"<tr><td>{rank}</td><td>{s['name']}</td>"
-		if is_al:
-			html += f"<td><strong>{s['points']}</strong></td><td>{s['marks']} / {s['max_marks']}</td>"
+		if is_primary:
+			html += f"<td><strong>{s['units']}</strong></td>"
+		elif is_al:
+			html += f"<td><strong>{s['points']}</strong></td>"
 		else:
-			html += f"<td><strong>{s['marks']} / {s['max_marks']}</strong></td><td>{s['percentage']}%</td>"
+			html += f"<td><strong>{s['grade_counts'].get('A',0)}A, {s['grade_counts'].get('B',0)}B, {s['grade_counts'].get('C',0)}C</strong></td>"
 		html += "</tr>"
 		
+	if not sorted_students:
+		html += "<tr><td colspan='3' class='text-center'>No top students found.</td></tr>"
+		
 	html += "</tbody></table>"
+	
+	# Add Subject Champions
+	html += "<h4 style='margin-top: 30px;'>🏆 Highest per Subject</h4>"
+	html += "<table class='table table-bordered table-hover'><thead><tr><th>Subject</th><th>Highest Mark</th><th>Student(s)</th></tr></thead><tbody>"
+	for subj, names in sorted(subject_champions.items()):
+		mark = subject_max_marks[subj]
+		names_str = ", ".join(names)
+		html += f"<tr><td>{subj}</td><td>{mark}</td><td>{names_str}</td></tr>"
+	if not subject_champions:
+		html += "<tr><td colspan='3' class='text-center'>No subjects found.</td></tr>"
+	html += "</tbody></table>"
+	
+	html += "</div>"
 	return html

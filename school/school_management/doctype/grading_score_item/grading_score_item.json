@@ -9,6 +9,7 @@
   "from_percent",
   "to_percent",
   "grade",
+  "unit",
   "status"
  ],
  "fields": [
@@ -30,6 +31,12 @@
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Grade"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Unit"
   },
   {
    "fieldname": "status",

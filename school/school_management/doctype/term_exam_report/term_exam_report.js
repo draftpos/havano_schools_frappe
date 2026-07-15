@@ -427,4 +427,20 @@ function _open_top_students_popup(frm) {
 
 	d.show();
 	render_top_students();
+	
+	d.add_custom_button('Print', function() {
+		var content = d.fields_dict.report_html.$wrapper.html();
+		var printWindow = window.open('', '_blank');
+		printWindow.document.write('<html><head><title>Top Students Report</title>');
+		printWindow.document.write('<style>body { font-family: sans-serif; padding: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 15px; } th, td { border: 1px solid #ddd; padding: 8px; text-align: left; } th { background-color: #f2f2f2; } h4 { margin-top: 30px; }</style>');
+		printWindow.document.write('</head><body>');
+		printWindow.document.write('<h2>🏆 Top Students - ' + (frm.doc.student_class || '') + '</h2>');
+		printWindow.document.write('<h3>Term: ' + (frm.doc.term || '') + '</h3>');
+		printWindow.document.write(content);
+		printWindow.document.write('</body></html>');
+		printWindow.document.close();
+		setTimeout(function() {
+			printWindow.print();
+		}, 500);
+	});
 }

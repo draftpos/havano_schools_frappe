@@ -46,6 +46,7 @@
   {
    "fieldname": "exam",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Exam"
   },
   {

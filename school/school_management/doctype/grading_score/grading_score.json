@@ -10,7 +10,8 @@
         "grade_code",
         "grade_name",
         "grading_rules_section",
-        "grading_items"
+        "grading_items",
+        "unit_grading_items"
     ],
     "fields": [
         {
@@ -37,7 +38,13 @@
         {
             "fieldname": "grading_items",
             "fieldtype": "Table",
-            "label": "Items",
+            "label": "Grades",
+            "options": "Grading Score Item"
+        },
+        {
+            "fieldname": "unit_grading_items",
+            "fieldtype": "Table",
+            "label": "Units",
             "options": "Grading Score Item"
         }
     ],
