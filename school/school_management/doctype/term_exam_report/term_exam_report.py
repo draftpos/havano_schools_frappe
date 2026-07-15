@@ -975,12 +975,20 @@ def import_results_from_excel(report_name, file_url):
 	doc = frappe.get_doc("Term Exam Report", report_name)
 	class_name = doc.student_class
 	
+	students = frappe.get_all("Student", fields=["name", "first_name", "last_name"])
+	name_to_id = {}
+	for s in students:
+		fname = s.first_name or ""
+		lname = s.last_name or ""
+		full_name = f"{fname} {lname}".strip().lower()
+		name_to_id[full_name] = s.name
+	
 	# Skip header row
 	for row in rows[1:]:
 		if not row or not row[0]:
 			continue
 			
-		student_id = str(row[0]).strip()
+		student_name_or_id = str(row[0]).strip()
 		subject = str(row[1]).strip() if len(row) > 1 and row[1] else None
 		
 		try:
@@ -993,11 +1001,16 @@ def import_results_from_excel(report_name, file_url):
 		except ValueError:
 			max_marks = 100.0
 		
-		if not student_id or not subject:
+		if not student_name_or_id or not subject:
 			continue
 			
-		if not frappe.db.exists("Student", student_id):
-			continue
+		student_id = name_to_id.get(student_name_or_id.lower())
+		if not student_id:
+			if frappe.db.exists("Student", student_name_or_id):
+				student_id = student_name_or_id
+			else:
+				continue
+				
 		if not frappe.db.exists("Subject", subject):
 			continue
 			
@@ -1038,8 +1051,8 @@ def import_results_from_excel(report_name, file_url):
 def download_excel_template():
 	from frappe.utils.xlsxutils import build_xlsx_response
 	data = [
-		["StudentID", "Subject", "Marks", "MaxMarks"],
-		["STU-0001", "Mathematics", 85, 100],
-		["STU-0002", "Science", 92, 100]
+		["Student Name", "Subject", "Marks", "MaxMarks"],
+		["John Doe", "Mathematics", 85, 100],
+		["Jane Smith", "Science", 92, 100]
 	]
 	build_xlsx_response(data, "Term_Exam_Results_Template")
