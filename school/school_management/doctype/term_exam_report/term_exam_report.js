@@ -463,7 +463,10 @@ function _open_top_students_popup(frm) {
 	d.show();
 	render_top_students();
 	
-	d.add_custom_button('Print', function() {
+	d.$wrapper.find('.modal-footer').prepend('<button class="btn btn-default btn-sm pull-left mr-2" id="print-top-btn" style="margin-right: 10px;">🖨 Print</button>');
+	d.$wrapper.find('.modal-footer').prepend('<button class="btn btn-primary btn-sm pull-left mr-2" id="pdf-top-btn" style="margin-right: 10px;">⬇ Download PDF</button>');
+	
+	d.$wrapper.find('#print-top-btn').on('click', function() {
 		var content = d.fields_dict.report_html.$wrapper.html();
 		var printWindow = window.open('', '_blank');
 		printWindow.document.write('<html><head><title>Top Students Report</title>');
@@ -479,7 +482,7 @@ function _open_top_students_popup(frm) {
 		}, 500);
 	});
 	
-	d.add_custom_button('Download PDF', function() {
+	d.$wrapper.find('#pdf-top-btn').on('click', function() {
 		var limit = d.get_value('top_limit');
 		var url = frappe.urllib.get_full_url(
 			"/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_top_students_pdf" +
