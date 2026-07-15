@@ -443,4 +443,14 @@ function _open_top_students_popup(frm) {
 			printWindow.print();
 		}, 500);
 	});
+	
+	d.add_custom_button('Download PDF', function() {
+		var limit = d.get_value('top_limit');
+		var url = frappe.urllib.get_full_url(
+			"/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_top_students_pdf" +
+			"?report_name=" + encodeURIComponent(frm.doc.name) +
+			"&limit=" + encodeURIComponent(limit)
+		);
+		window.open(url, '_blank');
+	});
 }

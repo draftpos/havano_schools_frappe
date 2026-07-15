@@ -873,9 +873,10 @@ def get_top_students_html(report_name, limit):
 		sorted_students.sort(key=lambda x: x["points"], reverse=True)
 		
 	else:
-		# O-Level: Sort by A, B, C counts
+		# O-Level: Sort by A*, A, B, C counts
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
 		sorted_students.sort(key=lambda x: (
+			x["grade_counts"].get("A*", 0), 
 			x["grade_counts"].get("A", 0), 
 			x["grade_counts"].get("B", 0), 
 			x["grade_counts"].get("C", 0)
@@ -897,7 +898,7 @@ def get_top_students_html(report_name, limit):
 	elif is_al:
 		html += "<th>Total Points</th>"
 	else:
-		html += "<th>Passing Grades (A,B,C)</th>"
+		html += "<th>Passing Grades (A*,A,B,C)</th>"
 	html += "</tr></thead><tbody>"
 	
 	for idx, s in enumerate(sorted_students):
@@ -908,7 +909,7 @@ def get_top_students_html(report_name, limit):
 		elif is_al:
 			html += f"<td><strong>{s['points']}</strong></td>"
 		else:
-			html += f"<td><strong>{s['grade_counts'].get('A',0)}A, {s['grade_counts'].get('B',0)}B, {s['grade_counts'].get('C',0)}C</strong></td>"
+			html += f"<td><strong>{s['grade_counts'].get('A*',0)}A*, {s['grade_counts'].get('A',0)}A, {s['grade_counts'].get('B',0)}B, {s['grade_counts'].get('C',0)}C</strong></td>"
 		html += "</tr>"
 		
 	if not sorted_students:
@@ -929,3 +930,30 @@ def get_top_students_html(report_name, limit):
 	
 	html += "</div>"
 	return html
+
+@frappe.whitelist(allow_guest=True)
+def download_top_students_pdf(report_name, limit):
+	html = get_top_students_html(report_name, limit)
+	
+	pdf_html = f"""
+	<html>
+		<head>
+			<title>Top Students - {report_name}</title>
+			<style>
+				body {{ font-family: sans-serif; padding: 20px; }}
+				table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
+				th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+				th {{ background-color: #f2f2f2; }}
+				h4 {{ margin-top: 30px; }}
+			</style>
+		</head>
+		<body>
+			<h2>🏆 Top Students - {report_name}</h2>
+			{html}
+		</body>
+	</html>
+	"""
+	
+	frappe.local.response.filename = f"Top_Students_{report_name.replace(' ', '_')}.pdf"
+	frappe.local.response.filecontent = frappe.utils.pdf.get_pdf(pdf_html)
+	frappe.local.response.type = "download"
