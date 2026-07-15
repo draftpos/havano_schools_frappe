@@ -961,34 +961,41 @@ def download_top_students_pdf(report_name, limit):
 	frappe.local.response.type = "download"
 
 @frappe.whitelist()
-def import_results_from_xml(report_name, file_url):
-	import os
+def import_results_from_excel(report_name, file_url):
+	from frappe.utils.xlsxutils import read_xlsx_file_from_attached_file
 	
-	file_doc = frappe.get_doc("File", {"file_url": file_url})
-	file_path = file_doc.get_full_path()
-	
-	if not os.path.exists(file_path):
-		frappe.throw(_("File not found: {0}").format(file_url))
+	try:
+		rows = read_xlsx_file_from_attached_file(file_url)
+	except Exception as e:
+		frappe.throw(_("Error reading Excel file: {0}").format(str(e)))
 		
-	tree = ET.parse(file_path)
-	root = tree.getroot()
-	
+	if not rows or len(rows) < 2:
+		frappe.throw(_("Excel file is empty or missing data."))
+		
 	doc = frappe.get_doc("Term Exam Report", report_name)
-	
 	class_name = doc.student_class
 	
-	for result in root.findall('Result'):
-		student_id = result.find('StudentID').text if result.find('StudentID') is not None else None
-		subject = result.find('Subject').text if result.find('Subject') is not None else None
-		marks_str = result.find('Marks').text if result.find('Marks') is not None else None
-		max_marks_str = result.find('MaxMarks').text if result.find('MaxMarks') is not None else "100"
+	# Skip header row
+	for row in rows[1:]:
+		if not row or not row[0]:
+			continue
+			
+		student_id = str(row[0]).strip()
+		subject = str(row[1]).strip() if len(row) > 1 and row[1] else None
+		
+		try:
+			marks = float(row[2]) if len(row) > 2 and row[2] is not None else 0.0
+		except ValueError:
+			marks = 0.0
+			
+		try:
+			max_marks = float(row[3]) if len(row) > 3 and row[3] is not None else 100.0
+		except ValueError:
+			max_marks = 100.0
 		
 		if not student_id or not subject:
 			continue
 			
-		marks = float(marks_str) if marks_str else 0.0
-		max_marks = float(max_marks_str) if max_marks_str else 100.0
-		
 		if not frappe.db.exists("Student", student_id):
 			continue
 		if not frappe.db.exists("Subject", subject):
@@ -1001,9 +1008,9 @@ def import_results_from_xml(report_name, file_url):
 		grade, status, points = get_grade_and_status(percentage, class_name)
 		
 		existing_row = None
-		for row in doc.term_exam_results:
-			if row.student == student_id and row.subject == subject:
-				existing_row = row
+		for r in doc.term_exam_results:
+			if r.student == student_id and r.subject == subject:
+				existing_row = r
 				break
 				
 		if existing_row:
@@ -1028,23 +1035,11 @@ def import_results_from_xml(report_name, file_url):
 	frappe.db.commit()
 
 @frappe.whitelist(allow_guest=True)
-def download_xml_template():
-	xml_content = """<?xml version="1.0" encoding="UTF-8"?>
-<Results>
-	<Result>
-		<StudentID>STU-0001</StudentID>
-		<Subject>Mathematics</Subject>
-		<Marks>85</Marks>
-		<MaxMarks>100</MaxMarks>
-	</Result>
-	<Result>
-		<StudentID>STU-0002</StudentID>
-		<Subject>Science</Subject>
-		<Marks>92</Marks>
-		<MaxMarks>100</MaxMarks>
-	</Result>
-</Results>
-"""
-	frappe.local.response.filename = "Term_Exam_Results_Template.xml"
-	frappe.local.response.filecontent = xml_content.encode("utf-8")
-	frappe.local.response.type = "download"
+def download_excel_template():
+	from frappe.utils.xlsxutils import build_xlsx_response
+	data = [
+		["StudentID", "Subject", "Marks", "MaxMarks"],
+		["STU-0001", "Mathematics", 85, 100],
+		["STU-0002", "Science", 92, 100]
+	]
+	build_xlsx_response(data, "Term_Exam_Results_Template")

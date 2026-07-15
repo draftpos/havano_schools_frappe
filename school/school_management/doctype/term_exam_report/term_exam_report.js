@@ -137,19 +137,19 @@ frappe.ui.form.on('Term Exam Report', {
 			_open_top_students_popup(frm);
 		}, __('Reports'));
 
-		// ── Import XML ───────────────────────────────────────────────────────
-		frm.add_custom_button(__('Import XML'), function () {
+		// ── Import Excel ───────────────────────────────────────────────────────
+		frm.add_custom_button(__('Import Excel'), function () {
 			var d = new frappe.ui.Dialog({
-				title: 'Import Results from XML',
+				title: 'Import Results from Excel',
 				fields: [
 					{
 						fieldname: 'template_html',
 						fieldtype: 'HTML',
-						options: '<div style="margin-bottom: 15px;"><a href="/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_xml_template" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-download"></i> Download XML Template</a></div>'
+						options: '<div style="margin-bottom: 15px;"><a href="/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_excel_template" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-download"></i> Download Excel Template</a></div>'
 					},
 					{
-						label: 'XML File',
-						fieldname: 'xml_file',
+						label: 'Excel File (.xlsx)',
+						fieldname: 'excel_file',
 						fieldtype: 'Attach',
 						reqd: 1
 					}
@@ -158,10 +158,10 @@ frappe.ui.form.on('Term Exam Report', {
 				primary_action: function(values) {
 					d.hide();
 					frappe.call({
-						method: 'school.school_management.doctype.term_exam_report.term_exam_report.import_results_from_xml',
+						method: 'school.school_management.doctype.term_exam_report.term_exam_report.import_results_from_excel',
 						args: {
 							report_name: frm.doc.name,
-							file_url: values.xml_file
+							file_url: values.excel_file
 						},
 						freeze: true,
 						freeze_message: "Importing Results...",
