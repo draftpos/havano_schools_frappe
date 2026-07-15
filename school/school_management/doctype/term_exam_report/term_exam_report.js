@@ -143,6 +143,11 @@ frappe.ui.form.on('Term Exam Report', {
 				title: 'Import Results from XML',
 				fields: [
 					{
+						fieldname: 'template_html',
+						fieldtype: 'HTML',
+						options: '<div style="margin-bottom: 15px;"><a href="/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_xml_template" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-download"></i> Download XML Template</a></div>'
+					},
+					{
 						label: 'XML File',
 						fieldname: 'xml_file',
 						fieldtype: 'Attach',

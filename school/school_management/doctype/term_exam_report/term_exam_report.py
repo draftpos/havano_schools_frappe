@@ -1026,3 +1026,25 @@ def import_results_from_xml(report_name, file_url):
 			
 	doc.save()
 	frappe.db.commit()
+
+@frappe.whitelist(allow_guest=True)
+def download_xml_template():
+	xml_content = """<?xml version="1.0" encoding="UTF-8"?>
+<Results>
+	<Result>
+		<StudentID>STU-0001</StudentID>
+		<Subject>Mathematics</Subject>
+		<Marks>85</Marks>
+		<MaxMarks>100</MaxMarks>
+	</Result>
+	<Result>
+		<StudentID>STU-0002</StudentID>
+		<Subject>Science</Subject>
+		<Marks>92</Marks>
+		<MaxMarks>100</MaxMarks>
+	</Result>
+</Results>
+"""
+	frappe.local.response.filename = "Term_Exam_Results_Template.xml"
+	frappe.local.response.filecontent = xml_content.encode("utf-8")
+	frappe.local.response.type = "download"
