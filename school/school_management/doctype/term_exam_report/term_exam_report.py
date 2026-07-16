@@ -975,84 +975,144 @@ def import_results_from_excel(report_name, file_url):
 	doc = frappe.get_doc("Term Exam Report", report_name)
 	class_name = doc.student_class
 	
-	students = frappe.get_all("Student", fields=["name", "first_name", "last_name"])
-	name_to_id = {}
-	for s in students:
-		fname = s.first_name or ""
-		lname = s.last_name or ""
-		full_name = f"{fname} {lname}".strip().lower()
-		name_to_id[full_name] = s.name
-	
-	# Skip header row
+	header = rows[0]
+	if len(header) < 3:
+		frappe.throw(_("Invalid template format. Must have Student ID, Student Name, and at least one subject column."))
+
+	subject_columns = []
+	for i in range(2, len(header)):
+		subj = header[i]
+		if subj and frappe.db.exists("Subject", subj):
+			subject_columns.append((i, subj))
+
+	if not subject_columns:
+		frappe.throw(_("No valid subjects found in the header row. Make sure subject IDs match the system."))
+
+	# Preload schedules for max_marks and exam
+	sched_filters = {"term": doc.term, "student_class": class_name}
+	if doc.section:
+		sched_filters["section"] = doc.section
+
+	schedules = frappe.get_all("Exam Schedule", filters=sched_filters, fields=["name", "subject", "exam", "max_marks", "min_marks"])
+	subject_schedule_map = defaultdict(list)
+	for s in schedules:
+		subject_schedule_map[s.subject].append(s)
+
+	existing_rows_map = {}
+	for r in doc.term_exam_results:
+		if r.student and r.subject:
+			existing_rows_map[(r.student, r.subject)] = r
+
 	for row in rows[1:]:
 		if not row or not row[0]:
 			continue
 			
-		student_name_or_id = str(row[0]).strip()
-		subject = str(row[1]).strip() if len(row) > 1 and row[1] else None
-		
-		try:
-			marks = float(row[2]) if len(row) > 2 and row[2] is not None else 0.0
-		except ValueError:
-			marks = 0.0
-			
-		try:
-			max_marks = float(row[3]) if len(row) > 3 and row[3] is not None else 100.0
-		except ValueError:
-			max_marks = 100.0
-		
-		if not student_name_or_id or not subject:
-			continue
-			
-		student_id = name_to_id.get(student_name_or_id.lower())
-		if not student_id:
-			if frappe.db.exists("Student", student_name_or_id):
-				student_id = student_name_or_id
+		student_id = str(row[0]).strip()
+		if not frappe.db.exists("Student", student_id):
+			student_name_try = str(row[1]).strip() if len(row) > 1 and row[1] else ""
+			if student_name_try:
+				found = frappe.db.get_value("Student", {"full_name": student_name_try}, "name")
+				if found:
+					student_id = found
+				else:
+					continue
 			else:
 				continue
-				
-		if not frappe.db.exists("Subject", subject):
-			continue
-			
-		percentage = 0.0
-		if max_marks > 0:
-			percentage = round((marks / max_marks) * 100, 1)
-			
-		grade, status, points = get_grade_and_status(percentage, class_name)
 		
-		existing_row = None
-		for r in doc.term_exam_results:
-			if r.student == student_id and r.subject == subject:
-				existing_row = r
-				break
+		for col_idx, subject in subject_columns:
+			if len(row) > col_idx and row[col_idx] not in (None, "", " "):
+				try:
+					marks = float(row[col_idx])
+				except ValueError:
+					continue
 				
-		if existing_row:
-			existing_row.marks_obtained = marks
-			existing_row.max_marks = max_marks
-			existing_row.percentage = percentage
-			existing_row.grade = grade
-			existing_row.status = status
-			existing_row.points = points
-		else:
-			new_row = doc.append("term_exam_results", {})
-			new_row.student = student_id
-			new_row.subject = subject
-			new_row.marks_obtained = marks
-			new_row.max_marks = max_marks
-			new_row.percentage = percentage
-			new_row.grade = grade
-			new_row.status = status
-			new_row.points = points
+				subj_schedules = subject_schedule_map.get(subject, [])
+				if subj_schedules:
+					sched = subj_schedules[-1]
+					max_marks = sched.max_marks or 100.0
+					exam = sched.exam
+				else:
+					max_marks = 100.0
+					exam = ""
+
+				percentage = 0.0
+				if max_marks > 0:
+					percentage = round((marks / max_marks) * 100, 1)
+					
+				grade, status, points = get_grade_and_status(percentage, class_name)
+				
+				existing_row = existing_rows_map.get((student_id, subject))
+				if existing_row:
+					existing_row.exam = exam
+					existing_row.marks_obtained = marks
+					existing_row.max_marks = max_marks
+					existing_row.percentage = percentage
+					existing_row.grade = grade
+					existing_row.status = status
+					existing_row.points = points
+				else:
+					new_row = doc.append("term_exam_results", {})
+					new_row.student = student_id
+					new_row.subject = subject
+					new_row.exam = exam
+					new_row.marks_obtained = marks
+					new_row.max_marks = max_marks
+					new_row.percentage = percentage
+					new_row.grade = grade
+					new_row.status = status
+					new_row.points = points
+					existing_rows_map[(student_id, subject)] = new_row
 			
 	doc.save()
 	frappe.db.commit()
 
 @frappe.whitelist(allow_guest=True)
-def download_excel_template():
+def download_excel_template(report_name=None):
 	from frappe.utils.xlsxutils import build_xlsx_response
-	data = [
-		["Student Name", "Subject", "Marks", "MaxMarks"],
-		["John Doe", "Mathematics", 85, 100],
-		["Jane Smith", "Science", 92, 100]
-	]
-	build_xlsx_response(data, "Term_Exam_Results_Template")
+	
+	if not report_name:
+		data = [
+			["Student ID", "Student Name", "Mathematics", "Science"],
+			["STU001", "John Doe", 85, 92],
+			["STU002", "Jane Smith", 78, 88]
+		]
+		build_xlsx_response(data, "Term_Exam_Results_Template")
+		return
+
+	doc = frappe.get_doc("Term Exam Report", report_name)
+	
+	class_section_filters = {"class": doc.student_class}
+	if doc.section:
+		class_section_filters["section"] = doc.section
+
+	subject_links = frappe.get_all("Subject Class and Section", filters=class_section_filters, fields=["parent"])
+	if not subject_links:
+		subject_links = frappe.get_all("Subject Class and Section", filters={"class": doc.student_class}, fields=["parent"])
+
+	subject_names = list(set([s.parent for s in subject_links]))
+	subjects = frappe.get_all("Subject", filters={"name": ["in", subject_names]}, fields=["name", "subject_name"], order_by="subject_name asc")
+	
+	subject_headers = [s.name for s in subjects]
+	
+	student_filters = {"student_class": doc.student_class}
+	if doc.section:
+		student_filters["section"] = doc.section
+
+	students = frappe.get_all("Student", filters=student_filters, fields=["name", "first_name", "last_name", "full_name"], order_by="first_name asc")
+	
+	data = [["Student ID", "Student Name"] + subject_headers]
+	
+	existing_results = {}
+	for r in doc.term_exam_results:
+		if r.student and r.subject and r.marks_obtained is not None:
+			existing_results[(r.student, r.subject)] = r.marks_obtained
+
+	for student in students:
+		student_name = " ".join(filter(None, [student.get("first_name"), student.get("last_name")])) or student.get("full_name") or student.name
+		row = [student.name, student_name]
+		for subj in subject_headers:
+			mark = existing_results.get((student.name, subj), "")
+			row.append(mark)
+		data.append(row)
+
+	build_xlsx_response(data, f"Template_{report_name.replace(' ', '_')}")

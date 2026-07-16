@@ -139,13 +139,14 @@ frappe.ui.form.on('Term Exam Report', {
 
 		// ── Import Excel ───────────────────────────────────────────────────────
 		frm.add_custom_button(__('Import Excel'), function () {
+			var download_url = "/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_excel_template?report_name=" + encodeURIComponent(frm.doc.name);
 			var d = new frappe.ui.Dialog({
 				title: 'Import Results from Excel',
 				fields: [
 					{
 						fieldname: 'template_html',
 						fieldtype: 'HTML',
-						options: '<div style="margin-bottom: 15px;"><a href="/api/method/school.school_management.doctype.term_exam_report.term_exam_report.download_excel_template" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-download"></i> Download Excel Template</a></div>'
+						options: '<div style="margin-bottom: 15px;"><a href="' + download_url + '" target="_blank" class="btn btn-default btn-xs"><i class="fa fa-download"></i> Download Excel Template</a></div>'
 					},
 					{
 						label: 'Excel File (.xlsx)',
