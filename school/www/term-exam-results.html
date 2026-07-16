@@ -879,7 +879,13 @@ title: Term Exam Results
     });
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
-    var overallGDisplay = totalPts > 0 ? overallG + " (" + totalPts + " pts)" : overallG;
+    
+    var overallGDisplay = overallG;
+    if (isALevel) {
+        overallGDisplay = totalPts + " pts";
+    } else if (isPrimary) {
+        overallGDisplay = totalUnits + " units";
+    }
 
     /* ── Student identity — exact field names from print format Jinja ──
     /* ── Student identity ── */
