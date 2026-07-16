@@ -670,11 +670,27 @@ def get_term_exam_results(student=None, report_name=None):
         if not items:
             continue
 
+        is_al = False
+        grade_points = {}
+        if report.student_class:
+            cn = report.student_class.lower()
+            if any(k in cn for k in ["a level", "form 5", "form 6", "lower 6", "upper 6", "l6", "u6"]):
+                is_al = True
+                settings = frappe.get_single("School Settings")
+                if hasattr(settings, "a_level_grade_points"):
+                    for r_set in settings.a_level_grade_points:
+                        grade_points[str(r_set.grade).upper().strip()] = r_set.points
+
         for item in items:
             sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
             item["subject_name"] = sub_name
             # Add subject name for display
             item["subject"] = sub_name
+            
+            # Recalculate A-level points on the fly if needed
+            if is_al and item.grade:
+                item["points"] = grade_points.get(str(item.grade).upper().strip(), 0.0)
+                
             # Ensure student fields are present
             if "student_name" not in item or not item["student_name"]:
                 item["student_name"] = student.full_name or s_name
