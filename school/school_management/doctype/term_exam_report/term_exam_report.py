@@ -840,14 +840,24 @@ def get_top_students_html(report_name, limit):
 			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
+			# Determine grade string for counting
+			grade_for_count = ""
 			if row.grade:
-				grade_str = str(row.grade).upper().strip()
-				student_totals[row.student]["grade_counts"][grade_str] += 1
-				
+				grade_for_count = str(row.grade).upper().strip()
+			elif is_ol and row.marks_obtained is not None and row.max_marks:
+				# Fallback: compute grade from marks for O-Level when grade field is empty
+				calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
+				calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
+				if calc_g:
+					grade_for_count = str(calc_g).upper().strip()
+
+			if grade_for_count:
+				student_totals[row.student]["grade_counts"][grade_for_count] += 1
+
 				# If primary, try to sum the unit
 				if is_primary:
 					try:
-						student_totals[row.student]["units"] += int(float(row.grade))
+						student_totals[row.student]["units"] += int(float(grade_for_count))
 					except ValueError:
 						pass
 						
