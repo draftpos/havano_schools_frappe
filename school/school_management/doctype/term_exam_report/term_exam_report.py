@@ -827,20 +827,35 @@ def get_top_students_html(report_name, limit):
 				student_totals[row.student]["marks"] += row.marks_obtained
 			if row.max_marks:
 				student_totals[row.student]["max_marks"] += row.max_marks
-			if is_al and row.grade:
-				grade_str = str(row.grade).upper().strip()
-				student_totals[row.student]["points"] += grade_points.get(grade_str, 0.0)
+			if is_al:
+				if row.grade:
+					g_str = str(row.grade).upper().strip()
+					student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
+				elif row.marks_obtained is not None and row.max_marks:
+					calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
+					calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
+					if calc_g:
+						g_str = str(calc_g).upper().strip()
+						student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
 			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
+			grade_str = ""
 			if row.grade:
 				grade_str = str(row.grade).upper().strip()
+			elif row.marks_obtained is not None and row.max_marks:
+				calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
+				calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
+				if calc_g:
+					grade_str = str(calc_g).upper().strip()
+					
+			if grade_str:
 				student_totals[row.student]["grade_counts"][grade_str] += 1
 				
 				# If primary, try to sum the unit
 				if is_primary:
 					try:
-						student_totals[row.student]["units"] += int(float(row.grade))
+						student_totals[row.student]["units"] += int(float(grade_str))
 					except ValueError:
 						pass
 						

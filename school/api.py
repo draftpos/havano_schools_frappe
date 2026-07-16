@@ -2287,3 +2287,11 @@ def reconcile_all_submitted_receipts():
         )
         return {"status": "error", "message": str(e)}
 
+@frappe.whitelist(allow_guest=True)
+def get_debug_grades():
+    return frappe.db.sql("""
+        SELECT parent, student_class, subject, marks_obtained, grade 
+        FROM `tabTerm Exam Result Item` 
+        WHERE parent IN (SELECT name FROM `tabTerm Exam Report` WHERE student_class LIKE '%%Form 1%%' OR student_class LIKE '%%Form 4%%')
+        LIMIT 20
+    """, as_dict=True)
