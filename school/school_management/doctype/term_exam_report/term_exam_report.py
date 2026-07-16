@@ -69,7 +69,7 @@ def is_alevel(class_name):
 	if not class_name:
 		return False
 	cn = class_name.lower()
-	return any(k in cn for k in ["form 5", "form 6", "lower 6", "upper 6", "l6", "u6"])
+	return any(k in cn for k in ["a level", "form 5", "form 6", "lower 6", "upper 6", "l6", "u6"])
 
 
 class TermExamReport(Document):
@@ -97,7 +97,7 @@ class TermExamReport(Document):
 				
 				# Auto-fill grade/status if empty
 				if not row.grade or not row.status:
-					calc_grade, calc_status, _ = get_grade_and_status(row.percentage, self.student_class)
+					calc_grade, calc_status, _unit = get_grade_and_status(row.percentage, self.student_class)
 					if not row.grade:
 						row.grade = calc_grade
 					if not row.status:
@@ -585,7 +585,7 @@ def fetch_results(report_name):
 			
 			if pct is not None:
 				if not grade or not status:
-					calc_grade, calc_status, _ = get_grade_and_status(pct, doc.student_class)
+					calc_grade, calc_status, _unit = get_grade_and_status(pct, doc.student_class)
 					if not grade:
 						grade = calc_grade
 					if not status:

@@ -662,7 +662,7 @@ def get_term_exam_results(student=None, report_name=None):
         # Get items for this student
         items = frappe.db.sql("""
             SELECT subject, marks_obtained, max_marks, percentage, grade, status,
-                   remarks, teacher_comment, admin_comment, student, student_name
+                   remarks, teacher_comment, admin_comment, student, student_name, points
             FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         """, (report.name, s_name), as_dict=True)
