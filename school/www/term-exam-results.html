@@ -858,11 +858,24 @@ title: Term Exam Results
     el("rc-title").textContent = r.exam_name + "  |  " + r.academic_year;
 
     /* ── Compute totals ─────────────────────────────────── */
-    var totalMax = 0, totalObt = 0, totalPts = 0;
+    var totalMax = 0, totalObt = 0, totalPts = 0, totalUnits = 0;
+    var isPrimary = false, isALevel = false;
+    var cn = (r.class_name || r.student_class || "").toLowerCase();
+    
+    if (cn.indexOf("ecd") > -1 || cn.indexOf("grade") > -1) {
+        isPrimary = true;
+    } else if (cn.indexOf("a level") > -1 || cn.indexOf("form 5") > -1 || cn.indexOf("form 6") > -1 || cn.indexOf("lower 6") > -1 || cn.indexOf("upper 6") > -1 || cn.indexOf("l6") > -1 || cn.indexOf("u6") > -1) {
+        isALevel = true;
+    }
+
     r.items.forEach(function (s) {
       totalMax += parseFloat(s.max_marks || 0);
       totalObt += parseFloat(s.marks_obtained || 0);
       totalPts += parseFloat(s.points || 0);
+      if (isPrimary && s.grade) {
+          var u = parseInt(s.grade, 10);
+          if (!isNaN(u)) totalUnits += u;
+      }
     });
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
@@ -970,6 +983,13 @@ title: Term Exam Results
 
     var logoHtml = schoolLogo ? '<img src="' + schoolLogo + '" alt="School Logo">' : '<div class="header-no-logo">🏫</div>';
 
+    var extraBadge = "";
+    if (isALevel) {
+        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + totalPts + '<span>Total Points</span></div>';
+    } else if (isPrimary) {
+        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + totalUnits + '<span>Total Units</span></div>';
+    }
+
     /* ── Assemble HTML ── */
     var html = ''
       + '<div class="report-card">'
@@ -987,11 +1007,12 @@ title: Term Exam Results
       + '      <p><strong>Admission No:</strong> ' + admissionNo + '</p>'
       + '      <p><strong>Class:</strong> ' + className + '</p>'
       + '    </div>'
-      + '    <div class="positions-wrap">'
+      + '    <div class="positions-wrap" style="display: flex; gap: 10px;">'
       + '      <div class="position-badge">'
       + cRank + ' / ' + totalStudents
       + '        <span>Class Position</span>'
       + '      </div>'
+      + extraBadge
       + '    </div>'
       + '    <div style="text-align:right">'
       + '      <p><strong>Academic Year:</strong> ' + academicYear + '</p>'

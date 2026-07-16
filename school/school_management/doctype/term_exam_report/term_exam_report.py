@@ -790,6 +790,13 @@ def get_top_students_html(report_name, limit):
 	is_al = is_alevel(doc.student_class)
 	is_ol = not is_primary and not is_al
 	
+	grade_points = {}
+	if is_al:
+		settings = frappe.get_single("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for r in settings.a_level_grade_points:
+				grade_points[str(r.grade).upper().strip()] = r.points
+	
 	student_totals = defaultdict(lambda: {
 		"marks": 0.0, 
 		"max_marks": 0.0, 
@@ -820,7 +827,10 @@ def get_top_students_html(report_name, limit):
 				student_totals[row.student]["marks"] += row.marks_obtained
 			if row.max_marks:
 				student_totals[row.student]["max_marks"] += row.max_marks
-			if hasattr(row, 'points') and row.points:
+			if is_al and row.grade:
+				grade_str = str(row.grade).upper().strip()
+				student_totals[row.student]["points"] += grade_points.get(grade_str, 0.0)
+			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
 			if row.grade:
