@@ -955,14 +955,23 @@ title: Term Exam Results
 
     /* ── Grading scale rows ─────────────────────────── */
     var gsRows = "";
-    GRADING.forEach(function (gi) {
+    var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
+    var filteredGrading = GRADING.filter(function(g) { return g.parentfield === targetParentField; });
+    if (filteredGrading.length === 0) {
+      filteredGrading = GRADING; // Fallback
+    }
+
+    filteredGrading.forEach(function (gi) {
       var cls = gi.status === "Pass" ? "gs-pass" : gi.status === "Moderate" ? "gs-moderate" : "gs-failed";
+      var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
       gsRows += "<tr>"
         + "<td>" + gi.from + "%</td><td>" + gi.to + "%</td>"
-        + "<td style='font-weight:700;text-align:center'>" + gi.grade + "</td>"
+        + "<td style='font-weight:700;text-align:center'>" + displayGrade + "</td>"
         + "<td class='" + cls + "'>" + gi.status + "</td>"
         + "</tr>";
     });
+    
+    var scoreHeader = isPrimary ? "Unit" : "Grade";
 
     /* ── QR for verification ── */
     var verifyUrl = window.location.origin
@@ -1047,7 +1056,7 @@ title: Term Exam Results
       + '    <div class="grade-scale-panel">'
       + '      <h4>Grading Scale</h4>'
       + '      <table class="grade-table">'
-      + '        <thead><tr><th>From %</th><th>To %</th><th>Grading Score</th><th>Status</th></tr></thead>'
+      + '        <thead><tr><th>From %</th><th>To %</th><th>' + scoreHeader + '</th><th>Status</th></tr></thead>'
       + '        <tbody>' + gsRows + '</tbody>'
       + '      </table>'
       + '    </div>'
