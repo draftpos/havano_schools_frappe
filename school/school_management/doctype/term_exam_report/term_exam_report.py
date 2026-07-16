@@ -48,21 +48,24 @@ def get_grade_and_status(percentage, class_name=None):
 	use_unit = is_primary_or_ecd(class_name)
 	
 	try:
-		fields = ["from_percent", "to_percent", "grade", "unit", "status", "points"]
+		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
 		parentfield = "unit_grading_items" if use_unit else "grading_items"
 		
 		items = frappe.get_all("Grading Score Item", filters={"parentfield": parentfield}, fields=fields, order_by="from_percent desc")
 			
 		for item in items:
+			if item.from_percent is None:
+				continue
 			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
-				pts = item.get("points", 0) or 0
 				if use_unit and item.get("unit"):
-					return item.unit, item.status or "Pass", pts
-				return item.grade, item.status or "Pass", pts
-	except Exception:
-		pass
+					return item.unit, item.status or "Pass", 0
+				if item.get("grade"):
+					return item.grade, item.status or "Pass", 0
+	except Exception as e:
+		frappe.log_error(f"get_grade_and_status error: {e}", "Grade Calculation")
 	
 	return "", "", 0
+
 
 
 def is_alevel(class_name):
