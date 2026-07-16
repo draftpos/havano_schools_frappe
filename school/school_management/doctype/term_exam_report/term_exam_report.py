@@ -905,13 +905,14 @@ def get_top_students_html(report_name, limit):
 		sorted_students.sort(key=lambda x: x["points"], reverse=True)
 		
 	else:
-		# O-Level: Sort by A*, A, B, C counts
+		# O-Level: Sort by combined A*+A, then B, then C, then A* as tiebreaker
+		# A* and A count as equal grade - A* only separates students with identical A totals
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
 		sorted_students.sort(key=lambda x: (
-			x["grade_counts"].get("A*", 0), 
-			x["grade_counts"].get("A", 0), 
-			x["grade_counts"].get("B", 0), 
-			x["grade_counts"].get("C", 0)
+			x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),  # combined A*+A
+			x["grade_counts"].get("B", 0),
+			x["grade_counts"].get("C", 0),
+			x["grade_counts"].get("A*", 0)  # tiebreaker: more A* wins
 		), reverse=True)
 		
 	if limit != "All" and not is_al:
@@ -941,7 +942,11 @@ def get_top_students_html(report_name, limit):
 		elif is_al:
 			html += f"<td><strong>{s['points']}</strong></td>"
 		else:
-			html += f"<td><strong>{s['grade_counts'].get('A*',0)}A*, {s['grade_counts'].get('A',0)}A, {s['grade_counts'].get('B',0)}B, {s['grade_counts'].get('C',0)}C</strong></td>"
+			a_star = s['grade_counts'].get('A*', 0)
+			a_cnt = s['grade_counts'].get('A', 0)
+			b_cnt = s['grade_counts'].get('B', 0)
+			c_cnt = s['grade_counts'].get('C', 0)
+			html += f"<td><strong>{a_star}A*, {a_cnt}A, {b_cnt}B, {c_cnt}C</strong></td>"
 		html += "</tr>"
 		
 	if not sorted_students:
@@ -954,8 +959,9 @@ def get_top_students_html(report_name, limit):
 	html += "<table class='table table-bordered table-hover'><thead><tr><th>Subject</th><th>Highest Mark</th><th>Student(s)</th></tr></thead><tbody>"
 	for subj, names in sorted(subject_champions.items()):
 		mark = subject_max_marks[subj]
+		mark_display = int(mark) if mark == int(mark) else mark
 		names_str = ", ".join(names)
-		html += f"<tr><td>{subj}</td><td>{mark}</td><td>{names_str}</td></tr>"
+		html += f"<tr><td>{subj}</td><td>{mark_display}</td><td>{names_str}</td></tr>"
 	if not subject_champions:
 		html += "<tr><td colspan='3' class='text-center'>No subjects found.</td></tr>"
 	html += "</tbody></table>"
@@ -965,7 +971,27 @@ def get_top_students_html(report_name, limit):
 
 @frappe.whitelist(allow_guest=True)
 def download_top_students_pdf(report_name, limit):
+	doc = frappe.get_doc("Term Exam Report", report_name)
 	html = get_top_students_html(report_name, limit)
+	
+	# Get school name and logo
+	school_name = ""
+	logo_html = ""
+	try:
+		if doc.cost_center:
+			cc_name = frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name")
+			school_name = cc_name or doc.cost_center
+		if not school_name:
+			school_name = frappe.db.get_single_value("Global Defaults", "default_company") or ""
+		
+		# Try to get company logo
+		company = frappe.db.get_single_value("Global Defaults", "default_company") or ""
+		if company:
+			logo_url = frappe.db.get_value("Company", company, "company_logo")
+			if logo_url:
+				logo_html = f'<img src="{frappe.utils.get_url()}{logo_url}" style="height:70px; margin-bottom:10px;"><br>'
+	except Exception:
+		pass
 	
 	pdf_html = f"""
 	<html>
@@ -973,6 +999,9 @@ def download_top_students_pdf(report_name, limit):
 			<title>Top Students - {report_name}</title>
 			<style>
 				body {{ font-family: sans-serif; padding: 20px; }}
+				.header {{ text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 15px; }}
+				.school-name {{ font-size: 20px; font-weight: bold; margin: 5px 0; }}
+				.report-title {{ font-size: 16px; color: #555; margin: 5px 0; }}
 				table {{ width: 100%; border-collapse: collapse; margin-top: 15px; }}
 				th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
 				th {{ background-color: #f2f2f2; }}
@@ -980,7 +1009,12 @@ def download_top_students_pdf(report_name, limit):
 			</style>
 		</head>
 		<body>
-			<h2>🏆 Top Students - {report_name}</h2>
+			<div class="header">
+				{logo_html}
+				<div class="school-name">{school_name}</div>
+				<div class="report-title">🏆 Top Students — {doc.student_class} {doc.section or ''}</div>
+				<div class="report-title">{doc.term or ''} | {doc.academic_year or ''}</div>
+			</div>
 			{html}
 		</body>
 	</html>
