@@ -880,11 +880,11 @@ title: Term Exam Results
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
     
-    var overallGDisplay = overallG;
+    var overallGDisplay = "";
     if (isALevel) {
-        overallGDisplay = totalPts + " pts";
+        overallGDisplay = Math.round(totalPts) + " pts";
     } else if (isPrimary) {
-        overallGDisplay = totalUnits + " units";
+        overallGDisplay = Math.round(totalUnits) + " units";
     }
 
     /* ── Student identity — exact field names from print format Jinja ──
@@ -928,7 +928,7 @@ title: Term Exam Results
       var g = dynamicScale.grade;
       var stat = dynamicScale.status;
       
-      var pts = parseFloat(s.points || 0);
+      var pts = Math.round(parseFloat(s.points || 0));
       var gDisplay = pts > 0 ? g + " (" + pts + " pts)" : g;
 
       var comments = [];
@@ -1000,9 +1000,9 @@ title: Term Exam Results
 
     var extraBadge = "";
     if (isALevel) {
-        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + totalPts + '<span>Total Points</span></div>';
+        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + Math.round(totalPts) + '<span>Total Points</span></div>';
     } else if (isPrimary) {
-        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + totalUnits + '<span>Total Units</span></div>';
+        extraBadge = '<div class="position-badge" style="margin-left:10px;">' + Math.round(totalUnits) + '<span>Total Units</span></div>';
     }
 
     /* ── Assemble HTML ── */
