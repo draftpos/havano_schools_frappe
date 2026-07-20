@@ -126,18 +126,12 @@ def get_student_invoices(student):
                 })
         
     try:
-        from erpnext.accounts.utils import get_outstanding_invoices
-        from erpnext.accounts.party import get_party_account
-        company = frappe.defaults.get_global_default("company") or frappe.get_all("Company")[0].name
-        account = get_party_account("Customer", customer, company)
-        
-        if account:
-            outstandings = get_outstanding_invoices("Customer", customer, account=[account])
-            for out in outstandings:
-                if out.get("voucher_type") != "Journal Entry":
-                    continue
+        from erpnext.accounts.party import get_outstanding_invoices
+        outstandings = get_outstanding_invoices("Customer", customer, account=None)
+        for out in outstandings:
+            if out.get("voucher_type") == "Journal Entry":
                 je_name = out.get("voucher_no")
-
+                
                 draft_allocations = frappe.db.sql("""
                     SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
                     FROM `tabReceipt Item` ri
@@ -623,7 +617,7 @@ def get_homework_results(student=None):
         })
     return result
 @frappe.whitelist()
-def get_term_exam_results(student=None, report_name=None):
+def get_term_exam_results(student=None):
     user = frappe.session.user
     is_admin = "Administrator" in frappe.get_roles(user) or "School Administrator" in frappe.get_roles(user)
     
@@ -642,27 +636,19 @@ def get_term_exam_results(student=None, report_name=None):
     s_section = student.section or ""
 
     # Get term reports
-    if report_name:
-        reports = frappe.db.sql("""
-            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-            FROM `tabTerm Exam Report`
-            WHERE name = %s
-            ORDER BY report_date DESC
-        """, report_name, as_dict=True)
-    else:
-        reports = frappe.db.sql("""
-            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-            FROM `tabTerm Exam Report`
-            WHERE student_class = %s AND docstatus = 1
-            ORDER BY report_date DESC
-        """, s_class, as_dict=True) if s_class else []
+    reports = frappe.db.sql("""
+        SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+        FROM `tabTerm Exam Report`
+        WHERE student_class = %s AND docstatus = 1
+        ORDER BY report_date DESC
+    """, s_class, as_dict=True) if s_class else []
 
     result = []
     for report in reports:
         # Get items for this student
         items = frappe.db.sql("""
             SELECT subject, marks_obtained, max_marks, percentage, grade, status,
-                   remarks, teacher_comment, admin_comment, student, student_name, points
+                   remarks, teacher_comment, admin_comment, student, student_name
             FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         """, (report.name, s_name), as_dict=True)
@@ -670,33 +656,16 @@ def get_term_exam_results(student=None, report_name=None):
         if not items:
             continue
 
-        is_al = False
-        grade_points = {}
-        if report.student_class:
-            cn = report.student_class.lower()
-            if any(k in cn for k in ["a level", "form 5", "form 6", "lower 6", "upper 6", "l6", "u6"]):
-                is_al = True
-                settings = frappe.get_single("School Settings")
-                if hasattr(settings, "a_level_grade_points"):
-                    for r_set in settings.a_level_grade_points:
-                        grade_points[str(r_set.grade).upper().strip()] = r_set.points
-
         for item in items:
             sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
             item["subject_name"] = sub_name
             # Add subject name for display
             item["subject"] = sub_name
-            
-            # Recalculate A-level points on the fly if needed
-            if is_al and item.grade:
-                item["points"] = grade_points.get(str(item.grade).upper().strip(), 0.0)
-                
             # Ensure student fields are present
             if "student_name" not in item or not item["student_name"]:
                 item["student_name"] = student.full_name or s_name
             if "student" not in item or not item["student"]:
                 item["student"] = student.student_reg_no or s_name
-            item["student_reg_no"] = student.student_reg_no or s_name
 
         # Get school name from cost center
         school_name = ""
@@ -905,8 +874,7 @@ def get_fees_balance():
     if not students:
         return []
 
-    customer_ids = [s.full_name for s in students if s.full_name]
-    student_map = {s.full_name: s for s in students if s.full_name}
+    customer_ids = list(set([s.customer for s in students if s.customer] + [s.name for s in students if s.name]))
 
     if not customer_ids:
         return []
@@ -924,14 +892,7 @@ def get_fees_balance():
             MAX(si.fees_structure) as fees_structure,
             SUM(si.grand_total) as total_billed,
             SUM(si.outstanding_amount) as total_outstanding,
-            COALESCE((
-                SELECT SUM(gle.credit)
-                FROM `tabGL Entry` gle
-                WHERE gle.party = si.customer
-                  AND gle.party_type = 'Customer'
-                  AND gle.voucher_type = 'Payment Entry'
-                  AND gle.is_cancelled = 0
-            ), 0) as total_paid
+            SUM(si.grand_total - si.outstanding_amount) as total_paid
         FROM `tabSales Invoice` si
         WHERE si.customer IN ({placeholders})
           AND si.docstatus = 1
@@ -961,12 +922,12 @@ def get_fees_balance():
     result = []
     for s in students:
         # Match by ID or Full Name
-        row = receivables_map.get(s.full_name) or receivables_name_map.get(s.full_name) or {}
-        ob = ob_map.get(s.full_name) or ob_map.get(s.name) or 0
+        row = receivables_map.get(s.customer) or receivables_map.get(s.name) or receivables_name_map.get(s.full_name) or {}
+        ob = ob_map.get(s.customer) or ob_map.get(s.name) or ob_map.get(s.full_name) or 0
         
         total_billed = float(row.get("total_billed") or 0)
         total_paid = float(row.get("total_paid") or 0)
-        total_outstanding = float(row.get("total_billed") or 0) - float(row.get("total_paid") or 0) + float(ob or 0)
+        total_outstanding = float(row.get("total_outstanding") or 0) + float(ob or 0)
 
         # Only include students who have some financial activity or balance
         if total_billed > 0 or total_paid > 0 or total_outstanding != 0:
@@ -2287,11 +2248,3 @@ def reconcile_all_submitted_receipts():
         )
         return {"status": "error", "message": str(e)}
 
-@frappe.whitelist(allow_guest=True)
-def get_debug_grades():
-    return frappe.db.sql("""
-        SELECT parent, student_class, subject, marks_obtained, grade 
-        FROM `tabTerm Exam Result Item` 
-        WHERE parent IN (SELECT name FROM `tabTerm Exam Report` WHERE student_class LIKE '%%Form 1%%' OR student_class LIKE '%%Form 4%%')
-        LIMIT 20
-    """, as_dict=True)
