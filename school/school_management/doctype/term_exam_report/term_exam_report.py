@@ -92,7 +92,8 @@ class TermExamReport(Document):
 			settings = frappe.get_single("School Settings")
 			if hasattr(settings, "a_level_grade_points"):
 				for row in settings.a_level_grade_points:
-					grade_points[row.grade] = row.points
+					if row.grade:
+						grade_points[str(row.grade).upper().strip()] = row.points
 
 		for row in self.term_exam_results:
 			if row.marks_obtained is not None and row.max_marks:
@@ -107,7 +108,8 @@ class TermExamReport(Document):
 						row.status = calc_status
 						
 				if is_al and row.grade:
-					row.points = grade_points.get(row.grade, 0.0)
+					g_str = str(row.grade).upper().strip()
+					row.points = grade_points.get(g_str, 0.0)
 				else:
 					row.points = 0.0
 						
@@ -477,7 +479,8 @@ def fetch_results(report_name):
 		settings = frappe.get_single("School Settings")
 		if hasattr(settings, "a_level_grade_points"):
 			for r in settings.a_level_grade_points:
-				grade_points[r.grade] = r.points
+				if r.grade:
+					grade_points[str(r.grade).upper().strip()] = r.points
 
 	class_section_filters = {"class": doc.student_class}
 	if doc.section:
@@ -598,7 +601,8 @@ def fetch_results(report_name):
 
 			points = 0.0
 			if is_al and grade:
-				points = grade_points.get(grade, 0.0)
+				g_str = str(grade).upper().strip()
+				points = grade_points.get(g_str, 0.0)
 
 			rows.append({
 				"student": student.name,
