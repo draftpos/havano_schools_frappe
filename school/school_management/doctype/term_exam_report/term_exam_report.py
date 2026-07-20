@@ -423,7 +423,7 @@ def get_student_reports():
 			"Term Exam Result Item",
 			filters={"parent": report.name, "student": student.name},
 			fields=["subject", "exam", "marks_obtained", "max_marks",
-					"percentage", "grade", "status", "remarks"],
+					"percentage", "points", "grade", "status", "remarks"],
 			order_by="subject asc"
 		)
 
