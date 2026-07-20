@@ -68,6 +68,7 @@ frappe.ui.form.on('Term Exam Report', {
 								child.max_marks       = row.max_marks;
 								child.percentage      = row.percentage;
 								child.grade           = row.grade;
+								child.points          = row.points;
 								child.status          = row.status;
 								child.remarks         = row.remarks;
 								// ── Carry teacher comment from Exam Schedule Item ──
