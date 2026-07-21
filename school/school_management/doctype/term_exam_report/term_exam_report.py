@@ -909,10 +909,12 @@ def get_top_students_html(report_name, limit):
 		# O-Level: Sort by combined A*+A, then A* as tiebreaker, then B, then C
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
 		sorted_students.sort(key=lambda x: (
-			x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),  # combined A*+A
-			x["grade_counts"].get("A*", 0),  # tiebreaker: more A* wins before Bs
+			x["points"],  # Sort by total points first
+			x["grade_counts"].get("A*", 0),  # tiebreaker: more A*
+			x["grade_counts"].get("A", 0),   # tiebreaker: more A
 			x["grade_counts"].get("B", 0),
-			x["grade_counts"].get("C", 0)
+			x["grade_counts"].get("C", 0),
+			x["percentage"]
 		), reverse=True)
 		
 	if limit != "All" and not is_al:
