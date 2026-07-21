@@ -86,14 +86,12 @@ class TermExamReport(Document):
 		self.before_save()
 
 	def auto_fill_grades_and_comments(self):
-		is_al = is_alevel(self.student_class)
 		grade_points = {}
-		if is_al:
-			settings = frappe.get_single("School Settings")
-			if hasattr(settings, "a_level_grade_points"):
-				for row in settings.a_level_grade_points:
-					if row.grade:
-						grade_points[str(row.grade).upper().strip()] = row.points
+		settings = frappe.get_single("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for row in settings.a_level_grade_points:
+				if row.grade:
+					grade_points[str(row.grade).upper().strip()] = row.points
 
 		for row in self.term_exam_results:
 			if row.marks_obtained is not None and row.max_marks:
@@ -475,12 +473,11 @@ def fetch_results(report_name):
 
 	is_al = is_alevel(doc.student_class)
 	grade_points = {}
-	if is_al:
-		settings = frappe.get_single("School Settings")
-		if hasattr(settings, "a_level_grade_points"):
-			for r in settings.a_level_grade_points:
-				if r.grade:
-					grade_points[str(r.grade).upper().strip()] = r.points
+	settings = frappe.get_single("School Settings")
+	if hasattr(settings, "a_level_grade_points"):
+		for r in settings.a_level_grade_points:
+			if r.grade:
+				grade_points[str(r.grade).upper().strip()] = r.points
 
 	class_section_filters = {"class": doc.student_class}
 	if doc.section:
@@ -798,12 +795,11 @@ def get_top_students_html(report_name, limit):
 	is_ol = not is_primary and not is_al
 	
 	grade_points = {}
-	if is_al:
-		settings = frappe.get_single("School Settings")
-		if hasattr(settings, "a_level_grade_points"):
-			for r in settings.a_level_grade_points:
-				if r.grade:
-					grade_points[str(r.grade).upper().strip()] = r.points
+	settings = frappe.get_single("School Settings")
+	if hasattr(settings, "a_level_grade_points"):
+		for r in settings.a_level_grade_points:
+			if r.grade:
+				grade_points[str(r.grade).upper().strip()] = r.points
 	
 	student_totals = defaultdict(lambda: {
 		"marks": 0.0, 
