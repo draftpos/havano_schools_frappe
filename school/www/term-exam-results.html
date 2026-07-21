@@ -868,15 +868,30 @@ title: Term Exam Results
         isALevel = true;
     }
 
+    var aLevelPts = [];
     r.items.forEach(function (s) {
       totalMax += parseFloat(s.max_marks || 0);
       totalObt += parseFloat(s.marks_obtained || 0);
-      totalPts += parseFloat(s.points || 0);
+      var pts = parseFloat(s.points || 0);
+      if (isALevel) {
+          if (pts > 0) aLevelPts.push(pts);
+      } else {
+          totalPts += pts;
+      }
+      
       if (isPrimary && s.grade) {
           var u = parseInt(s.grade, 10);
           if (!isNaN(u)) totalUnits += u;
       }
     });
+    
+    if (isALevel) {
+        aLevelPts.sort(function(a, b){return b-a});
+        for (var i=0; i<Math.min(3, aLevelPts.length); i++) {
+            totalPts += aLevelPts[i];
+        }
+    }
+    
     var overallPct = totalMax > 0 ? ((totalObt / totalMax) * 100).toFixed(1) : 0;
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
     
