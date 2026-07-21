@@ -1004,10 +1004,17 @@ title: Term Exam Results
         + "</div>";
     });
 
-    /* ── Grading scale rows ─────────────────────────── */
     var gsRows = "";
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
-    var filteredGrading = GRADING.filter(function(g) { return g.parentfield === targetParentField; });
+    var filteredGrading = GRADING.filter(function(g) { 
+      if (g.parentfield !== targetParentField) return false;
+      var parent = (g.parent || "").toLowerCase();
+      var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
+      if (isALevel && !parentIsALevel && parent) return false;
+      if (!isALevel && parentIsALevel) return false;
+      return true;
+    });
+    
     if (filteredGrading.length === 0) {
       filteredGrading = GRADING; // Fallback
     }
