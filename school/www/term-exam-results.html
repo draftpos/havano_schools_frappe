@@ -784,7 +784,7 @@ title: Term Exam Results
 
   // Grading scale — can be extended from API if available
   var GRADING = [
-    {% set items = frappe.get_all("Grading Score Item", fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"], order_by="from_percent desc") %}
+    {% set items = grading_items %}
     {% set filtered_items = [] %}
     {% for i in items %}
       {% if i.parent != "STD" %}
