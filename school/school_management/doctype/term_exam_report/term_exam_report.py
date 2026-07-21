@@ -54,13 +54,24 @@ def get_grade_and_status(percentage, class_name=None):
 		items = frappe.get_all(
 			"Grading Score Item", 
 			filters={"parentfield": parentfield}, 
-			fields=fields, 
+			fields=fields + ["parent"], 
 			order_by="from_percent desc"
 		)
 			
+		is_al = is_alevel(class_name)
+
 		for item in items:
 			if item.from_percent is None:
 				continue
+				
+			parent_lower = str(item.parent).lower() if item.parent else ""
+			parent_is_al = "a level" in parent_lower or "advanced" in parent_lower
+			
+			if is_al and not parent_is_al and parent_lower:
+				continue
+			if not is_al and parent_is_al:
+				continue
+				
 			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
 				if use_unit and item.get("unit"):
 					return item.unit, item.status or "Pass", 0
