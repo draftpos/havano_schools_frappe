@@ -51,7 +51,20 @@ def get_grade_and_status(percentage, class_name=None):
 		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
 		parentfield = "unit_grading_items" if use_unit else "grading_items"
 		
-		items = frappe.get_all("Grading Score Item", filters={"parentfield": parentfield}, fields=fields, order_by="from_percent desc")
+		items = frappe.get_all(
+			"Grading Score Item", 
+			filters={"parentfield": parentfield, "parent": ["!=", "STD"]}, 
+			fields=fields, 
+			order_by="from_percent desc"
+		)
+		
+		if not items:
+			items = frappe.get_all(
+				"Grading Score Item", 
+				filters={"parentfield": parentfield}, 
+				fields=fields, 
+				order_by="from_percent desc"
+			)
 			
 		for item in items:
 			if item.from_percent is None:
@@ -99,13 +112,10 @@ class TermExamReport(Document):
 			if row.marks_obtained is not None and row.max_marks:
 				row.percentage = round((row.marks_obtained / row.max_marks * 100), 1)
 				
-				# Auto-fill grade/status if empty
-				if not row.grade or not row.status:
-					calc_grade, calc_status, _unit = get_grade_and_status(row.percentage, self.student_class)
-					if not row.grade:
-						row.grade = calc_grade
-					if not row.status:
-						row.status = calc_status
+				# Always auto-fill grade/status based on percentage
+				calc_grade, calc_status, _unit = get_grade_and_status(row.percentage, self.student_class)
+				row.grade = calc_grade
+				row.status = calc_status
 						
 				if is_al and row.grade:
 					g_str = str(row.grade).upper().strip()

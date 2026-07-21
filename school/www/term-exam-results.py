@@ -14,6 +14,15 @@ def get_context(context):
 	else:
 		context.show_sidebar = True
 		context.website_sidebar = "Student Portal"
+		
+	grade_points = {}
+	settings = frappe.get_single("School Settings")
+	if hasattr(settings, "a_level_grade_points"):
+		for row in settings.a_level_grade_points:
+			if row.grade:
+				grade_points[str(row.grade).upper().strip()] = row.points
+	context.grade_points = grade_points
+	
 	grading_items = []
 
 	try:

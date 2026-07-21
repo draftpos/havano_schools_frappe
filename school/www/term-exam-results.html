@@ -807,6 +807,8 @@ title: Term Exam Results
       { from: 0, to: 39, grade: "E", status: "Failed" }
     {% endif %}
   ];
+  
+  window.GRADE_POINTS = {{ grade_points | tojson }};
 
   function showList() {
     el("dv").style.display = "none";
@@ -872,7 +874,19 @@ title: Term Exam Results
     r.items.forEach(function (s) {
       totalMax += parseFloat(s.max_marks || 0);
       totalObt += parseFloat(s.marks_obtained || 0);
-      var pts = parseFloat(s.points || 0);
+      var sMax = parseFloat(s.max_marks || 0);
+      var sObt = parseFloat(s.marks_obtained || 0);
+      var pct = sMax > 0 ? ((sObt / sMax) * 100).toFixed(1) : "0.0";
+      var dynamicScale = G_obj(parseFloat(pct), cn);
+      var g = dynamicScale.grade ? dynamicScale.grade : (s.grade || "");
+      
+      var pts = 0;
+      if (isALevel && g) {
+          pts = window.GRADE_POINTS ? (window.GRADE_POINTS[g.toUpperCase().trim()] || 0) : 0;
+      } else {
+          pts = parseFloat(s.points || 0);
+      }
+      
       if (isALevel) {
           if (pts > 0) aLevelPts.push(pts);
       } else {
@@ -940,10 +954,15 @@ title: Term Exam Results
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       
       var dynamicScale = G_obj(parseFloat(pct), className);
-      var g = s.grade ? s.grade : dynamicScale.grade;
-      var stat = s.status ? s.status : dynamicScale.status;
+      var g = dynamicScale.grade ? dynamicScale.grade : (s.grade || "");
+      var stat = dynamicScale.status ? dynamicScale.status : (s.status || "");
       
-      var pts = Math.round(parseFloat(s.points || 0));
+      var pts = 0;
+      if (isALevel && g) {
+          pts = window.GRADE_POINTS ? (window.GRADE_POINTS[g.toUpperCase().trim()] || 0) : 0;
+      } else {
+          pts = Math.round(parseFloat(s.points || 0));
+      }
       var gDisplay = isALevel ? g + " (" + pts + " pts)" : g;
 
       var comments = [];
