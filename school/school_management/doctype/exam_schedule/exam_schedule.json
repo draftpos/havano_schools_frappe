@@ -131,6 +131,7 @@
             "label": "Max Marks"
         },
         {
+            "default": "0",
             "fieldname": "min_marks",
             "fieldtype": "Float",
             "label": "Min Marks"
