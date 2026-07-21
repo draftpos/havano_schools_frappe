@@ -43,11 +43,13 @@
             "fieldtype": "Section Break"
         },
         {
+            "default": "0",
             "fieldname": "min_marks_percent",
             "fieldtype": "Percent",
             "label": "Min Marks %"
         },
         {
+            "default": "100",
             "fieldname": "max_marks_percent",
             "fieldtype": "Percent",
             "label": "Max Marks %"
