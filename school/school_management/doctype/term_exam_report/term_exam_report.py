@@ -105,7 +105,7 @@ class TermExamReport(Document):
 		is_al = is_alevel(self.student_class)
 		grade_points = {}
 		if is_al:
-			settings = frappe.get_single("School Settings")
+			settings = frappe.get_doc("School Settings", "School Settings")
 			if hasattr(settings, "a_level_grade_points"):
 				for row in settings.a_level_grade_points:
 					if row.grade:
