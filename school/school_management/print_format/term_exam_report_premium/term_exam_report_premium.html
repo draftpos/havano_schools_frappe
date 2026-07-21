@@ -33,10 +33,23 @@ Settings", "app_logo") %}
 {% set school_name = cc.cost_center_name or doc.cost_center %}
 {% endif %}
 
+{% set is_al = ("a level" in (doc.student_class or "").lower() or "form 5" in (doc.student_class or "").lower() or "form 6" in (doc.student_class or "").lower() or "lower 6" in (doc.student_class or "").lower() or "upper 6" in (doc.student_class or "").lower() or "l6" in (doc.student_class or "").lower() or "u6" in (doc.student_class or "").lower()) %}
 {% set grading_items = [] %}
-{% set all_grades = frappe.get_all("Grading Score", limit=1, fields=["name"]) %}
-{% if all_grades %}
-{% set gs = frappe.get_doc("Grading Score", all_grades[0].name) %}
+{% set all_grades = frappe.get_all("Grading Score", fields=["name"], order_by="modified desc") %}
+{% set target_gs = "" %}
+{% for g in all_grades %}
+{% set is_g_al = ("a level" in g.name.lower() or "advanced" in g.name.lower()) %}
+{% if is_al and is_g_al and not target_gs %}
+{% set target_gs = g.name %}
+{% elif not is_al and not is_g_al and not target_gs %}
+{% set target_gs = g.name %}
+{% endif %}
+{% endfor %}
+{% if not target_gs and all_grades %}
+{% set target_gs = all_grades[0].name %}
+{% endif %}
+{% if target_gs %}
+{% set gs = frappe.get_doc("Grading Score", target_gs) %}
 {% for gi in gs.grading_items %}
 {% set _ = grading_items.append(gi) %}
 {% endfor %}
