@@ -881,7 +881,7 @@ title: Term Exam Results
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
     
     var overallGDisplay = "";
-    if (isALevel) {
+    if (totalPts > 0) {
         overallGDisplay = Math.round(totalPts) + " pts";
     } else if (isPrimary) {
         overallGDisplay = Math.round(totalUnits) + " units";
@@ -999,7 +999,7 @@ title: Term Exam Results
     var logoHtml = schoolLogo ? '<img src="' + schoolLogo + '" alt="School Logo">' : '<div class="header-no-logo">🏫</div>';
 
     var extraBadge = "";
-    if (isALevel) {
+    if (totalPts > 0) {
         extraBadge = '<div class="position-badge" style="margin-left:10px;">' + Math.round(totalPts) + '<span>Total Points</span></div>';
     } else if (isPrimary) {
         extraBadge = '<div class="position-badge" style="margin-left:10px;">' + Math.round(totalUnits) + '<span>Total Units</span></div>';
