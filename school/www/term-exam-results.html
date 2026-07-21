@@ -872,7 +872,11 @@ title: Term Exam Results
       
       var pts = 0;
       if (isALevel && g) {
-          pts = window.GRADE_POINTS ? (window.GRADE_POINTS[g.toUpperCase().trim()] || 0) : 0;
+          if (window.GRADE_POINTS && Object.keys(window.GRADE_POINTS).length > 0) {
+              pts = window.GRADE_POINTS[g.toUpperCase().trim()] || 0;
+          } else {
+              pts = parseFloat(s.points || 0);
+          }
       } else {
           pts = parseFloat(s.points || 0);
       }
@@ -949,9 +953,13 @@ title: Term Exam Results
       
       var pts = 0;
       if (isALevel && g) {
-          pts = window.GRADE_POINTS ? (window.GRADE_POINTS[g.toUpperCase().trim()] || 0) : 0;
+          if (window.GRADE_POINTS && Object.keys(window.GRADE_POINTS).length > 0) {
+              pts = window.GRADE_POINTS[g.toUpperCase().trim()] || 0;
+          } else {
+              pts = parseFloat(s.points || 0);
+          }
       } else {
-          pts = Math.round(parseFloat(s.points || 0));
+          pts = parseFloat(s.points || 0);
       }
       var gDisplay = isALevel ? g + " (" + pts + " pts)" : g;
 
