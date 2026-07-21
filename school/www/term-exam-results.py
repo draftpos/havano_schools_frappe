@@ -18,7 +18,7 @@ def get_context(context):
 	grade_points = {}
 	try:
 		frappe.flags.ignore_permissions = True
-		settings = frappe.get_doc("School Settings")
+		settings = frappe.get_doc("School Settings", "School Settings")
 		if hasattr(settings, "a_level_grade_points"):
 			for row in settings.a_level_grade_points:
 				if row.grade:
@@ -32,11 +32,10 @@ def get_context(context):
 	grading_items = []
 
 	try:
-		# Fetch all Grading Score Items across the system
-		items = frappe.get_all("Grading Score Item", 
+		# Fetch all Grading Score Items across the system bypassing any permission filters
+		items = frappe.db.get_all("Grading Score Item", 
 			fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"],
-			order_by="from_percent desc",
-			ignore_permissions=True
+			order_by="from_percent desc"
 		)
 
 		if items:
