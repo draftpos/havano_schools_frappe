@@ -803,7 +803,7 @@ Settings", "app_logo") %}
               <td class="center">{{ "%.1f" | format(r.percentage) if r.percentage else '—' }}%</td>
               <td class="center" style="font-weight:700">
                 {{ r.grade or '—' }}
-                {% if r.points %} ({{ r.points | round | int }} pts){% endif %}
+                {% if isALevel and r.points %} ({{ r.points | round | int }} pts){% endif %}
               </td>
               <td
                 class="center {% if r.status == 'Pass' %}status-pass{% elif r.status == 'Moderate' %}status-moderate{% elif r.status == 'Failed' %}status-failed{% endif %}">
@@ -824,7 +824,7 @@ Settings", "app_logo") %}
               <td class="center" style="color:{% if overall_pct >= 50 %}#10b981{% else %}#ef4444{% endif %}">{{
                 overall_pct }}%</td>
               <td class="center" style="font-weight:700">
-                {% if total_pts.val > 0 %}{{ total_pts.val | round | int }} pts
+                {% if isALevel %}{{ total_pts.val | round | int }} pts
                 {% elif isPrimary %}{{ total_units.val | round | int }} units
                 {% else %}—{% endif %}
               </td>
