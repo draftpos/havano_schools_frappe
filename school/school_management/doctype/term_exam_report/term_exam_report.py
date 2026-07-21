@@ -901,21 +901,13 @@ def get_top_students_html(report_name, limit):
 		sorted_students.sort(key=lambda x: x["units"])
 		
 	elif is_al:
-		# A-Level: 10 or more points
-		sorted_students = [s for s in sorted_students if s["points"] >= 10]
-		sorted_students.sort(key=lambda x: x["points"], reverse=True)
-		
+		sorted_students = [s for s in sorted_students if s["points"] > 0]
+		sorted_students.sort(key=lambda x: (x["points"], x["percentage"]), reverse=True)
 	else:
-		# O-Level: Sort by combined A*+A, then A* as tiebreaker, then B, then C
-		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
-		sorted_students.sort(key=lambda x: (
-			x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),  # combined A*+A
-			x["grade_counts"].get("A*", 0),  # tiebreaker: more A* wins before Bs
-			x["grade_counts"].get("B", 0),
-			x["grade_counts"].get("C", 0)
-		), reverse=True)
+		sorted_students = [s for s in sorted_students if s["points"] > 0]
+		sorted_students.sort(key=lambda x: (x["points"], x["percentage"]), reverse=True)
 		
-	if limit != "All" and not is_al:
+	if limit != "All":
 		try:
 			limit = int(limit)
 			sorted_students = sorted_students[:limit]
@@ -928,10 +920,8 @@ def get_top_students_html(report_name, limit):
 	html += "<table class='table table-bordered table-hover' style='margin-top: 15px;'><thead><tr><th>Rank</th><th>Student Name</th>"
 	if is_primary:
 		html += "<th>Total Units</th>"
-	elif is_al:
-		html += "<th>Total Points</th>"
 	else:
-		html += "<th>Passing Grades (A*,A,B,C)</th>"
+		html += "<th>Total Points</th>"
 	html += "</tr></thead><tbody>"
 	
 	for idx, s in enumerate(sorted_students):
@@ -939,14 +929,8 @@ def get_top_students_html(report_name, limit):
 		html += f"<tr><td>{rank}</td><td>{s['name']}</td>"
 		if is_primary:
 			html += f"<td><strong>{s['units']}</strong></td>"
-		elif is_al:
-			html += f"<td><strong>{s['points']}</strong></td>"
 		else:
-			a_star = s['grade_counts'].get('A*', 0)
-			a_cnt = s['grade_counts'].get('A', 0)
-			b_cnt = s['grade_counts'].get('B', 0)
-			c_cnt = s['grade_counts'].get('C', 0)
-			html += f"<td><strong>{a_star}A*, {a_cnt}A, {b_cnt}B, {c_cnt}C</strong></td>"
+			html += f"<td><strong>{s['points']}</strong></td>"
 		html += "</tr>"
 		
 	if not sorted_students:
