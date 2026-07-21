@@ -925,8 +925,8 @@ title: Term Exam Results
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       
       var dynamicScale = G_obj(parseFloat(pct), className);
-      var g = dynamicScale.grade;
-      var stat = dynamicScale.status;
+      var g = s.grade ? s.grade : dynamicScale.grade;
+      var stat = s.status ? s.status : dynamicScale.status;
       
       var pts = Math.round(parseFloat(s.points || 0));
       var gDisplay = pts > 0 ? g + " (" + pts + " pts)" : g;
