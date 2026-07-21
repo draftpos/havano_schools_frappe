@@ -32,11 +32,11 @@ def get_context(context):
 	grading_items = []
 
 	try:
-		# Fetch all Grading Score Items across the system bypassing any permission filters
-		items = frappe.db.get_all("Grading Score Item", 
-			fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"],
-			order_by="from_percent desc"
-		)
+		items = frappe.db.sql("""
+			SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
+			FROM `tabGrading Score Item`
+			ORDER BY from_percent DESC
+		""", as_dict=1)
 
 		if items:
 			for item in items:
