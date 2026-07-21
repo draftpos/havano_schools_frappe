@@ -798,7 +798,7 @@ title: Term Exam Results
     {% endif %}
   ];
   
-  window.GRADE_POINTS = {{ grade_points | tojson }};
+  window.GRADE_POINTS = {{ grade_points | default({}) | tojson }};
 
   function showList() {
     el("dv").style.display = "none";
