@@ -17,12 +17,16 @@ def get_context(context):
 		
 	grade_points = {}
 	try:
-		pts_rows = frappe.get_all("A Level Grade Point", fields=["grade", "points"], filters={"parent": "School Settings"}, ignore_permissions=True)
-		for row in pts_rows:
-			if row.grade:
-				grade_points[str(row.grade).upper().strip()] = row.points
+		frappe.flags.ignore_permissions = True
+		settings = frappe.get_doc("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for row in settings.a_level_grade_points:
+				if row.grade:
+					grade_points[str(row.grade).upper().strip()] = row.points
 	except Exception:
 		pass
+	finally:
+		frappe.flags.ignore_permissions = False
 	context.grade_points = grade_points
 	
 	grading_items = []
