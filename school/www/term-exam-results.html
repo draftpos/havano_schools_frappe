@@ -785,18 +785,8 @@ title: Term Exam Results
   // Grading scale — can be extended from API if available
   var GRADING = [
     {% set items = grading_items %}
-    {% set filtered_items = [] %}
-    {% for i in items %}
-      {% if i.parent != "STD" %}
-        {% set _ = filtered_items.append(i) %}
-      {% endif %}
-    {% endfor %}
-    {% if not filtered_items %}
-      {% set filtered_items = items %}
-    {% endif %}
-
-    {% if filtered_items %}
-      {% for gi in filtered_items %}
+    {% if items %}
+      {% for gi in items %}
         { parentfield: "{{ gi.parentfield }}", from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", unit: "{{ gi.unit or '' }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
       {% endfor %}
     {% else %}

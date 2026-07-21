@@ -26,21 +26,12 @@ def get_context(context):
 	grading_items = []
 
 	try:
-		# Fetch all Grading Score Items across the system, ignoring STD if it exists since they want standalone
+		# Fetch all Grading Score Items across the system
 		items = frappe.get_all("Grading Score Item", 
-			filters=[["parent", "!=", "STD"]], 
 			fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"],
 			order_by="from_percent desc",
 			ignore_permissions=True
 		)
-		
-		# If they literally deleted STD and all others are empty, just fetch everything
-		if not items:
-			items = frappe.get_all("Grading Score Item", 
-				fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"],
-				order_by="from_percent desc",
-				ignore_permissions=True
-			)
 
 		if items:
 			for item in items:

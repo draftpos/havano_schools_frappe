@@ -53,18 +53,10 @@ def get_grade_and_status(percentage, class_name=None):
 		
 		items = frappe.get_all(
 			"Grading Score Item", 
-			filters={"parentfield": parentfield, "parent": ["!=", "STD"]}, 
+			filters={"parentfield": parentfield}, 
 			fields=fields, 
 			order_by="from_percent desc"
 		)
-		
-		if not items:
-			items = frappe.get_all(
-				"Grading Score Item", 
-				filters={"parentfield": parentfield}, 
-				fields=fields, 
-				order_by="from_percent desc"
-			)
 			
 		for item in items:
 			if item.from_percent is None:
@@ -394,6 +386,26 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 		<p style="margin:2px 0">Report ID: {doc.name} &nbsp;|&nbsp; Official school document — do not alter.</p>
 	</div>
 </div>"""
+
+
+	@frappe.whitelist()
+	def recalculate_grades(self):
+		self.save()
+		return "Grades recalculated."
+
+
+@frappe.whitelist()
+def recalculate_all_grades():
+	reports = frappe.get_all("Term Exam Report", filters={"docstatus": 1})
+	for r in reports:
+		doc = frappe.get_doc("Term Exam Report", r.name)
+		# Skip validation locks for mass update
+		doc.flags.ignore_validate = True
+		doc.auto_fill_grades_and_comments()
+		for row in doc.term_exam_results:
+			row.db_update()
+	frappe.db.commit()
+	return f"Recalculated grades for {len(reports)} submitted reports."
 
 
 @frappe.whitelist()
