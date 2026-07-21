@@ -107,7 +107,7 @@ class TermExamReport(Document):
 					if not row.status:
 						row.status = calc_status
 						
-				if is_al and row.grade:
+				if row.grade:
 					g_str = str(row.grade).upper().strip()
 					row.points = grade_points.get(g_str, 0.0)
 				else:
@@ -600,7 +600,7 @@ def fetch_results(report_name):
 					teacher_comment = get_seed_teacher_comment(pct)
 
 			points = 0.0
-			if is_al and grade:
+			if grade:
 				g_str = str(grade).upper().strip()
 				points = grade_points.get(g_str, 0.0)
 
@@ -835,16 +835,16 @@ def get_top_students_html(report_name, limit):
 				student_totals[row.student]["marks"] += row.marks_obtained
 			if row.max_marks:
 				student_totals[row.student]["max_marks"] += row.max_marks
-			if is_al:
-				if row.grade:
-					g_str = str(row.grade).upper().strip()
+			
+			if row.grade:
+				g_str = str(row.grade).upper().strip()
+				student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
+			elif row.marks_obtained is not None and row.max_marks:
+				calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
+				calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
+				if calc_g:
+					g_str = str(calc_g).upper().strip()
 					student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
-				elif row.marks_obtained is not None and row.max_marks:
-					calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
-					calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
-					if calc_g:
-						g_str = str(calc_g).upper().strip()
-						student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
 			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
