@@ -944,7 +944,7 @@ title: Term Exam Results
       var stat = s.status ? s.status : dynamicScale.status;
       
       var pts = Math.round(parseFloat(s.points || 0));
-      var gDisplay = (isALevel && pts > 0) ? g + " (" + pts + " pts)" : g;
+      var gDisplay = isALevel ? g + " (" + pts + " pts)" : g;
 
       var comments = [];
       if (s.remarks) comments.push(s.remarks);
