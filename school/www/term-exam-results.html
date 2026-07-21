@@ -983,12 +983,15 @@ title: Term Exam Results
     }
 
     filteredGrading.forEach(function (gi) {
-      var cls = gi.status === "Pass" ? "gs-pass" : gi.status === "Moderate" ? "gs-moderate" : "gs-failed";
       var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
+      if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
+      
+      var status = (gi.status && gi.status !== "None") ? gi.status : "";
+      var cls = status === "Pass" ? "gs-pass" : status === "Moderate" ? "gs-moderate" : "gs-failed";
       gsRows += "<tr>"
         + "<td>" + gi.from + "%</td><td>" + gi.to + "%</td>"
         + "<td style='font-weight:700;text-align:center'>" + displayGrade + "</td>"
-        + "<td class='" + cls + "'>" + gi.status + "</td>"
+        + "<td class='" + cls + "'>" + status + "</td>"
         + "</tr>";
     });
     
