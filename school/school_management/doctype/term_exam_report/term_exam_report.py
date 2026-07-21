@@ -109,6 +109,8 @@ class TermExamReport(Document):
 						
 				if is_al and row.grade:
 					g_str = str(row.grade).upper().strip()
+					if g_str == 'A*':
+						g_str = 'A'
 					row.points = grade_points.get(g_str, 0.0)
 				else:
 					row.points = 0.0
@@ -601,7 +603,10 @@ def fetch_results(report_name):
 
 			points = 0.0
 			if is_al and grade:
-				points = grade_points.get(str(grade).upper().strip(), 0.0)
+				g_str = str(grade).upper().strip()
+				if g_str == 'A*':
+					g_str = 'A'
+				points = grade_points.get(g_str, 0.0)
 
 			rows.append({
 				"student": student.name,
@@ -837,12 +842,16 @@ def get_top_students_html(report_name, limit):
 			if is_al:
 				if row.grade:
 					g_str = str(row.grade).upper().strip()
+					if g_str == 'A*':
+						g_str = 'A'
 					student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
 				elif row.marks_obtained is not None and row.max_marks:
 					calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
 					calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
 					if calc_g:
 						g_str = str(calc_g).upper().strip()
+						if g_str == 'A*':
+							g_str = 'A'
 						student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
 			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
