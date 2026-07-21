@@ -86,12 +86,14 @@ class TermExamReport(Document):
 		self.before_save()
 
 	def auto_fill_grades_and_comments(self):
+		is_al = is_alevel(self.student_class)
 		grade_points = {}
-		settings = frappe.get_single("School Settings")
-		if hasattr(settings, "a_level_grade_points"):
-			for row in settings.a_level_grade_points:
-				if row.grade:
-					grade_points[str(row.grade).upper().strip()] = row.points
+		if is_al:
+			settings = frappe.get_single("School Settings")
+			if hasattr(settings, "a_level_grade_points"):
+				for row in settings.a_level_grade_points:
+					if row.grade:
+						grade_points[str(row.grade).upper().strip()] = row.points
 
 		for row in self.term_exam_results:
 			if row.marks_obtained is not None and row.max_marks:
@@ -105,7 +107,7 @@ class TermExamReport(Document):
 					if not row.status:
 						row.status = calc_status
 						
-				if row.grade:
+				if is_al and row.grade:
 					g_str = str(row.grade).upper().strip()
 					row.points = grade_points.get(g_str, 0.0)
 				else:
@@ -473,11 +475,12 @@ def fetch_results(report_name):
 
 	is_al = is_alevel(doc.student_class)
 	grade_points = {}
-	settings = frappe.get_single("School Settings")
-	if hasattr(settings, "a_level_grade_points"):
-		for r in settings.a_level_grade_points:
-			if r.grade:
-				grade_points[str(r.grade).upper().strip()] = r.points
+	if is_al:
+		settings = frappe.get_single("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for r in settings.a_level_grade_points:
+				if r.grade:
+					grade_points[str(r.grade).upper().strip()] = r.points
 
 	class_section_filters = {"class": doc.student_class}
 	if doc.section:
@@ -597,7 +600,7 @@ def fetch_results(report_name):
 					teacher_comment = get_seed_teacher_comment(pct)
 
 			points = 0.0
-			if grade:
+			if is_al and grade:
 				g_str = str(grade).upper().strip()
 				points = grade_points.get(g_str, 0.0)
 
@@ -795,11 +798,12 @@ def get_top_students_html(report_name, limit):
 	is_ol = not is_primary and not is_al
 	
 	grade_points = {}
-	settings = frappe.get_single("School Settings")
-	if hasattr(settings, "a_level_grade_points"):
-		for r in settings.a_level_grade_points:
-			if r.grade:
-				grade_points[str(r.grade).upper().strip()] = r.points
+	if is_al:
+		settings = frappe.get_single("School Settings")
+		if hasattr(settings, "a_level_grade_points"):
+			for r in settings.a_level_grade_points:
+				if r.grade:
+					grade_points[str(r.grade).upper().strip()] = r.points
 	
 	student_totals = defaultdict(lambda: {
 		"marks": 0.0, 
@@ -831,16 +835,16 @@ def get_top_students_html(report_name, limit):
 				student_totals[row.student]["marks"] += row.marks_obtained
 			if row.max_marks:
 				student_totals[row.student]["max_marks"] += row.max_marks
-			
-			if row.grade:
-				g_str = str(row.grade).upper().strip()
-				student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
-			elif row.marks_obtained is not None and row.max_marks:
-				calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
-				calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
-				if calc_g:
-					g_str = str(calc_g).upper().strip()
+			if is_al:
+				if row.grade:
+					g_str = str(row.grade).upper().strip()
 					student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
+				elif row.marks_obtained is not None and row.max_marks:
+					calc_pct = round((row.marks_obtained / row.max_marks) * 100, 1)
+					calc_g, _, _ = get_grade_and_status(calc_pct, doc.student_class)
+					if calc_g:
+						g_str = str(calc_g).upper().strip()
+						student_totals[row.student]["points"] += grade_points.get(g_str, 0.0)
 			elif hasattr(row, 'points') and row.points:
 				student_totals[row.student]["points"] += row.points
 				
@@ -909,12 +913,10 @@ def get_top_students_html(report_name, limit):
 		# O-Level: Sort by combined A*+A, then A* as tiebreaker, then B, then C
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
 		sorted_students.sort(key=lambda x: (
-			x["points"],  # Sort by total points first
-			x["grade_counts"].get("A*", 0),  # tiebreaker: more A*
-			x["grade_counts"].get("A", 0),   # tiebreaker: more A
+			x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),  # combined A*+A
+			x["grade_counts"].get("A*", 0),  # tiebreaker: more A* wins before Bs
 			x["grade_counts"].get("B", 0),
-			x["grade_counts"].get("C", 0),
-			x["percentage"]
+			x["grade_counts"].get("C", 0)
 		), reverse=True)
 		
 	if limit != "All" and not is_al:
