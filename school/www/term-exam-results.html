@@ -797,9 +797,13 @@ title: Term Exam Results
 
   // Grading scale — loaded dynamically from database (`tabGrading Score Item`)
   var GRADING = [
-    {% if grading_items %}
-      {% for gi in grading_items %}
-        { parent: "{{ gi.parent }}", parentfield: "{{ gi.parentfield }}", from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", unit: "{{ gi.unit or '' }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
+    {% set items = grading_items %}
+    {% if not items %}
+      {% set items = frappe.get_all("Grading Score Item", fields=["parent", "parentfield", "from_percent", "to_percent", "grade", "unit", "status"], order_by="from_percent desc") %}
+    {% endif %}
+    {% if items %}
+      {% for gi in items %}
+        { parent: "{{ gi.parent or '' }}", parentfield: "{{ gi.parentfield or '' }}", from: {{ gi.from_percent|float if gi.from_percent is not none else 0 }}, to: {{ gi.to_percent|float if gi.to_percent is not none else 100 }}, grade: "{{ gi.grade or '' }}", unit: "{{ gi.unit or '' }}", status: "{{ gi.status or '' }}" }{% if not loop.last %},{% endif %}
       {% endfor %}
     {% endif %}
   ];
@@ -995,10 +999,10 @@ title: Term Exam Results
     var gsRows = "";
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
     var filteredGrading = GRADING.filter(function(g) { 
-      if (g.parentfield !== targetParentField) return false;
+      if (g.parentfield && g.parentfield !== targetParentField) return false;
       var parent = (g.parent || "").toLowerCase();
       var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
-      if (isALevel && !parentIsALevel && parent) return false;
+      if (isALevel && !parentIsALevel && parent && parent !== "std") return false;
       if (!isALevel && parentIsALevel) return false;
       return true;
     });

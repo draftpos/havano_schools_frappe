@@ -32,6 +32,7 @@ def get_context(context):
 	grading_items = []
 
 	try:
+		frappe.flags.ignore_permissions = True
 		items = frappe.db.sql("""
 			SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
 			FROM `tabGrading Score Item`
@@ -41,18 +42,20 @@ def get_context(context):
 		if items:
 			for item in items:
 				grading_items.append({
-					"parent": item.get("parent", ""),
-					"parentfield": item.get("parentfield", ""),
-					"from_percent": item.get("from_percent", 0),
-					"to_percent": item.get("to_percent", 100),
-					"grade": item.get("grade", ""),
-					"unit": item.get("unit", ""),
-					"status": item.get("status", "")
+					"parent": item.get("parent", "") or "",
+					"parentfield": item.get("parentfield", "") or "",
+					"from_percent": float(item.get("from_percent") or 0),
+					"to_percent": float(item.get("to_percent") if item.get("to_percent") is not None else 100),
+					"grade": item.get("grade", "") or "",
+					"unit": item.get("unit", "") or "",
+					"status": item.get("status", "") or ""
 				})
 		
 		frappe.log_error("Portal Grading Debug 3", f"Final grading_items length: {len(grading_items)}")
 
 	except Exception as e:
 		frappe.log_error("Portal Grading Fetch Error", str(e))
+	finally:
+		frappe.flags.ignore_permissions = False
 
 	context.grading_items = grading_items
