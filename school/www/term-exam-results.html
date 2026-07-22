@@ -845,16 +845,26 @@ title: Term Exam Results
   function getGradePoints(grade, dbPoints) {
     if (!grade) return 0;
     var gKey = String(grade).trim().toUpperCase();
-    if (window.GRADE_POINTS && window.GRADE_POINTS[gKey] !== undefined) {
-      return parseFloat(window.GRADE_POINTS[gKey] || 0);
+
+    if (window.GRADE_POINTS) {
+      if (window.GRADE_POINTS[gKey] !== undefined) {
+        return parseFloat(window.GRADE_POINTS[gKey] || 0);
+      }
+      var altKey = gKey.replace(/\*/g, "STAR").replace(/\s+/g, "");
+      if (window.GRADE_POINTS[altKey] !== undefined) {
+        return parseFloat(window.GRADE_POINTS[altKey] || 0);
+      }
+      for (var k in window.GRADE_POINTS) {
+        if (k.trim().toUpperCase() === gKey) {
+          return parseFloat(window.GRADE_POINTS[k] || 0);
+        }
+      }
     }
-    var altKey = gKey.replace(/\*/g, "STAR").replace(/\s+/g, "");
-    if (window.GRADE_POINTS && window.GRADE_POINTS[altKey] !== undefined) {
-      return parseFloat(window.GRADE_POINTS[altKey] || 0);
-    }
+
     if (dbPoints !== undefined && dbPoints !== null && parseFloat(dbPoints) > 0) {
       return parseFloat(dbPoints);
     }
+
     return 0;
   }
 

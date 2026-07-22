@@ -21,10 +21,17 @@ def get_context(context):
 		rows = frappe.db.sql("""
 			SELECT grade, points FROM `tabA Level Grade Point`
 		""", as_dict=True)
+		if not rows:
+			rows = frappe.get_all("A Level Grade Point", fields=["grade", "points"])
 		for r in rows:
-			if r.get("grade"):
-				g_str = str(r.get("grade")).upper().strip()
-				grade_points[g_str] = float(r.get("points") or 0)
+			g = r.get("grade")
+			if g is not None:
+				g_key = str(g).strip().upper()
+				try:
+					pts_val = float(r.get("points") if r.get("points") is not None else 0)
+				except (ValueError, TypeError):
+					pts_val = 0.0
+				grade_points[g_key] = pts_val
 	except Exception as e:
 		frappe.log_error("Portal Grade Points Fetch Error", str(e))
 	finally:
