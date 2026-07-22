@@ -755,17 +755,17 @@ title: Term Exam Results
       var score = 0;
       var parent = (gi.parent || "").toLowerCase();
       var grade = (gi.grade || "").toUpperCase().trim();
-      var pIsAL = parent.includes("a level") || parent.includes("advanced") || parent.includes("a-level") || parent.includes("alevel");
+      var pIsAL = parent.includes("a level") || parent.includes("advanced") || parent.includes("a-level") || parent.includes("alevel") || parent.includes("form 6") || parent.includes("form 5");
       
       if (isALevel) {
-        if (grade === "A*") score += 10;
-        if (grade === "U") score += 5;
-        if (pIsAL) score += 4;
-        if (parent !== "std") score += 2;
+        if (pIsAL) score += 10;
+        if (parent !== "std") score += 5;
+        if (grade === "A*") score += 2;
+        if (grade === "U") score += 1;
       } else {
-        if (grade !== "A*" && grade !== "U") score += 5;
-        if (!pIsAL) score += 4;
-        if (parent === "std") score += 2;
+        if (!pIsAL) score += 10;
+        if (parent === "std") score += 5;
+        if (grade !== "A*" && grade !== "U") score += 2;
       }
       return score;
     }
@@ -775,6 +775,7 @@ title: Term Exam Results
 
       var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
       if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
+      if (isALevel && displayGrade.toUpperCase().trim() === "F") return;
 
       var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
       var rangeKey = gi.from + "-" + toPct;
