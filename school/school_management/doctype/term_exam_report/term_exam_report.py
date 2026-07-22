@@ -49,14 +49,19 @@ def get_grade_and_status(percentage, class_name=None):
 	
 	try:
 		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
-		parentfield = "unit_grading_items" if use_unit else "grading_items"
-		
-		items = frappe.get_all(
-			"Grading Score Item", 
-			filters={"parentfield": parentfield}, 
-			fields=fields + ["parent"], 
-			order_by="from_percent desc"
-		)
+		if use_unit:
+			items = frappe.db.sql("""
+				SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
+				FROM `tabGrading Score Item`
+				WHERE parentfield = 'unit_grading_items'
+				ORDER BY from_percent DESC
+			""", as_dict=True)
+		else:
+			items = frappe.db.sql("""
+				SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
+				FROM `tabGrading Score Item`
+				ORDER BY from_percent DESC
+			""", as_dict=True)
 			
 		is_al = is_alevel(class_name)
 
