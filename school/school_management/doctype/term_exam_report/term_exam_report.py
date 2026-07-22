@@ -108,13 +108,16 @@ class TermExamReport(Document):
 
 	def auto_fill_grades_and_comments(self):
 		is_al = is_alevel(self.student_class)
-		grade_points = {}
+		grade_points = {"A": 5.0, "B": 4.0, "C": 3.0, "D": 2.0, "E": 1.0}
 		if is_al:
-			settings = frappe.get_doc("School Settings", "School Settings")
-			if hasattr(settings, "a_level_grade_points"):
-				for row in settings.a_level_grade_points:
-					if row.grade:
-						grade_points[str(row.grade).upper().strip()] = row.points
+			try:
+				settings = frappe.get_doc("School Settings", "School Settings")
+				if hasattr(settings, "a_level_grade_points") and settings.a_level_grade_points:
+					for row in settings.a_level_grade_points:
+						if row.grade:
+							grade_points[str(row.grade).upper().strip()] = float(row.points or 0.0)
+			except Exception:
+				pass
 
 		for row in self.term_exam_results:
 			if row.marks_obtained is not None and row.max_marks:

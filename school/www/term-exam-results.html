@@ -809,6 +809,22 @@ title: Term Exam Results
   ];
   
   window.GRADE_POINTS = {{ grade_points | default({}) | tojson }};
+  var DEFAULT_GRADE_POINTS = { "A": 5, "B": 4, "C": 3, "D": 2, "E": 1 };
+
+  function getGradePoints(grade, dbPoints) {
+    if (!grade) return 0;
+    var gKey = String(grade).toUpperCase().trim();
+    if (window.GRADE_POINTS && window.GRADE_POINTS[gKey] !== undefined) {
+      return parseFloat(window.GRADE_POINTS[gKey] || 0);
+    }
+    if (DEFAULT_GRADE_POINTS[gKey] !== undefined) {
+      return DEFAULT_GRADE_POINTS[gKey];
+    }
+    if (dbPoints !== undefined && dbPoints !== null && parseFloat(dbPoints) > 0) {
+      return parseFloat(dbPoints);
+    }
+    return 0;
+  }
 
   function showList() {
     el("dv").style.display = "none";
@@ -882,11 +898,7 @@ title: Term Exam Results
       
       var pts = 0;
       if (isALevel && g) {
-          if (window.GRADE_POINTS && Object.keys(window.GRADE_POINTS).length > 0) {
-              pts = window.GRADE_POINTS[g.toUpperCase().trim()] || 0;
-          } else {
-              pts = parseFloat(s.points || 0);
-          }
+          pts = getGradePoints(g, s.points);
           if (pts > 0) aLevelPts.push(pts);
       }
       
@@ -958,13 +970,7 @@ title: Term Exam Results
       
       var pts = 0;
       if (isALevel && g) {
-          if (window.GRADE_POINTS && Object.keys(window.GRADE_POINTS).length > 0) {
-              pts = window.GRADE_POINTS[g.toUpperCase().trim()] || 0;
-          } else {
-              pts = parseFloat(s.points || 0);
-          }
-      } else {
-          pts = parseFloat(s.points || 0);
+          pts = getGradePoints(g, s.points);
       }
       var gDisplay = isALevel ? g + " (" + pts + " pts)" : g;
 

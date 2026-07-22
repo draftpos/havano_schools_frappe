@@ -15,14 +15,14 @@ def get_context(context):
 		context.show_sidebar = True
 		context.website_sidebar = "Student Portal"
 		
-	grade_points = {}
+	grade_points = {"A": 5, "B": 4, "C": 3, "D": 2, "E": 1}
 	try:
 		frappe.flags.ignore_permissions = True
 		settings = frappe.get_doc("School Settings", "School Settings")
-		if hasattr(settings, "a_level_grade_points"):
+		if hasattr(settings, "a_level_grade_points") and settings.a_level_grade_points:
 			for row in settings.a_level_grade_points:
 				if row.grade:
-					grade_points[str(row.grade).upper().strip()] = row.points
+					grade_points[str(row.grade).upper().strip()] = float(row.points or 0)
 	except Exception:
 		pass
 	finally:
