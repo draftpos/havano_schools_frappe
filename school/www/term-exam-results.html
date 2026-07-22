@@ -746,45 +746,54 @@ title: Term Exam Results
 
   function el(id) { return document.getElementById(id); }
 
-  function getTargetGradingParent(isALevel, isPrimary) {
-    var parentNames = [];
-    GRADING.forEach(function(g) {
-      if (g.parent && parentNames.indexOf(g.parent) === -1) {
-        parentNames.push(g.parent);
+  function getFilteredGradingItems(isALevel, isPrimary) {
+    var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
+    var rangeMap = {};
+    var items = [];
+
+    function getItemScore(gi) {
+      var score = 0;
+      var parent = (gi.parent || "").toLowerCase();
+      var grade = (gi.grade || "").toUpperCase().trim();
+      var pIsAL = parent.includes("a level") || parent.includes("advanced") || parent.includes("a-level") || parent.includes("alevel");
+      
+      if (isALevel) {
+        if (grade === "A*") score += 10;
+        if (grade === "U") score += 5;
+        if (pIsAL) score += 4;
+        if (parent !== "std") score += 2;
+      } else {
+        if (grade !== "A*" && grade !== "U") score += 5;
+        if (!pIsAL) score += 4;
+        if (parent === "std") score += 2;
+      }
+      return score;
+    }
+
+    GRADING.forEach(function(gi) {
+      if (gi.parentfield && gi.parentfield !== targetParentField) return;
+
+      var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
+      if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
+
+      var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
+      var rangeKey = gi.from + "-" + toPct;
+      var currentScore = getItemScore(gi);
+
+      if (!rangeMap[rangeKey] || currentScore > rangeMap[rangeKey].score) {
+        rangeMap[rangeKey] = { item: gi, score: currentScore };
       }
     });
 
-    var targetParent = "";
-    if (isALevel) {
-      for (var i = 0; i < parentNames.length; i++) {
-        var p = parentNames[i].toLowerCase();
-        if (p.includes("a level") || p.includes("advanced") || p.includes("a-level") || p.includes("alevel") || p.includes("form 6") || p.includes("form 5")) {
-          targetParent = parentNames[i];
-          break;
-        }
-      }
-      if (!targetParent) {
-        for (var i = 0; i < parentNames.length; i++) {
-          if (parentNames[i].toUpperCase() !== "STD") {
-            targetParent = parentNames[i];
-            break;
-          }
-        }
-      }
-    } else {
-      for (var i = 0; i < parentNames.length; i++) {
-        var p = parentNames[i].toLowerCase();
-        var pIsAL = p.includes("a level") || p.includes("advanced") || p.includes("a-level") || p.includes("alevel");
-        if (!pIsAL) {
-          targetParent = parentNames[i];
-          break;
-        }
-      }
+    for (var k in rangeMap) {
+      items.push(rangeMap[k].item);
     }
-    if (!targetParent && parentNames.length > 0) {
-      targetParent = parentNames[0];
-    }
-    return targetParent;
+
+    items.sort(function(a, b) {
+      return (b.from || 0) - (a.from || 0);
+    });
+
+    return items;
   }
 
   function G_obj(pct, className) {
@@ -795,28 +804,11 @@ title: Term Exam Results
         isPrimary = cnl.includes("primary") || cnl.includes("ecd") || cnl.includes("grade") || cnl.includes("nursery");
         isALevel = cnl.includes("a level") || cnl.includes("form 5") || cnl.includes("form 6") || cnl.includes("lower 6") || cnl.includes("upper 6") || cnl.includes("l6") || cnl.includes("u6");
     }
-    var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
-    var targetParent = getTargetGradingParent(isALevel, isPrimary);
+    var items = getFilteredGradingItems(isALevel, isPrimary);
+    if (!items.length) items = GRADING;
 
-    // 1. Try matching with level-specific parent
-    for (var i = 0; i < GRADING.length; i++) {
-      var gi = GRADING[i];
-      if (gi.parentfield && gi.parentfield !== targetParentField) continue;
-      if (targetParent && gi.parent && gi.parent !== targetParent) continue;
-      
-      var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
-      if (pct >= gi.from && pct <= toPct) {
-        if (isPrimary && gi.unit) {
-            return { grade: gi.unit, status: gi.status };
-        } else {
-            return { grade: gi.grade, status: gi.status };
-        }
-      }
-    }
-    
-    // 2. Fallback if no specific parent matched
-    for (var i = 0; i < GRADING.length; i++) {
-      var gi = GRADING[i];
+    for (var i = 0; i < items.length; i++) {
+      var gi = items[i];
       var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
       if (pct >= gi.from && pct <= toPct) {
         if (isPrimary && gi.unit) {
@@ -1038,40 +1030,8 @@ title: Term Exam Results
     });
 
     var gsRows = "";
-    var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
-
-    // Select single best matching parent score doc to avoid duplicate rows
-    var targetParent = getTargetGradingParent(isALevel, isPrimary);
-
-    var filteredGrading = [];
-    var seenKeys = {};
-
-    GRADING.forEach(function (gi) {
-      if (gi.parentfield && gi.parentfield !== targetParentField) return;
-      if (targetParent && gi.parent && gi.parent !== targetParent) return;
-
-      var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
-      if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
-
-      var key = gi.from + "-" + gi.to + "-" + displayGrade;
-      if (seenKeys[key]) return;
-      seenKeys[key] = true;
-
-      filteredGrading.push(gi);
-    });
-
-    if (filteredGrading.length === 0) {
-      GRADING.forEach(function (gi) {
-        var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
-        if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
-
-        var key = gi.from + "-" + gi.to + "-" + displayGrade;
-        if (seenKeys[key]) return;
-        seenKeys[key] = true;
-
-        filteredGrading.push(gi);
-      });
-    }
+    var filteredGrading = getFilteredGradingItems(isALevel, isPrimary);
+    if (!filteredGrading.length) filteredGrading = GRADING;
 
     filteredGrading.forEach(function (gi) {
       var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;

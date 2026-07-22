@@ -46,48 +46,57 @@ def get_grade_and_status(percentage, class_name=None):
 		return "", "", 0
 	
 	use_unit = is_primary_or_ecd(class_name)
+	is_al = is_alevel(class_name)
 	
 	try:
-		fields = ["from_percent", "to_percent", "grade", "unit", "status"]
-		if use_unit:
-			items = frappe.db.sql("""
-				SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
-				FROM `tabGrading Score Item`
-				WHERE parentfield = 'unit_grading_items'
-				ORDER BY from_percent DESC
-			""", as_dict=True)
-		else:
-			items = frappe.db.sql("""
-				SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
-				FROM `tabGrading Score Item`
-				ORDER BY from_percent DESC
-			""", as_dict=True)
-			
-		is_al = is_alevel(class_name)
+		target_parent_field = 'unit_grading_items' if use_unit else 'grading_items'
+		items = frappe.db.sql("""
+			SELECT parent, parentfield, from_percent, to_percent, grade, unit, status
+			FROM `tabGrading Score Item`
+			ORDER BY from_percent DESC
+		""", as_dict=True)
 
-		# Find single target parent document for this level
-		target_parent = ""
-		for item in items:
-			p_name = str(item.parent or "")
-			p_lower = p_name.lower()
-			p_is_al = "a level" in p_lower or "advanced" in p_lower or "a-level" in p_lower or "alevel" in p_lower
+		def get_item_score(item):
+			score = 0
+			parent = str(item.parent or "").lower()
+			grade = str(item.grade or "").upper().strip()
+			p_is_al = "a level" in parent or "advanced" in parent or "a-level" in parent or "alevel" in parent
 			if is_al:
-				if p_is_al or p_name.upper() != "STD":
-					target_parent = p_name
-					break
+				if grade == "A*": score += 10
+				if grade == "U": score += 5
+				if p_is_al: score += 4
+				if parent != "std": score += 2
 			else:
-				if not p_is_al:
-					target_parent = p_name
-					break
+				if grade not in ("A*", "U"): score += 5
+				if not p_is_al: score += 4
+				if parent == "std": score += 2
+			return score
 
-		if not target_parent and items:
-			target_parent = items[0].parent
-
-		# 1. Match against target_parent items
+		range_map = {}
 		for item in items:
 			if item.from_percent is None:
 				continue
-			if target_parent and item.parent != target_parent:
+			if item.parentfield and item.parentfield != target_parent_field:
+				continue
+			display_grade = item.unit if use_unit and item.get("unit") else item.get("grade")
+			if not display_grade or str(display_grade).strip() in ("", "None"):
+				continue
+
+			to_pct = item.to_percent if item.to_percent is not None else 100
+			range_key = f"{item.from_percent}-{to_pct}"
+			s_val = get_item_score(item)
+
+			if range_key not in range_map or s_val > range_map[range_key]["score"]:
+				range_map[range_key] = {"item": item, "score": s_val}
+
+		filtered_items = [v["item"] for v in range_map.values()]
+		filtered_items.sort(key=lambda x: x.from_percent or 0, reverse=True)
+
+		if not filtered_items:
+			filtered_items = items
+
+		for item in filtered_items:
+			if item.from_percent is None:
 				continue
 			to_pct = item.to_percent if item.to_percent is not None else 100
 			if percentage >= item.from_percent and percentage <= to_pct:
@@ -96,16 +105,6 @@ def get_grade_and_status(percentage, class_name=None):
 				if item.get("grade"):
 					return item.grade, item.status or "Pass", 0
 
-		# 2. Fallback match if no item matched in target_parent
-		for item in items:
-			if item.from_percent is None:
-				continue
-			to_pct = item.to_percent if item.to_percent is not None else 100
-			if percentage >= item.from_percent and percentage <= to_pct:
-				if use_unit and item.get("unit"):
-					return item.unit, item.status or "Pass", 0
-				if item.get("grade"):
-					return item.grade, item.status or "Pass", 0
 	except Exception as e:
 		frappe.log_error(f"get_grade_and_status error: {e}", "Grade Calculation")
 	
