@@ -65,29 +65,43 @@ def get_grade_and_status(percentage, class_name=None):
 			
 		is_al = is_alevel(class_name)
 
+		# Find single target parent document for this level
+		target_parent = ""
+		for item in items:
+			p_name = str(item.parent or "")
+			p_lower = p_name.lower()
+			p_is_al = "a level" in p_lower or "advanced" in p_lower or "a-level" in p_lower or "alevel" in p_lower
+			if is_al:
+				if p_is_al or p_name.upper() != "STD":
+					target_parent = p_name
+					break
+			else:
+				if not p_is_al:
+					target_parent = p_name
+					break
+
+		if not target_parent and items:
+			target_parent = items[0].parent
+
+		# 1. Match against target_parent items
 		for item in items:
 			if item.from_percent is None:
 				continue
-				
-			parent_lower = str(item.parent).lower() if item.parent else ""
-			parent_is_al = "a level" in parent_lower or "advanced" in parent_lower
-			
-			if is_al and not parent_is_al:
+			if target_parent and item.parent != target_parent:
 				continue
-			if not is_al and parent_is_al:
-				continue
-				
-			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
+			to_pct = item.to_percent if item.to_percent is not None else 100
+			if percentage >= item.from_percent and percentage <= to_pct:
 				if use_unit and item.get("unit"):
 					return item.unit, item.status or "Pass", 0
 				if item.get("grade"):
 					return item.grade, item.status or "Pass", 0
 
-		# Fallback: match against standard score (e.g. STD) if no specific level parent matches
+		# 2. Fallback match if no item matched in target_parent
 		for item in items:
 			if item.from_percent is None:
 				continue
-			if percentage >= item.from_percent and (not item.to_percent or percentage <= item.to_percent):
+			to_pct = item.to_percent if item.to_percent is not None else 100
+			if percentage >= item.from_percent and percentage <= to_pct:
 				if use_unit and item.get("unit"):
 					return item.unit, item.status or "Pass", 0
 				if item.get("grade"):

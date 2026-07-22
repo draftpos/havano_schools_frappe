@@ -746,6 +746,47 @@ title: Term Exam Results
 
   function el(id) { return document.getElementById(id); }
 
+  function getTargetGradingParent(isALevel, isPrimary) {
+    var parentNames = [];
+    GRADING.forEach(function(g) {
+      if (g.parent && parentNames.indexOf(g.parent) === -1) {
+        parentNames.push(g.parent);
+      }
+    });
+
+    var targetParent = "";
+    if (isALevel) {
+      for (var i = 0; i < parentNames.length; i++) {
+        var p = parentNames[i].toLowerCase();
+        if (p.includes("a level") || p.includes("advanced") || p.includes("a-level") || p.includes("alevel") || p.includes("form 6") || p.includes("form 5")) {
+          targetParent = parentNames[i];
+          break;
+        }
+      }
+      if (!targetParent) {
+        for (var i = 0; i < parentNames.length; i++) {
+          if (parentNames[i].toUpperCase() !== "STD") {
+            targetParent = parentNames[i];
+            break;
+          }
+        }
+      }
+    } else {
+      for (var i = 0; i < parentNames.length; i++) {
+        var p = parentNames[i].toLowerCase();
+        var pIsAL = p.includes("a level") || p.includes("advanced") || p.includes("a-level") || p.includes("alevel");
+        if (!pIsAL) {
+          targetParent = parentNames[i];
+          break;
+        }
+      }
+    }
+    if (!targetParent && parentNames.length > 0) {
+      targetParent = parentNames[0];
+    }
+    return targetParent;
+  }
+
   function G_obj(pct, className) {
     var isPrimary = false;
     var isALevel = false;
@@ -755,17 +796,13 @@ title: Term Exam Results
         isALevel = cnl.includes("a level") || cnl.includes("form 5") || cnl.includes("form 6") || cnl.includes("lower 6") || cnl.includes("upper 6") || cnl.includes("l6") || cnl.includes("u6");
     }
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
+    var targetParent = getTargetGradingParent(isALevel, isPrimary);
 
     // 1. Try matching with level-specific parent
     for (var i = 0; i < GRADING.length; i++) {
       var gi = GRADING[i];
       if (gi.parentfield && gi.parentfield !== targetParentField) continue;
-      
-      var parent = (gi.parent || "").toLowerCase();
-      var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
-      
-      if (isALevel && !parentIsALevel) continue;
-      if (!isALevel && parentIsALevel) continue;
+      if (targetParent && gi.parent && gi.parent !== targetParent) continue;
       
       var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
       if (pct >= gi.from && pct <= toPct) {
@@ -777,7 +814,7 @@ title: Term Exam Results
       }
     }
     
-    // 2. Fallback if no specific parent matched (e.g. STD score)
+    // 2. Fallback if no specific parent matched
     for (var i = 0; i < GRADING.length; i++) {
       var gi = GRADING[i];
       var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
@@ -1004,16 +1041,7 @@ title: Term Exam Results
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
 
     // Select single best matching parent score doc to avoid duplicate rows
-    var targetParent = "";
-    for (var i = 0; i < GRADING.length; i++) {
-      var p = (GRADING[i].parent || "").toLowerCase();
-      var pIsAL = p.includes("a level") || p.includes("advanced");
-      if (isALevel && pIsAL && !targetParent) {
-        targetParent = GRADING[i].parent;
-      } else if (!isALevel && !pIsAL && !targetParent) {
-        targetParent = GRADING[i].parent;
-      }
-    }
+    var targetParent = getTargetGradingParent(isALevel, isPrimary);
 
     var filteredGrading = [];
     var seenKeys = {};
