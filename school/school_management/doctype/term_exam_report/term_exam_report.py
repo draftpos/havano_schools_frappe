@@ -61,14 +61,21 @@ def get_grade_and_status(percentage, class_name=None):
 			parent = str(item.parent or "").lower()
 			grade = str(item.grade or "").upper().strip()
 			p_is_al = "a level" in parent or "advanced" in parent or "a-level" in parent or "alevel" in parent
+			p_is_ol = "o level" in parent or "ordinary" in parent or "o-level" in parent or "olevel" in parent
+			p_is_prim = "primary" in parent or "ecd" in parent or "grade" in parent
+			
 			if is_al:
 				if grade == "A*": score += 10
 				if grade == "U": score += 5
 				if p_is_al: score += 4
 				if parent != "std": score += 2
-			else:
+			elif use_unit:
+				if p_is_prim: score += 10
+				if parent != "std": score += 2
+			else: # O-Level
 				if grade not in ("A*", "U"): score += 5
-				if not p_is_al: score += 4
+				if p_is_ol: score += 10
+				elif not p_is_al and not p_is_prim: score += 4
 				if parent == "std": score += 2
 			return score
 
