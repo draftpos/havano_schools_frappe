@@ -15,7 +15,7 @@ def get_context(context):
 		context.show_sidebar = True
 		context.website_sidebar = "Student Portal"
 		
-	grade_points = {"A": 5, "B": 4, "C": 3, "D": 2, "E": 1}
+	grade_points = {}
 	try:
 		frappe.flags.ignore_permissions = True
 		settings = frappe.get_doc("School Settings", "School Settings")

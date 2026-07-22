@@ -809,16 +809,12 @@ title: Term Exam Results
   ];
   
   window.GRADE_POINTS = {{ grade_points | default({}) | tojson }};
-  var DEFAULT_GRADE_POINTS = { "A": 5, "B": 4, "C": 3, "D": 2, "E": 1 };
 
   function getGradePoints(grade, dbPoints) {
     if (!grade) return 0;
     var gKey = String(grade).toUpperCase().trim();
     if (window.GRADE_POINTS && window.GRADE_POINTS[gKey] !== undefined) {
       return parseFloat(window.GRADE_POINTS[gKey] || 0);
-    }
-    if (DEFAULT_GRADE_POINTS[gKey] !== undefined) {
-      return DEFAULT_GRADE_POINTS[gKey];
     }
     if (dbPoints !== undefined && dbPoints !== null && parseFloat(dbPoints) > 0) {
       return parseFloat(dbPoints);
@@ -1004,17 +1000,47 @@ title: Term Exam Results
 
     var gsRows = "";
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
-    var filteredGrading = GRADING.filter(function(g) { 
-      if (g.parentfield && g.parentfield !== targetParentField) return false;
-      var parent = (g.parent || "").toLowerCase();
-      var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
-      if (isALevel && !parentIsALevel && parent && parent !== "std") return false;
-      if (!isALevel && parentIsALevel) return false;
-      return true;
+
+    // Select single best matching parent score doc to avoid duplicate rows
+    var targetParent = "";
+    for (var i = 0; i < GRADING.length; i++) {
+      var p = (GRADING[i].parent || "").toLowerCase();
+      var pIsAL = p.includes("a level") || p.includes("advanced");
+      if (isALevel && pIsAL && !targetParent) {
+        targetParent = GRADING[i].parent;
+      } else if (!isALevel && !pIsAL && !targetParent) {
+        targetParent = GRADING[i].parent;
+      }
+    }
+
+    var filteredGrading = [];
+    var seenKeys = {};
+
+    GRADING.forEach(function (gi) {
+      if (gi.parentfield && gi.parentfield !== targetParentField) return;
+      if (targetParent && gi.parent && gi.parent !== targetParent) return;
+
+      var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
+      if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
+
+      var key = gi.from + "-" + gi.to + "-" + displayGrade;
+      if (seenKeys[key]) return;
+      seenKeys[key] = true;
+
+      filteredGrading.push(gi);
     });
-    
+
     if (filteredGrading.length === 0) {
-      filteredGrading = GRADING; // Fallback
+      GRADING.forEach(function (gi) {
+        var displayGrade = (isPrimary && gi.unit) ? gi.unit : gi.grade;
+        if (!displayGrade || displayGrade === "None" || String(displayGrade).trim() === "") return;
+
+        var key = gi.from + "-" + gi.to + "-" + displayGrade;
+        if (seenKeys[key]) return;
+        seenKeys[key] = true;
+
+        filteredGrading.push(gi);
+      });
     }
 
     filteredGrading.forEach(function (gi) {

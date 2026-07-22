@@ -108,7 +108,7 @@ class TermExamReport(Document):
 
 	def auto_fill_grades_and_comments(self):
 		is_al = is_alevel(self.student_class)
-		grade_points = {"A": 5.0, "B": 4.0, "C": 3.0, "D": 2.0, "E": 1.0}
+		grade_points = {}
 		if is_al:
 			try:
 				settings = frappe.get_doc("School Settings", "School Settings")
