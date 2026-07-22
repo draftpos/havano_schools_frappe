@@ -795,19 +795,12 @@ title: Term Exam Results
     return G_obj(pct, className).grade;
   }
 
-  // Grading scale — can be extended from API if available
+  // Grading scale — loaded dynamically from database (`tabGrading Score Item`)
   var GRADING = [
-    {% set items = grading_items %}
-    {% if items %}
-      {% for gi in items %}
+    {% if grading_items %}
+      {% for gi in grading_items %}
         { parent: "{{ gi.parent }}", parentfield: "{{ gi.parentfield }}", from: {{ gi.from_percent|int }}, to: {{ gi.to_percent|int if gi.to_percent else 100 }}, grade: "{{ gi.grade }}", unit: "{{ gi.unit or '' }}", status: "{{ gi.status }}" }{% if not loop.last %},{% endif %}
       {% endfor %}
-    {% else %}
-      { from: 75, to: 100, grade: "A", status: "Pass" },
-      { from: 60, to: 74, grade: "B", status: "Pass" },
-      { from: 50, to: 59, grade: "C", status: "Moderate" },
-      { from: 40, to: 49, grade: "D", status: "Failed" },
-      { from: 0, to: 39, grade: "E", status: "Failed" }
     {% endif %}
   ];
   
@@ -890,14 +883,7 @@ title: Term Exam Results
           } else {
               pts = parseFloat(s.points || 0);
           }
-      } else {
-          pts = parseFloat(s.points || 0);
-      }
-      
-      if (isALevel) {
           if (pts > 0) aLevelPts.push(pts);
-      } else {
-          totalPts += pts;
       }
       
       if (isPrimary && s.grade) {
@@ -917,10 +903,12 @@ title: Term Exam Results
     var overallG = G(parseFloat(overallPct), r.class_name || r.student_class);
     
     var overallGDisplay = "";
-    if (totalPts > 0) {
+    if (isALevel && totalPts > 0) {
         overallGDisplay = Math.round(totalPts) + " pts";
-    } else if (isPrimary) {
+    } else if (isPrimary && totalUnits > 0) {
         overallGDisplay = Math.round(totalUnits) + " units";
+    } else {
+        overallGDisplay = overallG || "";
     }
 
     /* ── Student identity — exact field names from print format Jinja ──
