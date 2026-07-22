@@ -756,35 +756,37 @@ title: Term Exam Results
     }
     var targetParentField = isPrimary ? "unit_grading_items" : "grading_items";
 
+    // 1. Try matching with level-specific parent
     for (var i = 0; i < GRADING.length; i++) {
-      if (GRADING[i].parentfield !== targetParentField) continue;
+      var gi = GRADING[i];
+      if (gi.parentfield && gi.parentfield !== targetParentField) continue;
       
-      var parent = (GRADING[i].parent || "").toLowerCase();
+      var parent = (gi.parent || "").toLowerCase();
       var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
       
-      if (isALevel && !parentIsALevel && parent) continue;
+      if (isALevel && !parentIsALevel) continue;
       if (!isALevel && parentIsALevel) continue;
       
-      if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
-        var g = GRADING[i];
-        if (isPrimary && g.unit) {
-            return { grade: g.unit, status: g.status };
+      var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
+      if (pct >= gi.from && pct <= toPct) {
+        if (isPrimary && gi.unit) {
+            return { grade: gi.unit, status: gi.status };
         } else {
-            return { grade: g.grade, status: g.status };
+            return { grade: gi.grade, status: gi.status };
         }
       }
     }
     
-    // Fallback if no matching item found in targetParentField
+    // 2. Fallback if no specific parent matched (e.g. STD score)
     for (var i = 0; i < GRADING.length; i++) {
-      var parent = (GRADING[i].parent || "").toLowerCase();
-      var parentIsALevel = parent.includes("a level") || parent.includes("advanced");
-      if (isALevel && !parentIsALevel && parent) continue;
-      if (!isALevel && parentIsALevel) continue;
-      
-      if (pct >= GRADING[i].from && pct <= GRADING[i].to) {
-        var g = GRADING[i];
-        return { grade: g.unit || g.grade, status: g.status };
+      var gi = GRADING[i];
+      var toPct = gi.to !== undefined && gi.to !== null ? gi.to : 100;
+      if (pct >= gi.from && pct <= toPct) {
+        if (isPrimary && gi.unit) {
+            return { grade: gi.unit, status: gi.status };
+        } else {
+            return { grade: gi.grade || gi.unit, status: gi.status };
+        }
       }
     }
 
