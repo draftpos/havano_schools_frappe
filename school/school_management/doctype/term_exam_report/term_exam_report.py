@@ -73,7 +73,6 @@ def get_grade_and_status(percentage, class_name=None):
 				if p_is_prim: score += 10
 				if parent != "std": score += 2
 			else: # O-Level
-				if grade not in ("A*", "U"): score += 5
 				if p_is_ol: score += 10
 				elif not p_is_al and not p_is_prim: score += 4
 				if parent == "std": score += 2
