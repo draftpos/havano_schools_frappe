@@ -134,11 +134,13 @@ class TermExamReport(Document):
 		grade_points = {}
 		if is_al:
 			try:
-				settings = frappe.get_doc("School Settings", "School Settings")
-				if hasattr(settings, "a_level_grade_points") and settings.a_level_grade_points:
-					for row in settings.a_level_grade_points:
-						if row.grade:
-							grade_points[str(row.grade).upper().strip()] = float(row.points or 0.0)
+				rows = frappe.db.sql("""
+					SELECT grade, points FROM `tabA Level Grade Point`
+				""", as_dict=True)
+				for r in rows:
+					if r.get("grade"):
+						g_str = str(r.get("grade")).upper().strip()
+						grade_points[g_str] = float(r.get("points") or 0.0)
 			except Exception:
 				pass
 
