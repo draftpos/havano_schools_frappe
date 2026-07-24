@@ -1,20 +1,5 @@
 frappe.ui.form.on('Term Exam Report', {
 
-	view_student_report_card: function(frm) {
-		let sid = frm.doc.view_student_report_card;
-		if (sid) {
-			let studentName = sid;
-			let row = (frm.doc.term_exam_results || []).find(r => r.student === sid);
-			if (row && row.student_name) studentName = row.student_name;
-
-			_open_student_popup(frm, sid, studentName);
-			frappe.model.set_value(frm.doctype, frm.docname, 'view_student_report_card', '');
-		}
-	},
-
-
-
-
 	// ─── Auto-update student count when class or section changes ───────────────
 
 	student_class: function (frm) {
@@ -100,8 +85,9 @@ frappe.ui.form.on('Term Exam Report', {
 								__('Results Fetched')
 							);
 
-							// Rebuild the student selector dropdown after fresh fetch
-							_setup_student_report_link(frm);
+							// Rebuild the student selector dropdown and search box after fresh fetch
+							_render_student_dropdown(frm);
+							_render_student_search(frm);
 						}
 					},
 					error: function () {
@@ -258,7 +244,10 @@ frappe.ui.form.on('Term Exam Report', {
 		}, __('Reports'));
 
 		// ── Render student selector dropdown ─────────────────────────────────
-		_setup_student_report_link(frm);
+		_render_student_dropdown(frm);
+
+		// ── Render search box above results table ─────────────────────────────
+		_render_student_search(frm);
 	},
 
 	term_exam_results_add: function (frm, cdt, cdn) {
@@ -304,6 +293,56 @@ frappe.ui.form.on('Term Exam Result Item', {
 		}
 	}
 });
+
+// ─── Live search box above the results table ─────────────────────────────────
+function _render_student_search(frm) {
+	var grid = frm.fields_dict['term_exam_results'] && frm.fields_dict['term_exam_results'].grid;
+	if (!grid) return;
+
+	// Place the search box just above the grid's header row
+	var $gridWrapper = $(grid.wrapper);
+	var searchId = 'ter-student-search';
+
+	// Remove old instance to avoid duplicates on refresh
+	$gridWrapper.find('#' + searchId + '-wrap').remove();
+
+	var $searchWrap = $('<div id="' + searchId + '-wrap" style="'
+		+ 'display:flex;align-items:center;gap:8px;'
+		+ 'padding:8px 0 6px;margin-bottom:4px;'
+		+ '">' 
+		+ '<span style="font-size:13px;font-weight:600;color:#1e3a5f;white-space:nowrap;">'
+		+ '&#128269; Search Student:</span>'
+		+ '<input id="' + searchId + '" type="text" placeholder="Type student full name to filter rows…" '
+		+ 'style="flex:1;max-width:380px;height:32px;padding:4px 10px;'
+		+ 'border:1.5px solid #d1d5db;border-radius:6px;font-size:13px;'
+		+ 'color:#0f172a;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.06);"/>'
+		+ '<span id="' + searchId + '-count" style="font-size:11px;color:#64748b;"></span>'
+		+ '</div>');
+
+	$gridWrapper.prepend($searchWrap);
+
+	$searchWrap.find('#' + searchId).on('input', function () {
+		var q = $(this).val().trim().toLowerCase();
+		var total = 0, visible = 0;
+
+		$gridWrapper.find('.grid-row').each(function () {
+			var $row = $(this);
+			var rowName = ($row.find('[data-fieldname="student_name"] .static-area').text()
+				|| $row.find('[data-fieldname="student_name"] input').val()
+				|| $row.find('[data-fieldname="student"] .static-area').text()
+				|| '').toLowerCase();
+			total++;
+			if (!q || rowName.includes(q)) {
+				$row.show();
+				visible++;
+			} else {
+				$row.hide();
+			}
+		});
+
+		$('#' + searchId + '-count').text(q ? (visible + ' / ' + total + ' rows') : (total + ' rows'));
+	});
+}
 
 // ─── Render student selector dropdown ────────────────────────────────────────
 function _render_student_dropdown(frm) {
