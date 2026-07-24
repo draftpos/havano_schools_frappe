@@ -1,17 +1,19 @@
 frappe.ui.form.on('Term Exam Report', {
 	setup: function(frm) {
-		const grid = frm.fields_dict['term_exam_results'] && frm.fields_dict['term_exam_results'].grid;
-		if (grid) {
-			const student_col = grid.get_field('student');
+		try {
+			// Safely update metadata for child table columns to allow searching by name
+			let student_col = frappe.meta.get_docfield('Term Exam Result Item', 'student', frm.doc.name);
 			if (student_col) {
-				student_col.df.in_standard_filter = 1;
-				student_col.df.in_global_search = 1;
+				student_col.in_standard_filter = 1;
+				student_col.in_global_search = 1;
 			}
-			const name_col = grid.get_field('student_name');
+			let name_col = frappe.meta.get_docfield('Term Exam Result Item', 'student_name', frm.doc.name);
 			if (name_col) {
-				name_col.df.in_standard_filter = 1;
-				name_col.df.in_global_search = 1;
+				name_col.in_standard_filter = 1;
+				name_col.in_global_search = 1;
 			}
+		} catch (e) {
+			console.error("Error setting up student search filters", e);
 		}
 	},
 
