@@ -27,7 +27,7 @@
         "comments_section",
         "class_teacher_comment",
         "principal_comment",
-        "view_student_report_card"
+        "student_selector_html"
     ],
     "fields": [
         {
@@ -126,10 +126,9 @@
             "read_only": 0
         },
         {
-            "fieldname": "view_student_report_card",
-            "fieldtype": "Link",
-            "label": "View Student Report Card",
-            "options": "Student"
+            "fieldname": "student_selector_html",
+            "fieldtype": "HTML",
+            "label": "View Student Report Card"
         }
     ],
     "index_web_pages_for_search": 1,
