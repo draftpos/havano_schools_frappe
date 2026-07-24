@@ -621,8 +621,23 @@ def fetch_results(report_name):
 	)
 
 	subject_schedule_map = defaultdict(list)
+	sched_names = []
 	for s in schedules:
 		subject_schedule_map[s.subject].append(s)
+		sched_names.append(s.name)
+
+	excluded_map = defaultdict(set)
+	if sched_names:
+		try:
+			excluded_rows = frappe.db.sql("""
+				SELECT parent, student 
+				FROM `tabExam Schedule Excluded Student` 
+				WHERE parent IN %s
+			""", (tuple(sched_names),), as_dict=1)
+			for r in excluded_rows:
+				excluded_map[r.parent].add(r.student)
+		except Exception:
+			pass
 
 	rows = []
 	for student in students:
@@ -652,6 +667,9 @@ def fetch_results(report_name):
 				continue
 
 			sched = subj_schedules[-1]
+
+			if student.name in excluded_map.get(sched.name, set()):
+				continue
 
 			score = frappe.db.get_value(
 				"Exam Schedule Item",

@@ -29,6 +29,8 @@
         "exam_items",
         "remarks_section",
         "remarks",
+        "excluded_students_section",
+        "excluded_students",
         "student_scores_section",
         "fetch_students"
     ],
@@ -178,6 +180,17 @@
             "fieldname": "fetch_students",
             "fieldtype": "Button",
             "label": "Fetch Students from Class/Section"
+        },
+        {
+            "fieldname": "excluded_students_section",
+            "fieldtype": "Section Break",
+            "label": "Excluded Students"
+        },
+        {
+            "fieldname": "excluded_students",
+            "fieldtype": "Table",
+            "label": "Excluded Students",
+            "options": "Exam Schedule Excluded Student"
         }
     ],
     "grid_page_length": 50,
