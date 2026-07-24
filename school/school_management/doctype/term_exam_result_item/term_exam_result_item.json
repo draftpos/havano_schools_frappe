@@ -1,130 +1,130 @@
 {
- "actions": [],
- "creation": "2024-01-01 00:00:00",
- "doctype": "DocType",
- "editable_grid": 1,
- "engine": "InnoDB",
- "field_order": [
-  "student",
-  "student_name",
-  "subject",
-  "exam",
-  "marks_obtained",
-  "max_marks",
-  "percentage",
-  "points",
-  "grade",
-  "status",
-  "remarks",
-  "teacher_comment",
-  "admin_comment"
- ],
- "fields": [
-  {
-   "fieldname": "student",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Student",
-   "options": "Student",
-   "reqd": 1,
-   "in_standard_filter": 1,
-   "in_global_search": 1
-  },
-  {
-   "fieldname": "student_name",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Student Name",
-   "read_only": 1,
-   "in_standard_filter": 1,
-   "in_global_search": 1
-  },
-  {
-   "fieldname": "subject",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Subject",
-   "options": "Subject",
-   "reqd": 1
-  },
-  {
-   "fieldname": "exam",
-   "fieldtype": "Data",
-   "hidden": 1,
-   "label": "Exam"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "marks_obtained",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Marks Obtained"
-  },
-  {
-   "fieldname": "max_marks",
-   "fieldtype": "Float",
-   "default": "100",
-   "label": "Max Marks"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "percentage",
-   "fieldtype": "Percent",
-   "label": "Percentage",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "points",
-   "fieldtype": "Float",
-   "in_list_view": 1,
-   "label": "Points",
-   "read_only": 1
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "grade",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Grade"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "status",
-   "fieldtype": "Select",
-   "label": "Status",
-   "options": "\nPass\nModerate\nFailed"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "remarks",
-   "fieldtype": "Small Text",
-   "label": "Remarks"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "teacher_comment",
-   "fieldtype": "Data",
-   "in_list_view": 1,
-   "label": "Teacher Comment"
-  },
-  {
-   "allow_on_submit": 1,
-   "fieldname": "admin_comment",
-   "fieldtype": "Small Text",
-   "label": "Admin Comment"
-  }
- ],
- "istable": 1,
- "links": [],
- "modified": "2026-05-08 00:00:00",
- "modified_by": "Administrator",
- "module": "School Management",
- "name": "Term Exam Result Item",
- "owner": "Administrator",
- "permissions": [],
- "row_format": "Dynamic",
- "sort_field": "modified",
- "sort_order": "DESC",
- "states": []
+    "actions": [],
+    "creation": "2024-01-01 00:00:00",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "student",
+        "student_name",
+        "subject",
+        "exam",
+        "marks_obtained",
+        "max_marks",
+        "percentage",
+        "points",
+        "grade",
+        "status",
+        "remarks",
+        "teacher_comment",
+        "admin_comment"
+    ],
+    "fields": [
+        {
+            "fieldname": "student",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Student",
+            "options": "Student",
+            "reqd": 1,
+            "in_standard_filter": 1,
+            "in_global_search": 1
+        },
+        {
+            "fieldname": "student_name",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Student Name",
+            "read_only": 1,
+            "in_standard_filter": 1,
+            "in_global_search": 1
+        },
+        {
+            "fieldname": "subject",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Subject",
+            "options": "Subject",
+            "reqd": 1
+        },
+        {
+            "fieldname": "exam",
+            "fieldtype": "Data",
+            "hidden": 1,
+            "label": "Exam"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "marks_obtained",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Marks Obtained"
+        },
+        {
+            "fieldname": "max_marks",
+            "fieldtype": "Float",
+            "default": "100",
+            "label": "Max Marks"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "percentage",
+            "fieldtype": "Percent",
+            "label": "Percentage",
+            "read_only": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "points",
+            "fieldtype": "Float",
+            "in_list_view": 1,
+            "label": "Points",
+            "read_only": 1
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "grade",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Grade"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "label": "Status",
+            "options": "\nPass\nModerate\nFailed"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "remarks",
+            "fieldtype": "Small Text",
+            "label": "Remarks"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "teacher_comment",
+            "fieldtype": "Data",
+            "in_list_view": 1,
+            "label": "Teacher Comment"
+        },
+        {
+            "allow_on_submit": 1,
+            "fieldname": "admin_comment",
+            "fieldtype": "Small Text",
+            "label": "Admin Comment"
+        }
+    ],
+    "istable": 1,
+    "links": [],
+    "modified": "2026-05-08 00:00:00",
+    "modified_by": "Administrator",
+    "module": "School Management",
+    "name": "Term Exam Result Item",
+    "owner": "Administrator",
+    "permissions": [],
+    "row_format": "Dynamic",
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
 }

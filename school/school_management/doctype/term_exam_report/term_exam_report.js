@@ -1,21 +1,5 @@
 frappe.ui.form.on('Term Exam Report', {
-	setup: function(frm) {
-		try {
-			// Safely update metadata for child table columns to allow searching by name
-			let student_col = frappe.meta.get_docfield('Term Exam Result Item', 'student', frm.doc.name);
-			if (student_col) {
-				student_col.in_standard_filter = 1;
-				student_col.in_global_search = 1;
-			}
-			let name_col = frappe.meta.get_docfield('Term Exam Result Item', 'student_name', frm.doc.name);
-			if (name_col) {
-				name_col.in_standard_filter = 1;
-				name_col.in_global_search = 1;
-			}
-		} catch (e) {
-			console.error("Error setting up student search filters", e);
-		}
-	},
+
 
 
 	// ─── Auto-update student count when class or section changes ───────────────

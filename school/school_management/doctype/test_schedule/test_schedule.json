@@ -130,8 +130,7 @@
             "fieldname": "grading_score",
             "fieldtype": "Link",
             "label": "Grading Score",
-            "options": "Grading Score",
-            "default": "STD"
+            "options": "Grading Score"
         },
         {
             "fieldname": "remarks",

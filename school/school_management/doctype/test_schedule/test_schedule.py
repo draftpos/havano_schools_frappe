@@ -13,7 +13,7 @@ class TestSchedule(Document):
 		for item in self.test_items:
 			if item.marks_obtained is not None:
 				perc = (item.marks_obtained / self.max_marks) * 100
-				grading_score = frappe.get_doc("Grading Score", getattr(self, "grading_score", "STD") or "STD")
+				grading_score = frappe.get_doc("Grading Score", self.grading_score)
 				match = None
 				for gitem in grading_score.grading_items:
 					if perc >= gitem.from_percent and (not gitem.to_percent or perc <= gitem.to_percent):
