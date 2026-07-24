@@ -26,14 +26,18 @@
    "in_list_view": 1,
    "label": "Student",
    "options": "Student",
-   "reqd": 1
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "in_global_search": 1
   },
   {
    "fieldname": "student_name",
    "fieldtype": "Data",
    "in_list_view": 1,
    "label": "Student Name",
-   "read_only": 1
+   "read_only": 1,
+   "in_standard_filter": 1,
+   "in_global_search": 1
   },
   {
    "fieldname": "subject",

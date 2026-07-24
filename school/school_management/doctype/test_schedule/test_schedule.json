@@ -127,6 +127,13 @@
             "options": "Test Schedule Item"
         },
         {
+            "fieldname": "grading_score",
+            "fieldtype": "Link",
+            "label": "Grading Score",
+            "options": "Grading Score",
+            "default": "STD"
+        },
+        {
             "fieldname": "remarks",
             "fieldtype": "Small Text",
             "label": "Remarks"
