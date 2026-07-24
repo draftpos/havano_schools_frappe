@@ -1,4 +1,20 @@
 frappe.ui.form.on('Term Exam Report', {
+	setup: function(frm) {
+		const grid = frm.fields_dict['term_exam_results'] && frm.fields_dict['term_exam_results'].grid;
+		if (grid) {
+			const student_col = grid.get_field('student');
+			if (student_col) {
+				student_col.df.in_standard_filter = 1;
+				student_col.df.in_global_search = 1;
+			}
+			const name_col = grid.get_field('student_name');
+			if (name_col) {
+				name_col.df.in_standard_filter = 1;
+				name_col.df.in_global_search = 1;
+			}
+		}
+	},
+
 
 	// ─── Auto-update student count when class or section changes ───────────────
 
