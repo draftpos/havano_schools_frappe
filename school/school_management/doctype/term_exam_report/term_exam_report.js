@@ -1,5 +1,18 @@
 frappe.ui.form.on('Term Exam Report', {
 
+	view_student_report_card: function(frm) {
+		let sid = frm.doc.view_student_report_card;
+		if (sid) {
+			let studentName = sid;
+			let row = (frm.doc.term_exam_results || []).find(r => r.student === sid);
+			if (row && row.student_name) studentName = row.student_name;
+
+			_open_student_popup(frm, sid, studentName);
+			frappe.model.set_value(frm.doctype, frm.docname, 'view_student_report_card', '');
+		}
+	},
+
+
 
 
 	// ─── Auto-update student count when class or section changes ───────────────
@@ -88,7 +101,7 @@ frappe.ui.form.on('Term Exam Report', {
 							);
 
 							// Rebuild the student selector dropdown after fresh fetch
-							_render_student_dropdown(frm);
+							_setup_student_report_link(frm);
 						}
 					},
 					error: function () {
@@ -245,7 +258,7 @@ frappe.ui.form.on('Term Exam Report', {
 		}, __('Reports'));
 
 		// ── Render student selector dropdown ─────────────────────────────────
-		_render_student_dropdown(frm);
+		_setup_student_report_link(frm);
 	},
 
 	term_exam_results_add: function (frm, cdt, cdn) {
