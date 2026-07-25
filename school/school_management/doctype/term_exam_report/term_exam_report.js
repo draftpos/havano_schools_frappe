@@ -414,6 +414,9 @@ function _render_student_dropdown(frm) {
 				+ '<span style="font-size:11px;color:#64748b;">'
 				+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
 				+ '</span>'
+				+ '<button id="bulk-print-all-btn" class="btn btn-default btn-sm" style="margin-left:auto; height: 36px; padding: 0 16px; font-size: 13px; font-weight: 600; background: #f8fafc; border: 1.5px solid #e2e8f0; color: #334155; border-radius: 6px;">'
+				+ '🖨 Bulk Print All Reports'
+				+ '</button>'
 				+ '</div>'
 			);
 
@@ -424,6 +427,19 @@ function _render_student_dropdown(frm) {
 				_open_student_popup(frm, sid, studentMap[sid]);
 				// Reset dropdown back to placeholder so it can be re-selected
 				$(this).val('');
+			});
+
+			// Wire up Bulk Print All Button
+			$wrapper.find('#bulk-print-all-btn').on('click', function () {
+				const PRINT_FORMAT = 'Term Exam Report Card';
+				const printUrl = '/printview?'
+					+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
+					+ '&name=' + encodeURIComponent(frm.doc.name)
+					+ '&format=' + encodeURIComponent(PRINT_FORMAT)
+					+ '&no_letterhead=0';
+				
+				const win = window.open(printUrl + '#printall', '_blank');
+				if (!win) frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
 			});
 		}
 	});
