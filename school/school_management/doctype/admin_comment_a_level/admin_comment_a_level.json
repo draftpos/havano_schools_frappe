@@ -16,6 +16,7 @@
    "in_list_view": 1,
    "label": "Type of Comment",
    "options": "15+ points\n14 points\n12 - 13 points\n10 - 11 points\n8 - 9 points\n6 - 7 points\n4 - 5 points\n0 - 3 points",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -30,7 +31,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-07-28 14:58:12.709299",
+ "modified": "2026-07-28 15:27:46.993975",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "Admin Comment A Level",
