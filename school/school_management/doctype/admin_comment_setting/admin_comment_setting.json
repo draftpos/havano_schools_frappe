@@ -5,17 +5,26 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "comment_type",
+  "min_percentage",
+  "max_percentage",
   "comment"
  ],
  "fields": [
   {
-   "fieldname": "comment_type",
-   "fieldtype": "Select",
+   "fieldname": "min_percentage",
+   "fieldtype": "Float",
    "in_list_view": 1,
-   "label": "Type of Comment",
-   "options": "Passed all subjects\nFailed\nModerate\nExcellent",
-   "reqd": 1
+   "label": "Min Percentage",
+   "reqd": 1,
+   "default": "0.0"
+  },
+  {
+   "fieldname": "max_percentage",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Max Percentage",
+   "reqd": 1,
+   "default": "100.0"
   },
   {
    "fieldname": "comment",

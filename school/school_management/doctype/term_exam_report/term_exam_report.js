@@ -431,15 +431,11 @@ function _render_student_dropdown(frm) {
 
 			// Wire up Bulk Print All Button
 			$wrapper.find('#bulk-print-all-btn').on('click', function () {
-				const PRINT_FORMAT = 'Term Exam Report Card';
-				const printUrl = '/printview?'
-					+ 'doctype=' + encodeURIComponent(frm.doc.doctype)
-					+ '&name=' + encodeURIComponent(frm.doc.name)
-					+ '&format=' + encodeURIComponent(PRINT_FORMAT)
-					+ '&no_letterhead=0';
-				
-				const win = window.open(printUrl + '#printall', '_blank');
-				if (!win) frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
+				var url = frappe.urllib.get_full_url(
+					"/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_bulk_student_pdf" +
+					"?report_name=" + encodeURIComponent(frm.doc.name)
+				);
+				window.open(url, '_blank');
 			});
 		}
 	});

@@ -178,10 +178,14 @@ class TermExamReport(Document):
 
 		# Auto-fill admin comments based on overall performance
 		settings = frappe.get_single("School Settings")
-		admin_comments = {}
+		admin_comments = []
 		if hasattr(settings, "admin_comment_settings"):
 			for s_row in settings.admin_comment_settings:
-				admin_comments[s_row.comment_type] = s_row.comment
+				admin_comments.append({
+					"min": s_row.min_percentage or 0.0,
+					"max": s_row.max_percentage if s_row.max_percentage is not None else 100.0,
+					"comment": s_row.comment
+				})
 		
 		if admin_comments:
 			student_rows = defaultdict(list)
@@ -193,17 +197,13 @@ class TermExamReport(Document):
 				total_obtained = sum(r.marks_obtained or 0 for r in s_rows if r.marks_obtained is not None)
 				total_max = sum(r.max_marks or 0 for r in s_rows if r.marks_obtained is not None)
 				overall_pct = (total_obtained / total_max * 100) if total_max else 0
-				has_failed = any(r.status in ["Failed", "Fail"] for r in s_rows)
 				
-				student_status = "Moderate"
-				if has_failed or overall_pct < 50:
-					student_status = "Failed"
-				elif overall_pct >= 80:
-					student_status = "Excellent"
-				elif overall_pct >= 65:
-					student_status = "Passed all subjects"
-					
-				comment_to_apply = admin_comments.get(student_status)
+				comment_to_apply = None
+				for ac in admin_comments:
+					if ac["min"] <= overall_pct <= ac["max"]:
+						comment_to_apply = ac["comment"]
+						break
+						
 				if comment_to_apply:
 					for row in s_rows:
 						row.admin_comment = comment_to_apply
@@ -871,6 +871,69 @@ def get_student_pdf(report_name, student_id):
 
 	pdf_bytes = weasyprint.HTML(string=html).write_pdf()
 	fname = f"ReportCard_{full_name}_{doc.term}_{doc.academic_year}.pdf".replace(" ", "_")
+	frappe.response.filename = fname
+	frappe.response.filecontent = pdf_bytes
+	frappe.response.type = "pdf"
+
+@frappe.whitelist()
+def get_bulk_student_pdf(report_name):
+	"""Generate a single PDF with all students' report cards from a Term Exam Report."""
+	import weasyprint
+
+	user = frappe.session.user
+	doc = frappe.get_doc("Term Exam Report", report_name)
+	if doc.docstatus != 1:
+		frappe.throw(_("Report has not been submitted yet."))
+
+	# Ensure user has permissions
+	if not frappe.has_permission("Term Exam Report", "read", doc=doc):
+		frappe.throw(_("Not authorized"), frappe.PermissionError)
+
+	student_rows = defaultdict(list)
+	for r in doc.term_exam_results:
+		if r.student:
+			student_rows[r.student].append(r)
+
+	if not student_rows:
+		frappe.throw(_("No results found in this report."))
+
+	school_name = ""
+	if doc.cost_center:
+		school_name = frappe.db.get_value("Cost Center", doc.cost_center, "cost_center_name") or doc.cost_center
+
+	qr_b64 = doc.get_qr_base64()
+
+	all_html_pages = []
+	for student_id, rows in student_rows.items():
+		student_name = frappe.db.get_value(
+			"Student", student_id,
+			["first_name", "second_name", "last_name"],
+			as_dict=1
+		)
+		if student_name:
+			full_name = " ".join(filter(None, [
+				student_name.first_name,
+				student_name.second_name,
+				student_name.last_name
+			])) or student_id
+		else:
+			full_name = student_id
+		
+		report_html = build_report_html(full_name, student_id, rows, doc, school_name, qr_b64)
+		all_html_pages.append(f"<div style='page-break-after: always;'>\n{report_html}\n</div>")
+
+	html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+  @page {{size:A4;margin:15mm}}
+  body {{font-family:Arial,sans-serif;margin:0;padding:0}}
+</style>
+</head><body>
+{''.join(all_html_pages)}
+</body></html>"""
+
+	pdf_bytes = weasyprint.HTML(string=html).write_pdf()
+	fname = f"Bulk_ReportCards_{doc.student_class}_{doc.term}_{doc.academic_year}.pdf".replace(" ", "_")
 	frappe.response.filename = fname
 	frappe.response.filecontent = pdf_bytes
 	frappe.response.type = "pdf"
