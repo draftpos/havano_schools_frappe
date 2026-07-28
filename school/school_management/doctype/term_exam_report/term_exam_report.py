@@ -216,20 +216,31 @@ class TermExamReport(Document):
 				comment_to_apply = a_level_comments.get(ctype)
 
 			elif is_prim:
-				# Primary logic: based on percentage
-				total_obtained = sum(r.marks_obtained or 0 for r in s_rows if r.marks_obtained is not None)
-				total_max = sum(r.max_marks or 0 for r in s_rows if r.marks_obtained is not None)
-				overall_pct = (total_obtained / total_max * 100) if total_max else 0
+				# Primary logic: based on units
+				total_units = 0
+				for r in s_rows:
+					if r.grade:
+						try:
+							total_units += int(float(r.grade))
+						except (ValueError, TypeError):
+							pass
 				
 				ctype = None
-				if overall_pct >= 80:
-					ctype = "Excellent (80% and above)"
-				elif overall_pct >= 60:
-					ctype = "Good (60% to 79%)"
-				elif overall_pct >= 50:
-					ctype = "Moderate (50% to 59%)"
-				else:
-					ctype = "Failed (Below 50%)"
+				if total_units > 0:
+					if total_units <= 6:
+						ctype = "6 units"
+					elif total_units <= 12:
+						ctype = "7-12 units"
+					elif total_units <= 18:
+						ctype = "13-18 units"
+					elif total_units <= 24:
+						ctype = "19-24 units"
+					elif total_units <= 36:
+						ctype = "25-36 units"
+					elif total_units <= 48:
+						ctype = "37-48 units"
+					else:
+						ctype = "49-54 units"
 				comment_to_apply = primary_comments.get(ctype)
 
 			else:

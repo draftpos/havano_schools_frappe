@@ -1050,7 +1050,7 @@ title: Term Exam Results
 
     /* ── Assemble HTML ── */
     var html = ''
-      + '<div class="report-card">'
+      + '<div class="report-card"' + (window.IS_BULK_PRINT ? ' style="page-break-after: always; margin-bottom: 40px;"' : '') + '>'
       + '  <div class="card-header-wrapper">'
       + '    <div class="header-logo-panel">' + logoHtml + '</div>'
       + '    <div class="header-info-panel">'
@@ -1099,7 +1099,7 @@ title: Term Exam Results
       + '  <div class="analytics-wrapper">'
       + '    <div class="chart-panel">'
       + '      <h4>Subject Performance</h4>'
-      + '      <div class="chart-canvas-wrap"><canvas id="rc-chart" width="150" height="150"></canvas></div>'
+      + '      <div class="chart-canvas-wrap"><canvas id="rc-chart-' + idx + '" width="150" height="150"></canvas></div>'
       + '      <div class="chart-legend">' + legendHTML + '</div>'
       + '    </div>'
       + '    <div class="grade-scale-panel">'
@@ -1140,12 +1140,18 @@ title: Term Exam Results
       + '  </div>'
       + '</div>';
 
-    el("rc-container").innerHTML = html;
+    if (idx === 0 || !window.IS_BULK_PRINT) {
+        el("rc-container").innerHTML = "";
+    }
+    var div = document.createElement("div");
+    div.innerHTML = html;
+    el("rc-container").appendChild(div.firstChild);
+    
     el("dv").style.display = "block";
 
     /* ── Draw pie chart ────────────────────────────────── */
     setTimeout(function () {
-      var canvas = el("rc-chart");
+      var canvas = el("rc-chart-" + idx);
       if (!canvas || !window.Chart) return;
       var labels = [], values = [], colors = [];
       subjects.forEach(function (s, i) {
@@ -1246,12 +1252,19 @@ title: Term Exam Results
     var child = params.get("child") || params.get("student") || "";
     var report_id = params.get("report_name") || "";
     var isAdminPopup = (params.get("from") === "admin");
+    window.IS_BULK_PRINT = (params.get("all") === "1");
+    
     var qs = child ? "?student=" + encodeURIComponent(child) : "";
     if (report_id) {
         qs += (qs ? "&" : "?") + "report_name=" + encodeURIComponent(report_id);
     }
 
-    fetch("/api/method/school.api.get_term_exam_results" + qs, { credentials: "same-origin" })
+    var endpoint = "/api/method/school.api.get_term_exam_results" + qs;
+    if (window.IS_BULK_PRINT && report_id) {
+        endpoint = "/api/method/school.api.get_all_term_exam_results?report_name=" + encodeURIComponent(report_id);
+    }
+
+    fetch(endpoint, { credentials: "same-origin" })
       .then(function (res) { return res.json(); })
       .then(function (r) {
         if (!r.message || !r.message.length) {
@@ -1264,7 +1277,18 @@ title: Term Exam Results
         AR = r.message;
         el("loading").style.display = "none";
 
-        if (child) {
+        if (window.IS_BULK_PRINT) {
+            if (el("admin-comment-box")) el("admin-comment-box").style.display = "none";
+            var btnBack = el("btn-back-to-list");
+            if (btnBack) btnBack.style.display = "none";
+            
+            AR.forEach(function(r, i) {
+                showDetail(i);
+            });
+            setTimeout(function() {
+                window.print();
+            }, 1000);
+        } else if (child) {
             CURRENT_STUDENT = child;
             CURRENT_REPORT = report_id;
 

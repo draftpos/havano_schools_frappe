@@ -2249,3 +2249,92 @@ def reconcile_all_submitted_receipts():
         )
         return {"status": "error", "message": str(e)}
 
+@frappe.whitelist()
+def get_all_term_exam_results(report_name):
+    user = frappe.session.user
+    if not (user == 'Administrator' or 'System Manager' in frappe.get_roles(user) or 'School Administrator' in frappe.get_roles(user)):
+        return []
+
+    report = frappe.get_doc('Term Exam Report', report_name)
+    if not report:
+        return []
+
+    # Get school name
+    school_name = ''
+    if report.cost_center:
+        school_name = frappe.db.get_value('Cost Center', report.cost_center, 'cost_center_name') or report.cost_center
+
+    # Get all students
+    class_students = frappe.db.sql('''
+        SELECT DISTINCT student, student_name
+        FROM 	abTerm Exam Result Item
+        WHERE parent = %s
+    ''', (report.name,), as_dict=True)
+    
+    total_students = len(class_students)
+    
+    student_totals = []
+    for cs in class_students:
+        student_items = frappe.db.sql('''
+            SELECT marks_obtained, max_marks
+            FROM 	abTerm Exam Result Item
+            WHERE parent = %s AND student = %s
+        ''', (report.name, cs.student), as_dict=True)
+        total_obtained = sum(item.marks_obtained or 0 for item in student_items)
+        student_totals.append({
+            'student': cs.student,
+            'total': total_obtained
+        })
+    sorted_totals = sorted(student_totals, key=lambda x: x['total'], reverse=True)
+    rank_map = {}
+    for idx, st in enumerate(sorted_totals, 1):
+        rank_map[st['student']] = str(idx)
+
+    result = []
+    for cs in class_students:
+        s_name = cs.student
+        items = frappe.db.sql('''
+            SELECT subject, marks_obtained, max_marks, percentage, points, grade, status,
+                   remarks, teacher_comment, admin_comment, student, student_name
+            FROM 	abTerm Exam Result Item
+            WHERE parent = %s AND student = %s
+        ''', (report.name, s_name), as_dict=True)
+
+        student_info = frappe.db.get_value('Student', s_name, ['full_name', 'student_reg_no'], as_dict=True) or {}
+        reg_no = student_info.get('student_reg_no') or s_name
+        full_name = student_info.get('full_name') or cs.student_name or s_name
+
+        total_obtained = 0
+        total_max = 0
+        for item in items:
+            sub_name = frappe.db.get_value('Subject', item.subject, 'subject_name') or item.subject or ''
+            item['subject_name'] = sub_name
+            item['subject'] = sub_name
+            item['student_name'] = full_name
+            item['student'] = reg_no
+            item['student_reg_no'] = reg_no
+            total_obtained += (item.marks_obtained or 0)
+            total_max += (item.max_marks or 0)
+
+        overall_percentage = (total_obtained / total_max * 100) if total_max > 0 else 0
+
+        result.append({
+            'exam_name': report.term or report.report_name or 'Term Report',
+            'report_name': report.report_name or report.name,
+            'term': report.term or '',
+            'academic_year': report.academic_year or '',
+            'date': str(report.report_date) if report.report_date else '',
+            'class_name': report.student_class or '',
+            'section': report.section or '',
+            'school_name': school_name,
+            'student_name': full_name,
+            'admission_no': reg_no,
+            'class_rank': rank_map.get(s_name, '—'),
+            'total_students': total_students,
+            'overall_percentage': round(overall_percentage, 1),
+            'items': items
+        })
+
+    # Sort result alphabetically by student_name
+    result.sort(key=lambda x: x['student_name'])
+    return result

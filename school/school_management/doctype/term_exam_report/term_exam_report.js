@@ -431,11 +431,20 @@ function _render_student_dropdown(frm) {
 
 			// Wire up Bulk Print All Button
 			$wrapper.find('#bulk-print-all-btn').on('click', function () {
-				var url = frappe.urllib.get_full_url(
-					"/api/method/school.school_management.doctype.term_exam_report.term_exam_report.get_bulk_student_pdf" +
-					"?report_name=" + encodeURIComponent(frm.doc.name)
-				);
-				window.open(url, '_blank');
+				if (!(frm.doc.term_exam_results && frm.doc.term_exam_results.length)) {
+					frappe.msgprint(__('No results to print.'));
+					return;
+				}
+				
+				var printUrl = '/term-exam-results'
+					+ '?report_name=' + encodeURIComponent(frm.doc.name)
+					+ '&all=1'
+					+ '&from=admin';
+				
+				const win = window.open(printUrl, '_blank');
+				if (!win) {
+					frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
+				}
 			});
 		}
 	});

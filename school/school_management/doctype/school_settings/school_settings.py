@@ -35,7 +35,24 @@ class SchoolSettings(Document):
 			("4 - 5 points", "A very disappointing end of term report. Please put in more effort.\nConsult your teachers and other students, and make use of previous exam papers."),
 			("0 - 3 points", "A very disappointing end of term. Understand why you are here. Participate in class.\nConsult your teachers and other students, and make use of previous exam papers.")
 		]
+		primary_defaults = [
+			("6 units", "Exceptional. Wonderful work! You are a shining star. Keep up the great effort."),
+			("7-12 units", "Outstanding pefomance.  You are doing very well."),
+			("13-18 units", "Strong pass, respectable performance. Well done! Keep on working hardand you will do even better."),
+			("19-24 units", "Above average, reliable pass. Good work! You are making good progress. Keep believing in yourself and keep trying."),
+			("25-36 units", "Standard pass, satisfactory performance. You are doing okay. With a little more practice and focus, you can improve a lot."),
+			("37-48 units", "Borderline performance. You have the ability to improve."),
+			("49-54 units", "Unsatisfactory results. Please work harder together.")
+		]
 		
+		existing_p_types = [row.comment_type for row in self.get("primary_admin_comments")] if self.get("primary_admin_comments") else []
+		for ctype, default_cmt in primary_defaults:
+			if ctype not in existing_p_types:
+				self.append("primary_admin_comments", {
+					"comment_type": ctype,
+					"comment": default_cmt
+				})
+				
 		existing_o_types = [row.comment_type for row in self.get("o_level_admin_comments")] if self.get("o_level_admin_comments") else []
 		for ctype, default_cmt in o_level_defaults:
 			if ctype not in existing_o_types:
