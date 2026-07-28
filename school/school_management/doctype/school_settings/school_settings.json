@@ -21,7 +21,9 @@
   "id_card_settings_section",
   "ministry_logo",
   "admin_comments_section",
-  "admin_comment_settings"
+  "primary_admin_comments",
+  "o_level_admin_comments",
+  "a_level_admin_comments"
  ],
  "fields": [
   {
@@ -112,17 +114,29 @@
    "label": "Admin Comments (Auto)"
   },
   {
-   "fieldname": "admin_comment_settings",
+   "fieldname": "primary_admin_comments",
    "fieldtype": "Table",
-   "label": "Admin Comment Settings",
-   "options": "Admin Comment Setting"
+   "label": "Primary Admin Comments",
+   "options": "Admin Comment Primary"
+  },
+  {
+   "fieldname": "o_level_admin_comments",
+   "fieldtype": "Table",
+   "label": "O Level Admin Comments",
+   "options": "Admin Comment O Level"
+  },
+  {
+   "fieldname": "a_level_admin_comments",
+   "fieldtype": "Table",
+   "label": "A Level Admin Comments",
+   "options": "Admin Comment A Level"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-06 16:47:51.537510",
+ "modified": "2026-07-28 14:58:12.820741",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Settings",

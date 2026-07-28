@@ -178,35 +178,95 @@ class TermExamReport(Document):
 
 		# Auto-fill admin comments based on overall performance
 		settings = frappe.get_single("School Settings")
-		admin_comments = []
-		if hasattr(settings, "admin_comment_settings"):
-			for s_row in settings.admin_comment_settings:
-				admin_comments.append({
-					"min": s_row.min_percentage or 0.0,
-					"max": s_row.max_percentage if s_row.max_percentage is not None else 100.0,
-					"comment": s_row.comment
-				})
+		is_al = is_alevel(self.student_class)
+		is_prim = is_primary_or_ecd(self.student_class)
 		
-		if admin_comments:
-			student_rows = defaultdict(list)
-			for row in self.term_exam_results:
-				if row.student:
-					student_rows[row.student].append(row)
-					
-			for student_id, s_rows in student_rows.items():
+		primary_comments = {row.comment_type: row.comment for row in getattr(settings, "primary_admin_comments", [])}
+		o_level_comments = {row.comment_type: row.comment for row in getattr(settings, "o_level_admin_comments", [])}
+		a_level_comments = {row.comment_type: row.comment for row in getattr(settings, "a_level_admin_comments", [])}
+
+		student_rows = defaultdict(list)
+		for row in self.term_exam_results:
+			if row.student:
+				student_rows[row.student].append(row)
+				
+		for student_id, s_rows in student_rows.items():
+			comment_to_apply = None
+			
+			if is_al:
+				# A Level logic: based on total points
+				total_points = sum(r.points or 0.0 for r in s_rows)
+				ctype = None
+				if total_points >= 15:
+					ctype = "15+ points"
+				elif total_points >= 14:
+					ctype = "14 points"
+				elif total_points >= 12:
+					ctype = "12 - 13 points"
+				elif total_points >= 10:
+					ctype = "10 - 11 points"
+				elif total_points >= 8:
+					ctype = "8 - 9 points"
+				elif total_points >= 6:
+					ctype = "6 - 7 points"
+				elif total_points >= 4:
+					ctype = "4 - 5 points"
+				else:
+					ctype = "0 - 3 points"
+				comment_to_apply = a_level_comments.get(ctype)
+
+			elif is_prim:
+				# Primary logic: based on percentage
 				total_obtained = sum(r.marks_obtained or 0 for r in s_rows if r.marks_obtained is not None)
 				total_max = sum(r.max_marks or 0 for r in s_rows if r.marks_obtained is not None)
 				overall_pct = (total_obtained / total_max * 100) if total_max else 0
 				
-				comment_to_apply = None
-				for ac in admin_comments:
-					if ac["min"] <= overall_pct <= ac["max"]:
-						comment_to_apply = ac["comment"]
-						break
-						
-				if comment_to_apply:
-					for row in s_rows:
-						row.admin_comment = comment_to_apply
+				ctype = None
+				if overall_pct >= 80:
+					ctype = "Excellent (80% and above)"
+				elif overall_pct >= 60:
+					ctype = "Good (60% to 79%)"
+				elif overall_pct >= 50:
+					ctype = "Moderate (50% to 59%)"
+				else:
+					ctype = "Failed (Below 50%)"
+				comment_to_apply = primary_comments.get(ctype)
+
+			else:
+				# O Level logic: based on As and passing subjects
+				num_a = 0
+				num_pass = 0
+				for r in s_rows:
+					if r.grade and str(r.grade).strip().upper() in ["A", "A*"]:
+						num_a += 1
+					if r.status and str(r.status).strip().lower() == "pass":
+						num_pass += 1
+				
+				ctype = None
+				if num_a >= 10:
+					ctype = "10 As & Above"
+				elif num_a == 9:
+					ctype = "9 As"
+				elif num_a >= 7:
+					ctype = "7 As - 8 As"
+				elif num_a >= 4 and num_pass >= 5:
+					ctype = "5 Subjects & Above with 4 As"
+				elif num_a == 3 and num_pass >= 5:
+					ctype = "5 Subjects Passed with 3 As"
+				elif num_a in [1, 2] and num_pass >= 5:
+					ctype = "5 Subjects Passed with 1A - 2As"
+				elif num_a == 0 and num_pass >= 5:
+					ctype = "5 Subjects Passed without As"
+				elif num_pass < 5 and num_pass > 0:
+					ctype = "Less than 4 Subjects Passed"
+				elif num_pass == 0:
+					ctype = "0 Subjects Passed"
+					
+				comment_to_apply = o_level_comments.get(ctype)
+
+			if comment_to_apply:
+				for row in s_rows:
+					row.admin_comment = comment_to_apply
 
 	def validate_exam_marks_lock(self):
 		old_doc = self.get_doc_before_save()
