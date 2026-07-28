@@ -2267,7 +2267,7 @@ def get_all_term_exam_results(report_name):
     # Get all students
     class_students = frappe.db.sql('''
         SELECT DISTINCT student, student_name
-        FROM 	abTerm Exam Result Item
+        FROM `tabTerm Exam Result Item`
         WHERE parent = %s
     ''', (report.name,), as_dict=True)
     
@@ -2277,7 +2277,7 @@ def get_all_term_exam_results(report_name):
     for cs in class_students:
         student_items = frappe.db.sql('''
             SELECT marks_obtained, max_marks
-            FROM 	abTerm Exam Result Item
+            FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         ''', (report.name, cs.student), as_dict=True)
         total_obtained = sum(item.marks_obtained or 0 for item in student_items)
@@ -2296,7 +2296,7 @@ def get_all_term_exam_results(report_name):
         items = frappe.db.sql('''
             SELECT subject, marks_obtained, max_marks, percentage, points, grade, status,
                    remarks, teacher_comment, admin_comment, student, student_name
-            FROM 	abTerm Exam Result Item
+            FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         ''', (report.name, s_name), as_dict=True)
 
