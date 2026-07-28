@@ -19,7 +19,9 @@
   "report_theme_color",
   "hide_overall_average",
   "id_card_settings_section",
-  "ministry_logo"
+  "ministry_logo",
+  "admin_comments_section",
+  "admin_comment_settings"
  ],
  "fields": [
   {
@@ -103,6 +105,17 @@
    "fieldname": "ministry_logo",
    "fieldtype": "Attach Image",
    "label": "Ministry Logo"
+  },
+  {
+   "fieldname": "admin_comments_section",
+   "fieldtype": "Section Break",
+   "label": "Admin Comments (Auto)"
+  },
+  {
+   "fieldname": "admin_comment_settings",
+   "fieldtype": "Table",
+   "label": "Admin Comment Settings",
+   "options": "Admin Comment Setting"
   }
  ],
  "grid_page_length": 50,

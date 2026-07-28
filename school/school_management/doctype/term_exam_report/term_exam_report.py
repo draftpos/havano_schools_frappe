@@ -176,6 +176,38 @@ class TermExamReport(Document):
 				if not row.teacher_comment:
 					row.teacher_comment = get_seed_teacher_comment(row.percentage)
 
+		# Auto-fill admin comments based on overall performance
+		settings = frappe.get_single("School Settings")
+		admin_comments = {}
+		if hasattr(settings, "admin_comment_settings"):
+			for s_row in settings.admin_comment_settings:
+				admin_comments[s_row.comment_type] = s_row.comment
+		
+		if admin_comments:
+			student_rows = defaultdict(list)
+			for row in self.term_exam_results:
+				if row.student:
+					student_rows[row.student].append(row)
+					
+			for student_id, s_rows in student_rows.items():
+				total_obtained = sum(r.marks_obtained or 0 for r in s_rows if r.marks_obtained is not None)
+				total_max = sum(r.max_marks or 0 for r in s_rows if r.marks_obtained is not None)
+				overall_pct = (total_obtained / total_max * 100) if total_max else 0
+				has_failed = any(r.status in ["Failed", "Fail"] for r in s_rows)
+				
+				student_status = "Moderate"
+				if has_failed or overall_pct < 50:
+					student_status = "Failed"
+				elif overall_pct >= 80:
+					student_status = "Excellent"
+				elif overall_pct >= 65:
+					student_status = "Passed all subjects"
+					
+				comment_to_apply = admin_comments.get(student_status)
+				if comment_to_apply:
+					for row in s_rows:
+						row.admin_comment = comment_to_apply
+
 	def validate_exam_marks_lock(self):
 		old_doc = self.get_doc_before_save()
 		if old_doc:
@@ -312,7 +344,15 @@ class TermExamReport(Document):
 def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b64=None):
 	"""Build full HTML report card for one student — all subjects."""
 	class_teacher_comment_val = doc.class_teacher_comment or "No comment provided."
-	principal_comment_val = doc.principal_comment or "No comment provided."
+	
+	admin_comment = None
+	if rows:
+		for r in rows:
+			if r.admin_comment:
+				admin_comment = r.admin_comment
+				break
+				
+	principal_comment_val = admin_comment or doc.principal_comment or "No comment provided."
 
 	settings = frappe.get_single("School Settings")
 	theme_color = settings.report_theme_color or "#1e3a5f"
