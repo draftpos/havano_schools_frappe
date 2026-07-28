@@ -119,17 +119,17 @@ frappe.ui.form.on('Term Exam Report', {
 			+ '&no_letterhead=0';
 
 		// ── Open Report Cards ────────────────────────────────────────────────
-		// Opens the print format page — student selector bar is built into the template
 		frm.add_custom_button(__('📋 Open Report Cards'), function () {
 			if (!_has_results(frm)) return;
-			window.open(printUrl, '_blank');
+			var url = '/term-exam-results?report_name=' + encodeURIComponent(frm.doc.name) + '&from=admin';
+			window.open(url, '_blank');
 		}, __('Reports'));
 
 		// ── Print All Students ───────────────────────────────────────────────
-		// Opens print format then auto-triggers the template's printAll() via hash
 		frm.add_custom_button(__('🖨 Print All Students'), function () {
 			if (!_has_results(frm)) return;
-			const win = window.open(printUrl + '#printall', '_blank');
+			var url = '/term-exam-results?report_name=' + encodeURIComponent(frm.doc.name) + '&all=1&from=admin';
+			const win = window.open(url, '_blank');
 			if (!win) frappe.msgprint(__('Popup blocked. Please allow popups for this site and try again.'));
 		}, __('Reports'));
 
