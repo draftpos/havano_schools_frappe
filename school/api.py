@@ -80,11 +80,22 @@ def get_billing_summary(student=None):
         return {"error": "Invalid User"}
 
     if not student:
-        student = frappe.db.get_value("Student", {"portal_email": user}, ["name", "full_name"], as_dict=True)
+        student = frappe.db.get_value("Student", {"portal_email": user},
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
     else:
-        student = frappe.db.get_value("Student", student, ["name", "full_name"], as_dict=True)
-    if not student:
-        return {"error": "Student record not found"}
+        student = frappe.db.get_value("Student", student,
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
+    
+    if not student: return []
+
+    s_name = student.name
+    
+    db_full = student.get('full_name')
+    if not db_full:
+        db_full = " ".join(filter(None, [student.get('first_name'), student.get('last_name')]))
+    student['full_name'] = db_full
+
+    s_class = student.student_class or ""
 
     invoices = frappe.db.sql("""
         SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
@@ -2440,9 +2451,14 @@ def get_all_term_exam_results(report_name):
             WHERE parent = %s AND student = %s
         ''', (report.name, s_name), as_dict=True)
 
-        student_info = frappe.db.get_value('Student', s_name, ['full_name', 'student_reg_no'], as_dict=True) or {}
+        student_info = frappe.db.get_value('Student', s_name, ['full_name', 'first_name', 'last_name', 'student_reg_no'], as_dict=True) or {}
         reg_no = student_info.get('student_reg_no') or s_name
-        full_name = student_info.get('full_name') or cs.student_name or s_name
+        
+        db_full = student_info.get('full_name')
+        if not db_full:
+            db_full = " ".join(filter(None, [student_info.get('first_name'), student_info.get('last_name')]))
+            
+        full_name = db_full or cs.student_name or s_name
 
         total_obtained = 0
         total_max = 0

@@ -496,7 +496,7 @@ def build_report_html(student_name, student_id, rows, doc, school_name="", qr_b6
 	<div style="background:#eef2f7;padding:14px 28px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:1px solid #cbd5e1">
 		<div>
 			<p style="margin:3px 0;font-size:14px"><strong>Student:</strong> {student_name}</p>
-			<p style="margin:3px 0;font-size:13px;color:#475569"><strong>Admission No:</strong> {student_id}</p>
+			<p style="margin:3px 0;font-size:13px;color:#475569"><strong>Admission No:</strong> {frappe.db.get_value("Student", student_id, "student_reg_no") or student_id}</p>
 			<p style="margin:3px 0;font-size:13px;color:#475569"><strong>Class:</strong> {doc.student_class}{(' &nbsp;|&nbsp; Section: ' + doc.section) if doc.section else ''}</p>
 		</div>
 		<div style="text-align:right">
