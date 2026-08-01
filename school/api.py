@@ -636,21 +636,18 @@ def get_term_exam_results(student=None, report_name=None):
     s_section = student.section or ""
 
     # Get term reports — filter to specific report if report_name is provided
+    reports = []
     if report_name:
-        if frappe.has_permission("Term Exam Report", "read"):
-            reports = frappe.db.sql("""
-                SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-                FROM `tabTerm Exam Report`
-                WHERE name = %s
-                ORDER BY report_date DESC
-            """, report_name, as_dict=True) if report_name else []
-        else:
-            reports = frappe.db.sql("""
-                SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-                FROM `tabTerm Exam Report`
-                WHERE name = %s AND docstatus = 1
-                ORDER BY report_date DESC
-            """, report_name, as_dict=True) if report_name else []
+        try:
+            report = frappe.get_doc("Term Exam Report", report_name)
+            if frappe.has_permission("Term Exam Report", "read", doc=report):
+                reports = [report.as_dict()]
+            elif report.docstatus == 1:
+                reports = [report.as_dict()]
+        except frappe.DoesNotExistError:
+            pass
+        except Exception as e:
+            frappe.log_error("get_term_exam_results failed", str(e))
     else:
         reports = frappe.db.sql("""
             SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
