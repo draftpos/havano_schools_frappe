@@ -1,6 +1,74 @@
 import frappe
 from frappe import _
-from frappe.utils import flt
+from frappe.utils import flt, nowdate, today, getdate
+from school.school_management.doctype.term_exam_report.term_exam_report import is_alevel, is_primary_or_ecd
+
+def _apply_dynamic_admin_comments(items, student_class):
+    if not items: return
+    # Do not recalculate if admin_comment is already fully set
+    if all(item.get("admin_comment") for item in items): return
+
+    settings = frappe.get_single("School Settings")
+    is_al = is_alevel(student_class)
+    is_prim = is_primary_or_ecd(student_class)
+
+    primary_comments = {row.comment_type: row.comment for row in getattr(settings, "primary_admin_comments", [])}
+    o_level_comments = {row.comment_type: row.comment for row in getattr(settings, "o_level_admin_comments", [])}
+    a_level_comments = {row.comment_type: row.comment for row in getattr(settings, "a_level_admin_comments", [])}
+
+    comment_to_apply = None
+    if is_al:
+        total_points = sum(r.get("points") or 0.0 for r in items)
+        ctype = None
+        if total_points >= 15: ctype = "15+ points"
+        elif total_points >= 14: ctype = "14 points"
+        elif total_points >= 12: ctype = "12 - 13 points"
+        elif total_points >= 10: ctype = "10 - 11 points"
+        elif total_points >= 8: ctype = "8 - 9 points"
+        elif total_points >= 6: ctype = "6 - 7 points"
+        elif total_points >= 4: ctype = "4 - 5 points"
+        else: ctype = "0 - 3 points"
+        comment_to_apply = a_level_comments.get(ctype)
+    elif is_prim:
+        total_units = 0
+        for r in items:
+            if r.get("grade"):
+                try: total_units += int(float(r["grade"]))
+                except (ValueError, TypeError): pass
+        ctype = None
+        if total_units > 0:
+            if total_units <= 6: ctype = "6 units"
+            elif total_units <= 12: ctype = "7-12 units"
+            elif total_units <= 18: ctype = "13-18 units"
+            elif total_units <= 24: ctype = "19-24 units"
+            elif total_units <= 36: ctype = "25-36 units"
+            elif total_units <= 48: ctype = "37-48 units"
+            else: ctype = "49-54 units"
+        comment_to_apply = primary_comments.get(ctype)
+    else:
+        num_a = 0
+        num_pass = 0
+        for r in items:
+            g = str(r.get("grade") or "").strip().upper()
+            if g in ["A", "A*"]: num_a += 1
+            st = str(r.get("status") or "").strip().lower()
+            if st == "pass": num_pass += 1
+        ctype = None
+        if num_a >= 10: ctype = "10 As & Above"
+        elif num_a == 9: ctype = "9 As"
+        elif num_a >= 7: ctype = "7 As - 8 As"
+        elif num_a >= 4 and num_pass >= 5: ctype = "5 Subjects & Above with 4 As"
+        elif num_a == 3 and num_pass >= 5: ctype = "5 Subjects Passed with 3 As"
+        elif num_a in [1, 2] and num_pass >= 5: ctype = "5 Subjects Passed with 1A - 2As"
+        elif num_a == 0 and num_pass >= 5: ctype = "5 Subjects Passed without As"
+        elif num_pass < 5 and num_pass > 0: ctype = "Less than 4 Subjects Passed"
+        elif num_pass == 0: ctype = "0 Subjects Passed"
+        comment_to_apply = o_level_comments.get(ctype)
+
+    if comment_to_apply:
+        for row in items:
+            if not row.get("admin_comment"):
+                row["admin_comment"] = comment_to_apply
 
 @frappe.whitelist()
 def get_billing_summary(student=None):
@@ -722,6 +790,8 @@ def get_term_exam_results(student=None, report_name=None):
         if report.cost_center:
             cc = frappe.get_doc("Cost Center", report.cost_center)
             school_name = cc.cost_center_name or report.cost_center
+
+        _apply_dynamic_admin_comments(items, report.student_class)
 
         # Calculate class position for this report
         # Get all students in this class/section
@@ -2416,6 +2486,8 @@ def get_all_term_exam_results(report_name):
             if item.marks_obtained is not None:
                 total_obtained += item.marks_obtained
                 total_max += (item.max_marks or 0)
+
+        _apply_dynamic_admin_comments(items, report.student_class)
 
         overall_percentage = (total_obtained / total_max * 100) if total_max > 0 else 0
 
