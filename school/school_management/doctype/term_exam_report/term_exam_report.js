@@ -110,7 +110,7 @@ frappe.ui.form.on('Term Exam Report', {
 		// }
 
 		// !! Change this to match your exact Print Format name in Frappe !!
-		const PRINT_FORMAT = 'Term Exam Report Card';
+		const PRINT_FORMAT = 'Term Exam Report Premium';
 
 		const printUrl = '/printview?'
 			+ 'doctype=' + encodeURIComponent(frm.doc.doctype)

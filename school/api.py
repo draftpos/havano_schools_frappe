@@ -617,7 +617,7 @@ def get_homework_results(student=None):
         })
     return result
 @frappe.whitelist()
-def get_term_exam_results(student=None):
+def get_term_exam_results(student=None, report_name=None):
     user = frappe.session.user
     is_admin = "Administrator" in frappe.get_roles(user) or "School Administrator" in frappe.get_roles(user)
     
@@ -635,13 +635,21 @@ def get_term_exam_results(student=None):
     s_class = student.student_class or ""
     s_section = student.section or ""
 
-    # Get term reports
-    reports = frappe.db.sql("""
-        SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-        FROM `tabTerm Exam Report`
-        WHERE student_class = %s AND docstatus = 1
-        ORDER BY report_date DESC
-    """, s_class, as_dict=True) if s_class else []
+    # Get term reports — filter to specific report if report_name is provided
+    if report_name:
+        reports = frappe.db.sql("""
+            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+            FROM `tabTerm Exam Report`
+            WHERE name = %s AND docstatus = 1
+            ORDER BY report_date DESC
+        """, report_name, as_dict=True) if report_name else []
+    else:
+        reports = frappe.db.sql("""
+            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+            FROM `tabTerm Exam Report`
+            WHERE student_class = %s AND docstatus = 1
+            ORDER BY report_date DESC
+        """, s_class, as_dict=True) if s_class else []
 
     result = []
     for report in reports:
@@ -656,7 +664,43 @@ def get_term_exam_results(student=None):
         if not items:
             continue
 
+        # Build exam schedule map for this report (for fallback mark lookup)
+        sched_filters = {"term": report.term, "student_class": report.student_class}
+        if report.section:
+            sched_filters["section"] = report.section
+        schedules = frappe.get_all(
+            "Exam Schedule",
+            filters=sched_filters,
+            fields=["name", "subject", "exam", "max_marks"]
+        )
+        subject_schedule_map = {}
+        for s in schedules:
+            subject_schedule_map[s.subject] = s
+
         for item in items:
+            # Fallback: if marks_obtained is NULL, try to get live mark from Exam Schedule Item
+            if item.marks_obtained is None and item.subject:
+                sched = subject_schedule_map.get(item.subject)
+                if sched:
+                    live_score = frappe.db.get_value(
+                        "Exam Schedule Item",
+                        {"parent": sched.name, "student_admission_no": s_name},
+                        ["marks_obtained", "grade", "status", "teacher_comment"],
+                        as_dict=True
+                    )
+                    if live_score and live_score.marks_obtained is not None:
+                        item["marks_obtained"] = live_score.marks_obtained
+                        if not item.get("grade"):
+                            item["grade"] = live_score.grade or ""
+                        if not item.get("status"):
+                            item["status"] = live_score.status or ""
+                        if not item.get("teacher_comment"):
+                            item["teacher_comment"] = live_score.teacher_comment or ""
+                        max_m = item.max_marks or sched.max_marks or 100.0
+                        item["max_marks"] = max_m
+                        if max_m:
+                            item["percentage"] = round((item["marks_obtained"] / max_m) * 100, 1)
+
             sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
             item["subject_name"] = sub_name
             # Add subject name for display
@@ -686,7 +730,7 @@ def get_term_exam_results(student=None):
         class_rank = "—"
         
         if total_students > 1:
-            # Calculate totals for each student
+            # Calculate totals for each student (only where marks recorded)
             student_totals = []
             for cs in class_students:
                 # Get all items for this student in this report
@@ -696,7 +740,7 @@ def get_term_exam_results(student=None):
                     WHERE parent = %s AND student = %s
                 """, (report.name, cs.student), as_dict=True)
                 
-                total_obtained = sum(item.marks_obtained or 0 for item in student_items)
+                total_obtained = sum(item.marks_obtained or 0 for item in student_items if item.marks_obtained is not None)
                 student_totals.append({
                     "student": cs.student,
                     "total": total_obtained
@@ -709,12 +753,13 @@ def get_term_exam_results(student=None):
                     class_rank = str(idx)
                     break
         
-        # Calculate overall percentage for this student in this report
-        total_obtained = sum(item.marks_obtained or 0 for item in items)
-        total_max = sum(item.max_marks or 0 for item in items)
+        # Calculate overall percentage for this student in this report (only where marks recorded)
+        total_obtained = sum(item.marks_obtained or 0 for item in items if item.marks_obtained is not None)
+        total_max = sum(item.max_marks or 0 for item in items if item.marks_obtained is not None)
         overall_percentage = (total_obtained / total_max * 100) if total_max > 0 else 0
         
         result.append({
+            "name": report.name,
             "exam_name": report.term or report.report_name or "Term Report",
             "report_name": report.report_name or report.name,
             "term": report.term or "",
@@ -2252,11 +2297,15 @@ def reconcile_all_submitted_receipts():
 @frappe.whitelist()
 def get_all_term_exam_results(report_name):
     user = frappe.session.user
-    if not (user == 'Administrator' or 'System Manager' in frappe.get_roles(user) or 'School Administrator' in frappe.get_roles(user)):
+    if user == 'Guest':
         return []
 
+    # Allow any logged-in user who has read access to this report
     report = frappe.get_doc('Term Exam Report', report_name)
     if not report:
+        return []
+
+    if not frappe.has_permission('Term Exam Report', 'read', doc=report):
         return []
 
     # Get school name
@@ -2264,15 +2313,30 @@ def get_all_term_exam_results(report_name):
     if report.cost_center:
         school_name = frappe.db.get_value('Cost Center', report.cost_center, 'cost_center_name') or report.cost_center
 
+    # Build a map of subject → exam schedule for fallback mark lookup
+    # This lets us fetch live marks from Exam Schedule Items when the report child table has NULL marks
+    sched_filters = {'term': report.term, 'student_class': report.student_class}
+    if report.section:
+        sched_filters['section'] = report.section
+    schedules = frappe.get_all(
+        'Exam Schedule',
+        filters=sched_filters,
+        fields=['name', 'subject', 'exam', 'max_marks']
+    )
+    # Map subject → most recent schedule (last in list)
+    subject_schedule_map = {}
+    for s in schedules:
+        subject_schedule_map[s.subject] = s
+
     # Get all students
     class_students = frappe.db.sql('''
         SELECT DISTINCT student, student_name
         FROM `tabTerm Exam Result Item`
         WHERE parent = %s
     ''', (report.name,), as_dict=True)
-    
+
     total_students = len(class_students)
-    
+
     student_totals = []
     for cs in class_students:
         student_items = frappe.db.sql('''
@@ -2280,7 +2344,8 @@ def get_all_term_exam_results(report_name):
             FROM `tabTerm Exam Result Item`
             WHERE parent = %s AND student = %s
         ''', (report.name, cs.student), as_dict=True)
-        total_obtained = sum(item.marks_obtained or 0 for item in student_items)
+        # Only count subjects where marks were actually recorded
+        total_obtained = sum(item.marks_obtained or 0 for item in student_items if item.marks_obtained is not None)
         student_totals.append({
             'student': cs.student,
             'total': total_obtained
@@ -2307,18 +2372,50 @@ def get_all_term_exam_results(report_name):
         total_obtained = 0
         total_max = 0
         for item in items:
+            # -----------------------------------------------------------------
+            # Bug 4 fallback: if marks_obtained is NULL in the child table,
+            # look up the live mark from Exam Schedule Item.  This handles the
+            # case where marks were uploaded to the Exam Schedule AFTER the
+            # last "Fetch Results" run on this Term Exam Report.
+            # -----------------------------------------------------------------
+            if item.marks_obtained is None and item.subject:
+                sched = subject_schedule_map.get(item.subject)
+                if sched:
+                    live_score = frappe.db.get_value(
+                        'Exam Schedule Item',
+                        {'parent': sched.name, 'student_admission_no': s_name},
+                        ['marks_obtained', 'grade', 'status', 'teacher_comment'],
+                        as_dict=True
+                    )
+                    if live_score and live_score.marks_obtained is not None:
+                        item['marks_obtained'] = live_score.marks_obtained
+                        if not item.get('grade'):
+                            item['grade'] = live_score.grade or ''
+                        if not item.get('status'):
+                            item['status'] = live_score.status or ''
+                        if not item.get('teacher_comment'):
+                            item['teacher_comment'] = live_score.teacher_comment or ''
+                        # Recalculate percentage from live mark
+                        max_m = item.max_marks or sched.max_marks or 100.0
+                        item['max_marks'] = max_m
+                        if max_m:
+                            item['percentage'] = round((item['marks_obtained'] / max_m) * 100, 1)
+            # -----------------------------------------------------------------
+
             sub_name = frappe.db.get_value('Subject', item.subject, 'subject_name') or item.subject or ''
             item['subject_name'] = sub_name
             item['subject'] = sub_name
             item['student_name'] = full_name
             item['student'] = reg_no
             item['student_reg_no'] = reg_no
-            total_obtained += (item.marks_obtained or 0)
-            total_max += (item.max_marks or 0)
+            if item.marks_obtained is not None:
+                total_obtained += item.marks_obtained
+                total_max += (item.max_marks or 0)
 
         overall_percentage = (total_obtained / total_max * 100) if total_max > 0 else 0
 
         result.append({
+            'name': report.name,
             'exam_name': report.term or report.report_name or 'Term Report',
             'report_name': report.report_name or report.name,
             'term': report.term or '',

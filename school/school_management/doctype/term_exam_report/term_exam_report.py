@@ -1104,8 +1104,9 @@ def get_top_students_html(report_name, limit):
 			
 			if row.marks_obtained is not None:
 				student_totals[row.student]["marks"] += row.marks_obtained
-			if row.max_marks:
-				student_totals[row.student]["max_marks"] += row.max_marks
+				# Only count max_marks for subjects the student actually sat
+				if row.max_marks:
+					student_totals[row.student]["max_marks"] += row.max_marks
 			if is_al:
 				if row.grade:
 					g_str = str(row.grade).upper().strip()
