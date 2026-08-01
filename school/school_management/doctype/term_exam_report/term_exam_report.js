@@ -373,7 +373,8 @@ function _render_student_dropdown(frm) {
 		args: {
 			doctype: 'Student',
 			filters: { name: ['in', studentIds] },
-			fields: ['name', 'full_name']
+			fields: ['name', 'full_name'],
+			limit: 0 // fetch all, ignore default 20 limit
 		},
 		callback: function (r) {
 			var studentMap = {};
@@ -387,17 +388,9 @@ function _render_student_dropdown(frm) {
 				if (!studentMap[id]) studentMap[id] = id;
 			});
 
-			var opts = '<option value="">— Select a student to view their report card —</option>';
 			// Sort alphabetically by name
 			studentIds.sort(function(a, b) {
 				return studentMap[a].localeCompare(studentMap[b]);
-			});
-
-			studentIds.forEach(function (sid) {
-				opts += '<option value="' + sid + '">'
-					+ frappe.utils.escape_html(studentMap[sid])
-					+ ' &nbsp;(' + frappe.utils.escape_html(sid) + ')'
-					+ '</option>';
 			});
 
 			$wrapper.html(
@@ -405,12 +398,12 @@ function _render_student_dropdown(frm) {
 				+ '<label style="font-weight:600;color:#1e3a5f;white-space:nowrap;font-size:13px;min-width:fit-content;">'
 				+ '&#128065; View Student Report Card:'
 				+ '</label>'
-				+ '<select id="student-report-selector" style="'
+				+ '<input id="student-report-selector" type="text" placeholder="Search student name or ID..." style="'
 				+ 'flex:1;max-width:420px;height:36px;padding:4px 12px;'
 				+ 'border:1.5px solid #d1d5db;border-radius:6px;'
-				+ 'font-size:13px;background:#fff;cursor:pointer;color:#0f172a;'
+				+ 'font-size:13px;background:#fff;color:#0f172a;'
 				+ 'box-shadow:0 1px 3px rgba(0,0,0,.06);'
-				+ '">' + opts + '</select>'
+				+ '">'
 				+ '<span style="font-size:11px;color:#64748b;">'
 				+ studentIds.length + ' student' + (studentIds.length !== 1 ? 's' : '')
 				+ '</span>'
@@ -420,13 +413,40 @@ function _render_student_dropdown(frm) {
 				+ '</div>'
 			);
 
-			// Wire up change → popup
-			$wrapper.find('#student-report-selector').on('change', function () {
-				var sid = $(this).val();
+			// Setup Awesomplete for search
+			var $input = $wrapper.find('#student-report-selector');
+			var listData = studentIds.map(function(sid) {
+				return {
+					label: studentMap[sid] + ' (' + sid + ')',
+					value: sid
+				};
+			});
+			
+			var awesomplete = new Awesomplete($input[0], {
+				list: listData,
+				minChars: 0,
+				maxItems: 100,
+				autoFirst: true,
+				filter: function(text, input) {
+					return Awesomplete.FILTER_CONTAINS(text, input.match(/[^,]*$/)[0]);
+				}
+			});
+
+			// Wire up selection → popup
+			$input.on('awesomplete-selectcomplete', function (e) {
+				var sid = e.originalEvent.text.value;
 				if (!sid) return;
 				_open_student_popup(frm, sid, studentMap[sid]);
-				// Reset dropdown back to placeholder so it can be re-selected
+				// Reset input
 				$(this).val('');
+			});
+
+			// Open dropdown on click/focus
+			$input.on('focus click', function() {
+				if (awesomplete.ul.childNodes.length === 0) {
+					awesomplete.evaluate();
+				}
+				awesomplete.open();
 			});
 
 			// Wire up Bulk Print All Button
