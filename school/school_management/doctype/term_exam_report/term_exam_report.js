@@ -373,14 +373,21 @@ function _render_student_dropdown(frm) {
 		args: {
 			doctype: 'Student',
 			filters: { name: ['in', studentIds] },
-			fields: ['name', 'full_name'],
-			limit: 0 // fetch all, ignore default 20 limit
+			fields: ['name', 'full_name', 'first_name', 'last_name'],
+			limit_page_length: 0 // fetch all, ignore default 20 limit
 		},
 		callback: function (r) {
 			var studentMap = {};
 			if (r.message) {
 				r.message.forEach(s => {
-					studentMap[s.name] = s.full_name || s.name;
+					let db_full = s.full_name;
+					if (!db_full) {
+						let parts = [];
+						if (s.first_name) parts.push(s.first_name);
+						if (s.last_name) parts.push(s.last_name);
+						db_full = parts.join(' ');
+					}
+					studentMap[s.name] = db_full || s.name;
 				});
 			}
 			// Fallback for any missing
