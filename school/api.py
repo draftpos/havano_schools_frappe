@@ -52,7 +52,7 @@ def _apply_dynamic_admin_comments(items, student_class):
             g = str(r.get("grade") or "").strip().upper()
             if g in ["A", "A*"]: num_a += 1
             st = str(r.get("status") or "").strip().lower()
-            if st == "pass": num_pass += 1
+            if st == "pass" or g in ["A", "A*", "B", "C"]: num_pass += 1
         ctype = None
         if num_a >= 10: ctype = "10 As & Above"
         elif num_a == 9: ctype = "9 As"
