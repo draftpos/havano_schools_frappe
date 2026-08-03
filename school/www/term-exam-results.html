@@ -889,6 +889,7 @@ title: Term Exam Results
     }
 
     var aLevelPts = [];
+    var gradeCounts = {};
     r.items.forEach(function (s) {
       totalMax += parseFloat(s.max_marks || 0);
       totalObt += parseFloat(s.marks_obtained || 0);
@@ -908,6 +909,11 @@ title: Term Exam Results
           var u = parseInt(s.grade, 10);
           if (!isNaN(u)) totalUnits += u;
       }
+      
+      if (!isPrimary && !isALevel && g) {
+          var gStr = String(g).toUpperCase().trim();
+          gradeCounts[gStr] = (gradeCounts[gStr] || 0) + 1;
+      }
     });
     
     if (isALevel) {
@@ -926,7 +932,15 @@ title: Term Exam Results
     } else if (isPrimary && totalUnits > 0) {
         overallGDisplay = Math.round(totalUnits) + " units";
     } else {
-        overallGDisplay = overallG || "";
+        var aStar = gradeCounts['A*'] || 0;
+        var aCnt = gradeCounts['A'] || 0;
+        var bCnt = gradeCounts['B'] || 0;
+        var cCnt = gradeCounts['C'] || 0;
+        if (aStar > 0 || aCnt > 0 || bCnt > 0 || cCnt > 0) {
+            overallGDisplay = aStar + "A*, " + aCnt + "A, " + bCnt + "B, " + cCnt + "C";
+        } else {
+            overallGDisplay = overallG || "";
+        }
     }
 
     /* ── Student identity — exact field names from print format Jinja ──
