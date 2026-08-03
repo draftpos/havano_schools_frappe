@@ -731,6 +731,37 @@ def fetch_results(report_name):
 		fields=["name", "subject", "exam", "max_marks", "min_marks"]
 	)
 
+	# Fallback: if section filter was applied, also fetch schedules with no section
+	# for subjects not yet covered. This handles the case where a schedule was
+	# created for the whole class (no section) but the report has a section.
+	if doc.section:
+		covered_subjects = set(s.subject for s in schedules)
+		missing_subjects = [s for s in subject_names if s not in covered_subjects]
+		if missing_subjects:
+			fallback = frappe.get_all(
+				"Exam Schedule",
+				filters={
+					"term": doc.term,
+					"student_class": doc.student_class,
+					"subject": ["in", missing_subjects],
+					"section": ["", None]
+				},
+				fields=["name", "subject", "exam", "max_marks", "min_marks"]
+			)
+			# If the [in, ["", None]] filter doesn't work in all Frappe versions, use SQL
+			if not fallback:
+				try:
+					fallback = frappe.db.sql("""
+						SELECT name, subject, exam, max_marks, min_marks
+						FROM `tabExam Schedule`
+						WHERE term=%s AND student_class=%s
+						  AND subject IN %s
+						  AND (section IS NULL OR section='')
+					""", (doc.term, doc.student_class, tuple(missing_subjects)), as_dict=True)
+				except Exception:
+					fallback = []
+			schedules = list(schedules) + list(fallback)
+
 	subject_schedule_map = defaultdict(list)
 	sched_names = []
 	for s in schedules:

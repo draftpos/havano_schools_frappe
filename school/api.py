@@ -757,9 +757,55 @@ def get_term_exam_results(student=None, report_name=None):
             filters=sched_filters,
             fields=["name", "subject", "exam", "max_marks"]
         )
+        # Fallback: also look up schedules with no section for any subject not covered
+        if report.section:
+            covered = set(s.subject for s in schedules)
+            all_subjs = list(set(
+                item.subject for item in frappe.get_all(
+                    "Term Exam Result Item",
+                    filters={"parent": report.name},
+                    fields=["subject"]
+                ) if item.subject
+            ))
+            missing = [s for s in all_subjs if s not in covered]
+            if missing:
+                try:
+                    fb = frappe.db.sql("""
+                        SELECT name, subject, exam, max_marks
+                        FROM `tabExam Schedule`
+                        WHERE term=%s AND student_class=%s
+                          AND subject IN %s
+                          AND (section IS NULL OR section='')
+                    """, (report.term, report.student_class, tuple(missing)), as_dict=True)
+                    schedules = list(schedules) + list(fb)
+                except Exception:
+                    pass
         subject_schedule_map = {}
         for s in schedules:
             subject_schedule_map[s.subject] = s
+
+        # Build excluded map: subject → set of excluded student names
+        excluded_by_subject = {}
+        if schedules:
+            sched_names = [s.name for s in schedules]
+            try:
+                ex_rows = frappe.db.sql("""
+                    SELECT parent, student
+                    FROM `tabExam Schedule Excluded Student`
+                    WHERE parent IN %s
+                """, (tuple(sched_names),), as_dict=True)
+                for r in ex_rows:
+                    sched_obj = next((s for s in schedules if s.name == r.parent), None)
+                    if sched_obj:
+                        excluded_by_subject.setdefault(sched_obj.subject, set()).add(r.student)
+            except Exception:
+                pass
+
+        # Filter out subjects this student is excluded from
+        items = [
+            item for item in items
+            if s_name not in excluded_by_subject.get(item.subject, set())
+        ]
 
         for item in items:
             # Fallback: if marks_obtained is NULL, try to get live mark from Exam Schedule Item
@@ -859,7 +905,9 @@ def get_term_exam_results(student=None, report_name=None):
             "class_rank": class_rank,
             "total_students": total_students,
             "overall_percentage": round(overall_percentage, 1),
-            "items": items
+            "items": items,
+            "principal_comment": report.principal_comment or "",
+            "class_teacher_comment": report.class_teacher_comment or ""
         })
 
     return result
@@ -2409,10 +2457,50 @@ def get_all_term_exam_results(report_name):
         filters=sched_filters,
         fields=['name', 'subject', 'exam', 'max_marks']
     )
+    # Fallback: also fetch schedules with no section for subjects not already covered
+    if report.section:
+        covered = set(s.subject for s in schedules)
+        all_subjs = list(set(
+            item.subject for item in frappe.get_all(
+                'Term Exam Result Item',
+                filters={'parent': report.name},
+                fields=['subject']
+            ) if item.subject
+        ))
+        missing = [s for s in all_subjs if s not in covered]
+        if missing:
+            try:
+                fb = frappe.db.sql('''
+                    SELECT name, subject, exam, max_marks
+                    FROM `tabExam Schedule`
+                    WHERE term=%s AND student_class=%s
+                      AND subject IN %s
+                      AND (section IS NULL OR section='')
+                ''', (report.term, report.student_class, tuple(missing)), as_dict=True)
+                schedules = list(schedules) + list(fb)
+            except Exception:
+                pass
     # Map subject → most recent schedule (last in list)
     subject_schedule_map = {}
     for s in schedules:
         subject_schedule_map[s.subject] = s
+
+    # Build excluded map: subject → set of excluded student names
+    excluded_by_subject = {}
+    if schedules:
+        sched_names = [s.name for s in schedules]
+        try:
+            ex_rows = frappe.db.sql('''
+                SELECT parent, student
+                FROM `tabExam Schedule Excluded Student`
+                WHERE parent IN %s
+            ''', (tuple(sched_names),), as_dict=True)
+            for r in ex_rows:
+                sched_obj = next((s for s in schedules if s.name == r.parent), None)
+                if sched_obj:
+                    excluded_by_subject.setdefault(sched_obj.subject, set()).add(r.student)
+        except Exception:
+            pass
 
     # Get all students
     class_students = frappe.db.sql('''
@@ -2462,6 +2550,12 @@ def get_all_term_exam_results(report_name):
 
         total_obtained = 0
         total_max = 0
+        # Filter out subjects this student is excluded from
+        items = [
+            item for item in items
+            if s_name not in excluded_by_subject.get(item.subject, set())
+        ]
+
         for item in items:
             # -----------------------------------------------------------------
             # Bug 4 fallback: if marks_obtained is NULL in the child table,
@@ -2519,10 +2613,12 @@ def get_all_term_exam_results(report_name):
             'school_name': school_name,
             'student_name': full_name,
             'admission_no': reg_no,
-            'class_rank': rank_map.get(s_name, '—'),
-            'total_students': total_students,
-            'overall_percentage': round(overall_percentage, 1),
-            'items': items
+            "class_rank": rank_map.get(s_name, '—'),
+            "total_students": total_students,
+            "overall_percentage": round(overall_percentage, 1),
+            "items": items,
+            "principal_comment": report.principal_comment or "",
+            "class_teacher_comment": report.class_teacher_comment or ""
         })
 
     # Sort result alphabetically by student_name
