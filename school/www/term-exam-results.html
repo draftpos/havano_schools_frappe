@@ -1000,7 +1000,6 @@ title: Term Exam Results
       var comments = [];
       if (s.remarks) comments.push(s.remarks);
       if (s.teacher_comment) comments.push("T: " + s.teacher_comment);
-      if (s.admin_comment) comments.push("A: " + s.admin_comment);
       var cstr = comments.join(" | ") || "";
 
       var subName = s.subject || "—";
