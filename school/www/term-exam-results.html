@@ -882,10 +882,9 @@ title: Term Exam Results
     var isPrimary = false, isALevel = false;
     var cn = (r.class_name || r.student_class || "").toLowerCase();
     
-    if (cn.indexOf("ecd") > -1 || cn.indexOf("grade") > -1) {
-        isPrimary = true;
-    } else if (cn.indexOf("a level") > -1 || cn.indexOf("form 5") > -1 || cn.indexOf("form 6") > -1 || cn.indexOf("lower 6") > -1 || cn.indexOf("upper 6") > -1 || cn.indexOf("l6") > -1 || cn.indexOf("u6") > -1) {
-        isALevel = true;
+    if (cn) {
+        isALevel = (cn.includes("lower 6") || cn.includes("upper 6") || cn.includes("form 5") || cn.includes("form 6") || cn.includes("l6") || cn.includes("u6") || cn.includes("f6") || cn.includes("a level"));
+        isPrimary = (cn.includes("ecd") || cn.includes("grade"));
     }
 
     var aLevelPts = [];

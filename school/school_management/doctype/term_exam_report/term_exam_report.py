@@ -121,8 +121,8 @@ def get_grade_and_status(percentage, class_name=None):
 def is_alevel(class_name):
 	if not class_name:
 		return False
-	cn = class_name.lower()
-	return any(k in cn for k in ["a level", "form 5", "form 6", "lower 6", "upper 6", "l6", "u6"])
+	c_lower = str(class_name).lower()
+	return any(k in c_lower for k in ["a level", "form 5", "form 6", "lower 6", "upper 6", "l6", "u6", "f6"])
 
 
 class TermExamReport(Document):
