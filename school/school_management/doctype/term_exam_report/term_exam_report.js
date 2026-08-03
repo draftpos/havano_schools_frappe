@@ -348,9 +348,11 @@ function _render_student_search(frm) {
 function _render_student_dropdown(frm) {
 	// Build unique student list from child table rows
 	var studentIds = [];
+	var rowNames = {};
 	(frm.doc.term_exam_results || []).forEach(function (row) {
 		if (row.student && !studentIds.includes(row.student)) {
 			studentIds.push(row.student);
+			rowNames[row.student] = row.student_name || row.student;
 		}
 	});
 
@@ -374,7 +376,7 @@ function _render_student_dropdown(frm) {
 			doctype: 'Student',
 			filters: { name: ['in', studentIds] },
 			fields: ['name', 'full_name', 'first_name', 'last_name'],
-			limit_page_length: 0 // fetch all, ignore default 20 limit
+			limit_page_length: 9999
 		},
 		callback: function (r) {
 			var studentMap = {};
@@ -390,9 +392,9 @@ function _render_student_dropdown(frm) {
 					studentMap[s.name] = db_full || s.name;
 				});
 			}
-			// Fallback for any missing
+			// Fallback to row student_name or ID
 			studentIds.forEach(id => {
-				if (!studentMap[id]) studentMap[id] = id;
+				if (!studentMap[id]) studentMap[id] = rowNames[id] || id;
 			});
 
 			// Sort alphabetically by name
