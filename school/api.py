@@ -5,8 +5,7 @@ from school.school_management.doctype.term_exam_report.term_exam_report import i
 
 def _apply_dynamic_admin_comments(items, student_class):
     if not items: return
-    # Do not recalculate if admin_comment is already fully set
-    if all(item.get("admin_comment") for item in items): return
+    # Removed early return to ensure dynamic comments apply if missing or 'None'
 
     settings = frappe.get_doc("School Settings")
     is_al = is_alevel(student_class)
@@ -67,7 +66,8 @@ def _apply_dynamic_admin_comments(items, student_class):
 
     if comment_to_apply:
         for row in items:
-            if not row.get("admin_comment"):
+            current_comment = str(row.get("admin_comment") or "").strip()
+            if not current_comment or current_comment.lower() == "none":
                 row["admin_comment"] = comment_to_apply
 
 @frappe.whitelist()
