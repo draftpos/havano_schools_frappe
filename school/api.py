@@ -8,7 +8,7 @@ def _apply_dynamic_admin_comments(items, student_class):
     # Do not recalculate if admin_comment is already fully set
     if all(item.get("admin_comment") for item in items): return
 
-    settings = frappe.get_single("School Settings")
+    settings = frappe.get_doc("School Settings")
     is_al = is_alevel(student_class)
     is_prim = is_primary_or_ecd(student_class)
 
