@@ -29,7 +29,8 @@ def _apply_dynamic_admin_comments(items, student_class):
         else: ctype = "0 - 3 points"
         comment_to_apply = a_level_comments.get(ctype)
         if not comment_to_apply:
-            comment_to_apply = f"DEBUG: A-Level comment missing in settings for category '{ctype}'"
+            available_keys = ", ".join(a_level_comments.keys()) if a_level_comments else "NONE!"
+            comment_to_apply = f"DEBUG: A-Level comment missing for '{ctype}'. Available keys: {available_keys}"
     elif is_prim:
         total_units = 0
         for r in items:
