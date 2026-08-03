@@ -958,6 +958,21 @@ def get_term_exam_results(student=None, report_name=None):
                         if max_m:
                             item["percentage"] = round((item["marks_obtained"] / max_m) * 100, 1)
 
+            # Ensure grade is calculated if missing but percentage/marks are present
+            if not item.get("grade") and item.get("marks_obtained") is not None and item.get("max_marks"):
+                calc_pct = round((item["marks_obtained"] / item["max_marks"]) * 100, 1)
+                calc_g, calc_stat, _ = get_grade_and_status(calc_pct, s_class)
+                if calc_g:
+                    item["grade"] = calc_g
+                if calc_stat and not item.get("status"):
+                    item["status"] = calc_stat
+            elif not item.get("grade") and item.get("percentage") is not None:
+                calc_g, calc_stat, _ = get_grade_and_status(item["percentage"], s_class)
+                if calc_g:
+                    item["grade"] = calc_g
+                if calc_stat and not item.get("status"):
+                    item["status"] = calc_stat
+
             sub_name = frappe.db.get_value("Subject", item.subject, "subject_name") or item.subject or ""
             item["subject_name"] = sub_name
             # Add subject name for display
