@@ -797,11 +797,11 @@ def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by
     sorted_students = [{"student": k, **v} for k, v in student_totals.items()]
     
     if is_primary:
-        sorted_students = [s for s in sorted_students if s["max_marks"] > 0 and s["units"] > 0]
-        sorted_students.sort(key=lambda x: x["units"])
+        sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
+        sorted_students.sort(key=lambda x: (x["units"] if x["units"] > 0 else 9999, -x["marks"]))
     elif is_al:
-        sorted_students = [s for s in sorted_students if s["points"] >= 10]
-        sorted_students.sort(key=lambda x: x["points"], reverse=True)
+        sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
+        sorted_students.sort(key=lambda x: (x["points"], x["marks"]), reverse=True)
     else:
         sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
         sorted_students.sort(key=lambda x: (
@@ -809,6 +809,10 @@ def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by
             x["grade_counts"].get("A*", 0),
             x["grade_counts"].get("B", 0),
             x["grade_counts"].get("C", 0),
+            x["grade_counts"].get("D", 0),
+            x["grade_counts"].get("E", 0),
+            x["grade_counts"].get("F", 0),
+            x["grade_counts"].get("U", 0),
             x["marks"]
         ), reverse=True)
         

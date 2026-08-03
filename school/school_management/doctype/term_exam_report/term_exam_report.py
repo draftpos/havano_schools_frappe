@@ -1205,21 +1205,26 @@ def get_top_students_html(report_name, limit):
 	if is_primary:
 		# Primary: Lowest units is best
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0 and s["units"] > 0]
-		sorted_students.sort(key=lambda x: x["units"])
+		sorted_students.sort(key=lambda x: (x["units"], -x["marks"]))
 		
 	elif is_al:
 		# A-Level: 10 or more points
 		sorted_students = [s for s in sorted_students if s["points"] >= 10]
-		sorted_students.sort(key=lambda x: x["points"], reverse=True)
+		sorted_students.sort(key=lambda x: (x["points"], x["marks"]), reverse=True)
 		
 	else:
-		# O-Level: Sort by combined A*+A, then A* as tiebreaker, then B, then C
+		# O-Level: Sort by combined A*+A, then A* as tiebreaker, then B, then C, D, E, F, U
 		sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
 		sorted_students.sort(key=lambda x: (
 			x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),  # combined A*+A
 			x["grade_counts"].get("A*", 0),  # tiebreaker: more A* wins before Bs
 			x["grade_counts"].get("B", 0),
-			x["grade_counts"].get("C", 0)
+			x["grade_counts"].get("C", 0),
+			x["grade_counts"].get("D", 0),
+			x["grade_counts"].get("E", 0),
+			x["grade_counts"].get("F", 0),
+			x["grade_counts"].get("U", 0),
+			x["marks"]
 		), reverse=True)
 		
 	if limit != "All" and not is_al:
