@@ -380,6 +380,11 @@ function _render_student_dropdown(frm) {
 		},
 		callback: function (r) {
 			var studentMap = {};
+			// Pre-seed with names from rows
+			studentIds.forEach(id => {
+				studentMap[id] = rowNames[id] || id;
+			});
+			
 			if (r.message) {
 				r.message.forEach(s => {
 					let db_full = s.full_name;
@@ -387,15 +392,13 @@ function _render_student_dropdown(frm) {
 						let parts = [];
 						if (s.first_name) parts.push(s.first_name);
 						if (s.last_name) parts.push(s.last_name);
-						db_full = parts.join(' ');
+						db_full = parts.join(' ').trim();
 					}
-					studentMap[s.name] = db_full || s.name;
+					if (db_full && db_full !== s.name) {
+						studentMap[s.name] = db_full;
+					}
 				});
 			}
-			// Fallback to row student_name or ID
-			studentIds.forEach(id => {
-				if (!studentMap[id]) studentMap[id] = rowNames[id] || id;
-			});
 
 			// Sort alphabetically by name
 			studentIds.sort(function(a, b) {
