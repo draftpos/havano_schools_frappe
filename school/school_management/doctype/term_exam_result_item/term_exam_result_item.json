@@ -31,6 +31,7 @@
             "in_global_search": 1
         },
         {
+            "fetch_from": "student.full_name",
             "fieldname": "student_name",
             "fieldtype": "Data",
             "in_list_view": 1,
