@@ -28,6 +28,8 @@ def _apply_dynamic_admin_comments(items, student_class):
         elif total_points >= 4: ctype = "4 - 5 points"
         else: ctype = "0 - 3 points"
         comment_to_apply = a_level_comments.get(ctype)
+        if not comment_to_apply:
+            comment_to_apply = f"DEBUG: A-Level comment missing in settings for category '{ctype}'"
     elif is_prim:
         total_units = 0
         for r in items:
@@ -63,6 +65,8 @@ def _apply_dynamic_admin_comments(items, student_class):
         elif num_pass < 5 and num_pass > 0: ctype = "Less than 4 Subjects Passed"
         elif num_pass == 0: ctype = "0 Subjects Passed"
         comment_to_apply = o_level_comments.get(ctype)
+        if not comment_to_apply:
+            comment_to_apply = f"DEBUG: O-Level comment missing in settings for category '{ctype}'"
 
     if comment_to_apply:
         for row in items:
