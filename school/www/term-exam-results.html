@@ -896,7 +896,7 @@ title: Term Exam Results
       var sObt = parseFloat(s.marks_obtained || 0);
       var pct = sMax > 0 ? ((sObt / sMax) * 100).toFixed(1) : "0.0";
       var dynamicScale = G_obj(parseFloat(pct), cn);
-      var g = dynamicScale.grade ? dynamicScale.grade : (s.grade || "");
+      var g = s.grade || (dynamicScale.grade ? dynamicScale.grade : "");
       
       var pts = 0;
       if (isALevel && g) {
@@ -979,8 +979,8 @@ title: Term Exam Results
         : (max > 0 ? ((obt / max) * 100).toFixed(1) : "0.0");
       
       var dynamicScale = G_obj(parseFloat(pct), className);
-      var g = dynamicScale.grade ? dynamicScale.grade : (s.grade || "");
-      var stat = dynamicScale.status ? dynamicScale.status : (s.status || "");
+      var g = s.grade || (dynamicScale.grade ? dynamicScale.grade : "");
+      var stat = s.status || (dynamicScale.status ? dynamicScale.status : "");
       
       var pts = 0;
       if (isALevel && g) {
