@@ -1,7 +1,7 @@
 import frappe
 from frappe import _
 from frappe.utils import flt, nowdate, today, getdate
-from school.school_management.doctype.term_exam_report.term_exam_report import is_alevel, is_primary_or_ecd
+from school.school_management.doctype.term_exam_report.term_exam_report import is_alevel, is_primary_or_ecd, get_grade_and_status
 
 def _apply_dynamic_admin_comments(items, student_class):
     if not items: return
@@ -695,6 +695,129 @@ def get_homework_results(student=None):
             }]
         })
     return result
+
+def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by_subject):
+    from collections import defaultdict
+    is_primary = is_primary_or_ecd(student_class)
+    is_al = is_alevel(student_class)
+    is_ol = not is_primary and not is_al
+    
+    grade_points = {}
+    if is_al:
+        settings = frappe.get_single("School Settings")
+        if hasattr(settings, "a_level_grade_points"):
+            for r in settings.a_level_grade_points:
+                if r.grade:
+                    grade_points[str(r.grade).upper().strip()] = r.points
+
+    all_class_items = frappe.db.sql("""
+        SELECT student, subject, marks_obtained, max_marks, grade, points
+        FROM `tabTerm Exam Result Item`
+        WHERE parent = %s
+    """, (report_name,), as_dict=True)
+    
+    live_marks_map = {}
+    if schedules:
+        sched_names = [s.name for s in schedules]
+        try:
+            live_rows = frappe.db.sql("""
+                SELECT parent, student_admission_no, marks_obtained, grade, status
+                FROM `tabExam Schedule Item`
+                WHERE parent IN %s AND marks_obtained IS NOT NULL
+            """, (tuple(sched_names),), as_dict=True)
+            sched_to_subj = {s.name: s.subject for s in schedules}
+            for lr in live_rows:
+                subj = sched_to_subj.get(lr.parent)
+                if subj:
+                    live_marks_map[(subj, lr.student_admission_no)] = lr
+        except Exception:
+            pass
+
+    student_totals = defaultdict(lambda: {
+        "marks": 0.0, 
+        "max_marks": 0.0, 
+        "points": 0.0, 
+        "units": 0, 
+        "grade_counts": defaultdict(int)
+    })
+    
+    for c_item in all_class_items:
+        if c_item.student in excluded_by_subject.get(c_item.subject, set()):
+            continue
+            
+        mark = c_item.marks_obtained
+        max_m = c_item.max_marks or 100.0
+        grade = c_item.grade
+        points = c_item.points or 0.0
+        
+        # Apply live fallback
+        if mark is None and c_item.subject:
+            lr = live_marks_map.get((c_item.subject, c_item.student))
+            if lr:
+                mark = lr.marks_obtained
+                if not grade:
+                    grade = lr.grade
+                    
+        if mark is not None:
+            st = student_totals[c_item.student]
+            st["marks"] += mark
+            st["max_marks"] += max_m
+            
+            # Points / Units / Grades
+            if is_al:
+                if grade:
+                    g_str = str(grade).upper().strip()
+                    st["points"] += grade_points.get(g_str, 0.0)
+                elif mark is not None and max_m:
+                    calc_pct = round((mark / max_m) * 100, 1)
+                    calc_g, _, _ = get_grade_and_status(calc_pct, student_class)
+                    if calc_g:
+                        g_str = str(calc_g).upper().strip()
+                        st["points"] += grade_points.get(g_str, 0.0)
+            elif points:
+                st["points"] += points
+                
+            grade_for_count = ""
+            if grade:
+                grade_for_count = str(grade).upper().strip()
+            elif is_ol and mark is not None and max_m:
+                calc_pct = round((mark / max_m) * 100, 1)
+                calc_g, _, _ = get_grade_and_status(calc_pct, student_class)
+                if calc_g:
+                    grade_for_count = str(calc_g).upper().strip()
+                    
+            if grade_for_count:
+                st["grade_counts"][grade_for_count] += 1
+                if is_primary:
+                    try:
+                        st["units"] += int(float(grade_for_count))
+                    except ValueError:
+                        pass
+                        
+    sorted_students = [{"student": k, **v} for k, v in student_totals.items()]
+    
+    if is_primary:
+        sorted_students = [s for s in sorted_students if s["max_marks"] > 0 and s["units"] > 0]
+        sorted_students.sort(key=lambda x: x["units"])
+    elif is_al:
+        sorted_students = [s for s in sorted_students if s["points"] >= 10]
+        sorted_students.sort(key=lambda x: x["points"], reverse=True)
+    else:
+        sorted_students = [s for s in sorted_students if s["max_marks"] > 0]
+        sorted_students.sort(key=lambda x: (
+            x["grade_counts"].get("A*", 0) + x["grade_counts"].get("A", 0),
+            x["grade_counts"].get("A*", 0),
+            x["grade_counts"].get("B", 0),
+            x["grade_counts"].get("C", 0),
+            x["marks"]
+        ), reverse=True)
+        
+    rank_map = {}
+    for idx, st in enumerate(sorted_students, 1):
+        rank_map[st["student"]] = str(idx)
+        
+    return rank_map
+
 @frappe.whitelist()
 def get_term_exam_results(student=None, report_name=None):
     user = frappe.session.user
@@ -850,51 +973,16 @@ def get_term_exam_results(student=None, report_name=None):
 
         _apply_dynamic_admin_comments(items, report.student_class)
 
-        # Calculate class position for this report correctly with live fallback
-        all_class_items = frappe.db.sql("""
-            SELECT student, subject, marks_obtained
+        # Calculate class position using advanced ranking criteria
+        class_students = frappe.db.sql("""
+            SELECT DISTINCT student
             FROM `tabTerm Exam Result Item`
             WHERE parent = %s
         """, (report.name,), as_dict=True)
+        total_students = len(class_students)
         
-        students_set = set([i.student for i in all_class_items])
-        total_students = len(students_set)
-        class_rank = "—"
-        
-        if total_students > 1:
-            live_marks_map = {}
-            if schedules:
-                sched_names = [s.name for s in schedules]
-                try:
-                    live_rows = frappe.db.sql("""
-                        SELECT parent, student_admission_no, marks_obtained
-                        FROM `tabExam Schedule Item`
-                        WHERE parent IN %s AND marks_obtained IS NOT NULL
-                    """, (tuple(sched_names),), as_dict=True)
-                    sched_to_subj = {s.name: s.subject for s in schedules}
-                    for lr in live_rows:
-                        subj = sched_to_subj.get(lr.parent)
-                        if subj:
-                            live_marks_map[(subj, lr.student_admission_no)] = lr.marks_obtained
-                except Exception:
-                    pass
-
-            student_totals_dict = {s: 0.0 for s in students_set}
-            for c_item in all_class_items:
-                if c_item.student in excluded_by_subject.get(c_item.subject, set()):
-                    continue
-                mark = c_item.marks_obtained
-                if mark is None and c_item.subject:
-                    mark = live_marks_map.get((c_item.subject, c_item.student))
-                if mark is not None:
-                    student_totals_dict[c_item.student] += mark
-                    
-            student_totals = [{"student": k, "total": v} for k, v in student_totals_dict.items()]
-            sorted_totals = sorted(student_totals, key=lambda x: x["total"], reverse=True)
-            for idx, st in enumerate(sorted_totals, 1):
-                if st["student"] == s_name:
-                    class_rank = str(idx)
-                    break
+        rank_map = _get_advanced_class_ranks(report.name, report.student_class, schedules, excluded_by_subject)
+        class_rank = rank_map.get(s_name, "—")
         
         # Calculate overall percentage for this student in this report (only where marks recorded)
         total_obtained = sum(item.marks_obtained or 0 for item in items if item.marks_obtained is not None)
@@ -2513,55 +2601,14 @@ def get_all_term_exam_results(report_name):
         except Exception:
             pass
 
-    # Get all students and calculate correct ranks with live fallback
-    all_class_items = frappe.db.sql('''
-        SELECT student, student_name, subject, marks_obtained
+        class_students = frappe.db.sql("""
+        SELECT DISTINCT student, student_name
         FROM `tabTerm Exam Result Item`
         WHERE parent = %s
-    ''', (report.name,), as_dict=True)
-
-    class_students = []
-    students_set = set()
-    for i in all_class_items:
-        if i.student not in students_set:
-            students_set.add(i.student)
-            class_students.append(i)
-
-    total_students = len(students_set)
+    """, (report.name,), as_dict=True)
+    total_students = len(class_students)
     
-    live_marks_map = {}
-    if schedules:
-        sched_names = [s.name for s in schedules]
-        try:
-            live_rows = frappe.db.sql('''
-                SELECT parent, student_admission_no, marks_obtained
-                FROM `tabExam Schedule Item`
-                WHERE parent IN %s AND marks_obtained IS NOT NULL
-            ''', (tuple(sched_names),), as_dict=True)
-            sched_to_subj = {s.name: s.subject for s in schedules}
-            for lr in live_rows:
-                subj = sched_to_subj.get(lr.parent)
-                if subj:
-                    live_marks_map[(subj, lr.student_admission_no)] = lr.marks_obtained
-        except Exception:
-            pass
-
-    student_totals_dict = {s: 0.0 for s in students_set}
-    for c_item in all_class_items:
-        if c_item.student in excluded_by_subject.get(c_item.subject, set()):
-            continue
-        mark = c_item.marks_obtained
-        if mark is None and c_item.subject:
-            mark = live_marks_map.get((c_item.subject, c_item.student))
-        if mark is not None:
-            student_totals_dict[c_item.student] += mark
-            
-    student_totals = [{'student': k, 'total': v} for k, v in student_totals_dict.items()]
-    sorted_totals = sorted(student_totals, key=lambda x: x['total'], reverse=True)
-    
-    rank_map = {}
-    for idx, st in enumerate(sorted_totals, 1):
-        rank_map[st['student']] = str(idx)
+    rank_map = _get_advanced_class_ranks(report.name, report.student_class, schedules, excluded_by_subject)
 
     result = []
     for cs in class_students:
