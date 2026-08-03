@@ -15,7 +15,7 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Type of Comment",
-   "options": "Excellent (80% and above)\nGood (60% to 79%)\nModerate (50% to 59%)\nFailed (Below 50%)",
+   "options": "6 units\n7-12 units\n13-18 units\n19-24 units\n25-36 units\n37-48 units\n49-54 units",
    "read_only": 1,
    "reqd": 1
   },
