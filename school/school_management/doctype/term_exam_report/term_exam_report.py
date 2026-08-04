@@ -20,7 +20,20 @@ def generate_qr_base64(data):
 	return base64.b64encode(buf.read()).decode("utf-8")
 
 
-def get_seed_teacher_comment(percentage):
+def get_seed_teacher_comment(percentage, grade=None):
+	if grade:
+		g = str(grade).upper().strip()
+		if g in ['A', 'A*', '1', 'EXCELLENT']:
+			return "Excellent performance! Keep up the brilliant work."
+		elif g in ['B', '2', 'VERY GOOD']:
+			return "Very good progress. With a bit more effort, you can reach the top."
+		elif g in ['C', '3', 'GOOD']:
+			return "Good effort. Consistent practice will bring even better results."
+		elif g in ['D', '4', 'SATISFACTORY', 'PASS']:
+			return "Satisfactory result, but there is room for improvement."
+		elif g in ['E', 'U', 'F', '5', '6', '7', '8', '9', 'FAIL', 'POOR']:
+			return "Needs extra support and more focus. Please put in more effort next term."
+
 	if percentage is None:
 		return ""
 	if percentage >= 80:
@@ -174,7 +187,7 @@ class TermExamReport(Document):
 						
 				# Auto-fill teacher comment if empty
 				if not row.teacher_comment:
-					row.teacher_comment = get_seed_teacher_comment(row.percentage)
+					row.teacher_comment = get_seed_teacher_comment(row.percentage, grade=row.grade)
 
 		# Auto-fill admin comments based on overall performance
 		settings = frappe.get_single("School Settings")
@@ -841,7 +854,7 @@ def fetch_results(report_name):
 					if not status:
 						status = calc_status
 				if not teacher_comment:
-					teacher_comment = get_seed_teacher_comment(pct)
+					teacher_comment = get_seed_teacher_comment(pct, grade=grade)
 
 			points = 0.0
 			if is_al and grade:
