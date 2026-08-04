@@ -808,17 +808,22 @@ def fetch_results(report_name):
 				})
 				continue
 
-			sched = subj_schedules[-1]
-
-			if student.name in excluded_map.get(sched.name, set()):
-				continue
+			sched_names = [s.name for s in subj_schedules]
 
 			score = frappe.db.get_value(
 				"Exam Schedule Item",
-				{"parent": sched.name, "student_admission_no": student.name},
-				["marks_obtained", "grade", "status", "teacher_comment"],
+				{"parent": ("in", sched_names), "student_admission_no": student.name},
+				["parent", "marks_obtained", "grade", "status", "teacher_comment"],
 				as_dict=1
 			)
+
+			if score:
+				sched = next((s for s in subj_schedules if s.name == score.parent), subj_schedules[-1])
+			else:
+				sched = subj_schedules[-1]
+
+			if student.name in excluded_map.get(sched.name, set()):
+				continue
 
 			marks = score.marks_obtained if score else None
 			max_m = sched.max_marks or 100.0
