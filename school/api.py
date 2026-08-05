@@ -86,10 +86,10 @@ def get_billing_summary(student=None):
 
     if not student:
         student = frappe.db.get_value("Student", {"portal_email": user},
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
     else:
         student = frappe.db.get_value("Student", student,
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
     
     if not student: return []
 
@@ -102,13 +102,22 @@ def get_billing_summary(student=None):
 
     s_class = student.student_class or ""
 
-    invoices = frappe.db.sql("""
-        SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
-               cost_center, fees_structure, currency
-        FROM `tabSales Invoice`
-        WHERE customer_name = %s AND docstatus = 1
-        ORDER BY posting_date DESC
-    """, student.full_name, as_dict=True)
+    if student.get("customer"):
+        invoices = frappe.db.sql("""
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+                   cost_center, fees_structure, currency
+            FROM `tabSales Invoice`
+            WHERE customer = %s AND docstatus = 1
+            ORDER BY posting_date DESC
+        """, student.customer, as_dict=True)
+    else:
+        invoices = frappe.db.sql("""
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+                   cost_center, fees_structure, currency
+            FROM `tabSales Invoice`
+            WHERE customer_name = %s AND docstatus = 1
+            ORDER BY posting_date DESC
+        """, student.full_name, as_dict=True)
 
     for inv in invoices:
         inv['posting_date'] = str(inv['posting_date'])
@@ -120,9 +129,9 @@ def get_billing_summary(student=None):
     receipts = frappe.db.sql("""
         SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
         FROM `tabReceipting` 
-        WHERE student_name = %s AND docstatus = 1
+        WHERE (student = %s OR student_name = %s) AND docstatus = 1
         ORDER BY date DESC
-    """, student.name, as_dict=True)
+    """, (student.name, student.full_name), as_dict=True)
 
     for rec in receipts:
         rec['date'] = str(rec['date'])
@@ -145,11 +154,10 @@ def get_student_invoices(student):
     if not student:
         return []
 
-    full_name = frappe.db.get_value("Student", student, "full_name")
-    customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
-    
+    customer = frappe.db.get_value("Student", student, "customer")
     if not customer:
-        customer = frappe.db.get_value("Customer", student, "name")
+        full_name = frappe.db.get_value("Student", student, "full_name")
+        customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
 
     if not customer:
         return []
