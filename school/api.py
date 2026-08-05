@@ -109,37 +109,35 @@ def get_billing_summary(student=None):
 
     if customer_id:
         invoices = frappe.db.sql("""
-            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
-                   cost_center, fees_structure, currency
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status, currency
             FROM `tabSales Invoice`
             WHERE customer = %s AND docstatus = 1
             ORDER BY posting_date DESC
         """, customer_id, as_dict=True)
     else:
         invoices = frappe.db.sql("""
-            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
-                   cost_center, fees_structure, currency
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status, currency
             FROM `tabSales Invoice`
             WHERE customer_name = %s AND docstatus = 1
             ORDER BY posting_date DESC
         """, student.full_name, as_dict=True)
 
     for inv in invoices:
-        inv['posting_date'] = str(inv['posting_date'])
-        inv['due_date'] = str(inv['due_date'])
+        inv['posting_date'] = str(inv['posting_date']) if inv.get('posting_date') else ""
+        inv['due_date'] = str(inv['due_date']) if inv.get('due_date') else ""
         inv['items'] = frappe.get_all("Sales Invoice Item", 
                                       filters={"parent": inv['name']}, 
                                       fields=["item_name", "qty", "rate", "amount"])
 
     receipts = frappe.db.sql("""
-        SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
+        SELECT name, date, total_outstanding, total_allocated, total_balance, docstatus
         FROM `tabReceipting` 
         WHERE (student = %s OR student_name = %s) AND docstatus = 1
         ORDER BY date DESC
     """, (student.name, student.full_name), as_dict=True)
 
     for rec in receipts:
-        rec['date'] = str(rec['date'])
+        rec['date'] = str(rec['date']) if rec.get('date') else ""
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
                                       fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
