@@ -142,7 +142,7 @@ def get_billing_summary(student=None):
         rec['date'] = str(rec['date'])
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
-                                      fields=["invoice_number", "fee_item", "outstanding", "allocated", "invoice_currency"])
+                                      fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
 
     return {
         "student": student, 
