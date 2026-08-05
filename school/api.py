@@ -86,10 +86,10 @@ def get_billing_summary(student=None):
 
     if not student:
         student = frappe.db.get_value("Student", {"portal_email": user},
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
     else:
         student = frappe.db.get_value("Student", student,
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
     
     if not student: return []
 
@@ -102,14 +102,19 @@ def get_billing_summary(student=None):
 
     s_class = student.student_class or ""
 
-    if student.get("customer"):
+    # Try to find the linked customer ID
+    customer_id = frappe.db.get_value("Customer", {"name": student.name}, "name")
+    if not customer_id:
+        customer_id = frappe.db.get_value("Customer", {"customer_name": student.full_name}, "name")
+
+    if customer_id:
         invoices = frappe.db.sql("""
             SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
                    cost_center, fees_structure, currency
             FROM `tabSales Invoice`
             WHERE customer = %s AND docstatus = 1
             ORDER BY posting_date DESC
-        """, student.customer, as_dict=True)
+        """, customer_id, as_dict=True)
     else:
         invoices = frappe.db.sql("""
             SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
@@ -154,7 +159,7 @@ def get_student_invoices(student):
     if not student:
         return []
 
-    customer = frappe.db.get_value("Student", student, "customer")
+    customer = frappe.db.get_value("Customer", {"name": student}, "name")
     if not customer:
         full_name = frappe.db.get_value("Student", student, "full_name")
         customer = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
