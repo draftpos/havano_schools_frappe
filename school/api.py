@@ -882,8 +882,20 @@ def get_term_exam_results(student=None, report_name=None):
             SELECT subject, marks_obtained, max_marks, percentage, points, grade, status,
                    remarks, teacher_comment, admin_comment, student, student_name
             FROM `tabTerm Exam Result Item`
-            WHERE parent = %s AND student = %s
-        """, (report.name, s_name), as_dict=True)
+            WHERE parent = %(parent)s AND (
+                student = %(id)s OR 
+                student_name = %(id)s OR
+                student = %(full_name)s OR
+                student_name = %(full_name)s OR
+                student = %(reg_no)s OR
+                student_name = %(reg_no)s
+            )
+        """, {
+            "parent": report.name, 
+            "id": s_name, 
+            "full_name": student.full_name,
+            "reg_no": student.student_reg_no
+        }, as_dict=True)
 
         if not items:
             continue
