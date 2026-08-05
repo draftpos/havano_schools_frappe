@@ -75,15 +75,14 @@ def _apply_dynamic_admin_comments(items, student_class):
             if not current_comment or current_comment.lower() == "none":
                 row["admin_comment"] = comment_to_apply
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist()
 def get_billing_summary(student=None):
     """
     Returns a unified view of Invoices and Receipting for the student portal.
     """
-    try:
-        user = frappe.session.user
-        # if user in ("Administrator", "Guest"):
-        #     return {"error": "Invalid User"}
+    user = frappe.session.user
+    if user in ("Administrator", "Guest"):
+        return {"error": "Invalid User"}
 
 
     if not student:
@@ -111,14 +110,16 @@ def get_billing_summary(student=None):
 
     if customer_id:
         invoices = frappe.db.sql("""
-            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status, currency
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+                   cost_center, fees_structure, currency
             FROM `tabSales Invoice`
             WHERE customer = %s AND docstatus = 1
             ORDER BY posting_date DESC
         """, customer_id, as_dict=True)
     else:
         invoices = frappe.db.sql("""
-            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status, currency
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+                   cost_center, fees_structure, currency
             FROM `tabSales Invoice`
             WHERE customer_name = %s AND docstatus = 1
             ORDER BY posting_date DESC
@@ -132,9 +133,9 @@ def get_billing_summary(student=None):
                                       fields=["item_name", "qty", "rate", "amount"])
 
     receipts = frappe.db.sql("""
-        SELECT name, date, total_outstanding, total_allocated, total_balance, docstatus
+        SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
         FROM `tabReceipting` 
-        WHERE (student = %s OR student_name = %s) AND docstatus = 1
+        WHERE student_name IN (%s, %s) AND docstatus = 1
         ORDER BY date DESC
     """, (student.name, student.full_name), as_dict=True)
 
@@ -142,16 +143,13 @@ def get_billing_summary(student=None):
         rec['date'] = str(rec['date']) if rec.get('date') else ""
         rec['items'] = frappe.get_all("Receipt Item", 
                                       filters={"parent": rec['name']}, 
-                                      fields=["invoice_number", "fees_structure", "outstanding", "allocated"])
+                                      fields=["invoice_number", "fee_item", "outstanding", "allocated", "invoice_currency"])
 
     return {
         "student": student, 
         "invoices": invoices, 
         "receipts": receipts
     }
-    except Exception as e:
-        import traceback
-        return {"error_traceback": traceback.format_exc()}
 
 
 @frappe.whitelist()
