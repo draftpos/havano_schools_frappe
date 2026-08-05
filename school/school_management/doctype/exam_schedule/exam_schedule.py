@@ -91,16 +91,8 @@ class ExamSchedule(Document):
 				item.status = status
 				
 				if not item.teacher_comment:
-					if perc >= 80:
-						item.teacher_comment = "Excellent performance! Keep up the brilliant work."
-					elif perc >= 70:
-						item.teacher_comment = "Very good progress. With a bit more effort, you can reach the top."
-					elif perc >= 60:
-						item.teacher_comment = "Good effort. Consistent practice will bring even better results."
-					elif perc >= 50:
-						item.teacher_comment = "Satisfactory result, but there is room for improvement."
-					else:
-						item.teacher_comment = "Needs extra support and more focus. Please put in more effort next term."
+					from school.school_management.doctype.term_exam_report.term_exam_report import get_seed_teacher_comment
+					item.teacher_comment = get_seed_teacher_comment(perc, grade=item.grade)
 
 
 

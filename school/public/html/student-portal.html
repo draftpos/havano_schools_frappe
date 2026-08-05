@@ -1346,6 +1346,7 @@
       <div class="topbar-right">
         <a class="tb-btn" href="/student-profile">👤 My Profile</a>
         <a class="tb-btn" href="/student-billing">💰 Billing</a>
+        <a class="tb-btn" href="#" onclick="event.preventDefault(); frappe.call({method: 'logout', callback: function() { window.location.href = '/portal-login'; }});">🚪 Logout</a>
       </div>
     </header>
 

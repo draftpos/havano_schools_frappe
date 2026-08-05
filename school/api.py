@@ -874,38 +874,75 @@ def get_term_exam_results(student=None, report_name=None):
             pass
         except Exception as e:
             frappe.log_error("get_term_exam_results failed", str(e))
+            
+        if not reports:
+            return []
+            
+        # We have a specific report, now fetch items for it
+        for report in reports:
+            items = frappe.db.sql("""
+                SELECT subject, marks_obtained, max_marks, percentage, points, grade, status,
+                       remarks, teacher_comment, admin_comment, student, student_name
+                FROM `tabTerm Exam Result Item`
+                WHERE parent = %(parent)s AND (
+                    student = %(id)s OR 
+                    student_name = %(id)s OR
+                    student = %(full_name)s OR
+                    student_name = %(full_name)s OR
+                    student = %(reg_no)s OR
+                    student_name = %(reg_no)s
+                )
+            """, {
+                "parent": report.name, 
+                "id": s_name, 
+                "full_name": student.full_name,
+                "reg_no": student.student_reg_no
+            }, as_dict=True)
+            report['items'] = items or []
     else:
-        reports = frappe.db.sql("""
-            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
-            FROM `tabTerm Exam Report`
-            WHERE student_class = %s AND docstatus = 1
-            ORDER BY report_date DESC
-        """, s_class, as_dict=True) if s_class else []
-
-    result = []
-    for report in reports:
-        # Get items for this student
-        items = frappe.db.sql("""
-            SELECT subject, marks_obtained, max_marks, percentage, points, grade, status,
+        # Fetch all result items for this student across all reports first
+        all_items = frappe.db.sql("""
+            SELECT parent, subject, marks_obtained, max_marks, percentage, points, grade, status,
                    remarks, teacher_comment, admin_comment, student, student_name
             FROM `tabTerm Exam Result Item`
-            WHERE parent = %(parent)s AND (
-                student = %(id)s OR 
-                student_name = %(id)s OR
-                student = %(full_name)s OR
-                student_name = %(full_name)s OR
-                student = %(reg_no)s OR
-                student_name = %(reg_no)s
-            )
+            WHERE student = %(id)s OR 
+                  student_name = %(id)s OR
+                  student = %(full_name)s OR
+                  student_name = %(full_name)s OR
+                  student = %(reg_no)s OR
+                  student_name = %(reg_no)s
         """, {
-            "parent": report.name, 
             "id": s_name, 
             "full_name": student.full_name,
             "reg_no": student.student_reg_no
         }, as_dict=True)
+        
+        if not all_items:
+            return []
+            
+        # Group items by report
+        items_by_report = {}
+        for item in all_items:
+            items_by_report.setdefault(item.parent, []).append(item)
+            
+        report_names = list(items_by_report.keys())
+        
+        # Fetch only the reports that have these items and are submitted
+        reports = frappe.db.sql("""
+            SELECT name, report_name, term, academic_year, report_date, student_class, section, cost_center
+            FROM `tabTerm Exam Report`
+            WHERE name IN %s AND docstatus = 1
+            ORDER BY report_date DESC
+        """, (report_names,), as_dict=True)
+        
+        for report in reports:
+            report['items'] = items_by_report.get(report.name, [])
 
-        if not items:
+    result = []
+    for report in reports:
+        if not report.get('items'):
             continue
+        items = report['items']
 
         # Build exam schedule map for this report (for fallback mark lookup)
         sched_filters = {"term": report.term, "student_class": report.student_class}
