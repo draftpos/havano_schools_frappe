@@ -1310,20 +1310,18 @@ def get_fees_balance():
         total_paid = float(row.get("total_paid") or 0)
         total_outstanding = float(row.get("total_outstanding") or 0) + float(ob or 0)
 
-        # Only include students who have some financial activity or balance
-        if total_billed > 0 or total_paid > 0 or total_outstanding != 0:
-            result.append({
-                "student_name": s.full_name or s.name,
-                "student_class": s.get("student_class") or "",
-                "section": s.get("section") or "",
-                "cost_center": row.get("cost_center") or s.get("cost_center") or "",
-                "fees_structure": row.get("fees_structure") or "",
-                "opening_balance": float(ob or 0),
-                "total_billed": total_billed,
-                "total_paid": total_paid,
-                "total_outstanding": total_outstanding,
-                "opening_balance": float(ob or 0)
-            })
+        result.append({
+            "student_name": s.full_name or s.name,
+            "student_class": s.get("student_class") or "",
+            "section": s.get("section") or "",
+            "cost_center": row.get("cost_center") or s.get("cost_center") or "",
+            "fees_structure": row.get("fees_structure") or "",
+            "opening_balance": float(ob or 0),
+            "total_billed": total_billed,
+            "total_paid": total_paid,
+            "total_outstanding": total_outstanding,
+            "opening_balance": float(ob or 0)
+        })
 
     return result
 
