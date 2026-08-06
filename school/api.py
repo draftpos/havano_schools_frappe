@@ -1255,7 +1255,11 @@ def get_fees_balance():
     if not students:
         return []
 
-    customer_ids = list(set([s.customer for s in students if s.customer] + [s.name for s in students if s.name]))
+    customer_ids = list(set(
+        [s.customer for s in students if s.customer] +
+        [s.name for s in students if s.name] +
+        [s.full_name for s in students if s.full_name]
+    ))
 
     if not customer_ids:
         return []
@@ -1303,8 +1307,15 @@ def get_fees_balance():
     result = []
     for s in students:
         # Match by ID or Full Name
-        row = receivables_map.get(s.customer) or receivables_map.get(s.name) or receivables_name_map.get(s.full_name) or {}
-        ob = ob_map.get(s.customer) or ob_map.get(s.name) or ob_map.get(s.full_name) or 0
+        row = (receivables_map.get(s.customer) or 
+               receivables_map.get(s.name) or 
+               receivables_map.get(s.full_name) or 
+               receivables_name_map.get(s.full_name) or 
+               {})
+        ob = (ob_map.get(s.customer) or 
+              ob_map.get(s.name) or 
+              ob_map.get(s.full_name) or 
+              0)
         
         total_billed = float(row.get("total_billed") or 0)
         total_paid = float(row.get("total_paid") or 0)
