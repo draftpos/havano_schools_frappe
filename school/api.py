@@ -1285,7 +1285,7 @@ def get_fees_balance():
     opening_balances = frappe.db.sql("""
         SELECT
             jea.party,
-            SUM(jea.debit_in_account_currency) as opening_balance
+            SUM(jea.debit_in_account_currency - jea.credit_in_account_currency) as opening_balance
         FROM `tabJournal Entry Account` jea
         JOIN `tabJournal Entry` je ON je.name = jea.parent
         WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
@@ -1322,6 +1322,7 @@ def get_fees_balance():
                 "total_billed": total_billed,
                 "total_paid": total_paid,
                 "total_outstanding": total_outstanding,
+                "opening_balance": float(ob or 0)
             })
 
     return result
