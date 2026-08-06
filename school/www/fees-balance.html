@@ -82,7 +82,7 @@ var allData = [];
 function fmt(n){return "$"+parseFloat(n||0).toFixed(2);}
 
 function loadCostCenters(){
-    fetch("/api/method/frappe.client.get_list?doctype=Cost+Center&filters=%7B%22is_group%22%3A0%7D&fields=%5B%22name%22%5D&limit_page_length=0", {
+    fetch("/api/method/frappe.client.get_list?doctype=Cost+Center&fields=%5B%22name%22%5D&limit_page_length=0", {
         headers: { "Accept": "application/json" },
         credentials: "include"
     })
