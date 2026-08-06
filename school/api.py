@@ -225,47 +225,60 @@ def get_student_invoices(student):
                 })
         
     try:
-        from erpnext.accounts.party import get_outstanding_invoices
-        outstandings = get_outstanding_invoices("Customer", customer, account=None)
+        outstandings = frappe.db.sql("""
+            SELECT 
+                je.name as voucher_no, 
+                je.posting_date, 
+                jea.account_currency as currency,
+                jea.debit_in_account_currency as outstanding_amount,
+                jea.debit_in_account_currency as invoice_amount
+            FROM `tabJournal Entry Account` jea
+            JOIN `tabJournal Entry` je ON je.name = jea.parent
+            WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
+              AND jea.party_type = 'Customer'
+              AND jea.party = %s
+              AND je.docstatus = 1
+              AND jea.debit_in_account_currency > 0
+        """, (customer,), as_dict=True)
+        
         for out in outstandings:
-            if out.get("voucher_type") == "Journal Entry":
-                je_name = out.get("voucher_no")
-                
-                draft_allocations = frappe.db.sql("""
-                    SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
-                    FROM `tabReceipt Item` ri
-                    JOIN `tabReceipting` r ON r.name = ri.parent
-                    WHERE ri.invoice_number = %s 
-                      AND r.docstatus = 0
-                """, (je_name,), as_dict=True)
+            je_name = out.get("voucher_no")
+            
+            draft_allocations = frappe.db.sql("""
+                SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                FROM `tabReceipt Item` ri
+                JOIN `tabReceipting` r ON r.name = ri.parent
+                WHERE ri.invoice_number = %s 
+                  AND r.docstatus = 0
+            """, (je_name,), as_dict=True)
 
-                allocated_in_draft = 0
-                inv_curr = out.get("currency") or "USD"
-                for ri in draft_allocations:
-                    alloc = flt(ri.allocated)
-                    rec_curr = ri.receipt_currency or "USD"
-                    exch_rate = flt(ri.exchange_rate) or 1.0
-                    
-                    if rec_curr != inv_curr:
-                        if rec_curr == "ZWG" and inv_curr == "USD":
-                            alloc = alloc / exch_rate if exch_rate else 0
-                        elif rec_curr == "USD" and inv_curr == "ZWG":
-                            alloc = alloc * exch_rate
-                    
-                    allocated_in_draft += alloc
+            allocated_in_draft = 0
+            inv_curr = out.get("currency") or "USD"
+            for ri in draft_allocations:
+                alloc = flt(ri.allocated)
+                rec_curr = ri.receipt_currency or "USD"
+                exch_rate = flt(ri.exchange_rate) or 1.0
                 
-                item_outstanding = flt(out.get("outstanding_amount")) - allocated_in_draft
-                item_outstanding = round(item_outstanding, 2)
+                if rec_curr != inv_curr:
+                    if rec_curr == "ZWG" and inv_curr == "USD":
+                        alloc = alloc / exch_rate if exch_rate else 0
+                    elif rec_curr == "USD" and inv_curr == "ZWG":
+                        alloc = alloc * exch_rate
                 
-                if item_outstanding > 0.01:
-                    result.append({
-                        "name": "", # Leave empty so receipting.py treats it as a standard Opening Balance
-                        "currency": out.get("currency"),
-                        "fee_item": "Opening Balance",
-                        "outstanding_amount": item_outstanding,
-                        "total": out.get("invoice_amount") or out.get("outstanding_amount"),
-                        "posting_date": str(out.get("posting_date"))
-                    })
+                allocated_in_draft += alloc
+            
+            item_outstanding = flt(out.get("outstanding_amount")) - allocated_in_draft
+            item_outstanding = round(item_outstanding, 2)
+            
+            if item_outstanding > 0.01:
+                result.append({
+                    "name": "", # Leave empty so receipting.py treats it as a standard Opening Balance
+                    "currency": out.get("currency"),
+                    "fee_item": "Opening Balance",
+                    "outstanding_amount": item_outstanding,
+                    "total": out.get("invoice_amount") or out.get("outstanding_amount"),
+                    "posting_date": str(out.get("posting_date"))
+                })
     except Exception as e:
         frappe.log_error(title="Failed to fetch JVs for receipting", message=frappe.get_traceback())
 
@@ -360,7 +373,7 @@ def get_exam_schedules(student=None):
         filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
         fields=["name","title","subject","date","start_time","max_marks","min_marks",
                 "total_questions","room_number","number_of_students","exam_type"],
-        order_by="date asc", ignore_permissions=True) if s_class else []
+        order_by="date asc", ignore_permissions=True, limit_page_length=0) if s_class else []
     marks_map = {}
     attachments_map = {}
     if schedules:
@@ -422,7 +435,7 @@ def get_home_schedules(student=None):
     schedules = frappe.get_all("Home Schedule",
         filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
         fields=["name","test_name","subject","date","start_time","max_marks","min_marks","docstatus","remarks"],
-        order_by="date asc", ignore_permissions=True) if s_class else []
+        order_by="date asc", ignore_permissions=True, limit_page_length=0) if s_class else []
     marks_map = {}
     attachments_map = {}
     if schedules:
@@ -507,7 +520,7 @@ def get_test_schedules(student=None):
     schedules = frappe.get_all("Test Schedule",
         filters={"student_class": s_class, "section": s_section, "docstatus": ["<", 2]},
         fields=["name","test_name","subject","date","start_time","max_marks","min_marks","docstatus","remarks"],
-        order_by="date asc", ignore_permissions=True) if s_class else []
+        order_by="date asc", ignore_permissions=True, limit_page_length=0) if s_class else []
     marks_map = {}
     attachments_map = {}
     if schedules:
@@ -1236,7 +1249,8 @@ def get_fees_balance():
 
     students = frappe.get_all("Student",
         filters=student_filters,
-        fields=["name", "full_name", "student_class", "section", "cost_center", "customer"])
+        fields=["name", "full_name", "student_class", "section", "cost_center", "customer"],
+        limit_page_length=0)
 
     if not students:
         return []
@@ -1274,7 +1288,7 @@ def get_fees_balance():
             SUM(jea.debit_in_account_currency) as opening_balance
         FROM `tabJournal Entry Account` jea
         JOIN `tabJournal Entry` je ON je.name = jea.parent
-        WHERE je.voucher_type = 'Opening Entry'
+        WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
           AND jea.party_type = 'Customer'
           AND jea.party IN ({placeholders})
           AND je.docstatus = 1
