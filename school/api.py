@@ -858,7 +858,7 @@ def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by
 def _has_outstanding_balance_for_report(student_name, report_term):
     from frappe.utils import getdate
     settings = frappe.get_single("School Settings")
-    if settings.get("show_results_for_students_with_outstanding_balances"):
+    if not settings.get("block_results_for_students_with_outstanding_balances"):
         return False
         
     student = frappe.db.get_value("Student", student_name, ["name", "customer", "full_name"], as_dict=True)
