@@ -11,6 +11,7 @@
   "fee_structure_defaults_section",
   "fee_structure_defaults",
   "portal_settings",
+  "show_results_for_students_with_outstanding_balances",
   "allow_non_strict_email",
   "allow_reference_on_receipts",
   "a_level_settings_section",
@@ -53,6 +54,13 @@
    "fieldname": "portal_settings",
    "fieldtype": "Section Break",
    "label": "Portal Access"
+  },
+  {
+   "default": "0",
+   "description": "If unchecked, students with an outstanding balance will NOT be able to view their term exam report, unless the balance is only for future terms.",
+   "fieldname": "show_results_for_students_with_outstanding_balances",
+   "fieldtype": "Check",
+   "label": "Show Results for Students with Outstanding Balances"
   },
   {
    "default": "0",

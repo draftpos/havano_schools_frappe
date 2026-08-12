@@ -855,6 +855,55 @@ def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by
         
     return rank_map
 
+def _has_outstanding_balance_for_report(student_name, report_term):
+    from frappe.utils import getdate
+    settings = frappe.get_single("School Settings")
+    if settings.get("show_results_for_students_with_outstanding_balances"):
+        return False
+        
+    student = frappe.db.get_value("Student", student_name, ["name", "customer", "full_name"], as_dict=True)
+    if not student: return False
+    
+    customers = list(set(filter(None, [student.name, student.customer, student.full_name])))
+    if not customers: return False
+    
+    report_term_doc = frappe.db.get_value("Term", report_term, ["start_date"], as_dict=True)
+    report_start_date = report_term_doc.start_date if report_term_doc else None
+    
+    placeholders = ", ".join(["%s"] * len(customers))
+    
+    invoices = frappe.db.sql(f"""
+        SELECT grand_total, outstanding_amount, academic_term
+        FROM `tabSales Invoice`
+        WHERE (customer IN ({placeholders}) OR customer_name IN ({placeholders}))
+          AND docstatus = 1
+    """, tuple(customers + customers), as_dict=True)
+    
+    total_outstanding = 0.0
+    
+    for inv in invoices:
+        if inv.outstanding_amount > 0:
+            if inv.academic_term and report_start_date:
+                inv_term_start = frappe.db.get_value("Term", inv.academic_term, "start_date")
+                if inv_term_start and getdate(inv_term_start) > getdate(report_start_date):
+                    continue
+            total_outstanding += float(inv.outstanding_amount)
+            
+    ob = frappe.db.sql(f"""
+        SELECT SUM(jea.debit_in_account_currency - jea.credit_in_account_currency) as opening_balance
+        FROM `tabJournal Entry Account` jea
+        JOIN `tabJournal Entry` je ON je.name = jea.parent
+        WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
+          AND jea.party_type = 'Customer'
+          AND jea.party IN ({placeholders})
+          AND je.docstatus = 1
+    """, tuple(customers), as_dict=True)
+    
+    if ob and ob[0].opening_balance:
+        total_outstanding += float(ob[0].opening_balance)
+        
+    return total_outstanding > 0.01
+
 @frappe.whitelist()
 def get_term_exam_results(student=None, report_name=None):
     user = frappe.session.user
@@ -950,6 +999,14 @@ def get_term_exam_results(student=None, report_name=None):
         
         for report in reports:
             report['items'] = items_by_report.get(report.name, [])
+
+    if not is_admin:
+        filtered_reports = []
+        for report in reports:
+            if _has_outstanding_balance_for_report(s_name, report.get('term')):
+                continue
+            filtered_reports.append(report)
+        reports = filtered_reports
 
     result = []
     for report in reports:
