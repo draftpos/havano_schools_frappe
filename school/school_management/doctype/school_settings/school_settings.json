@@ -63,10 +63,11 @@
    "label": "Block Results for Students with Outstanding Balances"
   },
   {
-   "description": "Comma-separated list of Fee Items to block results for (e.g. Levy, School Fees). If empty, all fee items are checked.",
+   "description": "Select the specific Fee Items to enforce the block on. If empty, all fee items are checked.",
    "fieldname": "block_results_fee_items",
-   "fieldtype": "Small Text",
-   "label": "Block Results Fee Items"
+   "fieldtype": "Table MultiSelect",
+   "label": "Block Results Fee Items",
+   "options": "Block Results Fee Item"
   },
   {
    "default": "0",

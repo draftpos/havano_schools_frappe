@@ -862,8 +862,12 @@ def _has_outstanding_balance_for_report(student_name, report_term):
         return False
         
     fee_items_to_block = []
-    if settings.get("block_results_fee_items"):
-        fee_items_to_block = [i.strip().lower() for i in settings.get("block_results_fee_items").split(',') if i.strip()]
+    block_items = settings.get("block_results_fee_items")
+    if block_items:
+        if isinstance(block_items, str):
+            fee_items_to_block = [i.strip().lower() for i in block_items.split(',') if i.strip()]
+        else:
+            fee_items_to_block = [row.get("fee_item").strip().lower() for row in block_items if row.get("fee_item")]
         
     student = frappe.db.get_value("Student", student_name, ["name", "customer", "full_name"], as_dict=True)
     if not student: return False
