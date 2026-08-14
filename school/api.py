@@ -856,10 +856,14 @@ def _get_advanced_class_ranks(report_name, student_class, schedules, excluded_by
     return rank_map
 
 def _has_outstanding_balance_for_report(student_name, report_term):
-    from frappe.utils import getdate
+    from frappe.utils import getdate, flt
     settings = frappe.get_single("School Settings")
     if not settings.get("block_results_for_students_with_outstanding_balances"):
         return False
+        
+    fee_items_to_block = []
+    if settings.get("block_results_fee_items"):
+        fee_items_to_block = [i.strip().lower() for i in settings.get("block_results_fee_items").split(',') if i.strip()]
         
     student = frappe.db.get_value("Student", student_name, ["name", "customer", "full_name"], as_dict=True)
     if not student: return False
@@ -873,7 +877,7 @@ def _has_outstanding_balance_for_report(student_name, report_term):
     placeholders = ", ".join(["%s"] * len(customers))
     
     invoices = frappe.db.sql(f"""
-        SELECT grand_total, outstanding_amount, academic_term
+        SELECT name, grand_total, outstanding_amount, academic_term, currency
         FROM `tabSales Invoice`
         WHERE (customer IN ({placeholders}) OR customer_name IN ({placeholders}))
           AND docstatus = 1
@@ -882,25 +886,75 @@ def _has_outstanding_balance_for_report(student_name, report_term):
     total_outstanding = 0.0
     
     for inv in invoices:
-        if inv.outstanding_amount > 0:
+        if flt(inv.outstanding_amount) > 0:
             if inv.academic_term and report_start_date:
                 inv_term_start = frappe.db.get_value("Term", inv.academic_term, "start_date")
                 if inv_term_start and getdate(inv_term_start) > getdate(report_start_date):
                     continue
-            total_outstanding += float(inv.outstanding_amount)
             
-    ob = frappe.db.sql(f"""
-        SELECT SUM(jea.debit_in_account_currency - jea.credit_in_account_currency) as opening_balance
-        FROM `tabJournal Entry Account` jea
-        JOIN `tabJournal Entry` je ON je.name = jea.parent
-        WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
-          AND jea.party_type = 'Customer'
-          AND jea.party IN ({placeholders})
-          AND je.docstatus = 1
-    """, tuple(customers), as_dict=True)
-    
-    if ob and ob[0].opening_balance:
-        total_outstanding += float(ob[0].opening_balance)
+            items = frappe.get_all("Sales Invoice Item",
+                filters={"parent": inv.name},
+                fields=["item_name", "amount"])
+            
+            for item in items:
+                if fee_items_to_block and item.item_name.strip().lower() not in fee_items_to_block:
+                    continue
+                    
+                receipt_items = frappe.db.sql("""
+                    SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                    FROM `tabReceipt Item` ri
+                    JOIN `tabReceipting` r ON r.name = ri.parent
+                    WHERE ri.invoice_number = %s 
+                      AND ri.fee_item = %s 
+                      AND r.docstatus = 1
+                """, (inv.name, item.item_name), as_dict=True)
+                
+                allocated_amount_in_inv_currency = 0
+                inv_curr = inv.currency or "USD"
+                
+                for ri in receipt_items:
+                    alloc = flt(ri.allocated)
+                    rec_curr = ri.receipt_currency or "USD"
+                    exch_rate = flt(ri.exchange_rate) or 1.0
+                    
+                    if rec_curr != inv_curr:
+                        if rec_curr == "ZWG" and inv_curr == "USD":
+                            alloc = alloc / exch_rate if exch_rate else 0
+                        elif rec_curr == "USD" and inv_curr == "ZWG":
+                            alloc = alloc * exch_rate
+                    
+                    allocated_amount_in_inv_currency += alloc
+                
+                draft_allocations = frappe.db.sql("""
+                    SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                    FROM `tabReceipt Item` ri
+                    JOIN `tabReceipting` r ON r.name = ri.parent
+                    WHERE ri.invoice_number = %s 
+                      AND ri.fee_item = %s 
+                      AND r.docstatus = 0
+                """, (inv.name, item.item_name), as_dict=True)
+                
+                allocated_in_draft = 0
+                for ri in draft_allocations:
+                    alloc = flt(ri.allocated)
+                    rec_curr = ri.receipt_currency or "USD"
+                    exch_rate = flt(ri.exchange_rate) or 1.0
+                    
+                    if rec_curr != inv_curr:
+                        if rec_curr == "ZWG" and inv_curr == "USD":
+                            alloc = alloc / exch_rate if exch_rate else 0
+                        elif rec_curr == "USD" and inv_curr == "ZWG":
+                            alloc = alloc * exch_rate
+                    allocated_in_draft += alloc
+                
+                item_outstanding = flt(item.amount) - allocated_amount_in_inv_currency - allocated_in_draft
+                if item_outstanding > 0.01:
+                    total_outstanding += item_outstanding
+            
+    if not fee_items_to_block or "opening balance" in fee_items_to_block:
+        current_ob = frappe.db.get_value("Student", student.name, "opening_balance")
+        if flt(current_ob) > 0.01:
+            total_outstanding += flt(current_ob)
         
     return total_outstanding > 0.01
 

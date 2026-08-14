@@ -63,6 +63,12 @@
    "label": "Block Results for Students with Outstanding Balances"
   },
   {
+   "description": "Comma-separated list of Fee Items to block results for (e.g. Levy, School Fees). If empty, all fee items are checked.",
+   "fieldname": "block_results_fee_items",
+   "fieldtype": "Small Text",
+   "label": "Block Results Fee Items"
+  },
+  {
    "default": "0",
    "description": "Allow non-strict email validation. When enabled: auto-generates dummy emails (stu_&lt;name&gt;@dummy.school) for students without portal email, and shows password field in Student doctype under Portal Email",
    "fieldname": "allow_non_strict_email",
