@@ -12,6 +12,7 @@
   "fee_structure_defaults",
   "portal_settings",
   "block_results_for_students_with_outstanding_balances",
+  "block_results_fee_items",
   "allow_non_strict_email",
   "allow_reference_on_receipts",
   "a_level_settings_section",
@@ -65,7 +66,7 @@
   {
    "description": "Select the specific Fee Items to enforce the block on. If empty, all fee items are checked.",
    "fieldname": "block_results_fee_items",
-   "fieldtype": "Table MultiSelect",
+   "fieldtype": "Table",
    "label": "Block Results Fee Items",
    "options": "Block Results Fee Item"
   },
@@ -151,7 +152,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-07-28 14:58:12.820741",
+ "modified": "2026-08-15 10:20:00.000000",
  "modified_by": "Administrator",
  "module": "School Management",
  "name": "School Settings",
