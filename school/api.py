@@ -133,6 +133,65 @@ def get_billing_summary(student=None):
                                       filters={"parent": inv['name']}, 
                                       fields=["item_name", "qty", "rate", "amount"])
 
+    if customer_id:
+        try:
+            jes = frappe.db.sql("""
+                SELECT 
+                    je.name, 
+                    je.posting_date, 
+                    je.posting_date as due_date,
+                    jea.debit_in_account_currency as grand_total,
+                    jea.debit_in_account_currency as outstanding_amount,
+                    'Unpaid' as status,
+                    '' as cost_center,
+                    je.remark as fees_structure,
+                    jea.account_currency as currency
+                FROM `tabJournal Entry Account` jea
+                JOIN `tabJournal Entry` je ON je.name = jea.parent
+                WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
+                  AND jea.party_type = 'Customer'
+                  AND jea.party = %s
+                  AND je.docstatus = 1
+                  AND jea.debit_in_account_currency > 0
+            """, (customer_id,), as_dict=True)
+            
+            for je in jes:
+                allocations = frappe.db.sql("""
+                    SELECT ri.allocated, r.currency as receipt_currency, r.exchange_rate
+                    FROM `tabReceipt Item` ri
+                    JOIN `tabReceipting` r ON r.name = ri.parent
+                    WHERE ri.invoice_number = %s 
+                      AND r.docstatus = 1
+                """, (je.name,), as_dict=True)
+                
+                allocated = 0
+                inv_curr = je.get("currency") or "USD"
+                for ri in allocations:
+                    alloc = frappe.utils.flt(ri.allocated)
+                    rec_curr = ri.receipt_currency or "USD"
+                    exch_rate = frappe.utils.flt(ri.exchange_rate) or 1.0
+                    
+                    if rec_curr != inv_curr:
+                        if rec_curr == "ZWG" and inv_curr == "USD":
+                            alloc = alloc / exch_rate if exch_rate else 0
+                        elif rec_curr == "USD" and inv_curr == "ZWG":
+                            alloc = alloc * exch_rate
+                    allocated += alloc
+                    
+                outstanding = frappe.utils.flt(je.outstanding_amount) - allocated
+                outstanding = round(outstanding, 2)
+                
+                if outstanding > 0.01:
+                    je['outstanding_amount'] = outstanding
+                    if outstanding < frappe.utils.flt(je.grand_total):
+                        je['status'] = 'Partly Paid'
+                    je['posting_date'] = str(je.posting_date) if je.get('posting_date') else ""
+                    je['due_date'] = str(je.due_date) if je.get('due_date') else ""
+                    je['items'] = [{"item_name": "Opening Balance", "qty": 1, "rate": je.grand_total, "amount": je.grand_total}]
+                    invoices.append(je)
+        except Exception:
+            pass
+
     receipts = frappe.db.sql("""
         SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
         FROM `tabReceipting` 
