@@ -33,13 +33,13 @@ def redirect_to_portal():
     if "System Manager" in roles or "Administrator" in roles:
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
-    elif frappe.db.exists("Teacher", {"portal_email": user_key}) or frappe.db.exists("Teacher", {"employee_email": user_key}) or frappe.db.exists("Teacher", {"email": user_key}):
+    elif "Teacher" in roles or frappe.db.exists("Teacher", {"portal_email": user_key}) or frappe.db.exists("Teacher", {"employee_email": user_key}) or frappe.db.exists("Teacher", {"email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/teacher-portal.html"
-    elif frappe.db.exists("Parent", {"portal_email": user_key}):
+    elif "Parent" in roles or frappe.db.exists("Parent", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/parent-portal.html"
-    elif frappe.db.exists("Student", {"portal_email": user_key}):
+    elif "Student" in roles or "Student Portal" in roles or frappe.db.exists("Student", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
     elif "School User" in roles or "Accounts User" in roles or "Accounts Manager" in roles or "HR User" in roles or "HR Manager" in roles:
@@ -47,7 +47,7 @@ def redirect_to_portal():
         frappe.local.response["location"] = "/app"
     elif frappe.db.get_roles and any(r not in ["Guest", "All"] for r in roles):
         # Any user with a real role goes to /app
-        backend_roles = [r for r in roles if r not in ["Guest", "All", "Student", "Student Portal"]]
+        backend_roles = [r for r in roles if r not in ["Guest", "All", "Student", "Student Portal", "Parent", "Teacher"]]
         if backend_roles:
             frappe.local.response["type"] = "redirect"
             frappe.local.response["location"] = "/app"
