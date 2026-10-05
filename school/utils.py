@@ -36,28 +36,35 @@ def redirect_to_portal():
     elif "Teacher" in roles or frappe.db.exists("Teacher", {"portal_email": user_key}) or frappe.db.exists("Teacher", {"employee_email": user_key}) or frappe.db.exists("Teacher", {"email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/teacher-portal.html"
+        frappe.local.response["home_page"] = "/assets/school/html/teacher-portal.html"
     elif "Parent" in roles or frappe.db.exists("Parent", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/parent-portal.html"
+        frappe.local.response["home_page"] = "/assets/school/html/parent-portal.html"
     elif "Student" in roles or "Student Portal" in roles or frappe.db.exists("Student", {"portal_email": user_key}):
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
+        frappe.local.response["home_page"] = "/assets/school/html/student-portal.html"
     elif "School User" in roles or "Accounts User" in roles or "Accounts Manager" in roles or "HR User" in roles or "HR Manager" in roles:
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/app"
+        frappe.local.response["home_page"] = "/app"
     elif frappe.db.get_roles and any(r not in ["Guest", "All"] for r in roles):
         # Any user with a real role goes to /app
         backend_roles = [r for r in roles if r not in ["Guest", "All", "Student", "Student Portal", "Parent", "Teacher"]]
         if backend_roles:
             frappe.local.response["type"] = "redirect"
             frappe.local.response["location"] = "/app"
+            frappe.local.response["home_page"] = "/app"
         else:
             frappe.local.response["type"] = "redirect"
             frappe.local.response["location"] = "/assets/school/html/student-portal.html"
+            frappe.local.response["home_page"] = "/assets/school/html/student-portal.html"
     else:
         # Final fallback to student portal if no specific match
         frappe.local.response["type"] = "redirect"
         frappe.local.response["location"] = "/assets/school/html/student-portal.html"
+        frappe.local.response["home_page"] = "/assets/school/html/student-portal.html"
 
 SCHOOL_MODULES = ["School Management"]
 
