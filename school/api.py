@@ -383,12 +383,28 @@ def get_student_portal_dashboard():
     inclass_tests  = frappe.db.count("Inclass Test",   {}) if frappe.db.exists("DocType", "Inclass Test") else 0
     homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) if frappe.db.exists("DocType", "Home Schedule Item") else 0
     term_reports   = frappe.db.count("Term Exam Report", {"student_class": s_class, "docstatus": 1}) if s_class else 0
-    billing_summary = frappe.db.sql("""
-        SELECT SUM(outstanding_amount) as balance
-        FROM `tabSales Invoice`
-        WHERE customer_name = %s AND docstatus = 1
-    """, student.full_name, as_dict=True)
-    balance = billing_summary[0].balance if billing_summary and billing_summary[0].balance else 0
+    customer_id = frappe.db.get_value("Customer", {"name": student.name}, "name")
+    if not customer_id:
+        customer_id = frappe.db.get_value("Customer", {"customer_name": student.full_name}, "name")
+
+    if customer_id:
+        balance = frappe.utils.flt(frappe.db.sql('''
+            SELECT COALESCE(SUM(gle.debit - gle.credit), 0) 
+            FROM `tabGL Entry` gle 
+            WHERE gle.party_type = 'Customer' 
+            AND gle.party = %s 
+            AND gle.is_cancelled = 0
+        ''', customer_id)[0][0])
+    else:
+        billing_summary = frappe.db.sql("""
+            SELECT SUM(outstanding_amount) as balance
+            FROM `tabSales Invoice`
+            WHERE customer_name = %s AND docstatus = 1
+        """, student.full_name, as_dict=True)
+        inv_balance = billing_summary[0].balance if billing_summary and billing_summary[0].balance else 0
+        ob = frappe.db.get_value("Student", student.name, "opening_balance") or 0
+        balance = frappe.utils.flt(inv_balance) + frappe.utils.flt(ob)
+        
     class_name = frappe.db.get_value("Student Class", student.student_class, "class_name") or student.student_class or ""
     return {
         "student": {
@@ -1805,12 +1821,27 @@ def _get_student_counts(student):
     homework       = frappe.db.count("Home Schedule Item", {"student_admission_no": s_reg_no}) \
                      if frappe.db.exists("DocType", "Home Schedule Item") else 0
 
-    billing = frappe.db.sql("""
-        SELECT SUM(outstanding_amount) as balance
-        FROM `tabSales Invoice`
-        WHERE customer_name = %s AND docstatus = 1
-    """, full_name, as_dict=True)
-    balance = float(billing[0].balance) if billing and billing[0].balance else 0.0
+    customer_id = frappe.db.get_value("Customer", {"name": sname}, "name")
+    if not customer_id:
+        customer_id = frappe.db.get_value("Customer", {"customer_name": full_name}, "name")
+
+    if customer_id:
+        balance = float(frappe.db.sql('''
+            SELECT COALESCE(SUM(gle.debit - gle.credit), 0) 
+            FROM `tabGL Entry` gle 
+            WHERE gle.party_type = 'Customer' 
+            AND gle.party = %s 
+            AND gle.is_cancelled = 0
+        ''', customer_id)[0][0])
+    else:
+        billing = frappe.db.sql("""
+            SELECT SUM(outstanding_amount) as balance
+            FROM `tabSales Invoice`
+            WHERE customer_name = %s AND docstatus = 1
+        """, full_name, as_dict=True)
+        inv_balance = float(billing[0].balance) if billing and billing[0].balance else 0.0
+        ob = frappe.db.get_value("Student", sname, "opening_balance") or 0.0
+        balance = inv_balance + float(ob)
 
     return {
         "exam_schedules": exam_schedules or 0,
