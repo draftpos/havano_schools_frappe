@@ -5,7 +5,13 @@ title: Account Statement
 <script>
 (function(){
   var p=new URLSearchParams(window.location.search);
-  window.BACK_URL=p.get('from')==='parent'?'/assets/school/html/parent-portal.html':'/assets/school/html/student-portal.html';
+  var fromParent = p.get('from') === 'parent';
+  var child = p.get('child') || '';
+  if(fromParent){
+    window.BACK_URL = '/assets/school/html/parent-portal.html' + (child ? '?child=' + encodeURIComponent(child) : '');
+  } else {
+    window.BACK_URL = '/assets/school/html/student-portal.html' + (child ? '?child=' + encodeURIComponent(child) : '');
+  }
 })();
 </script>
 <style>
@@ -75,10 +81,18 @@ function render(d){
   var to=inv.reduce(function(s,i){return s+(i.outstanding_amount||0);},0);
   var tp=tb-to;
   var bu=window.BACK_URL||'/assets/school/html/student-portal.html';
+  var st=d.student||{};
+  var studentMeta = [st.student_reg_no, st.student_class, st.section].filter(Boolean).join(' · ');
+
   var h='';
-  h+='<div class="bh"><a href="'+bu+'" class="bb">&#8592; Dashboard</a>';
+  h+='<div class="bh"><a href="'+bu+'" class="bb">&#8592; Back to Dashboard</a>';
   h+='<h2>&#128196; Account Statement</h2>';
-  h+='<p>'+(d.student&&d.student.full_name?d.student.full_name:'')+'</p></div>';
+  h+='<p style="font-size:1.1rem;font-weight:600;margin-top:8px;">'+(st.full_name||st.name||'Student')+'</p>';
+  if(studentMeta){
+    h+='<p style="font-size:0.88rem;opacity:0.9;margin-top:2px;">'+studentMeta+'</p>';
+  }
+  h+='</div>';
+
   h+='<div class="sc">';
   h+='<div class="sc-box bl"><div class="sc-icon">&#128203;</div><div class="sc-val">'+fm(tb, "USD")+'</div><div class="sc-lbl">Total Billed (USD)</div></div>';
   h+='<div class="sc-box gr"><div class="sc-icon">&#9989;</div><div class="sc-val">'+fm(tp, "USD")+'</div><div class="sc-lbl">Total Paid (USD)</div></div>';
@@ -120,8 +134,11 @@ function render(d){
       h+='<td><span class="badge '+bc+'">'+st+'</span></td></tr>';
       h+='<tr class="dr" id="dr-rec'+id+'"><td colspan="6"><div class="di">';
       if(r.items&&r.items.length){
-        h+='<table><tr style="background:#f0f4ff;"><td><b>Invoice</b></td><td><b>Fees</b></td><td><b>Outstanding</b></td><td><b>Allocated</b></td></tr>';
-        r.items.forEach(function(it){h+='<tr><td>'+(it.invoice_number||"-")+'</td><td>'+(it.fees_structure||"-")+'</td><td>'+fm(it.outstanding, it.invoice_currency)+'</td><td>'+fm(it.allocated, r.currency)+'</td></tr>';});
+        h+='<table><tr style="background:#f0f4ff;"><td><b>Invoice</b></td><td><b>Fee Item</b></td><td><b>Outstanding</b></td><td><b>Allocated</b></td></tr>';
+        r.items.forEach(function(it){
+          var feeDesc = it.fees_structure || it.fee_item || "-";
+          h+='<tr><td>'+(it.invoice_number||"-")+'</td><td>'+feeDesc+'</td><td>'+fm(it.outstanding, it.invoice_currency)+'</td><td>'+fm(it.allocated, r.currency)+'</td></tr>';
+        });
         h+='</table>';
       }else{h+='<p style="color:#aaa;margin:0;">No items</p>';}
       h+='</div></td></tr>';
