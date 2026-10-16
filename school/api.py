@@ -84,47 +84,79 @@ def get_billing_summary(student=None):
     if user in ("Administrator", "Guest"):
         user = "parent@example.com"
 
-
-
+    # If student parameter is not provided, look up by portal_email
     if not student:
-        student = frappe.db.get_value("Student", {"portal_email": user},
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
+        # First check if user is a Student
+        student_doc = frappe.db.get_value("Student", {"portal_email": user},
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+        
+        # If not student, check if user is a Parent with linked children
+        if not student_doc:
+            parent_name = frappe.db.get_value("Parent", {"portal_email": user}, "name")
+            if parent_name:
+                first_child = frappe.db.get_value("Parent Child", {"parent": parent_name}, "student", order_by="idx asc")
+                if first_child:
+                    student_doc = frappe.db.get_value("Student", first_child,
+                        ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+        student = student_doc
     else:
-        student = frappe.db.get_value("Student", student,
-            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section"], as_dict=True)
+        # If student parameter passed as name or reg_no
+        student_doc = frappe.db.get_value("Student", student,
+            ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+        if not student_doc:
+            student_doc = frappe.db.get_value("Student", {"student_reg_no": student},
+                ["name", "full_name", "first_name", "last_name", "student_reg_no", "student_class", "section", "customer"], as_dict=True)
+        student = student_doc
     
-    if not student: return []
+    if not student:
+        return []
 
     s_name = student.name
     
     db_full = student.get('full_name')
     if not db_full:
         db_full = " ".join(filter(None, [student.get('first_name'), student.get('last_name')]))
-    student['full_name'] = db_full
+    student['full_name'] = db_full or s_name
 
     s_class = student.student_class or ""
 
-    # Try to find the linked customer ID
-    customer_id = frappe.db.get_value("Customer", {"name": student.name}, "name")
-    if not customer_id:
-        customer_id = frappe.db.get_value("Customer", {"customer_name": student.full_name}, "name")
+    # Gather all possible identifiers for customer matching
+    customer_candidates = list(set(filter(None, [
+        student.name,
+        student.get("customer"),
+        student.get("student_reg_no"),
+        student.full_name,
+        frappe.db.get_value("Customer", {"customer_name": student.full_name}, "name"),
+        frappe.db.get_value("Customer", {"name": student.name}, "name")
+    ])))
 
-    if customer_id:
+    customer_names = list(set(filter(None, [
+        student.full_name,
+        student.name,
+        student.get("student_reg_no")
+    ])))
+
+    # Fetch Sales Invoices
+    if customer_candidates and customer_names:
         invoices = frappe.db.sql("""
             SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
                    cost_center, fees_structure, currency
             FROM `tabSales Invoice`
-            WHERE customer = %s AND docstatus = 1
+            WHERE (customer IN %(candidates)s OR customer_name IN %(names)s)
+              AND docstatus = 1
             ORDER BY posting_date DESC
-        """, customer_id, as_dict=True)
+        """, {"candidates": tuple(customer_candidates), "names": tuple(customer_names)}, as_dict=True)
+    elif customer_candidates:
+        invoices = frappe.db.sql("""
+            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
+                   cost_center, fees_structure, currency
+            FROM `tabSales Invoice`
+            WHERE customer IN %(candidates)s
+              AND docstatus = 1
+            ORDER BY posting_date DESC
+        """, {"candidates": tuple(customer_candidates)}, as_dict=True)
     else:
-        invoices = frappe.db.sql("""
-            SELECT name, posting_date, due_date, grand_total, outstanding_amount, status,
-                   cost_center, fees_structure, currency
-            FROM `tabSales Invoice`
-            WHERE customer_name = %s AND docstatus = 1
-            ORDER BY posting_date DESC
-        """, student.full_name, as_dict=True)
+        invoices = []
 
     for inv in invoices:
         inv['posting_date'] = str(inv['posting_date']) if inv.get('posting_date') else ""
@@ -133,7 +165,8 @@ def get_billing_summary(student=None):
                                       filters={"parent": inv['name']}, 
                                       fields=["item_name", "qty", "rate", "amount"])
 
-    if customer_id:
+    # Fetch Opening Journal Entries if any
+    if customer_candidates:
         try:
             jes = frappe.db.sql("""
                 SELECT 
@@ -150,10 +183,10 @@ def get_billing_summary(student=None):
                 JOIN `tabJournal Entry` je ON je.name = jea.parent
                 WHERE (je.voucher_type = 'Opening Entry' OR je.is_opening = 'Yes')
                   AND jea.party_type = 'Customer'
-                  AND jea.party = %s
+                  AND jea.party IN %(candidates)s
                   AND je.docstatus = 1
                   AND jea.debit_in_account_currency > 0
-            """, (customer_id,), as_dict=True)
+            """, {"candidates": tuple(customer_candidates)}, as_dict=True)
             
             for je in jes:
                 allocations = frappe.db.sql("""
@@ -192,18 +225,31 @@ def get_billing_summary(student=None):
         except Exception:
             pass
 
-    receipts = frappe.db.sql("""
-        SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
-        FROM `tabReceipting` 
-        WHERE student_name IN (%s, %s) AND docstatus = 1
-        ORDER BY date DESC
-    """, (student.name, student.full_name), as_dict=True)
+    # Fetch Receipts
+    receipt_matches = tuple(set(filter(None, [
+        student.name,
+        student.full_name,
+        student.get("student_reg_no")
+    ])))
+
+    if receipt_matches:
+        receipts = frappe.db.sql("""
+            SELECT name, date, total_outstanding, total_allocated, total_balance, account, docstatus, currency, exchange_rate
+            FROM `tabReceipting` 
+            WHERE student_name IN %(matches)s AND docstatus = 1
+            ORDER BY date DESC
+        """, {"matches": receipt_matches}, as_dict=True)
+    else:
+        receipts = []
 
     for rec in receipts:
         rec['date'] = str(rec['date']) if rec.get('date') else ""
-        rec['items'] = frappe.get_all("Receipt Item", 
-                                      filters={"parent": rec['name']}, 
-                                      fields=["invoice_number", "fee_item", "outstanding", "allocated", "invoice_currency"])
+        items = frappe.get_all("Receipt Item", 
+                               filters={"parent": rec['name']}, 
+                               fields=["invoice_number", "fee_item", "outstanding", "allocated", "invoice_currency"])
+        for it in items:
+            it['fees_structure'] = it.get('fee_item') or ""
+        rec['items'] = items
 
     return {
         "student": student, 
